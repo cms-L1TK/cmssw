@@ -6,14 +6,13 @@ using namespace std;
 
 namespace tmtt {
 
-
-StubKiller::StubKiller(StubKiller::KillOptions killScenario,
-                              const TrackerTopology* trackerTopology,
-			 const TrackerGeometry* trackerGeometry,
-			 const edm::Event& event) :
-    killScenario_(killScenario),
-    trackerTopology_(trackerTopology),
-    trackerGeometry_(trackerGeometry),
+  StubKiller::StubKiller(StubKiller::KillOptions killScenario,
+                         const TrackerTopology* trackerTopology,
+                         const TrackerGeometry* trackerGeometry,
+                         const edm::Event& event)
+      : killScenario_(killScenario),
+        trackerTopology_(trackerTopology),
+        trackerGeometry_(trackerGeometry),
         minPhiToKill_(0),
         maxPhiToKill_(0),
         minZToKill_(0),
@@ -23,12 +22,14 @@ StubKiller::StubKiller(StubKiller::KillOptions killScenario,
         fractionOfStubsToKillInLayers_(0),
         fractionOfStubsToKillEverywhere_(0),
         fractionOfModulesToKillEverywhere_(0) {
-
-if (rndmService_.isAvailable()) {
-rndmEngine_ = &(rndmService_->getEngine(event.streamID()));
-} else {
-  throw cms::Exception("BadConfig")<<"StubKiller: requires RandomNumberGeneratorService, not present in cfg file, namely:"<<endl<<"process.RandomNumberGeneratorService=cms.Service('RandomNumberGeneratorService',TMTrackProducer=cms.PSet(initialSeed=cms.untracked.uint32(12345)))";
-}
+    if (rndmService_.isAvailable()) {
+      rndmEngine_ = &(rndmService_->getEngine(event.streamID()));
+    } else {
+      throw cms::Exception("BadConfig")
+          << "StubKiller: requires RandomNumberGeneratorService, not present in cfg file, namely:" << endl
+          << "process.RandomNumberGeneratorService=cms.Service('RandomNumberGeneratorService',TMTrackProducer=cms.PSet("
+             "initialSeed=cms.untracked.uint32(12345)))";
+    }
 
     // These scenarios correspond to slide 12 of  https://indico.cern.ch/event/719985/contributions/2970687/attachments/1634587/2607365/StressTestTF-Acosta-Apr18.pdf
     // Scenario 1
@@ -126,7 +127,7 @@ rndmEngine_ = &(rndmService_->getEngine(event.streamID()));
   }
 
   // Indicate if given stub was killed by dead tracker module, based on dead regions specified here,
-    // and ignoring dead module scenario.
+  // and ignoring dead module scenario.
   // layersToKill - a vector stating the layers we are killing stubs in.  Can be an empty vector.
   // Barrel layers are encoded as 1-6. The endcap layers are encoded as 11-15 (-z) and 21-25 (+z)
   // min/max Phi/Z/R - stubs within the region specified by these boundaries and layersToKill are flagged for killing
@@ -206,7 +207,7 @@ rndmEngine_ = &(rndmService_->getEngine(event.streamID()));
     return false;
   }
 
-// Identify modules to be killed, chosen randomly from those in the whole tracker.
+  // Identify modules to be killed, chosen randomly from those in the whole tracker.
 
   void StubKiller::chooseModulesToKill() {
     for (const GeomDetUnit* gd : trackerGeometry_->detUnits()) {
@@ -218,7 +219,7 @@ rndmEngine_ = &(rndmService_->getEngine(event.streamID()));
     }
   }
 
-//  Identify modules to be killed, chosen based on location in tracker.
+  //  Identify modules to be killed, chosen based on location in tracker.
 
   void StubKiller::addDeadLayerModulesToDeadModuleList() {
     for (const GeomDetUnit* gd : trackerGeometry_->detUnits()) {

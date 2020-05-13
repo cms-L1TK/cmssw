@@ -18,7 +18,6 @@ namespace tmtt {
 
   class DupFitTrkKiller {
   public:
-
     /**
   *  Make available cfg parameters & specify which algorithm is to be used for duplicate track removal.
   */

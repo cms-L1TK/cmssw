@@ -14,25 +14,25 @@ namespace tmtt {
   //=== Initialization
 
   Make3Dtracks::Make3Dtracks(const Settings* settings,
-                          unsigned int iPhiSec,
-                          unsigned int iEtaReg,
-                          float etaMinSector,
-                          float etaMaxSector,
-			     float phiCentreSector) : 
-    // Store config params & arguments.
-    settings_(settings),
-    iPhiSec_(iPhiSec),  // Sector number
-    iEtaReg_(iEtaReg),
-    etaMinSector_(etaMinSector),        // Range of eta sector
-    etaMaxSector_(etaMaxSector),        // Range of eta sector
-    phiCentreSector_(phiCentreSector),  // Centre of phi sector
+                             unsigned int iPhiSec,
+                             unsigned int iEtaReg,
+                             float etaMinSector,
+                             float etaMaxSector,
+                             float phiCentreSector)
+      :  // Store config params & arguments.
+        settings_(settings),
+        iPhiSec_(iPhiSec),  // Sector number
+        iEtaReg_(iEtaReg),
+        etaMinSector_(etaMinSector),        // Range of eta sector
+        etaMaxSector_(etaMaxSector),        // Range of eta sector
+        phiCentreSector_(phiCentreSector),  // Centre of phi sector
 
-    // Note if any fitters require an r-z track filter to be run.
-    runRZfilter_(settings->useRZfilter().size() > 0)
-    {
+        // Note if any fitters require an r-z track filter to be run.
+        runRZfilter_(settings->useRZfilter().size() > 0) {
     // Initialize any track filters (e.g. r-z) run after the r-phi Hough transform.
     if (runRZfilter_)
-      rzFilter_ = std::make_unique<TrkRZfilter>(settings_, iPhiSec_, iEtaReg_, etaMinSector_, etaMaxSector_, phiCentreSector_);
+      rzFilter_ =
+          std::make_unique<TrkRZfilter>(settings_, iPhiSec_, iEtaReg_, etaMinSector_, etaMaxSector_, phiCentreSector_);
   }
 
   //=== Convert 2D tracks found by HT within the current sector to 3D tracks, without running any r-z track filter.

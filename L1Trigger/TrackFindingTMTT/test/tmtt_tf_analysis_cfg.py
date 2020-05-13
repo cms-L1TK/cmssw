@@ -13,12 +13,12 @@ process = cms.Process("Demo")
 
 GEOMETRY = "D49"
 
-if GEOMETRY == "D41":
-  process.load('Configuration.Geometry.GeometryExtended2026D41Reco_cff')
-  process.load('Configuration.Geometry.GeometryExtended2026D41_cff')
-elif GEOMETRY == "D49":
+if GEOMETRY == "D49":
   process.load('Configuration.Geometry.GeometryExtended2026D49Reco_cff')
   process.load('Configuration.Geometry.GeometryExtended2026D49_cff')
+else:
+  print "this is not a valid geometry!!!"
+  exit
 
 process.load('Configuration.StandardSequences.MagneticField_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
@@ -35,9 +35,8 @@ def getTxtFile(txtFileName):
   return os.environ['CMSSW_BASE']+'/src/L1Trigger/TrackFindingTMTT/data/'+txtFileName
 
 #--- Specify input MC
-if GEOMETRY == "D41":
-  inputMCtxt = getTxtFile('MCsamples/1060/RelVal/TTbar/PU200.txt')
-elif GEOMETRY == "D49":
+# MC txt files are in https://github.com/cms-data/L1Trigger-TrackFindingTMTT.
+if GEOMETRY == "D49":
   inputMCtxt = getTxtFile('MCsamples/1110/RelVal/TTbar/PU200.txt')
 
 # Fastest to use a local copy ...

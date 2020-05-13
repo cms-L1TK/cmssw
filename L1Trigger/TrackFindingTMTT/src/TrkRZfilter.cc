@@ -12,17 +12,16 @@ namespace tmtt {
   //=== Initialize configuration parameters, and note eta range covered by sector and phi coordinate of its centre.
 
   TrkRZfilter::TrkRZfilter(const Settings* settings,
-                         unsigned int iPhiSec,
-                         unsigned int iEtaReg,
-                         float etaMinSector,
-                         float etaMaxSector,
-			   float phiCentreSector) :
-    // Configuration parameters.
-    settings_(settings),
-    // Sector number.
-    iPhiSec_(iPhiSec),
-    iEtaReg_(iEtaReg)
-{
+                           unsigned int iPhiSec,
+                           unsigned int iEtaReg,
+                           float etaMinSector,
+                           float etaMaxSector,
+                           float phiCentreSector)
+      :  // Configuration parameters.
+        settings_(settings),
+        // Sector number.
+        iPhiSec_(iPhiSec),
+        iEtaReg_(iEtaReg) {
     // Eta range of sector & phi coord of its centre.
     etaMinSector_ = etaMinSector;
     etaMaxSector_ = etaMaxSector;
@@ -91,7 +90,7 @@ namespace tmtt {
       // Digitize stubs for r-z filter if required.
       if (settings_->enableDigitize()) {
         for (Stub* s : stubs) {
-  	  s->digitize(iPhiSec_, Stub::DigiStage::SF);
+          s->digitize(iPhiSec_, Stub::DigiStage::SF);
         }
       }
 
@@ -141,7 +140,7 @@ namespace tmtt {
   //=== in r-z using tracklet algo.
 
   vector<Stub*> TrkRZfilter::seedFilter(const std::vector<Stub*>& stubs, float trkQoverPt, bool print) {
-    unsigned int numLayers;                      //Num of Layers in the cell after that filter has been applied
+    unsigned int numLayers;                //Num of Layers in the cell after that filter has been applied
     std::vector<Stub*> filtStubs = stubs;  // Copy stubs vector in filtStubs
     bool FirstSeed = true;
     //Allowed layers for the first & second seeding stubs
@@ -151,7 +150,7 @@ namespace tmtt {
 
     unsigned int numSeedCombinations = 0;      // Counter for number of seed combinations considered.
     unsigned int numGoodSeedCombinations = 0;  // Counter for seed combinations with z0 within beam spot length.
-    vector<Stub*> filteredStubs;         // Filter Stubs vector to be returned
+    vector<Stub*> filteredStubs;               // Filter Stubs vector to be returned
 
     unsigned int oldNumLay = 0;  //Number of Layers counter, used to keep the seed with more layers
 
@@ -175,19 +174,19 @@ namespace tmtt {
               numSeedCombinations++;  //Increase filter cycles counter
               if (print)
                 PrintL1trk() << "s0: "
-                     << "z: " << s0->z() << ", r: " << s0->r() << ", id:" << s0->layerId() << " ****** s1: "
-                     << "z: " << s1->z() << ", r: " << s1->r() << ", id:" << s1->layerId();
+                             << "z: " << s0->z() << ", r: " << s0->r() << ", id:" << s0->layerId() << " ****** s1: "
+                             << "z: " << s1->z() << ", r: " << s1->r() << ", id:" << s1->layerId();
               //double sumSeedDist = 0.;
               //double oldSumSeedDist = 1000000.;  //Define variable used to estimate the quality of seeds
               vector<Stub*> tempStubs;  //Create a temporary container for stubs
-              tempStubs.push_back(s0);        //Store the first seeding stub in the temporary container
-              tempStubs.push_back(s1);        //Store the second seeding stub in the temporary container
+              tempStubs.push_back(s0);  //Store the first seeding stub in the temporary container
+              tempStubs.push_back(s1);  //Store the second seeding stub in the temporary container
 
-	      // Estimate a value of z at the beam spot using the two seeding stubs
-              double z0 = s1->z() + (-s1->z() + s0->z()) * s1->r() / (s1->r() - s0->r());  
+              // Estimate a value of z at the beam spot using the two seeding stubs
+              double z0 = s1->z() + (-s1->z() + s0->z()) * s1->r() / (s1->r() - s0->r());
               //double z0err = s1->sigmaZ() + ( s1->sigmaZ() + s0->sigmaZ() )*s1->r()/std::abs(s1->r()-s0->r()) + std::abs(-s1->z()+s0->z())*(s1->sigmaR()*std::abs(s1->r()-s0->r()) + s1->r()*(s1->sigmaR() + s0->sigmaR()) )/((s1->r()-s0->r())*(s1->r()-s0->r()));
-	      // Estimate a value of z at a chosen Radius using the two seeding stubs
-              float zTrk = s1->z() + (-s1->z() + s0->z()) * (s1->r() - chosenRofZ_) / (s1->r() - s0->r());  
+              // Estimate a value of z at a chosen Radius using the two seeding stubs
+              float zTrk = s1->z() + (-s1->z() + s0->z()) * (s1->r() - chosenRofZ_) / (s1->r() - s0->r());
               // float zTrkErr = s1->sigmaZ() + ( s1->sigmaZ() + s0->sigmaZ() )*std::abs(s1->r()-chosenRofZ_)/std::abs(s1->r()-s0->r()) + std::abs(-s1->z()+s0->z())*(s1->sigmaR()*std::abs(s1->r()-s0->r()) + std::abs(s1->r()-chosenRofZ_)*(s1->sigmaR() + s0->sigmaR()) )/((s1->r()-s0->r())*(s1->r()-s0->r()));
               float leftZtrk = zTrk * std::abs(s1->r() - s0->r());
               float rightZmin = zTrkMinSector_ * std::abs(s1->r() - s0->r());

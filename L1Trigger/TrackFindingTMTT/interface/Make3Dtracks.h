@@ -24,14 +24,13 @@ namespace tmtt {
 
   class Make3Dtracks {
   public:
-
     // Initialize
     Make3Dtracks(const Settings* settings,
-              unsigned int iPhiSec,
-              unsigned int iEtaReg,
-              float etaMinSector,
-              float etaMaxSector,
-		 float phiCentreSector);
+                 unsigned int iPhiSec,
+                 unsigned int iEtaReg,
+                 float etaMinSector,
+                 float etaMaxSector,
+                 float phiCentreSector);
 
     ~Make3Dtracks() {}
 

@@ -23,10 +23,9 @@ namespace tmtt {
 
   class HTbase {
   public:
-
     // Initialization.
-    HTbase(const Settings* settings, unsigned int iPhiSec, unsigned int iEtaReg, 
-	   unsigned int nBinsX, unsigned int nBinsY);
+    HTbase(
+        const Settings* settings, unsigned int iPhiSec, unsigned int iEtaReg, unsigned int nBinsX, unsigned int nBinsY);
 
     virtual ~HTbase() {}
 
@@ -127,7 +126,7 @@ namespace tmtt {
     unsigned int iPhiSec_;  // Sector number.
     unsigned int iEtaReg_;
 
-    unsigned int nBinsX_; // Bins in HT array.
+    unsigned int nBinsX_;  // Bins in HT array.
     unsigned int nBinsY_;
 
     // Hough transform array.

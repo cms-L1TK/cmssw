@@ -22,25 +22,29 @@ namespace tmtt {
 
   class HTrphi : public HTbase {
   public:
-
-    enum class HTshape {square, diamond, hexagon, brick};
+    enum class HTshape { square, diamond, hexagon, brick };
 
     //--- Error monitoring
 
     struct ErrorMonitor {
-    // Maximum |gradient| of line corresponding to any stub. FW assumes it's < 1.0.
+      // Maximum |gradient| of line corresponding to any stub. FW assumes it's < 1.0.
       std::atomic<float> maxLineGradient;
-    // Error count when stub added to cell not NE, E or SE of cell stub added to in previous HT column.
+      // Error count when stub added to cell not NE, E or SE of cell stub added to in previous HT column.
       std::atomic<unsigned int> numErrorsTypeA;
-    // Error count when stub added to more than 2 cells in one HT column 
+      // Error count when stub added to more than 2 cells in one HT column
       std::atomic<unsigned int> numErrorsTypeB;
-    // Error count normalisation
+      // Error count normalisation
       std::atomic<unsigned int> numErrorsNorm;
     };
 
     // Initialization with sector number, eta range covered by sector and phi coordinate of its centre.
-    HTrphi(const Settings* settings, unsigned int iPhiSec, unsigned int iEtaReg,
-           float etaMinSector, float etaMaxSector, float phiCentreSector, ErrorMonitor* errMon = nullptr);
+    HTrphi(const Settings* settings,
+           unsigned int iPhiSec,
+           unsigned int iEtaReg,
+           float etaMinSector,
+           float etaMaxSector,
+           float phiCentreSector,
+           ErrorMonitor* errMon = nullptr);
 
     ~HTrphi() {}
 
@@ -94,7 +98,11 @@ namespace tmtt {
                                                     bool debug = false) const;
 
     // Check that limitations of firmware would not prevent stub being stored correctly in this HT column.
-    void countFirmwareErrors(unsigned int iQoverPtBin, unsigned int iPhiTrkBinMin, unsigned int iPhiTrkBinMax, unsigned int jPhiTrkBinMinLast, unsigned int jPhiTrkBinMaxLast);
+    void countFirmwareErrors(unsigned int iQoverPtBin,
+                             unsigned int iPhiTrkBinMin,
+                             unsigned int iPhiTrkBinMax,
+                             unsigned int jPhiTrkBinMinLast,
+                             unsigned int jPhiTrkBinMaxLast);
 
     // Calculate maximum |gradient| that any stub's line across this HT array could have, so can check it doesn't exceed 1.
     float calcMaxLineGradArray() const;
@@ -126,13 +134,13 @@ namespace tmtt {
     unsigned int nBinsPhiTrkAxis_;  // Number of bins in HT array in phiTrk axis.
     float binSizePhiTrkAxis_;       // HT array bin size in phiTrk
     // Optionally merge 2x2 neighbouring cells into a single cell at low Pt, to reduce efficiency loss due to scattering. (Used also by mini-HT).
-    bool enableMerge2x2_;  
+    bool enableMerge2x2_;
     float minInvPtToMerge2x2_;
 
     //--- Options when filling HT array.
 
     // Take all cells in HT array crossed by line corresponding to each stub (= 0) or take only some to reduce rate at cost of efficiency ( > 0)
-    unsigned int killSomeHTCellsRphi_;  
+    unsigned int killSomeHTCellsRphi_;
     // Options for killing stubs/tracks that cant be sent within time-multiplexed period.
     bool busyInputSectorKill_;
     unsigned int busyInputSectorNumStubs_;

@@ -39,8 +39,7 @@ namespace tmtt {
         psModule_(psModule),
         layerId_(layerId),
         layerIdReduced_(TrackerModule::calcLayerIdReduced(layerId)),
-        barrel_(barrel)
-  {  //work in progress on better constructor for new hybrid
+        barrel_(barrel) {  //work in progress on better constructor for new hybrid
     if (psModule && barrel) {
       // max z at which non-tilted modules are found in 3 barrel PS layers. (Element 0 not used).
       const vector<float>& zMax = settings->zMaxNonTilted();
@@ -48,7 +47,7 @@ namespace tmtt {
     } else {
       tiltedBarrel_ = false;
     }
-    tiltAngle_ = 0.; // Not used if cfg uses "ApproxB".
+    tiltAngle_ = 0.;  // Not used if cfg uses "ApproxB".
     if (psModule) {
       stripPitch_ = settings->psPixelPitch();
       stripLength_ = settings->psPixelLength();
@@ -67,27 +66,26 @@ namespace tmtt {
              unsigned int index_in_vStubs,
              const Settings* settings,
              const TrackerTopology* trackerTopology,
-	     const TrackerModule* trackerModule,
-	     const StubKiller* stubKiller)
+             const TrackerModule* trackerModule,
+             const StubKiller* stubKiller)
       : ttStubRef_(ttStubRef),
         settings_(settings),
         index_in_vStubs_(index_in_vStubs),
         assocTP_(nullptr),  // Initialize in case job is using no MC truth info.
         digitizeWarningsOn_(true),
-	lastDigiStep_(Stub::DigiStage::NONE),
-        trackerModule_(trackerModule),  // Info about tracker module containing stub 
-        degradeBend_(trackerTopology),                   // Used to degrade stub bend information.
-  // Module related variables (need to be stored for Hybrid)
-    psModule_(trackerModule->psModule()),
-    layerId_(trackerModule->layerId()),
-    layerIdReduced_(trackerModule->layerIdReduced()),
-    barrel_(trackerModule->barrel()),
-    tiltedBarrel_(trackerModule->tiltedBarrel()),
-    tiltAngle_(trackerModule->tiltAngle()),
-    stripPitch_(trackerModule->stripPitch()),
-    stripLength_(trackerModule->stripLength()),
-    nStrips_(trackerModule->nStrips())
-  {
+        lastDigiStep_(Stub::DigiStage::NONE),
+        trackerModule_(trackerModule),  // Info about tracker module containing stub
+        degradeBend_(trackerTopology),  // Used to degrade stub bend information.
+                                        // Module related variables (need to be stored for Hybrid)
+        psModule_(trackerModule->psModule()),
+        layerId_(trackerModule->layerId()),
+        layerIdReduced_(trackerModule->layerIdReduced()),
+        barrel_(trackerModule->barrel()),
+        tiltedBarrel_(trackerModule->tiltedBarrel()),
+        tiltAngle_(trackerModule->tiltAngle()),
+        stripPitch_(trackerModule->stripPitch()),
+        stripLength_(trackerModule->stripLength()),
+        nStrips_(trackerModule->nStrips()) {
     // Get coordinates of stub.
     const TTStub<Ref_Phase2TrackerDigi_>* ttStubP = ttStubRef_.get();
 
@@ -147,11 +145,11 @@ namespace tmtt {
 
     // Get stub bend that is available in off-detector electronics, allowing for degredation of
     // bend resolution due to bit encoding by FE chip if required.
-    numMergedBend_ = 1;       // Number of bend values merged into single degraded one.
+    numMergedBend_ = 1;  // Number of bend values merged into single degraded one.
     if (settings->degradeBendRes() == 2) {
       float degradedBend;  // degraded bend
       // This returns values of degradedBend & numMergedBend_
-      this->degradeResolution(bendInFrontend_, degradedBend, numMergedBend_); 
+      this->degradeResolution(bendInFrontend_, degradedBend, numMergedBend_);
       bend_ = degradedBend;
     } else if (settings->degradeBendRes() == 1) {
       bend_ = ttStubRef_->bendBE();  // Degraded bend from official CMS recipe.
@@ -180,7 +178,7 @@ namespace tmtt {
   void Stub::calcQoverPtrange() {
     // First determine bin range along q/Pt axis of HT array
     // (Use "int" as nasty things happen if multiply "int" and "unsigned int").
-    const int nbinsPt = (int)settings_->houghNbinsPt();  
+    const int nbinsPt = (int)settings_->houghNbinsPt();
     const int min_array_bin = 0;
     const int max_array_bin = nbinsPt - 1;
     // Now calculate range of q/Pt bins allowed by bend filter.
@@ -217,49 +215,44 @@ namespace tmtt {
   //=== Digitize stub for input to Geographic Processor, with digitized phi coord. measured relative to closest phi sector.
   //=== (This approximation is valid if their are an integer number of digitisation bins inside each phi nonant).
 
-void Stub::digitize(unsigned int iPhiSec, Stub::DigiStage digiStep) {
+  void Stub::digitize(unsigned int iPhiSec, Stub::DigiStage digiStep) {
     if (settings_->enableDigitize()) {
-
       bool updated = true;
       if (not digitalStub_) {
-	// Digitize stub if not yet done.
-        digitalStub_ = std::make_unique<DigitalStub>(settings_, 
-		      phi_,
-                      r_,
-                      z_,
-                      min_qOverPt_bin_,
-                      max_qOverPt_bin_,
-                      bend_,
-		      iPhiSec);
+        // Digitize stub if not yet done.
+        digitalStub_ =
+            std::make_unique<DigitalStub>(settings_, phi_, r_, z_, min_qOverPt_bin_, max_qOverPt_bin_, bend_, iPhiSec);
       } else {
-	// If digitization already done, redo phi digi if phi sector has changed.
-	updated = digitalStub_->changePhiSec(iPhiSec);
+        // If digitization already done, redo phi digi if phi sector has changed.
+        updated = digitalStub_->changePhiSec(iPhiSec);
       }
 
       // Save CPU by only updating if something has changed.
       if (updated || digiStep != lastDigiStep_) {
-	lastDigiStep_ = digiStep;
+        lastDigiStep_ = digiStep;
 
         // Replace stub coords with those degraded by digitization process.
-	if (digiStep == DigiStage::GP) {
+        if (digiStep == DigiStage::GP) {
           phi_ = digitalStub_->phi_GP();
-	} else {
+        } else {
           phi_ = digitalStub_->phi_HT_TF();
-	}
-	if (digiStep == DigiStage::GP || digiStep == DigiStage::HT) {
+        }
+        if (digiStep == DigiStage::GP || digiStep == DigiStage::HT) {
           r_ = digitalStub_->r_GP_HT();
-	} else {
+        } else {
           r_ = digitalStub_->r_SF_TF();
-	}
+        }
         z_ = digitalStub_->z();
         bend_ = digitalStub_->bend();
 
-	// Update data members that depend on updated coords.
-	// (Logically part of digitisation, so disable warnings)
-	digitizeWarningsOn_ = false;
-	if (digiStep == DigiStage::GP) this->calcDphiOverBend();
-        if (digiStep == DigiStage::HT) this->calcQoverPtrange();
-	digitizeWarningsOn_ = true;
+        // Update data members that depend on updated coords.
+        // (Logically part of digitisation, so disable warnings)
+        digitizeWarningsOn_ = false;
+        if (digiStep == DigiStage::GP)
+          this->calcDphiOverBend();
+        if (digiStep == DigiStage::HT)
+          this->calcQoverPtrange();
+        digitizeWarningsOn_ = true;
       }
     }
   }
@@ -296,11 +289,14 @@ void Stub::digitize(unsigned int iPhiSec, Stub::DigiStage digiStep) {
     const float qOverPtCut = 1. / settings_->houghMinPt();
     if (settings_->killLowPtStubs()) {
       // Apply this cut in the front-end electronics.
-      if (std::abs(this->bendInFrontend()) - this->bendCutInFrontend() > qOverPtCut / this->qOverPtOverBend()) frontendPass_ = false;
+      if (std::abs(this->bendInFrontend()) - this->bendCutInFrontend() > qOverPtCut / this->qOverPtOverBend())
+        frontendPass_ = false;
     }
 
     if (frontendPass_ && this->bend() == rejectedStubBend_) {
-      throw cms::Exception("LogicError: Window sizes assumed in DegradeBend are tighter than those used for TTStub production. Please fix them");
+      throw cms::Exception(
+          "LogicError: Window sizes assumed in DegradeBend are tighter than those used for TTStub production. Please "
+          "fix them");
     }
 
     if (settings_->killLowPtStubs()) {
@@ -311,7 +307,7 @@ void Stub::digitize(unsigned int iPhiSec, Stub::DigiStage digiStep) {
     }
 
     // Emulate stubs in dead tracker regions..
-    StubKiller::KillOptions killScenario = static_cast<StubKiller::KillOptions>(settings_->killScenario()); 
+    StubKiller::KillOptions killScenario = static_cast<StubKiller::KillOptions>(settings_->killScenario());
     if (killScenario != StubKiller::KillOptions::none) {
       bool kill = stubKiller->killStub(ttStubRef_.get());
       if (kill)
@@ -328,10 +324,10 @@ void Stub::digitize(unsigned int iPhiSec, Stub::DigiStage digiStep) {
     }
   }
 
-    //=== Calculate variables giving ratio of track intercept angle to stub bend.
+  //=== Calculate variables giving ratio of track intercept angle to stub bend.
 
   void Stub::calcDphiOverBend() {
-   // Uses stub (r,z) instead of module (r,z). Logically correct but has negligable effect on results.
+    // Uses stub (r,z) instead of module (r,z). Logically correct but has negligable effect on results.
     if (settings_->useApproxB()) {
       float dphiOverBendCorrection_approx_ = approxB();
       dphiOverBend_ = trackerModule_->pitchOverSep() * dphiOverBendCorrection_approx_;
@@ -339,8 +335,7 @@ void Stub::digitize(unsigned int iPhiSec, Stub::DigiStage digiStep) {
       float dphiOverBendCorrection_ = std::abs(cos(this->theta() - trackerModule_->tiltAngle()) / sin(this->theta()));
       dphiOverBend_ = trackerModule_->pitchOverSep() * dphiOverBendCorrection_;
     }
-
-    } 
+  }
 
   //=== Note which tracking particle(s), if any, produced this stub.
   //=== The 1st argument is a map relating TrackingParticles to TP.

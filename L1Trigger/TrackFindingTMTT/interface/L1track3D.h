@@ -23,11 +23,10 @@ namespace tmtt {
 
   class L1track3D : public L1trackBase {
   public:
-  // Seeding layers of tracklet pattern reco.
-  enum TrackletSeedType {L1L2, L2L3, L3L4, L5L6, D1D2, D3D4, L1D1, L2D1, L3L4L2, L5L6L4, L2L3D1, D1D2L2, NONE};
+    // Seeding layers of tracklet pattern reco.
+    enum TrackletSeedType { L1L2, L2L3, L3L4, L5L6, D1D2, D3D4, L1D1, L2D1, L3L4L2, L5L6L4, L2L3D1, D1D2L2, NONE };
 
   public:
-
     L1track3D(const Settings* settings,
               const std::vector<Stub*>& stubs,
               std::pair<unsigned int, unsigned int> cellLocationHT,
@@ -41,7 +40,7 @@ namespace tmtt {
         : L1trackBase(),
           settings_(settings),
           stubs_(stubs),
-	  stubsConst_(stubs_.begin(), stubs_.end()),
+          stubsConst_(stubs_.begin(), stubs_.end()),
           cellLocationHT_(cellLocationHT),
           helixRphi_(helixRphi),
           helixRz_(helixRz),

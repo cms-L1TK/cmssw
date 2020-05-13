@@ -26,7 +26,7 @@ namespace tmtt {
   class StubWindowSuggest {
   public:
     // Initialize (for use with TMTT).
-    StubWindowSuggest(const Settings* settings) : settings_(settings), ptMin_(settings->houghMinPt()){}
+    StubWindowSuggest(const Settings* settings) : settings_(settings), ptMin_(settings->houghMinPt()) {}
 
     ~StubWindowSuggest() {}
 

@@ -18,40 +18,38 @@
 
 namespace tmtt {
 
-class GlobalCacheTMTT {
+  class GlobalCacheTMTT {
+  public:
+    GlobalCacheTMTT(const edm::ParameterSet& iConfig)
+        : settings_(iConfig),              // Python configuration params
+          htRphiErrMon_({0., 0, 0, 0}),    // rphi HT error monitoring
+          stubWindowSuggest_(&settings_),  // Recommend FE stub window sizes.
+          hists_(&settings_)               // Histograms
+    {
+      hists_.book();
+    }
 
-public:
+    // Get functions
+    Settings& settings() const { return settings_; }
+    HTrphi::ErrorMonitor& htRphiErrMon() const { return htRphiErrMon_; }
+    StubWindowSuggest& stubWindowSuggest() const { return stubWindowSuggest_; }
+    const std::list<TrackerModule>& listTrackerModule() const { return listTrackerModule_; }
+    Histos& hists() const { return hists_; }
 
-GlobalCacheTMTT(const edm::ParameterSet& iConfig) : 
-  settings_(iConfig), // Python configuration params
-  htRphiErrMon_({0., 0, 0, 0}),   // rphi HT error monitoring
-  stubWindowSuggest_(&settings_), // Recommend FE stub window sizes.
-  hists_(&settings_)              // Histograms 
-  {
-    hists_.book();
-  } 
+    // Set functions
+    void setListTrackerModule(const std::list<TrackerModule>& list) const {
+      // Only need one copy of tracker geoemtry for histogramming.
+      if (listTrackerModule_.size() == 0)
+        listTrackerModule_ = list;
+    }
 
-  // Get functions
-  Settings& settings() const {return settings_;}
-  HTrphi::ErrorMonitor& htRphiErrMon() const {return htRphiErrMon_;}
-  StubWindowSuggest& stubWindowSuggest() const {return stubWindowSuggest_;}
-  const std::list<TrackerModule>& listTrackerModule() const {return listTrackerModule_;}
-  Histos& hists() const {return hists_;}
-
-  // Set functions
-  void setListTrackerModule(const std::list<TrackerModule>& list) const {
-    // Only need one copy of tracker geoemtry for histogramming.
-if (listTrackerModule_.size() == 0) listTrackerModule_ = list;
-  }
-
-private:
-
-  mutable Settings settings_;
-  mutable HTrphi::ErrorMonitor htRphiErrMon_;
-  mutable StubWindowSuggest stubWindowSuggest_;
-  mutable std::list<TrackerModule> listTrackerModule_;
-  mutable Histos hists_;
-};
+  private:
+    mutable Settings settings_;
+    mutable HTrphi::ErrorMonitor htRphiErrMon_;
+    mutable StubWindowSuggest stubWindowSuggest_;
+    mutable std::list<TrackerModule> listTrackerModule_;
+    mutable Histos hists_;
+  };
 
 }  // namespace tmtt
 

@@ -112,7 +112,8 @@ namespace tmtt {
         SumPhi = SumPhi + digiStub->phiS();
         SumR2 = SumR2 + digiStub->rt_SF_TF() * digiStub->rt_SF_TF();
         if (debug_)
-          PrintL1trk() << "Input stub (digi): phiS " << digiStub->iDigi_PhiS() << " rT " << digiStub->iDigi_Rt() << " z " << digiStub->iDigi_Z();
+          PrintL1trk() << "Input stub (digi): phiS " << digiStub->iDigi_PhiS() << " rT " << digiStub->iDigi_Rt()
+                       << " z " << digiStub->iDigi_Z();
       } else {
         float phi = 0;
         if (l1track3D.iPhiSec() == 0 and stub->phi() > 0) {
@@ -171,7 +172,7 @@ namespace tmtt {
     if (debug_) {
       if (digitize_) {
         PrintL1trk() << setw(10) << "Input helix (digi): qOverPt = " << qOverPt << " (" << floor(qOverPt * qOverPtMult_)
-             << "), phiT = " << phiT << " (" << floor(phiT * phiTMult_) << ") ";
+                     << "), phiT = " << phiT << " (" << floor(phiT * phiTMult_) << ") ";
       } else {
         PrintL1trk() << "Input Helix (float): qOverPt = " << qOverPt << " phi0 " << phi0;
       }
@@ -216,8 +217,7 @@ namespace tmtt {
     double largestResidual = 9999.;
     // Find largest residuals
     while (vRes.size() > minStubLayersRed_ and largestResidual > settings_->ResidualCut()) {
-      std::vector<std::pair<Stub*, double> >::iterator maxResIt =
-          max_element(vRes.begin(), vRes.end(), pair_compare);
+      std::vector<std::pair<Stub*, double> >::iterator maxResIt = max_element(vRes.begin(), vRes.end(), pair_compare);
       largestResidual = (*maxResIt).second;
       if (debug_)
         PrintL1trk() << "Largest Residual " << largestResidual;
@@ -280,7 +280,8 @@ namespace tmtt {
           SumR2_ps += digiStub->rt_SF_TF() * digiStub->rt_SF_TF();
         }
         if (debug_) {
-          PrintL1trk() << "phiS " << digiStub->iDigi_PhiS() << " rT " << digiStub->iDigi_Rt() << " z " << digiStub->iDigi_Z();
+          PrintL1trk() << "phiS " << digiStub->iDigi_PhiS() << " rT " << digiStub->iDigi_Rt() << " z "
+                       << digiStub->iDigi_Z();
         }
       } else {
         float phi = 0;
@@ -358,19 +359,20 @@ namespace tmtt {
 
     if (debug_ and digitize_) {
       PrintL1trk() << "HT mbin " << int(l1track3D.cellLocationHT().first) - 16 << " cbin "
-           << int(l1track3D.cellLocationHT().second) - 32 << " iPhi " << l1track3D.iPhiSec() << " iEta "
-           << l1track3D.iEtaReg();
+                   << int(l1track3D.cellLocationHT().second) - 32 << " iPhi " << l1track3D.iPhiSec() << " iEta "
+                   << l1track3D.iEtaReg();
       PrintL1trk() << "Second Helix variables: numeratorPt = " << numeratorPt << ", numeratorPhi = " << numeratorPhi
-           << ", numeratorZ0 = " << numeratorZ0 << " numeratorLambda = " << numeratorLambda
-           << " denominator =  " << denominator << " reciprocal = " << reciprocal << " denominatorZ =  " << denominatorZ
-           << " reciprocalZ = " << reciprocalZ;
-      PrintL1trk() << setw(10) << "Final Helix parameters: qOverPt = " << qOverPt << " (" << floor(qOverPt * qOverPtMult_)
-           << "), phiT = " << phiT << " (" << floor(phiT * phiTMult_) << "), zT = " << zT << " (" << floor(zT * z0Mult_)
-           << "), tanLambda = " << tanLambda << " (" << floor(tanLambda * tanLambdaMult_) << ")"
-           << " z0 " << z0;
+                   << ", numeratorZ0 = " << numeratorZ0 << " numeratorLambda = " << numeratorLambda
+                   << " denominator =  " << denominator << " reciprocal = " << reciprocal
+                   << " denominatorZ =  " << denominatorZ << " reciprocalZ = " << reciprocalZ;
+      PrintL1trk() << setw(10) << "Final Helix parameters: qOverPt = " << qOverPt << " ("
+                   << floor(qOverPt * qOverPtMult_) << "), phiT = " << phiT << " (" << floor(phiT * phiTMult_)
+                   << "), zT = " << zT << " (" << floor(zT * z0Mult_) << "), tanLambda = " << tanLambda << " ("
+                   << floor(tanLambda * tanLambdaMult_) << ")"
+                   << " z0 " << z0;
     } else if (debug_) {
-      PrintL1trk() << setw(10) << "Final Helix parameters: qOverPt = " << qOverPt << ", phi0 = " << phi0 << ", z0 = " << z0
-           << ", tanLambda = " << tanLambda;
+      PrintL1trk() << setw(10) << "Final Helix parameters: qOverPt = " << qOverPt << ", phi0 = " << phi0
+                   << ", z0 = " << z0 << ", tanLambda = " << tanLambda;
     }
 
     double chi2_phi = 0.;
@@ -404,9 +406,10 @@ namespace tmtt {
       chi2_phi += std::abs(ResPhi * ResPhi);
       chi2_z += std::abs(ResZ * ResZ);
       if (debug_) {
-        PrintL1trk() << "Stub ResPhi " << ResPhi * RPhiSigma << " ResSigma " << RPhiSigma << " Res " << ResPhi << " chi2 "
-             << chi2_phi;
-        PrintL1trk() << "Stub ResZ " << ResZ * RZSigma << " ResSigma " << RZSigma << " Res " << ResZ << " chi2 " << chi2_z;
+        PrintL1trk() << "Stub ResPhi " << ResPhi * RPhiSigma << " ResSigma " << RPhiSigma << " Res " << ResPhi
+                     << " chi2 " << chi2_phi;
+        PrintL1trk() << "Stub ResZ " << ResZ * RZSigma << " ResSigma " << RZSigma << " Res " << ResZ << " chi2 "
+                     << chi2_z;
       }
     }
     qOverPt /= invPtToDPhi_;
@@ -450,19 +453,20 @@ namespace tmtt {
       if (debug_ and digitize_) {
         PrintL1trk() << "Digitized parameters ";
         PrintL1trk() << "HT mbin " << int(l1track3D.cellLocationHT().first) - 16 << " cbin "
-             << int(l1track3D.cellLocationHT().second) - 32 << " iPhi " << l1track3D.iPhiSec() << " iEta "
-             << l1track3D.iEtaReg();
+                     << int(l1track3D.cellLocationHT().second) - 32 << " iPhi " << l1track3D.iPhiSec() << " iEta "
+                     << l1track3D.iEtaReg();
         PrintL1trk() << setw(10) << "First Helix parameters: qOverPt = " << fitTrk.qOverPt() << " oneOver2r "
-             << fitTrk.digitaltrack()->oneOver2r() << " (" << floor(fitTrk.digitaltrack()->oneOver2r() * qOverPtMult_)
-             << "), phi0 = " << fitTrk.digitaltrack()->phi0() << " (" << fitTrk.digitaltrack()->iDigi_phi0rel()
-             << "), zT = " << zT << " (" << floor(zT * z0Mult_) << "), tanLambda = " << tanLambda << " ("
-             << floor(tanLambda * tanLambdaMult_) << ")";
+                     << fitTrk.digitaltrack()->oneOver2r() << " ("
+                     << floor(fitTrk.digitaltrack()->oneOver2r() * qOverPtMult_)
+                     << "), phi0 = " << fitTrk.digitaltrack()->phi0() << " (" << fitTrk.digitaltrack()->iDigi_phi0rel()
+                     << "), zT = " << zT << " (" << floor(zT * z0Mult_) << "), tanLambda = " << tanLambda << " ("
+                     << floor(tanLambda * tanLambdaMult_) << ")";
       }
 
       if (debug_) {
         PrintL1trk() << "FitTrack helix parameters " << int(fitTrk.cellLocationFit().first) - 16 << ", "
-             << int(fitTrk.cellLocationFit().second) - 32 << " HT parameters "
-             << int(fitTrk.cellLocationHT().first) - 16 << ", " << int(fitTrk.cellLocationHT().second) - 32;
+                     << int(fitTrk.cellLocationFit().second) - 32 << " HT parameters "
+                     << int(fitTrk.cellLocationHT().first) - 16 << ", " << int(fitTrk.cellLocationHT().second) - 32;
 
         if (fitTrk.matchedTP() != nullptr) {
           PrintL1trk() << "True track: chi2/ndf " << chi2dof;

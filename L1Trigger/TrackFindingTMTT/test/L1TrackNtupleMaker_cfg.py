@@ -40,6 +40,7 @@ if GEOMETRY == "D49":
     process.load('Configuration.Geometry.GeometryExtended2026D49_cff')
 else:
     print "this is not a valid geometry!!!"
+    exit
 
 process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')

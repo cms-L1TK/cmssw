@@ -75,8 +75,12 @@ namespace tmtt {
     virtual void fillEtaPhiSectors(const InputData& inputData, const matrix<std::unique_ptr<Sector>>& mSectors);
     virtual void fillRphiHT(const matrix<std::unique_ptr<HTrphi>>& mHtRphis);
     virtual void fillRZfilters(const matrix<std::unique_ptr<Make3Dtracks>>& mMake3Dtrks);
-    virtual void fillTrackCands(const InputData& inputData, const matrix<std::unique_ptr<Make3Dtracks>>& mMake3Dtrks, const std::string& tName);
-    virtual void fillTrackCands(const InputData& inputData, const std::vector<L1track3D>& tracks, const std::string& tName);
+    virtual void fillTrackCands(const InputData& inputData,
+                                const matrix<std::unique_ptr<Make3Dtracks>>& mMake3Dtrks,
+                                const std::string& tName);
+    virtual void fillTrackCands(const InputData& inputData,
+                                const std::vector<L1track3D>& tracks,
+                                const std::string& tName);
     virtual void fillTrackFitting(const InputData& inputData,
                                   const std::map<std::string, std::list<const L1fittedTrack*>>& mapFinalTracks);
 
@@ -107,13 +111,6 @@ namespace tmtt {
     // Print summary of duplicate removal performance after track pattern reco.
     virtual void printHybridDupRemovalPerformance(){};
 
-    // Understand why not all tracking particles were reconstructed.
-    // Returns list of tracking particles that were not reconstructed and an integer indicating why.
-    // Only considers TP used for algorithmic efficiency measurement.
-    virtual std::map<const TP*, std::string> diagnoseTracking(const std::list<TP>& allTPs,
-                                                              const std::vector<L1track3D>& tracks,
-                                                              bool withRZfilter) const;
-
   protected:
     // Configuration parameters.
     const Settings* settings_;
@@ -134,131 +131,39 @@ namespace tmtt {
     bool oldSumW2opt_;
 
     // Histograms of input data.
-    TH1F* hisNumEvents_;
-    TProfile* profNumStubs_;
     TH1F* hisStubsVsEta_;
     TH1F* hisStubsVsR_;
-    TH2F* hisStubsVsRVsZ_;
-    TH2F* hisStubsModuleVsRVsZ_;
-    TH2F* hisStubsModuleTiltVsZ_;
-    TH2F* hisStubsVsRVsPhi_;
-    TH2F* hisStubsModuleVsRVsPhi_;
 
-    TH2F* hisStubsVsRVsZ_outerModuleAtSmallerR_;
-    TH2F* hisStubsVsRVsPhi_outerModuleAtSmallerR_;
-
-    TProfile* profNumTPs_;
-    TH1F* hisNumStubsPerTP_;
-    TH1F* hisNumPSStubsPerTP_;
-    TH1F* hisNum2SStubsPerTP_;
     TH1F* hisNumLayersPerTP_;
     TH1F* hisNumPSLayersPerTP_;
-    TH1F* hisNum2SLayersPerTP_;
-
-    TH1F* hisNumLayersPerTP_lowPt_;
-    TH1F* hisNumPSLayersPerTP_lowPt_;
-    TH1F* hisNum2SLayersPerTP_lowPt_;
-
-    TH1F* hisNumLayersPerTP_mediumPt_;
-    TH1F* hisNumPSLayersPerTP_mediumPt_;
-    TH1F* hisNum2SLayersPerTP_mediumPt_;
-
-    TH1F* hisNumLayersPerTP_highPt_;
-    TH1F* hisNumPSLayersPerTP_highPt_;
-    TH1F* hisNum2SLayersPerTP_highPt_;
-
-    TH1F* hisNumLayersPerTP_muons_;
-    TH1F* hisNumPSLayersPerTP_muons_;
-    TH1F* hisNum2SLayersPerTP_muons_;
-
-    TH1F* hisNumLayersPerTP_electrons_;
-    TH1F* hisNumPSLayersPerTP_electrons_;
-    TH1F* hisNum2SLayersPerTP_electrons_;
-
-    TH1F* hisNumLayersPerTP_pions_;
-    TH1F* hisNumPSLayersPerTP_pions_;
-    TH1F* hisNum2SLayersPerTP_pions_;
 
     TProfile* hisStubKillFE_;
     TProfile* hisStubIneffiVsInvPt_;
     TProfile* hisStubIneffiVsEta_;
-    TProfile* hisStubKillDegradeBend_;
-    TH1F* hisPtStub_;
-    TH1F* hisPtResStub_;
-    TH1F* hisBendFilterPower_;
     TH1F* hisBendStub_;
     TH1F* hisBendResStub_;
-    TH1F* hisNumMergedBend_;
-    TH2F* hisBendVsLayerOrRingPS_;
-    TH2F* hisBendVsLayerOrRing2S_;
-    TH2F* hisBendFEVsLayerOrRingPS_;
-    TH2F* hisBendFEVsLayerOrRing2S_;
-    TH1F* hisPhiStubVsPhiTP_;
-    TH1F* hisPhiStubVsPhi0TP_;
-    TH1F* hisPitchOverSep_;
-    TH1F* hisRhoParameter_;
-    TH2F* hisAlphaCheck_;
-    TH1F* hisFracStubsSharingClus0_;
-    TH1F* hisFracStubsSharingClus1_;
 
     // Histograms of B parameter for tilted modules.
     TGraph* graphBVsZoverR_;
 
     // Histograms checking that (eta,phi) sector definition is good.
-    TH1F* hisFracStubsInSec_;
-    TH1F* hisFracStubsInEtaSec_;
-    TH1F* hisFracStubsInPhiSec_;
-    TH1F* hisNumSecsPerStub_;
     TH1F* hisNumEtaSecsPerStub_;
     TH1F* hisNumPhiSecsPerStub_;
     TH1F* hisNumStubsPerSec_;
-    TProfile* profNumStubsPerEtaSec_;
-    TH2F* hisLayerIDvsEtaSec_;
-    TH2F* hisLayerIDreducedvsEtaSec_;
-    TH1F* hisIncStubsPerHT_;
-    TH1F* hisExcStubsPerHT_;
-    TH2F* hisNumStubsInCellVsEta_;
-    TH1F* hisStubsOnRphiTracksPerHT_;
-    TH1F* hisHTstubsPerTrack_;
-    TH1F* hisHTmBin_;
-    TH1F* hisHTcBin_;
 
-    // Histograms about r-z track filters (or other filters applied after r-phi HT array).
-    TH1F* hisNumZtrkSeedCombinations_;
-    TH1F* hisNumSeedCombinations_;
-    TH1F* hisNumGoodSeedCombinations_;
-    TH1F* hisCorrelationZTrk_;
-
-    // Histograms studying 3D track candidates found by Hough Transform or r-z Track Filter.
+    // Histograms studying 3D track candidates.
     std::map<std::string, TProfile*> profNumTrackCands_;
     std::map<std::string, TProfile*> profNumTracksVsEta_;
     std::map<std::string, TH1F*> hisNumTracksVsQoverPt_;
-    std::map<std::string, TH1F*> hisNumTrksPerSect_;
     std::map<std::string, TH1F*> hisNumTrksPerNon_;
     std::map<std::string, TProfile*> profStubsOnTracks_;
-    std::map<std::string, TProfile*> profStubsOnTracksVsEta_;
-    std::map<std::string, TH1F*> hisStubsOnTracksPerSect_;
     std::map<std::string, TH1F*> hisStubsOnTracksPerNon_;
-    std::map<std::string, TH1F*> hisUniqueStubsOnTrksPerSect_;
-    std::map<std::string, TH1F*> hisUniqueStubsOnTrksPerNon_;
     std::map<std::string, TH1F*> hisStubsPerTrack_;
     std::map<std::string, TH1F*> hisLayersPerTrack_;
-    std::map<std::string, TH1F*> hisPSLayersPerTrack_;
-    std::map<std::string, TH1F*> hisLayersPerTrueTrack_;
-    std::map<std::string, TH1F*> hisPSLayersPerTrueTrack_;
 
     std::map<std::string, TH1F*> hisNumStubsPerLink_;
-    std::map<std::string, TH2F*> hisNumStubsVsLink_;
     std::map<std::string, TProfile*> profMeanStubsPerLink_;
-    std::map<std::string, TH1F*> hisNumTrksPerLink_;
-    std::map<std::string, TH2F*> hisNumTrksVsLink_;
-    std::map<std::string, TProfile*> profMeanTrksPerLink_;
-
-    std::map<std::string, TProfile*> profExcessStubsPerTrackVsPt_;
     std::map<std::string, TH1F*> hisFracMatchStubsOnTracks_;
-    std::map<std::string, TH1F*> hisDeltaBendTrue_;
-    std::map<std::string, TH1F*> hisDeltaBendFake_;
-    std::map<std::string, TProfile*> profFracTrueStubsVsLayer_;
     std::map<std::string, TProfile*> profDupTracksVsEta_;
     std::map<std::string, TProfile*> profDupTracksVsInvPt_;
 
@@ -274,71 +179,37 @@ namespace tmtt {
     std::map<std::string, TH1F*> hisEtaRes_;
     std::map<std::string, TH1F*> hisZ0Res_;
 
-    std::map<std::string, TH2F*> hisRecoVsTrueQinvPt_;
-    std::map<std::string, TH2F*> hisRecoVsTruePhi0_;
-    std::map<std::string, TH2F*> hisRecoVsTrueD0_;
-    std::map<std::string, TH2F*> hisRecoVsTrueZ0_;
-    std::map<std::string, TH2F*> hisRecoVsTrueEta_;
-
-    // Diagnosis of failed tracking.
-    std::map<std::string, TH1F*> hisRecoFailureReason_;
-
-    std::map<std::string, TH1F*> hisNumStubsOnLayer_;
-
     // Histos used for denominator of tracking efficiency plots.
     TH1F* hisTPinvptForEff_;
-    TH1F* hisTPptForEff_;
     TH1F* hisTPetaForEff_;
     TH1F* hisTPphiForEff_;
     TH1F* hisTPd0ForEff_;
     TH1F* hisTPz0ForEff_;
     //
     TH1F* hisTPinvptForAlgEff_;
-    TH1F* hisTPptForAlgEff_;
     TH1F* hisTPetaForAlgEff_;
     TH1F* hisTPphiForAlgEff_;
     TH1F* hisTPd0ForAlgEff_;
     TH1F* hisTPz0ForAlgEff_;
-    //
-    TH1F* hisTPphisecForAlgEff_;
-    TH1F* hisTPetasecForAlgEff_;
-    TH1F* hisTPinvptForAlgEff_inJetPtG30_;
-    TH1F* hisTPinvptForAlgEff_inJetPtG100_;
-    TH1F* hisTPinvptForAlgEff_inJetPtG200_;
 
     // Histograms used to make efficiency plots with 3D track candidates prior to fit.
     std::map<std::string, TH1F*> hisRecoTPinvptForEff_;
-    std::map<std::string, TH1F*> hisRecoTPptForEff_;
     std::map<std::string, TH1F*> hisRecoTPetaForEff_;
     std::map<std::string, TH1F*> hisRecoTPphiForEff_;
-    //
-    std::map<std::string, TH1F*> hisPerfRecoTPinvptForEff_;
-    std::map<std::string, TH1F*> hisPerfRecoTPptForEff_;
-    std::map<std::string, TH1F*> hisPerfRecoTPetaForEff_;
-    //
     std::map<std::string, TH1F*> hisRecoTPd0ForEff_;
     std::map<std::string, TH1F*> hisRecoTPz0ForEff_;
     //
+    std::map<std::string, TH1F*> hisPerfRecoTPinvptForEff_;
+    std::map<std::string, TH1F*> hisPerfRecoTPetaForEff_;
+    //
     std::map<std::string, TH1F*> hisRecoTPinvptForAlgEff_;
-    std::map<std::string, TH1F*> hisRecoTPptForAlgEff_;
     std::map<std::string, TH1F*> hisRecoTPetaForAlgEff_;
     std::map<std::string, TH1F*> hisRecoTPphiForAlgEff_;
-    //
-    std::map<std::string, TH1F*> hisPerfRecoTPinvptForAlgEff_;
-    std::map<std::string, TH1F*> hisPerfRecoTPptForAlgEff_;
-    std::map<std::string, TH1F*> hisPerfRecoTPetaForAlgEff_;
-    //
     std::map<std::string, TH1F*> hisRecoTPd0ForAlgEff_;
     std::map<std::string, TH1F*> hisRecoTPz0ForAlgEff_;
     //
-    std::map<std::string, TH1F*> hisRecoTPphisecForAlgEff_;
-    std::map<std::string, TH1F*> hisPerfRecoTPphisecForAlgEff_;
-    std::map<std::string, TH1F*> hisRecoTPetasecForAlgEff_;
-    std::map<std::string, TH1F*> hisPerfRecoTPetasecForAlgEff_;
-
-    std::map<std::string, TH1F*> hisRecoTPinvptForAlgEff_inJetPtG30_;
-    std::map<std::string, TH1F*> hisRecoTPinvptForAlgEff_inJetPtG100_;
-    std::map<std::string, TH1F*> hisRecoTPinvptForAlgEff_inJetPtG200_;
+    std::map<std::string, TH1F*> hisPerfRecoTPinvptForAlgEff_;
+    std::map<std::string, TH1F*> hisPerfRecoTPetaForAlgEff_;
 
     // Histograms for track fitting evaluation, where std::map index specifies name of track fitting algorithm used.
 
@@ -370,86 +241,15 @@ namespace tmtt {
     std::map<std::string, TH1F*> hisKalmanChi2DofSkipLay1Unmatched_;
     std::map<std::string, TH1F*> hisKalmanChi2DofSkipLay2Unmatched_;
 
-    std::map<std::string, TH1F*> hisFitChi2Matched_;
     std::map<std::string, TH1F*> hisFitChi2DofMatched_;
     std::map<std::string, TH1F*> hisFitChi2DofRphiMatched_;
     std::map<std::string, TH1F*> hisFitChi2DofRzMatched_;
-    std::map<std::string, TH1F*> hisFitBeamChi2Matched_;
-    std::map<std::string, TH1F*> hisFitBeamChi2DofMatched_;
-    std::map<std::string, TProfile*> profFitChi2VsEtaMatched_;
-    std::map<std::string, TProfile*> profFitChi2DofVsEtaMatched_;
-    std::map<std::string, TProfile*> profFitChi2VsInvPtMatched_;
     std::map<std::string, TProfile*> profFitChi2DofVsInvPtMatched_;
-    std::map<std::string, TProfile*> profFitChi2VsTrueD0Matched_;
-    std::map<std::string, TProfile*> profFitChi2DofVsTrueD0Matched_;
-    std::map<std::string, TH1F*> hisFitChi2PerfMatched_;
-    std::map<std::string, TH1F*> hisFitChi2DofPerfMatched_;
 
-    std::map<std::string, TH1F*> hisFitChi2Unmatched_;
     std::map<std::string, TH1F*> hisFitChi2DofUnmatched_;
     std::map<std::string, TH1F*> hisFitChi2DofRphiUnmatched_;
     std::map<std::string, TH1F*> hisFitChi2DofRzUnmatched_;
-    std::map<std::string, TH1F*> hisFitBeamChi2Unmatched_;
-    std::map<std::string, TH1F*> hisFitBeamChi2DofUnmatched_;
-    std::map<std::string, TProfile*> profFitChi2VsEtaUnmatched_;
-    std::map<std::string, TProfile*> profFitChi2DofVsEtaUnmatched_;
-    std::map<std::string, TProfile*> profFitChi2VsInvPtUnmatched_;
     std::map<std::string, TProfile*> profFitChi2DofVsInvPtUnmatched_;
-
-    std::map<std::string, TProfile*> profFitChi2VsPurity_;
-    std::map<std::string, TProfile*> profFitChi2DofVsPurity_;
-
-    std::map<std::string, TH1F*> hisDeltaPhitruePSbarrel_;
-    std::map<std::string, TH1F*> hisDeltaRorZtruePSbarrel_;
-    std::map<std::string, TH1F*> hisDeltaPhitrue2Sbarrel_;
-    std::map<std::string, TH1F*> hisDeltaRorZtrue2Sbarrel_;
-    std::map<std::string, TH1F*> hisDeltaPhitruePSendcap_;
-    std::map<std::string, TH1F*> hisDeltaRorZtruePSendcap_;
-    std::map<std::string, TH1F*> hisDeltaPhitrue2Sendcap_;
-    std::map<std::string, TH1F*> hisDeltaRorZtrue2Sendcap_;
-    std::map<std::string, TH1F*> hisDeltaPhifakePSbarrel_;
-    std::map<std::string, TH1F*> hisDeltaRorZfakePSbarrel_;
-    std::map<std::string, TH1F*> hisDeltaPhifake2Sbarrel_;
-    std::map<std::string, TH1F*> hisDeltaRorZfake2Sbarrel_;
-    std::map<std::string, TH1F*> hisDeltaPhifakePSendcap_;
-    std::map<std::string, TH1F*> hisDeltaRorZfakePSendcap_;
-    std::map<std::string, TH1F*> hisDeltaPhifake2Sendcap_;
-    std::map<std::string, TH1F*> hisDeltaRorZfake2Sendcap_;
-    std::map<std::string, TProfile*> profRecalcRphiChi2VsEtaTrue1_;
-    std::map<std::string, TProfile*> profRecalcRzChi2VsEtaTrue1_;
-    std::map<std::string, TProfile*> profRecalcChi2VsEtaTrue1_;
-    std::map<std::string, TProfile*> profRecalcChi2VsEtaTrue2_;
-    std::map<std::string, TProfile*> profNsigmaPhivsInvPt_;
-    std::map<std::string, TProfile*> profNsigmaPhivsR_;
-    std::map<std::string, TProfile*> profNsigmaPhivsTanl_;
-
-    std::map<std::string, TH2F*> hisFitVsSeedQinvPtMatched_;
-    std::map<std::string, TH2F*> hisFitVsSeedPhi0Matched_;
-    std::map<std::string, TH2F*> hisFitVsSeedD0Matched_;
-    std::map<std::string, TH2F*> hisFitVsSeedZ0Matched_;
-    std::map<std::string, TH2F*> hisFitVsSeedEtaMatched_;
-
-    std::map<std::string, TH2F*> hisFitVsSeedQinvPtUnmatched_;
-    std::map<std::string, TH2F*> hisFitVsSeedPhi0Unmatched_;
-    std::map<std::string, TH2F*> hisFitVsSeedD0Unmatched_;
-    std::map<std::string, TH2F*> hisFitVsSeedZ0Unmatched_;
-    std::map<std::string, TH2F*> hisFitVsSeedEtaUnmatched_;
-
-    std::map<std::string, TH2F*> hisNumStubsVsPurityMatched_;
-    std::map<std::string, TProfile*> profFitFracTrueStubsVsLayerMatched_;
-    std::map<std::string, TProfile*> profFitFracTrueStubsVsEtaMatched_;
-
-    std::map<std::string, TH2F*> hisFitVsTrueQinvPt_;
-    std::map<std::string, TH2F*> hisFitVsTruePhi0_;
-    std::map<std::string, TH2F*> hisFitVsTrueD0_;
-    std::map<std::string, TH2F*> hisFitVsTrueZ0_;
-    std::map<std::string, TH2F*> hisFitVsTrueEta_;
-
-    std::map<std::string, TH1F*> hisFitQinvPtRes_;
-    std::map<std::string, TH1F*> hisFitPhi0Res_;
-    std::map<std::string, TH1F*> hisFitD0Res_;
-    std::map<std::string, TH1F*> hisFitZ0Res_;
-    std::map<std::string, TH1F*> hisFitEtaRes_;
 
     std::map<std::string, TProfile*> hisQoverPtResVsTrueEta_;
     std::map<std::string, TProfile*> hisPhi0ResVsTrueEta_;
@@ -463,113 +263,63 @@ namespace tmtt {
     std::map<std::string, TProfile*> hisZ0ResVsTrueInvPt_;
     std::map<std::string, TProfile*> hisD0ResVsTrueInvPt_;
 
-    std::map<std::string, TProfile*> hisQoverPtResBeamVsTrueEta_;
-    std::map<std::string, TProfile*> hisPhi0ResBeamVsTrueEta_;
-    std::map<std::string, TProfile*> hisQoverPtResBeamVsTrueInvPt_;
-    std::map<std::string, TProfile*> hisPhi0ResBeamVsTrueInvPt_;
-
-    std::map<std::string, TH2F*> hisFitEfficiencyVsChi2Dof_;
-    std::map<std::string, TH2F*> hisNumStubsVsChi2Dof_;
-    std::map<std::string, TH2F*> hisNumLayersVsChi2Dof_;
-    std::map<std::string, TH2F*> hisAvgNumStubsPerLayerVsChi2Dof_;
-
     std::map<std::string, TProfile*> profDupFitTrksVsEta_;
     std::map<std::string, TProfile*> profDupFitTrksVsInvPt_;
 
     // Histograms used for efficiency plots made with fitted tracks.
     std::map<std::string, TH1F*> hisFitTPinvptForEff_;
-    std::map<std::string, TH1F*> hisFitTPptForEff_;
     std::map<std::string, TH1F*> hisFitTPetaForEff_;
     std::map<std::string, TH1F*> hisFitTPphiForEff_;
-    std::map<std::string, TH1F*> hisPerfFitTPinvptForEff_;
-    std::map<std::string, TH1F*> hisPerfFitTPptForEff_;
-    std::map<std::string, TH1F*> hisPerfFitTPetaForEff_;
     std::map<std::string, TH1F*> hisFitTPd0ForEff_;
     std::map<std::string, TH1F*> hisFitTPz0ForEff_;
+    std::map<std::string, TH1F*> hisPerfFitTPinvptForEff_;
+    std::map<std::string, TH1F*> hisPerfFitTPetaForEff_;
     std::map<std::string, TH1F*> hisFitTPinvptForAlgEff_;
-    std::map<std::string, TH1F*> hisFitTPptForAlgEff_;
     std::map<std::string, TH1F*> hisFitTPetaForAlgEff_;
     std::map<std::string, TH1F*> hisFitTPphiForAlgEff_;
-    std::map<std::string, TH1F*> hisPerfFitTPinvptForAlgEff_;
-    std::map<std::string, TH1F*> hisPerfFitTPptForAlgEff_;
-    std::map<std::string, TH1F*> hisPerfFitTPetaForAlgEff_;
     std::map<std::string, TH1F*> hisFitTPd0ForAlgEff_;
     std::map<std::string, TH1F*> hisFitTPz0ForAlgEff_;
-    std::map<std::string, TH1F*> hisFitTPphisecForAlgEff_;
-    std::map<std::string, TH1F*> hisFitTPetasecForAlgEff_;
-    std::map<std::string, TH1F*> hisPerfFitTPphisecForAlgEff_;
-    std::map<std::string, TH1F*> hisPerfFitTPetasecForAlgEff_;
-    std::map<std::string, TH1F*> hisPerfFitTPinvptForAlgEff_inJetPtG30_;
-    std::map<std::string, TH1F*> hisPerfFitTPinvptForAlgEff_inJetPtG100_;
-    std::map<std::string, TH1F*> hisPerfFitTPinvptForAlgEff_inJetPtG200_;
+    std::map<std::string, TH1F*> hisPerfFitTPinvptForAlgEff_;
+    std::map<std::string, TH1F*> hisPerfFitTPetaForAlgEff_;
 
     // Histograms of tracking efficiency & fake rate after Hough transform or after r-z track filter.
     std::map<std::string, TEfficiency*> teffEffVsInvPt_;
-    std::map<std::string, TEfficiency*> teffEffVsPt_;
     std::map<std::string, TEfficiency*> teffEffVsEta_;
     std::map<std::string, TEfficiency*> teffEffVsPhi_;
-    //
-    std::map<std::string, TEfficiency*> teffPerfEffVsInvPt_;
-    std::map<std::string, TEfficiency*> teffPerfEffVsPt_;
-    std::map<std::string, TEfficiency*> teffPerfEffVsEta_;
-    //
     std::map<std::string, TEfficiency*> teffEffVsD0_;
     std::map<std::string, TEfficiency*> teffEffVsZ0_;
     //
+    std::map<std::string, TEfficiency*> teffPerfEffVsInvPt_;
+    std::map<std::string, TEfficiency*> teffPerfEffVsEta_;
+    std::map<std::string, TEfficiency*> teffAlgEffVsD0_;
+    std::map<std::string, TEfficiency*> teffAlgEffVsZ0_;
+    //
     std::map<std::string, TEfficiency*> teffAlgEffVsInvPt_;
-    std::map<std::string, TEfficiency*> teffAlgEffVsPt_;
     std::map<std::string, TEfficiency*> teffAlgEffVsEta_;
     std::map<std::string, TEfficiency*> teffAlgEffVsPhi_;
-    std::map<std::string, TEfficiency*> teffAlgEffVsInvPt_inJetPtG30_;
-    std::map<std::string, TEfficiency*> teffAlgEffVsInvPt_inJetPtG100_;
-    std::map<std::string, TEfficiency*> teffAlgEffVsInvPt_inJetPtG200_;
     //
     std::map<std::string, TEfficiency*> teffPerfAlgEffVsInvPt_;
     std::map<std::string, TEfficiency*> teffPerfAlgEffVsPt_;
     std::map<std::string, TEfficiency*> teffPerfAlgEffVsEta_;
-    //
-    std::map<std::string, TEfficiency*> teffAlgEffVsD0_;
-    std::map<std::string, TEfficiency*> teffAlgEffVsZ0_;
-    //
-    std::map<std::string, TEfficiency*> teffAlgEffVsPhiSec_;
-    std::map<std::string, TEfficiency*> teffAlgEffVsEtaSec_;
-    std::map<std::string, TEfficiency*> teffPerfAlgEffVsPhiSec_;
-    std::map<std::string, TEfficiency*> teffPerfAlgEffVsEtaSec_;
 
     // Histograms of tracking efficiency & fake rate after Hough transform based on tracks after the track fit.
     std::map<std::string, TEfficiency*> teffEffFitVsInvPt_;
-    std::map<std::string, TEfficiency*> teffEffFitVsPt_;
     std::map<std::string, TEfficiency*> teffEffFitVsEta_;
     std::map<std::string, TEfficiency*> teffEffFitVsPhi_;
-    //
-    std::map<std::string, TEfficiency*> teffPerfEffFitVsInvPt_;
-    std::map<std::string, TEfficiency*> teffPerfEffFitVsPt_;
-    std::map<std::string, TEfficiency*> teffPerfEffFitVsEta_;
-    //
     std::map<std::string, TEfficiency*> teffEffFitVsD0_;
     std::map<std::string, TEfficiency*> teffEffFitVsZ0_;
     //
+    std::map<std::string, TEfficiency*> teffPerfEffFitVsInvPt_;
+    std::map<std::string, TEfficiency*> teffPerfEffFitVsEta_;
+    //
     std::map<std::string, TEfficiency*> teffAlgEffFitVsInvPt_;
-    std::map<std::string, TEfficiency*> teffAlgEffFitVsPt_;
     std::map<std::string, TEfficiency*> teffAlgEffFitVsEta_;
     std::map<std::string, TEfficiency*> teffAlgEffFitVsPhi_;
-    //
-    std::map<std::string, TEfficiency*> teffPerfAlgEffFitVsInvPt_;
-    std::map<std::string, TEfficiency*> teffPerfAlgEffFitVsPt_;
-    std::map<std::string, TEfficiency*> teffPerfAlgEffFitVsEta_;
-    std::map<std::string, TEfficiency*> teffPerfAlgEffFitVsInvPt_inJetPtG30_;
-    std::map<std::string, TEfficiency*> teffPerfAlgEffFitVsInvPt_inJetPtG100_;
-    std::map<std::string, TEfficiency*> teffPerfAlgEffFitVsInvPt_inJetPtG200_;
-    //
     std::map<std::string, TEfficiency*> teffAlgEffFitVsD0_;
     std::map<std::string, TEfficiency*> teffAlgEffFitVsZ0_;
     //
-    std::map<std::string, TEfficiency*> teffAlgEffFitVsPhiSec_;
-    std::map<std::string, TEfficiency*> teffAlgEffFitVsEtaSec_;
-    std::map<std::string, TEfficiency*> teffPerfAlgEffFitVsPhiSec_;
-    std::map<std::string, TEfficiency*> teffPerfAlgEffFitVsEtaSec_;
-
-    bool plotFirst_;
+    std::map<std::string, TEfficiency*> teffPerfAlgEffFitVsInvPt_;
+    std::map<std::string, TEfficiency*> teffPerfAlgEffFitVsEta_;
 
     // Number of genuine reconstructed and perfectly reconstructed tracks which were fitted.
     std::map<std::string, unsigned int> numFitAlgEff_;

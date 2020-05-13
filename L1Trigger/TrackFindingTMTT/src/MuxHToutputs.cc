@@ -14,9 +14,9 @@ using namespace std;
 
 namespace tmtt {
 
-namespace {
-std::once_flag printOnce;
-}
+  namespace {
+    std::once_flag printOnce;
+  }
 
   //=== Initialize constants from configuration parameters.
 
@@ -47,8 +47,9 @@ std::once_flag printOnce;
 
     std::stringstream text;
     text << "=== The R-PHI HT output is multiplexed onto " << this->numLinksPerNonant()
-           << " pairs of opto-links per nonant.";
-    std::call_once(printOnce, [](string t){ PrintL1trk()<<t; }, text.str());
+         << " pairs of opto-links per nonant.";
+    std::call_once(
+        printOnce, [](string t) { PrintL1trk() << t; }, text.str());
   }
 
   //=== Determine which tracks are transmitted on each HT output optical link, taking into account the multiplexing
@@ -56,7 +57,7 @@ std::once_flag printOnce;
   //=== to output all the tracks within the time-multiplexed period.
   //=== This function replaces the 2D track collection in the r-phi HT with the subset surviving the TM cut.
 
-void MuxHToutputs::exec(matrix<unique_ptr<HTrphi>>& mHtRphis) const {
+  void MuxHToutputs::exec(matrix<unique_ptr<HTrphi>>& mHtRphis) const {
     // As this loops over sectors in order of increasing sector number, this MUX algorithm always transmits tracks
     // from the lowest sector numbers on each link first. So the highest sector numbers are more likely to be
     // truncated by the TM period. The algorithm assumes that two or more m-bin ranges from the same sector will never
@@ -76,8 +77,8 @@ void MuxHToutputs::exec(matrix<unique_ptr<HTrphi>>& mHtRphis) const {
           const list<L1track2D>& tracks = htRphi->trackCands2D();
 
           for (const L1track2D& trk : tracks) {
-	    L1track2D trkTmp = trk;
-            unsigned int nStubs = trkTmp.numStubs();               // #stubs on this track.
+            L1track2D trkTmp = trk;
+            unsigned int nStubs = trkTmp.numStubs();                // #stubs on this track.
             unsigned int mBinRange = htRphi->getMbinRange(trkTmp);  // Which m bin range is this track in?
             // Get the output optical link corresponding to this sector & m-bin range.
             unsigned int link = this->linkID(iSecInNon, iEtaReg, mBinRange);

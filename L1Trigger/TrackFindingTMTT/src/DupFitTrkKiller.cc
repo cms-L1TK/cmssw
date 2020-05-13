@@ -10,9 +10,8 @@ namespace tmtt {
 
   //=== Make available cfg parameters & specify which algorithm is to be used for duplicate track removal.
 
-DupFitTrkKiller::DupFitTrkKiller(const Settings* settings) :
-    settings_(settings), dupTrkAlg_(settings->dupTrkAlgFit())
-    {}
+  DupFitTrkKiller::DupFitTrkKiller(const Settings* settings)
+      : settings_(settings), dupTrkAlg_(settings->dupTrkAlgFit()) {}
 
   //=== Eliminate duplicate tracks from the input collection, and so return a reduced list of tracks.
 
@@ -21,7 +20,7 @@ DupFitTrkKiller::DupFitTrkKiller(const Settings* settings) :
       // We are not running duplicate removal, so return original fitted track collection.
       list<const L1fittedTrack*> copyTracks;
       for (const L1fittedTrack& trk : vecTracks) {
-	copyTracks.push_back(&trk);
+        copyTracks.push_back(&trk);
       }
       return copyTracks;
 
@@ -105,12 +104,13 @@ DupFitTrkKiller::DupFitTrkKiller(const Settings* settings) :
 
             if (debug && tp != nullptr) {
               PrintL1trk() << "FIRST PASS: m=" << trk.cellLocationHT().first << "/" << trk.cellLocationFit().first
-                   << " c=" << trk.cellLocationHT().second << "/" << trk.cellLocationFit().second << " Delta(m,c)=("
-                   << int(trk.cellLocationHT().first) - int(trk.cellLocationFit().first) << ","
-                   << int(trk.cellLocationHT().second) - int(trk.cellLocationFit().second) << ") pure=" << trk.purity()
-                   << " merged=" << trk.l1track3D()->mergedHTcell() << " #layers=" << trk.l1track3D()->numLayers()
-                   << " tp=" << tp->index() << " dupCell=(" << tpFound[tp->index()].first << ","
-                   << tpFound[tp->index()].second << ") dup=" << tpFoundAtPass[tp->index()];
+                           << " c=" << trk.cellLocationHT().second << "/" << trk.cellLocationFit().second
+                           << " Delta(m,c)=(" << int(trk.cellLocationHT().first) - int(trk.cellLocationFit().first)
+                           << "," << int(trk.cellLocationHT().second) - int(trk.cellLocationFit().second)
+                           << ") pure=" << trk.purity() << " merged=" << trk.l1track3D()->mergedHTcell()
+                           << " #layers=" << trk.l1track3D()->numLayers() << " tp=" << tp->index() << " dupCell=("
+                           << tpFound[tp->index()].first << "," << tpFound[tp->index()].second
+                           << ") dup=" << tpFoundAtPass[tp->index()];
               // If the following two variables are non-zero in printout, then track has already been found,
               // so we have mistakenly kept a duplicate.
               if (tpFound.find(tp->index()) != tpFound.end())
@@ -130,12 +130,13 @@ DupFitTrkKiller::DupFitTrkKiller(const Settings* settings) :
 
             if (debug && tp != nullptr) {
               PrintL1trk() << "FIRST REJECT: m=" << trk.cellLocationHT().first << "/" << trk.cellLocationFit().first
-                   << " c=" << trk.cellLocationHT().second << "/" << trk.cellLocationFit().second << " Delta(m,c)=("
-                   << int(trk.cellLocationHT().first) - int(trk.cellLocationFit().first) << ","
-                   << int(trk.cellLocationHT().second) - int(trk.cellLocationFit().second) << ") pure=" << trk.purity()
-                   << " merged=" << trk.l1track3D()->mergedHTcell() << " #layers=" << trk.l1track3D()->numLayers()
-                   << " tp=" << tp->index() << " dupCell=(" << tpFound[tp->index()].first << ","
-                   << tpFound[tp->index()].second << ") dup=" << tpFoundAtPass[tp->index()];
+                           << " c=" << trk.cellLocationHT().second << "/" << trk.cellLocationFit().second
+                           << " Delta(m,c)=(" << int(trk.cellLocationHT().first) - int(trk.cellLocationFit().first)
+                           << "," << int(trk.cellLocationHT().second) - int(trk.cellLocationFit().second)
+                           << ") pure=" << trk.purity() << " merged=" << trk.l1track3D()->mergedHTcell()
+                           << " #layers=" << trk.l1track3D()->numLayers() << " tp=" << tp->index() << " dupCell=("
+                           << tpFound[tp->index()].first << "," << tpFound[tp->index()].second
+                           << ") dup=" << tpFoundAtPass[tp->index()];
             }
           }
           // Memorize HT cell location corresponding to this track, even if it was not accepted by first pass..
@@ -178,12 +179,13 @@ DupFitTrkKiller::DupFitTrkKiller(const Settings* settings) :
 
           if (debug && tp != nullptr) {
             PrintL1trk() << "SECOND PASS: m=" << trk->cellLocationHT().first << "/" << trk->cellLocationFit().first
-                 << " c=" << trk->cellLocationHT().second << "/" << trk->cellLocationFit().second << " Delta(m,c)=("
-                 << int(trk->cellLocationHT().first) - int(trk->cellLocationFit().first) << ","
-                 << int(trk->cellLocationHT().second) - int(trk->cellLocationFit().second) << ") pure=" << trk->purity()
-                 << " merged=" << trk->l1track3D()->mergedHTcell() << " #layers=" << trk->l1track3D()->numLayers()
-                 << " tp=" << tp->index() << " dupCell=(" << tpFound[tp->index()].first << ","
-                 << tpFound[tp->index()].second << ") dup=" << tpFoundAtPass[tp->index()];
+                         << " c=" << trk->cellLocationHT().second << "/" << trk->cellLocationFit().second
+                         << " Delta(m,c)=(" << int(trk->cellLocationHT().first) - int(trk->cellLocationFit().first)
+                         << "," << int(trk->cellLocationHT().second) - int(trk->cellLocationFit().second)
+                         << ") pure=" << trk->purity() << " merged=" << trk->l1track3D()->mergedHTcell()
+                         << " #layers=" << trk->l1track3D()->numLayers() << " tp=" << tp->index() << " dupCell=("
+                         << tpFound[tp->index()].first << "," << tpFound[tp->index()].second
+                         << ") dup=" << tpFoundAtPass[tp->index()];
             if (tpFound.find(tp->index()) != tpFound.end())
               tpFound[tp->index()] = htCell;
             tpFoundAtPass[tp->index()] = 2;
@@ -228,8 +230,8 @@ DupFitTrkKiller::DupFitTrkKiller(const Settings* settings) :
           const TP* tp = trk.matchedTP();
           int tpIndex = (tp != nullptr) ? tp->index() : -999;
           PrintL1trk() << "ALG51: m=" << trk.cellLocationHT().first << "/" << trk.cellLocationFit().first
-               << " c=" << trk.cellLocationHT().second << "/" << trk.cellLocationFit().second << " tp=" << tpIndex
-               << " pure=" << trk.purity();
+                       << " c=" << trk.cellLocationHT().second << "/" << trk.cellLocationFit().second
+                       << " tp=" << tpIndex << " pure=" << trk.purity();
         }
       }
     }
@@ -256,8 +258,9 @@ DupFitTrkKiller::DupFitTrkKiller(const Settings* settings) :
       if (vecTrk.size() > 1) {
         for (const L1fittedTrack* trk : vecTrk) {
           PrintL1trk() << "  MESS UP : m=" << trk->cellLocationHT().first << "/" << trk->cellLocationFit().first
-               << " c=" << trk->cellLocationHT().second << "/" << trk->cellLocationFit().second << " tp=" << tp->index()
-               << " tp_pt=" << tp->pt() << " fit_pt=" << trk->pt() << " pure=" << trk->purity();
+                       << " c=" << trk->cellLocationHT().second << "/" << trk->cellLocationFit().second
+                       << " tp=" << tp->index() << " tp_pt=" << tp->pt() << " fit_pt=" << trk->pt()
+                       << " pure=" << trk->purity();
           PrintL1trk() << "     stubs = ";
           for (const Stub* s : trk->stubs())
             PrintL1trk() << s->index() << " ";

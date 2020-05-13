@@ -27,18 +27,17 @@ namespace tmtt {
   InputData::InputData(const edm::Event& iEvent,
                        const edm::EventSetup& iSetup,
                        const Settings* settings,
-		       StubWindowSuggest* stubWindowSuggest,
+                       StubWindowSuggest* stubWindowSuggest,
                        const TrackerGeometry* trackerGeometry,
                        const TrackerTopology* trackerTopology,
-		       const list<TrackerModule>& listTrackerModule,
+                       const list<TrackerModule>& listTrackerModule,
                        const edm::EDGetTokenT<TrackingParticleCollection> tpToken,
                        const edm::EDGetTokenT<TTStubDetSetVec> stubToken,
                        const edm::EDGetTokenT<TTStubAssMap> stubTruthToken,
                        const edm::EDGetTokenT<TTClusterAssMap> clusterTruthToken,
-                       const edm::EDGetTokenT<reco::GenJetCollection> genJetToken) :
-    // Note if job will use MC truth info (or skip it to save CPU).
-    enableMCtruth_(settings->enableMCtruth())
-{
+                       const edm::EDGetTokenT<reco::GenJetCollection> genJetToken)
+      :  // Note if job will use MC truth info (or skip it to save CPU).
+        enableMCtruth_(settings->enableMCtruth()) {
     edm::Handle<TrackingParticleCollection> tpHandle;
     edm::Handle<TTStubDetSetVec> ttStubHandle;
     edm::Handle<TTStubAssMap> mcTruthTTStubHandle;
@@ -55,12 +54,11 @@ namespace tmtt {
     // Get TrackingParticle info
 
     if (enableMCtruth_) {
-
       unsigned int tpCount = 0;
       for (unsigned int i = 0; i < tpHandle->size(); i++) {
         const TrackingParticle& tPart = tpHandle->at(i);
         // Creating Ptr uses CPU, so apply Pt cut here, copied from TP::fillUse(), to avoid doing it too often.
-	constexpr float ptMinScale = 0.7;
+        constexpr float ptMinScale = 0.7;
         const float ptMin = min(settings->genMinPt(), ptMinScale * settings->houghMinPt());
         if (tPart.pt() > ptMin) {
           TrackingParticlePtr tpPtr(tpHandle, i);
@@ -98,9 +96,8 @@ namespace tmtt {
     }
 
     // Loop over tracker modules to get module info & stubs.
-    
-    for (const TrackerModule& trackerModule : listTrackerModule) {
 
+    for (const TrackerModule& trackerModule : listTrackerModule) {
       const DetId& stackedDetId = trackerModule.stackedDetId();
       TTStubDetSetVec::const_iterator p_module = ttStubHandle->find(stackedDetId);
       if (p_module != ttStubHandle->end()) {
@@ -119,7 +116,7 @@ namespace tmtt {
         }
       }
     }
-    
+
     // Produced reduced list containing only the subset of stubs that the user has declared will be
     // output by the front-end readout electronics.
     for (Stub& s : vAllStubs_) {
@@ -130,9 +127,7 @@ namespace tmtt {
     }
     // Optionally sort stubs according to bend, so highest Pt ones are sent from DTC to GP first.
     if (settings->orderStubsByBend()) {
-      auto orderStubsByBend = [](const Stub *a, const Stub *b) {
-        return (std::abs(a->bend()) < std::abs(b->bend()));
-      };
+      auto orderStubsByBend = [](const Stub* a, const Stub* b) { return (std::abs(a->bend()) < std::abs(b->bend())); };
       vStubs_.sort(orderStubsByBend);
     }
 

@@ -3,18 +3,19 @@ Two options:
 1) Run the TMTT L1 tracking algorithm (with detailed internal histos)
 
     cd L1Trigger/TrackFindingTMTT/test/
-    cmsRun   tmtt_tf_analysis_cfg.py 
+    cmsRun -n 4 tmtt_tf_analysis_cfg.py 
 
 editing if necessary variables: GEOMETRY (CMS geometry version), inputMCtxt (MC file), makeStubs (regenerate stubs instead of using those from input MC), outputDataSet (write TTTrack collection to file).
-
-WARNING: The "Histos" class included in the CMSSW release is an empty one, which does nothing. To obtain performance plots from this code, one should replace it with the full "Histos" class from the L1 track group.
 
 - Look at the printout from the job. At the end, it prints the number of track candidates reconstructed
   and the algorithmic tracking efficiency.
 
 - Look at the performance histograms Hist.root (explained in class "Histos" below)
 
-2) Run L1TrackNtupleMaker_cfg.py after editing it to change L1TRACKALGO = 'TMTT'. This writes a TTree with the fitfitted L1 tracks to file in a TTTrack collection, from which tracking performance can be studied with ROOT macro. L1TrackNtuplePlot.C.
+2) cmsRun -n 4 L1TrackNtupleMaker_cfg.py 
+after editing it to change L1TRACKALGO = 'TMTT'. This writes a TTree with the fitfitted L1 tracks to file in a TTTrack collection, from which tracking performance can be studied with ROOT macro. L1TrackNtuplePlot.C.
+
+N.B. .txt files listing available MC samples can be found in https://github.com/cms-data/L1Trigger-TrackFindingTMTT .
 
 -------------
 
@@ -132,3 +133,5 @@ obliged to understand what every histogram does.
 
 17) Class "StubKiller" emulates dead modules. It was written to
 model the scenarios requested by the Stress Test committee. 
+
+18) Class "GlobalCacheTMTT" contains data shared by all threads. It includes configuration data and histograms.

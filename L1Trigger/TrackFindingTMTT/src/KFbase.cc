@@ -57,7 +57,7 @@ namespace tmtt {
     if (settings_->kalmanDebugLevel() >= 1) {
       PrintL1trk() << "===============================================================================";
       std::stringstream text;
-      text <<  std::fixed << std::setprecision(4);
+      text << std::fixed << std::setprecision(4);
       text << "Input track cand: [phiSec,etaReg]=[" << l1track3D.iPhiSec() << "," << l1track3D.iEtaReg() << "]";
       text << " HT(m,c)=(" << l1track3D.cellLocationHT().first << "," << l1track3D.cellLocationHT().second
            << ") q/pt=" << l1track3D.qOverPt() << " tanL=" << l1track3D.tanLambda() << " z0=" << l1track3D.z0()
@@ -76,7 +76,6 @@ namespace tmtt {
 
     //return L1fittedTrk for the selected state (if KF produced one it was happy with).
     if (cand != nullptr) {
-
       // Get track helix params.
       TVectorD trackPars = trackParams(cand);
       double d0 = (nPar_ == 5) ? trackPars[D0] : 0.;
@@ -152,8 +151,8 @@ namespace tmtt {
           for (auto stub : stubs) {
             int kalmanLay =
                 this->kalmanLayer(l1track3D.iEtaReg(), stub->layerIdReduced(), stub->barrel(), stub->r(), stub->z());
-	    std::stringstream text;
-	    text <<  std::fixed << std::setprecision(4);
+            std::stringstream text;
+            text << std::fixed << std::setprecision(4);
             text << "    Stub: lay_red=" << stub->layerIdReduced() << " KFlay=" << kalmanLay << " r=" << stub->r()
                  << " z=" << stub->z() << "   assoc TPs =";
             for (const TP *tp_i : stub->assocTPs())
@@ -260,7 +259,7 @@ namespace tmtt {
 
         // find stubs for this layer
         // (If layer > 6, this will return empty vector, so safe).
-        vector<Stub *> thislay_stubs = layerStubs[layer];  
+        vector<Stub *> thislay_stubs = layerStubs[layer];
 
         // find stubs for next layer if we skip a layer, except when we are on the penultimate layer,
         // or we have exceeded the max skipped layers
@@ -286,16 +285,17 @@ namespace tmtt {
         // (Due to "kalmanLay" not having unique ID for each layer within a given eta sector).
         if (settings_->kalmanDebugLevel() >= 2 && best_state_by_nstubs.size() == 0 && thislay_stubs.size() == 0 &&
             nextlay_stubs.size() == 0)
-          PrintL1trk() << "State is lost by start of iteration " << iteration << " : #thislay_stubs=" << thislay_stubs.size()
-               << " #nextlay_stubs=" << nextlay_stubs.size() << " layer=" << layer << " eta=" << l1track3D.iEtaReg();
+          PrintL1trk() << "State is lost by start of iteration " << iteration
+                       << " : #thislay_stubs=" << thislay_stubs.size() << " #nextlay_stubs=" << nextlay_stubs.size()
+                       << " layer=" << layer << " eta=" << l1track3D.iEtaReg();
 
         // If we skipped over a dead layer, only increment "nSkipped" after the stubs in next+1 layer have been obtained
         nSkipped += nSkippedDeadLayers;
         nSkipped += nSkippedAmbiguousLayers;
 
-        // check to guarantee no fewer than 2PS hits per state at iteration 1 
-        // (iteration 0 will always include a PS hit, but iteration 1 could use 2S hits 
-	// unless we include this)
+        // check to guarantee no fewer than 2PS hits per state at iteration 1
+        // (iteration 0 will always include a PS hit, but iteration 1 could use 2S hits
+        // unless we include this)
         if (iteration == 1 && !remove2PSCut) {
           vector<Stub *> temp_thislaystubs;
           vector<Stub *> temp_nextlaystubs;
@@ -347,9 +347,9 @@ namespace tmtt {
         sort(next_states.begin(), next_states.end(), orderByChi2);
         sort(next_states_skipped.begin(), next_states_skipped.end(), orderByChi2);
 
-	new_states.insert(new_states.end(), next_states.begin(), next_states.end());
-	new_states.insert(new_states.end(), next_states_skipped.begin(), next_states_skipped.end());
-	/*
+        new_states.insert(new_states.end(), next_states.begin(), next_states.end());
+        new_states.insert(new_states.end(), next_states_skipped.begin(), next_states_skipped.end());
+        /*
         i = 0;
         for (auto state : next_states) {
             new_states.push_back(state);
@@ -393,8 +393,8 @@ namespace tmtt {
       // Select state with largest number of stubs.
       finished_state = best_state_by_nstubs.begin()->second;  // First element has largest number of stubs.
       if (settings_->kalmanDebugLevel() >= 1) {
-	std::stringstream text;
-        text <<  std::fixed << std::setprecision(4);
+        std::stringstream text;
+        text << std::fixed << std::setprecision(4);
         text << "Track found! final state selection: nLay=" << finished_state->nStubLayers()
              << " hitPattern=" << std::hex << finished_state->hitPattern() << std::dec
              << " phiSec=" << l1track3D.iPhiSec() << " etaReg=" << l1track3D.iEtaReg() << " HT(m,c)=("
@@ -521,10 +521,11 @@ namespace tmtt {
 
     if (settings_->kalmanDebugLevel() >= 4) {
       if (nPar_ == 4)
-        PrintL1trk() << "adjusted x = " << new_vecX[0] << ", " << new_vecX[1] << ", " << new_vecX[2] << ", " << new_vecX[3];
+        PrintL1trk() << "adjusted x = " << new_vecX[0] << ", " << new_vecX[1] << ", " << new_vecX[2] << ", "
+                     << new_vecX[3];
       else if (nPar_ == 5)
-        PrintL1trk() << "adjusted x = " << new_vecX[0] << ", " << new_vecX[1] << ", " << new_vecX[2] << ", " << new_vecX[3]
-             << ", " << new_vecX[4];
+        PrintL1trk() << "adjusted x = " << new_vecX[0] << ", " << new_vecX[1] << ", " << new_vecX[2] << ", "
+                     << new_vecX[3] << ", " << new_vecX[4];
       PrintL1trk() << "adjusted C ";
       new_matC.Print();
       PrintL1trk() << "adjust chi2rphi=" << new_chi2rphi << " chi2rz=" << new_chi2rz;
@@ -833,7 +834,6 @@ namespace tmtt {
   /* Adjust KF algorithm to allow for any dead tracker layers */
 
   set<unsigned> KFbase::kalmanDeadLayers(bool &remove2PSCut) const {
-
     // Kill scenarios described StubKiller.cc
 
     // By which Stress Test scenario (if any) are dead modules being emulated?
@@ -850,13 +850,13 @@ namespace tmtt {
           deadLayers.clear();
         }
 
-      } else if (killScenario ==  StubKiller::KillOptions::layer1) {  // barrel layer 1
+      } else if (killScenario == StubKiller::KillOptions::layer1) {  // barrel layer 1
         deadLayers.insert(pair<unsigned, bool>(1, true));
         if (iEtaReg_ > 8 || iPhiSec_ < 8 || iPhiSec_ > 11) {
           deadLayers.clear();
         }
         remove2PSCut = true;
-      } else if (killScenario ==  StubKiller::KillOptions::layer1layer2) {  // barrel layers 1 & 2
+      } else if (killScenario == StubKiller::KillOptions::layer1layer2) {  // barrel layers 1 & 2
         deadLayers.insert(pair<unsigned, bool>(1, true));
         deadLayers.insert(pair<unsigned, bool>(2, true));
         if (iEtaReg_ > 8 || iPhiSec_ < 8 || iPhiSec_ > 11) {
@@ -865,7 +865,7 @@ namespace tmtt {
           deadLayers.insert(pair<unsigned, bool>(0, true));  // What is this doing?
         }
         remove2PSCut = true;
-      } else if (killScenario ==  StubKiller::KillOptions::layer1disk1) {  // barrel layer 1 & disk 1
+      } else if (killScenario == StubKiller::KillOptions::layer1disk1) {  // barrel layer 1 & disk 1
         deadLayers.insert(pair<unsigned, bool>(1, true));
         deadLayers.insert(pair<unsigned, bool>(3, false));
         if (iEtaReg_ > 8 || iPhiSec_ < 8 || iPhiSec_ > 11) {
@@ -910,7 +910,7 @@ namespace tmtt {
       tpParams[D0] = tp->d0();
     }
     std::stringstream text;
-    text <<  std::fixed << std::setprecision(4);
+    text << std::fixed << std::setprecision(4);
     if (tp) {
       text << "  TP index = " << tp->index() << " useForAlgEff = " << useForAlgEff << " ";
       const string helixNames[5] = {"qOverPt", "phi0", "z0", "tanL", "d0"};
@@ -928,7 +928,7 @@ namespace tmtt {
 
   void KFbase::printStubLayers(const vector<Stub *> &stubs, unsigned int iEtaReg) const {
     std::stringstream text;
-    text <<  std::fixed << std::setprecision(4);
+    text << std::fixed << std::setprecision(4);
     if (stubs.size() == 0)
       text << "stub layers = []\n";
     else {
@@ -956,7 +956,7 @@ namespace tmtt {
 
   void KFbase::printStub(const Stub *stub) const {
     std::stringstream text;
-    text <<  std::fixed << std::setprecision(4);
+    text << std::fixed << std::setprecision(4);
     text << "stub ";
     text << "index=" << stub->index() << " ";
     text << "layerId=" << stub->layerId() << " ";

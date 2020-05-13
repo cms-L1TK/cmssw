@@ -30,14 +30,13 @@ namespace tmtt {
 
   class TrkRZfilter {
   public:
-
     // Initialize configuration parameters, and note sector number, eta range covered by sector and phi coordinate of its centre.
     TrkRZfilter(const Settings* settings,
-              unsigned int iPhiSec,
-              unsigned int iEtaReg,
-              float etaMinSector,
-              float etaMaxSector,
-              float phiCentreSector);
+                unsigned int iPhiSec,
+                unsigned int iEtaReg,
+                float etaMinSector,
+                float etaMaxSector,
+                float phiCentreSector);
 
     struct SortStubsByLayer {
       inline bool operator()(const Stub* stub1, const Stub* stub2) { return (stub1->layerId() < stub2->layerId()); }

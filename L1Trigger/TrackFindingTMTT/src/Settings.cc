@@ -395,7 +395,7 @@ namespace tmtt {
     // As python cfg doesn't know type "vbool", fix it here.
     for (unsigned int i = 0; i < barrelVsTypeTmp_.size(); i++) {
       barrelVsType_.push_back(bool(barrelVsTypeTmp_[i]));
-      psVsType_.push_back    (bool(psVsTypeTmp_[i]));
+      psVsType_.push_back(bool(psVsTypeTmp_[i]));
       tiltedVsType_.push_back(bool(tiltedVsTypeTmp_[i]));
     }
 

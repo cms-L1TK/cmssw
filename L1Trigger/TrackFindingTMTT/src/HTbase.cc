@@ -11,17 +11,15 @@ using namespace std;
 namespace tmtt {
 
   // Initialization.
-HTbase::HTbase(const Settings* settings, unsigned int iPhiSec, unsigned int iEtaReg,
-	       unsigned int nBinsX, unsigned int nBinsY) : 
-      settings_(settings),
-      iPhiSec_(iPhiSec),
-      iEtaReg_(iEtaReg),
-      nBinsX_(nBinsX),
-      nBinsY_(nBinsY),
-      htArray_(nBinsX, nBinsY),
-      optoLinkID_(this->calcOptoLinkID())
-    {}
-
+  HTbase::HTbase(
+      const Settings* settings, unsigned int iPhiSec, unsigned int iEtaReg, unsigned int nBinsX, unsigned int nBinsY)
+      : settings_(settings),
+        iPhiSec_(iPhiSec),
+        iEtaReg_(iEtaReg),
+        nBinsX_(nBinsX),
+        nBinsY_(nBinsY),
+        htArray_(nBinsX, nBinsY),
+        optoLinkID_(this->calcOptoLinkID()) {}
 
   //=== Termination. Causes HT array to search for tracks etc.
 
@@ -155,7 +153,7 @@ HTbase::HTbase(const Settings* settings, unsigned int iPhiSec, unsigned int iEta
         float extraUp = (coordMax - upper) / coordAxisBinSize;
         constexpr float small = 0.001;  // allow tolerance on floating point precision.
         if (min(extraLow, extraUp) < -small || max(extraLow, extraUp) > (1.0 + small))
-	  throw cms::Exception("LogicError")<<"HTbase: convertCoordRangeToBinRange error";
+          throw cms::Exception("LogicError") << "HTbase: convertCoordRangeToBinRange error";
         if (extraLow < fracCut && (nbins >= 3 || extraLow < extraUp))
           iCoordBinMin += 1;
         if (extraUp < fracCut && (nbins >= 3 || extraUp < extraLow))

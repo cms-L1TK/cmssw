@@ -19,20 +19,19 @@ namespace tmtt {
 
   class StubKiller {
   public:
-
     enum class KillOptions { none = 0, layer5 = 1, layer1 = 2, layer1layer2 = 3, layer1disk1 = 4, random = 5 };
 
     StubKiller(KillOptions killScenario,
                const TrackerTopology* trackerTopology,
-		 const TrackerGeometry* trackerGeometry,
-		 const edm::Event& iEvent);
+               const TrackerGeometry* trackerGeometry,
+               const edm::Event& iEvent);
 
     ~StubKiller() {}
 
-  // Indicate if given stub was killed by dead tracker module, based on dead module scenario.
+    // Indicate if given stub was killed by dead tracker module, based on dead module scenario.
     bool killStub(const TTStub<Ref_Phase2TrackerDigi_>* stub) const;
 
-  // Indicate if given stub was killed by dead tracker module, based on dead regions specified here,
+    // Indicate if given stub was killed by dead tracker module, based on dead regions specified here,
     // and ignoring dead module scenario.
     bool killStub(const TTStub<Ref_Phase2TrackerDigi_>* stub,
                   const std::vector<int>& layersToKill,
@@ -44,7 +43,6 @@ namespace tmtt {
                   const double maxRToKill,
                   const double fractionOfStubsToKillInLayers,
                   const double fractionOfStubsToKillEverywhere) const;
-
 
     // Indicate if given stub was in (partially) dead tracker module, based on dead module scenario.
     bool killStubInDeadModule(const TTStub<Ref_Phase2TrackerDigi_>* stub) const;

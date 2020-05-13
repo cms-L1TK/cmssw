@@ -51,7 +51,7 @@ namespace tmtt {
           settings_(settings),
           l1track3D_(l1track3D),
           stubs_(stubs),
-	  stubsConst_(stubs_.begin(), stubs_.end()),
+          stubsConst_(stubs_.begin(), stubs_.end()),
           hitPattern_(hitPattern),
           qOverPt_(qOverPt),
           d0_(d0),
@@ -69,28 +69,24 @@ namespace tmtt {
           accepted_(accepted),
           nSkippedLayers_(0),
           numUpdateCalls_(0),
-          numIterations_(0)
-    {
+          numIterations_(0) {
       if (l1track3D != nullptr) {
-	iPhiSec_ = l1track3D->iPhiSec();
-	iEtaReg_ = l1track3D->iEtaReg();
-	optoLinkID_ = l1track3D->optoLinkID();
-      } else { // Rejected track
-	iPhiSec_ = 0;
-	iEtaReg_ = 0;
-	optoLinkID_ = 0;
+        iPhiSec_ = l1track3D->iPhiSec();
+        iEtaReg_ = l1track3D->iEtaReg();
+        optoLinkID_ = l1track3D->optoLinkID();
+      } else {  // Rejected track
+        iPhiSec_ = 0;
+        iEtaReg_ = 0;
+        optoLinkID_ = 0;
       }
       if (settings != nullptr) {
-	// Count tracker layers these stubs are in
-        nLayers_ = Utility::countLayers(settings, stubs_);  
-	// Find associated truth particle & calculate info about match.
-        matchedTP_ = Utility::matchingTP(settings,
-                                         stubs_,
-                                         nMatchedLayers_,
-                                         matchedStubs_);  
-      } else { // Rejected track
-	nLayers_ = 0;
-	matchedTP_ = nullptr;
+        // Count tracker layers these stubs are in
+        nLayers_ = Utility::countLayers(settings, stubs_);
+        // Find associated truth particle & calculate info about match.
+        matchedTP_ = Utility::matchingTP(settings, stubs_, nMatchedLayers_, matchedStubs_);
+      } else {  // Rejected track
+        nLayers_ = 0;
+        matchedTP_ = nullptr;
       }
       // Set d0 = 0 for 4 param fit, in case fitter didn't do it.
       if (nHelixParam == 4) {
@@ -98,19 +94,19 @@ namespace tmtt {
         d0_bcon_ = 0.;
       }
       if (settings != nullptr && not settings->hybrid()) {
-	//Sector class used to check if fitted track trajectory is in expected sector.
-        secTmp_ = std::make_shared<Sector>(settings, iPhiSec_, iEtaReg_);  
-	// HT class used to identify HT cell that corresponds to fitted helix parameters.
-        htRphiTmp_ = std::make_shared<HTrphi>(settings, iPhiSec_, iEtaReg_,
-            secTmp_->etaMin(), secTmp_->etaMax(), secTmp_->phiCentre());  
-	this->setConsistentHTcell();
+        //Sector class used to check if fitted track trajectory is in expected sector.
+        secTmp_ = std::make_shared<Sector>(settings, iPhiSec_, iEtaReg_);
+        // HT class used to identify HT cell that corresponds to fitted helix parameters.
+        htRphiTmp_ = std::make_shared<HTrphi>(
+            settings, iPhiSec_, iEtaReg_, secTmp_->etaMin(), secTmp_->etaMax(), secTmp_->phiCentre());
+        this->setConsistentHTcell();
       } else {
-	consistentCell_ = false;
+        consistentCell_ = false;
       }
     }
 
     // Creates track rejected by fitter.
-    L1fittedTrack() : L1fittedTrack(nullptr, nullptr, noStubs_, 0, 0., 0., 0., 0., 0., 0., 0., 0, false) {} 
+    L1fittedTrack() : L1fittedTrack(nullptr, nullptr, noStubs_, 0, 0., 0., 0., 0., 0., 0., 0., 0, false) {}
 
     ~L1fittedTrack() {}
 
@@ -336,7 +332,8 @@ namespace tmtt {
     bool consistentSector() const {
       bool insidePhi =
           (std::abs(reco::deltaPhi(this->phiAtChosenR(done_bcon_), secTmp_->phiCentre())) < secTmp_->sectorHalfWidth());
-      bool insideEta = (this->zAtChosenR() > secTmp_->zAtChosenR_Min() && this->zAtChosenR() < secTmp_->zAtChosenR_Max());
+      bool insideEta =
+          (this->zAtChosenR() > secTmp_->zAtChosenR_Min() && this->zAtChosenR() < secTmp_->zAtChosenR_Max());
       return (insidePhi && insideEta);
     }
 
@@ -395,7 +392,7 @@ namespace tmtt {
     bool accepted_;
 
     //--- Sector class used to check if fitted track trajectory is in same sector as HT used to find it.
-    std::shared_ptr<Sector> secTmp_; // shared so as to allow copy of L1fittedTrack.
+    std::shared_ptr<Sector> secTmp_;  // shared so as to allow copy of L1fittedTrack.
     //--- r-phi HT class used to determine HT cell location that corresponds to fitted track helix parameters.
     std::shared_ptr<HTrphi> htRphiTmp_;
 
@@ -411,7 +408,7 @@ namespace tmtt {
 
     bool consistentCell_;
 
-    static const std::vector<Stub*> noStubs_; // Empty vector used to initialize rejected tracks.
+    static const std::vector<Stub*> noStubs_;  // Empty vector used to initialize rejected tracks.
   };
 
 }  // namespace tmtt

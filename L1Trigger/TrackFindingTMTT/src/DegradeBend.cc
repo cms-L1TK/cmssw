@@ -117,7 +117,7 @@ namespace tmtt {
         unsigned int numLargeGroups = numBends % numAllowed;
         unsigned int inLargeGroup = inSmallGroup + 1;
         unsigned int numSmallGroups = numAllowed - numLargeGroups;
-	// Bend encoding in groups (some large, some small, one large/small, some small, some large). 
+        // Bend encoding in groups (some large, some small, one large/small, some small, some large).
         vector<unsigned int> groups;
         for (unsigned int i = 0; i < numLargeGroups / 2; i++)
           groups.push_back(inLargeGroup);

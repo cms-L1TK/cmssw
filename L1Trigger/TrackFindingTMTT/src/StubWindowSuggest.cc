@@ -12,16 +12,15 @@
 using namespace std;
 
 namespace {
-std::mutex myMutex;
+  std::mutex myMutex;
 }
 
 namespace tmtt {
 
   //=== Analyse stub window required for this stub.
 
-void StubWindowSuggest::process(const TrackerTopology* trackerTopo, const Stub* stub) {
-
-    std::lock_guard<std::mutex> myGuard(myMutex); // Allow only one thread.
+  void StubWindowSuggest::process(const TrackerTopology* trackerTopo, const Stub* stub) {
+    std::lock_guard<std::mutex> myGuard(myMutex);  // Allow only one thread.
 
     // Half-size of FE chip bend window corresponding to Pt range in which tracks are to be found.
     const double invPtMax = 1 / ptMin_;
@@ -37,8 +36,9 @@ void StubWindowSuggest::process(const TrackerTopology* trackerTopo, const Stub* 
 
   //===  Update stored stub window size with this stub.
 
-void StubWindowSuggest::updateStoredWindow(const TrackerTopology* trackerTopo, const Stub* stub, double bendHalfWind) {
-
+  void StubWindowSuggest::updateStoredWindow(const TrackerTopology* trackerTopo,
+                                             const Stub* stub,
+                                             double bendHalfWind) {
     // Values set according to L1Trigger/TrackTrigger/python/TTStubAlgorithmRegister_cfi.py
     // parameter NTiltedRings for whichever tracker geometry (T3, T4, T5 ...) is used..
     const vector<double> barrelNTilt_init = {0., 12., 12., 12., 0., 0., 0.};
@@ -114,12 +114,13 @@ void StubWindowSuggest::updateStoredWindow(const TrackerTopology* trackerTopo, c
     }
     text << "),";
     PrintL1trk(1) << text.str();
-    
+
     PrintL1trk(1) << "TiltedBarrelCutSet = cms.VPSET( ";
     for (const auto& cutVec : tiltedCut_) {
       text.str("");
       text << "     cms.PSet( TiltedCut = cms.vdouble(";
-      if (cutVec.empty()) text << "0";
+      if (cutVec.empty())
+        text << "0";
       div = "";
       for (const auto& cut : cutVec) {
         text << div << cut;
@@ -134,17 +135,18 @@ void StubWindowSuggest::updateStoredWindow(const TrackerTopology* trackerTopo, c
     for (const auto& cutVec : ringCut_) {
       text.str("");
       text << "     cms.PSet( EndcapCut = cms.vdouble(";
-      if (cutVec.empty()) text << "0";
+      if (cutVec.empty())
+        text << "0";
       div = "";
       for (const auto& cut : cutVec) {
-	text << div << cut;
-	div = ", ";
+        text << div << cut;
+        div = ", ";
       }
       text << "), ),";
       PrintL1trk(1) << text.str();
     }
     PrintL1trk(1) << ")";
-    
+
     PrintL1trk(1) << "==============================================================================";
   }
 

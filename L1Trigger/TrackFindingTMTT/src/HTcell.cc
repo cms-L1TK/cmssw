@@ -12,41 +12,40 @@ namespace tmtt {
   //=== and a flag indicating if this cell is the merge of smaller HT cells.
 
   HTcell::HTcell(const Settings* settings,
-                    unsigned int iPhiSec,
-                    unsigned int iEtaReg,
-                    float etaMinSector,
-                    float etaMaxSector,
-                    float qOverPt,
-                    unsigned int ibin_qOverPt,
-                    bool mergedCell,
-		      bool miniHTcell) :
-    settings_(settings),
-    // Sector number
-    iPhiSec_(iPhiSec),
-    iEtaReg_(iEtaReg),
-    // Rapidity range of sector.
-    etaMinSector_(etaMinSector),
-    etaMaxSector_(etaMaxSector),
-    // Track q/Pt.
-    qOverPtCell_(qOverPt),
-    // Note bin number of cell along q/Pt axis of r-phi HT array. (Not used if r-z HT).
-    ibin_qOverPt_(ibin_qOverPt),
-    mergedCell_(mergedCell),
-    // Is cell in Mini-HT?
-    miniHTcell_(miniHTcell),
-    invPtToDphi_(settings->invPtToDphi()),  // B*c/2E11
-    // Use filter in each HT cell using only stubs which have consistent bend?
-    useBendFilter_(settings->useBendFilter()),
-    // Check if subsectors are being used within each sector. These are only ever used for r-phi HT.
-    numSubSecs_(settings->numSubSecsEta())
-{
+                 unsigned int iPhiSec,
+                 unsigned int iEtaReg,
+                 float etaMinSector,
+                 float etaMaxSector,
+                 float qOverPt,
+                 unsigned int ibin_qOverPt,
+                 bool mergedCell,
+                 bool miniHTcell)
+      : settings_(settings),
+        // Sector number
+        iPhiSec_(iPhiSec),
+        iEtaReg_(iEtaReg),
+        // Rapidity range of sector.
+        etaMinSector_(etaMinSector),
+        etaMaxSector_(etaMaxSector),
+        // Track q/Pt.
+        qOverPtCell_(qOverPt),
+        // Note bin number of cell along q/Pt axis of r-phi HT array. (Not used if r-z HT).
+        ibin_qOverPt_(ibin_qOverPt),
+        mergedCell_(mergedCell),
+        // Is cell in Mini-HT?
+        miniHTcell_(miniHTcell),
+        invPtToDphi_(settings->invPtToDphi()),  // B*c/2E11
+        // Use filter in each HT cell using only stubs which have consistent bend?
+        useBendFilter_(settings->useBendFilter()),
+        // Check if subsectors are being used within each sector. These are only ever used for r-phi HT.
+        numSubSecs_(settings->numSubSecsEta()) {
     // A filter is used each HT cell, which prevents more than the specified number of stubs being stored in the cell. (Reflecting memory limit of hardware).
     if (miniHTcell_) {
       maxStubsInCell_ = settings->maxStubsInCellMiniHough();
     } else {
       maxStubsInCell_ = settings->maxStubsInCell();
     }
- }
+  }
 
   //=== Termination. Search for track in this HT cell etc.
 

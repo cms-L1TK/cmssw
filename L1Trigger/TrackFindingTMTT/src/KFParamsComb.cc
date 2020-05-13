@@ -36,25 +36,25 @@ namespace tmtt {
     // Assumed track seed (from HT) uncertainty in transverse impact parameter.
 
     // Constants optimised by hand for TMTT algo.
-    const     float inv2Rsigma2 = pow(0.0314 * invPtToInv2R, 2);
-    constexpr float phi0sigma2  = pow(0.0102, 2);
-    constexpr float z0sigma2    = pow(5.0, 2);
-    constexpr float tanLsigma2  = pow(0.5, 2); 
-    constexpr float d0Sigma2    = pow(1.0, 2);
-    matC[INV2R][INV2R] = inv2Rsigma2; 
-    matC[PHI0][PHI0]   = phi0sigma2;      
-    matC[Z0][Z0]       = z0sigma2;              
-    matC[T][T]         = tanLsigma2;         
+    const float inv2Rsigma2 = pow(0.0314 * invPtToInv2R, 2);
+    constexpr float phi0sigma2 = pow(0.0102, 2);
+    constexpr float z0sigma2 = pow(5.0, 2);
+    constexpr float tanLsigma2 = pow(0.5, 2);
+    constexpr float d0Sigma2 = pow(1.0, 2);
+    matC[INV2R][INV2R] = inv2Rsigma2;
+    matC[PHI0][PHI0] = phi0sigma2;
+    matC[Z0][Z0] = z0sigma2;
+    matC[T][T] = tanLsigma2;
     if (nPar_ == 5) {
       matC[D0][D0] = d0Sigma2;
     }
 
     //if (settings_->hybrid()) {
-      // N.B. (z0, tanL, d0) seed uncertainties could be smaller for hybrid, if seeded in PS? -- not tried
-      //if (l1track3D.seedPS() > 0) { // Tracklet seed used PS layers
-      //  matC[Z0][Z0] /= (4.*4.).;
-      //  matC[T][T] /= (4.*4.);
-      // }
+    // N.B. (z0, tanL, d0) seed uncertainties could be smaller for hybrid, if seeded in PS? -- not tried
+    //if (l1track3D.seedPS() > 0) { // Tracklet seed used PS layers
+    //  matC[Z0][Z0] /= (4.*4.).;
+    //  matC[T][T] /= (4.*4.);
+    // }
     //}
 
     return matC;
@@ -73,7 +73,7 @@ namespace tmtt {
 
   TMatrixD KFParamsComb::matrixV(const Stub* stub, const KalmanState* state) const {
     // Take Pt from input track candidate as more stable.
-    double inv2R = (settings_->invPtToInvR()) * 0.5 * state->candidate().qOverPt();  
+    double inv2R = (settings_->invPtToInvR()) * 0.5 * state->candidate().qOverPt();
     double inv2R2 = inv2R * inv2R;
 
     double tanl = state->vectorX()(T);  // factor of 0.9 improves rejection
@@ -231,7 +231,7 @@ namespace tmtt {
     ptTolerance = {999., 999., 0.1, 0.1, 0.05, 0.05, 0.05};
     d0Cut = {999., 999., 999., 10., 10., 10., 10.};  // Only used for 5 param fit.
     // Chi2 cuts should be retuned if cfg param KalmanMultiScattTerm is changed!
-    if (nPar_ == 5) {                                // specific cuts for displaced tracking case.
+    if (nPar_ == 5) {  // specific cuts for displaced tracking case.
       //  Layer   =    0      1        2         3         4         5           6
       z0Cut = {
           999., 999., 1.7 * 15., 1.7 * 15., 1.7 * 15., 1.7 * 15., 1.7 * 15.};  // Larger values require digisation change.
@@ -274,7 +274,7 @@ namespace tmtt {
     if (countUpdateCalls || (settings_->kalmanDebugLevel() >= 2 && tpa_ != nullptr) ||
         (settings_->kalmanDebugLevel() >= 2 && settings_->hybrid())) {
       std::stringstream text;
-      text <<  std::fixed << std::setprecision(4);
+      text << std::fixed << std::setprecision(4);
       if (not goodState)
         text << "State veto:";
       if (goodState)

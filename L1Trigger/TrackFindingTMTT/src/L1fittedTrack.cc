@@ -5,16 +5,15 @@ using namespace std;
 namespace tmtt {
 
   // Empty vector used to initialize rejected tracks.
-  const std::vector<Stub*> L1fittedTrack::noStubs_; 
+  const std::vector<Stub*> L1fittedTrack::noStubs_;
 
   // Digitize track and degrade helix parameter resolution according to effect of digitisation.
 
   void L1fittedTrack::digitizeTrack(const string& fitterName) {
     if (settings_->enableDigitize()) {
       if (not digitalTrack_) {
-
-	// Create & run digitizer.
-	digitalTrack_ = std::make_shared<DigitalTrack>(settings_, fitterName, this);
+        // Create & run digitizer.
+        digitalTrack_ = std::make_shared<DigitalTrack>(settings_, fitterName, this);
 
         // Convert digitized track params back to floating point with degraded resolution.
         qOverPt_ = digitalTrack_->qOverPt();

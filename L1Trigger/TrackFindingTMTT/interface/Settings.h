@@ -40,7 +40,7 @@ namespace tmtt {
     // Enable output histograms & job tracking performance summary (disable to save CPU).
     bool enableHistos() const { return enableHistos_; }
     // Enable output of TTTracks from part-way through tracking chain (after HT & RZ).
-    bool enableOutputIntermediateTTTracks() const {return enableOutputIntermediateTTTracks_;}
+    bool enableOutputIntermediateTTTracks() const { return enableOutputIntermediateTTTracks_; }
 
     //=== Cuts on MC truth tracks for tracking efficiency measurements.
 
@@ -91,11 +91,11 @@ namespace tmtt {
     unsigned int bendBits() const { return bendBits_; }
 
     //=== Tracker module type for FW.
-    const std::vector<double>& pitchVsType() const {return pitchVsType_;}
-    const std::vector<double>& spaceVsType() const {return spaceVsType_;}
-    const std::vector<bool>& barrelVsType() const {return barrelVsType_;}
-    const std::vector<bool>& psVsType() const {return psVsType_;}
-    const std::vector<bool>& tiltedVsType() const {return tiltedVsType_;}
+    const std::vector<double>& pitchVsType() const { return pitchVsType_; }
+    const std::vector<double>& spaceVsType() const { return spaceVsType_; }
+    const std::vector<bool>& barrelVsType() const { return barrelVsType_; }
+    const std::vector<bool>& psVsType() const { return psVsType_; }
+    const std::vector<bool>& tiltedVsType() const { return tiltedVsType_; }
 
     //=== Configuration of Geometric Processor.
     // Use an FPGA-friendly approximation to determine track angle dphi from bend in GP?
@@ -108,42 +108,42 @@ namespace tmtt {
     unsigned int numPhiNonants() const { return numPhiNonants_; }
     unsigned int numPhiSectors() const { return numPhiSectors_; }
     // Use phi of track at this radius as sector hourglass reference radius.
-    double chosenRofPhi() const {return chosenRofPhi_;}  
+    double chosenRofPhi() const { return chosenRofPhi_; }
     // Require stub phi to be consistent with track of Pt > HTArraySpec.HoughMinPt that crosses HT phi axis?
-    bool useStubPhi() const {return useStubPhi_;}  
+    bool useStubPhi() const { return useStubPhi_; }
     // Require stub phi0 (or phi65 etc.) as estimated from stub bend, to lie within HT phi axis, allowing tolerance specified below?
-    bool useStubPhiTrk() const {return useStubPhiTrk_;}   
+    bool useStubPhiTrk() const { return useStubPhiTrk_; }
     // Tolerance in stub phi0 (or phi65) assumed to be this fraction of phi sector width. (N.B. If > 0.5, then stubs can be shared by more than 2 phi sectors).
-    double assumedPhiTrkRes() const {return assumedPhiTrkRes_;}  
+    double assumedPhiTrkRes() const { return assumedPhiTrkRes_; }
     // If true, tolerance in stub phi0 (or phi65 etc.) will be reduced below AssumedPhiTrkRes if stub bend resolution specified in StubCuts.BendResolution suggests it is safe to do so.
-    bool calcPhiTrkRes() const {return calcPhiTrkRes_;}  
-  
+    bool calcPhiTrkRes() const { return calcPhiTrkRes_; }
+
     //=== Definition of eta sectors.
 
     const std::vector<double>& etaRegions() const { return etaRegions_; }  // Boundaries of eta regions de
     unsigned int numEtaRegions() const { return (etaRegions_.size() - 1); }
     // Use z of track at this radius for assignment of stubs to phi sectors & also for one of the axes of the r-z HT.
-    double chosenRofZ() const {return chosenRofZ_;}  
+    double chosenRofZ() const { return chosenRofZ_; }
     // Half-width of window supposed to contain beam-spot in z.
-    double beamWindowZ() const { return beamWindowZ_; }  
+    double beamWindowZ() const { return beamWindowZ_; }
     // If True, the code will not throw an error if a stub is assigned to 3 or more eta sectors.
-    bool allowOver2EtaSecs() const {return allowOver2EtaSecs_;}
-  
+    bool allowOver2EtaSecs() const { return allowOver2EtaSecs_; }
+
     //=== r-phi Hough transform array specifications.
 
     double houghMinPt() const { return houghMinPt_; }
     // Dimension in any q/Pt related variable. (If MiniHTstage = True, this refers to mini cells in whole HT array).
-    unsigned int houghNbinsPt() const {return houghNbinsPt_;}  
+    unsigned int houghNbinsPt() const { return houghNbinsPt_; }
     // Dimension in any track-phi related variable. (If MiniHTstage = True, this refers to mini cells in whole HT array).
-    unsigned int houghNbinsPhi() const {return houghNbinsPhi_;}  
+    unsigned int houghNbinsPhi() const { return houghNbinsPhi_; }
     // Groups of neighbouring 2x2 cells in HT will be treated as if they are a single large cell. (Also enabled in MiniHTstage = True).
-    bool enableMerge2x2() const {return enableMerge2x2_;}  
+    bool enableMerge2x2() const { return enableMerge2x2_; }
     // but only cells with pt < maxPtToMerge2x2() will be merged in this way (irrelevant if enableMerge2x2() = false).
-    double maxPtToMerge2x2() const {return maxPtToMerge2x2_;}  
+    double maxPtToMerge2x2() const { return maxPtToMerge2x2_; }
     // Subdivide each sector into this number of subsectors in eta within r-phi HT.
-    unsigned int numSubSecsEta() const {return numSubSecsEta_;}  
+    unsigned int numSubSecsEta() const { return numSubSecsEta_; }
     // define cell shape (0 square, 1 diamond, 2 hexagon, 3 brick)
-    unsigned int shape() const { return shape_; }  
+    unsigned int shape() const { return shape_; }
     // Run 2nd stage HT with mini cells inside each 1st stage normal HT cell. N.B. This automatically std::sets EnableMerge2x2 = True & MaxPtToMerge = 999999.
     bool miniHTstage() const { return miniHTstage_; }
     // Number of mini cells along q/Pt & phi axes inside each normal HT cell.
@@ -330,7 +330,7 @@ namespace tmtt {
     //=== Treatment of dead modules.
     //
     // Emulate dead/inefficient modules using the StubKiller code, with stubs killed according to the scenarios of the Stress Test group.
-    // (0=Don't kill any stubs; 1-5 = Scenarios described in StubKiller.cc). 
+    // (0=Don't kill any stubs; 1-5 = Scenarios described in StubKiller.cc).
     unsigned int killScenario() const { return killScenario_; }
     // Modify TMTT tracking to try to recover tracking efficiency in presence of dead modules. (Does nothing if KillScenario = 0).
     bool killRecover() const { return killRecover_; }
@@ -487,14 +487,14 @@ namespace tmtt {
     unsigned int bendBits_;
 
     // Tracker module type for FW.
-    std::vector<double> pitchVsType_; 
-    std::vector<double> spaceVsType_; 
-    std::vector<bool> barrelVsType_; 
-    std::vector<bool> psVsType_; 
-    std::vector<bool> tiltedVsType_; 
-    std::vector<unsigned int> barrelVsTypeTmp_; 
-    std::vector<unsigned int> psVsTypeTmp_; 
-    std::vector<unsigned int> tiltedVsTypeTmp_; 
+    std::vector<double> pitchVsType_;
+    std::vector<double> spaceVsType_;
+    std::vector<bool> barrelVsType_;
+    std::vector<bool> psVsType_;
+    std::vector<bool> tiltedVsType_;
+    std::vector<unsigned int> barrelVsTypeTmp_;
+    std::vector<unsigned int> psVsTypeTmp_;
+    std::vector<unsigned int> tiltedVsTypeTmp_;
 
     // Configuration of Geometric Processor.
     bool useApproxB_;

@@ -13,7 +13,6 @@ namespace tmtt {
 
   class Sector {
   public:
-
     // Initialization.
     Sector(const Settings* settings, unsigned int iPhiSec, unsigned int iEtaSec);
 
@@ -74,13 +73,13 @@ namespace tmtt {
     const Settings* settings_;
 
     // Sector number
-    unsigned int iPhiSec_;  
+    unsigned int iPhiSec_;
     unsigned int iEtaReg_;
     float beamWindowZ_;
     float etaMin_;  // Range in eta covered by this sector.
     float etaMax_;
     float chosenRofZ_;  // Use z of track at radius="chosenRofZ" to define eta sectors.
-    float zOuterMin_; // z range of sector at reference radius
+    float zOuterMin_;   // z range of sector at reference radius
     float zOuterMax_;
 
     // Define phi sector.

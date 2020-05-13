@@ -9,20 +9,21 @@
 
 namespace tmtt {
 
-class PrintL1trk {
-public:
-  PrintL1trk(unsigned int nDigits = 4) : lv_("L1track"), nDigits_(nDigits) {};
+  class PrintL1trk {
+  public:
+    PrintL1trk(unsigned int nDigits = 4) : lv_("L1track"), nDigits_(nDigits){};
 
-  template <class T>
-  edm::LogVerbatim& operator<<(const T& t) {
-    lv_ << std::fixed << std::setprecision(nDigits_) << t;
-    return lv_;
-  }
-private:
-  edm::LogVerbatim lv_;
-  const unsigned int nDigits_;
-};
+    template <class T>
+    edm::LogVerbatim& operator<<(const T& t) {
+      lv_ << std::fixed << std::setprecision(nDigits_) << t;
+      return lv_;
+    }
 
-}
+  private:
+    edm::LogVerbatim lv_;
+    const unsigned int nDigits_;
+  };
+
+}  // namespace tmtt
 
 #endif

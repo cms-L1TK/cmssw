@@ -19,20 +19,19 @@ namespace tmtt {
 
   class HTcell {
   public:
-
     // Initialization with cfg params,
     // sector number, rapidity range of current sector, estimated q/Pt of cell,
     // and the bin number of the cell along the q/Pt axis of the r-phi HT array,
     // and a flag indicating if this cell is the merge of smaller HT cells.
     HTcell(const Settings* settings,
-              unsigned int iPhiSec,
-              unsigned int iEtaReg,
-              float etaMinSector,
-              float etaMaxSector,
-              float qOverPt,
-              unsigned int ibin_qOverPt,
-              bool mergedCell,
-              bool miniHTcell = false);
+           unsigned int iPhiSec,
+           unsigned int iEtaReg,
+           float etaMinSector,
+           float etaMaxSector,
+           float qOverPt,
+           unsigned int ibin_qOverPt,
+           bool mergedCell,
+           bool miniHTcell = false);
 
     // Add stub to this cell in HT array.
     void store(Stub* stub) { vStubs_.push_back(stub); }

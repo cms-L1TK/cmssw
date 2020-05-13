@@ -32,18 +32,16 @@ namespace tmtt {
 
   class TrackFitGeneric;
 
-class TMTrackProducer : public edm::stream::EDProducer<edm::GlobalCache<GlobalCacheTMTT>> {
+  class TMTrackProducer : public edm::stream::EDProducer<edm::GlobalCache<GlobalCacheTMTT>> {
   public:
-
-  explicit TMTrackProducer(const edm::ParameterSet &, GlobalCacheTMTT const* globalCacheTMTT);
+    explicit TMTrackProducer(const edm::ParameterSet &, GlobalCacheTMTT const *globalCacheTMTT);
     ~TMTrackProducer() {}
 
-    static std::unique_ptr<GlobalCacheTMTT> initializeGlobalCache(edm::ParameterSet const& iConfig);
+    static std::unique_ptr<GlobalCacheTMTT> initializeGlobalCache(edm::ParameterSet const &iConfig);
 
-    static void globalEndJob(GlobalCacheTMTT* globalCacheTMTT);
+    static void globalEndJob(GlobalCacheTMTT *globalCacheTMTT);
 
   private:
-
     typedef std::vector<TTTrack<Ref_Phase2TrackerDigi_>> TTTrackCollection;
 
     virtual void beginRun(const edm::Run &, const edm::EventSetup &);
@@ -75,9 +73,9 @@ class TMTrackProducer : public edm::stream::EDProducer<edm::GlobalCache<GlobalCa
     std::vector<std::string> useRZfilter_;
     bool runRZfilter_;
 
-    Histos& hists_;
-    HTrphi::ErrorMonitor& htRphiErrMon_;
-    StubWindowSuggest& stubWindowSuggest_;
+    Histos &hists_;
+    HTrphi::ErrorMonitor &htRphiErrMon_;
+    StubWindowSuggest &stubWindowSuggest_;
 
     std::map<std::string, std::unique_ptr<TrackFitGeneric>> fitterWorkerMap_;
   };

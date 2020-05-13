@@ -12,7 +12,7 @@
 namespace tmtt {
 
   class Settings;
-class StubWindowSuggest;
+  class StubWindowSuggest;
 
   //=== Unpacks stub & tracking particle (truth) data into user-friendlier format in Stub & TP classes.
   //=== Also makes B-field available to Settings class.
@@ -22,10 +22,10 @@ class StubWindowSuggest;
     InputData(const edm::Event& iEvent,
               const edm::EventSetup& iSetup,
               const Settings* settings,
-	      StubWindowSuggest* stubWindowSuggest,
+              StubWindowSuggest* stubWindowSuggest,
               const TrackerGeometry* trackerGeometry,
               const TrackerTopology* trackerTopology,
-	      const std::list<TrackerModule>& listTrackerModule,
+              const std::list<TrackerModule>& listTrackerModule,
               const edm::EDGetTokenT<TrackingParticleCollection> tpToken,
               const edm::EDGetTokenT<TTStubDetSetVec> stubToken,
               const edm::EDGetTokenT<TTStubAssMap> stubTruthToken,
@@ -50,10 +50,10 @@ class StubWindowSuggest;
   private:
     bool enableMCtruth_;  // Notes if job will use MC truth info.
 
-    std::list<TrackerModule> trackerModules_; // Info about each tracker module.
+    std::list<TrackerModule> trackerModules_;  // Info about each tracker module.
 
-    std::list<TP> vTPs_;            // tracking particles
-    std::list<Stub*> vStubs_;  // stubs that would be output by the front-end readout electronics.
+    std::list<TP> vTPs_;                  // tracking particles
+    std::list<Stub*> vStubs_;             // stubs that would be output by the front-end readout electronics.
     std::list<const Stub*> vStubsConst_;  // ditto but const
 
     //--- Used for a few minor studies ...

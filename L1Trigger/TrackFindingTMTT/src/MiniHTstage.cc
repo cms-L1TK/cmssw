@@ -42,7 +42,7 @@ namespace tmtt {
     }
   }
 
-void MiniHTstage::exec(matrix<unique_ptr<HTrphi>>& mHtRphis) {
+  void MiniHTstage::exec(matrix<unique_ptr<HTrphi>>& mHtRphis) {
     for (unsigned int iPhiNon = 0; iPhiNon < numPhiNonants_; iPhiNon++) {
       map<pair<unsigned int, unsigned int>, unsigned int>
           numStubsPerLinkStage1;  // Indices are ([link ID, MHT cell], #stubs).
@@ -80,21 +80,21 @@ void MiniHTstage::exec(matrix<unique_ptr<HTrphi>>& mHtRphis) {
                   const bool mergedCell = false;  // This represents mini cell.
                   const bool miniHTcell = true;
                   HTcell htCell(settings_,
-                              iPhiSec,
-                              iEtaReg,
-                              sector.etaMin(),
-                              sector.etaMax(),
-                              qOverPtBin,
-                              cell.first + mBin,
-                              mergedCell,
-                              miniHTcell);
+                                iPhiSec,
+                                iEtaReg,
+                                sector.etaMin(),
+                                sector.etaMax(),
+                                qOverPtBin,
+                                cell.first + mBin,
+                                mergedCell,
+                                miniHTcell);
                   // Firmware doesn't use bend filter in MHT.
                   htCell.disableBendFilter();
 
                   for (auto& stub : stubs) {
                     // Ensure stubs are digitized with respect to the current phi sector.
                     if (settings_->enableDigitize())
-         	      stub->digitize(iPhiSec, Stub::DigiStage::HT);
+                      stub->digitize(iPhiSec, Stub::DigiStage::HT);
                     float phiStub = reco::deltaPhi(
                         stub->phi() + invPtToDphi_ * qOverPtBin * (stub->r() - chosenRofPhi_) - phiCentre, 0.);
                     float dPhi = reco::deltaPhi(phiBin - phiStub, 0.);

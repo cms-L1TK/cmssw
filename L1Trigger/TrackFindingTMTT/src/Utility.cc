@@ -13,11 +13,11 @@ namespace tmtt {
   //=== By default, consider both PS+2S modules, but optionally consider only the PS ones.
 
   unsigned int Utility::countLayers(const Settings* settings,
-                             const std::vector<Stub*>& stubs,
-                             bool disableReducedLayerID,
-                             bool onlyPS) {
-      std::vector<const Stub*> stubsConst(stubs.begin(), stubs.end());
-      return countLayers(settings, stubsConst, disableReducedLayerID, onlyPS);
+                                    const std::vector<Stub*>& stubs,
+                                    bool disableReducedLayerID,
+                                    bool onlyPS) {
+    std::vector<const Stub*> stubsConst(stubs.begin(), stubs.end());
+    return countLayers(settings, stubsConst, disableReducedLayerID, onlyPS);
   }
 
   unsigned int Utility::countLayers(const Settings* settings,
@@ -84,12 +84,12 @@ namespace tmtt {
   //=== the number of tracker layers in which one of the stubs matched one from this tracking particle,
   //=== and the list of the subset of the stubs which match those on the tracking particle.
 
-   const TP* Utility::matchingTP(const Settings* settings,
-                         const std::vector<Stub*>& vstubs,
-                         unsigned int& nMatchedLayersBest,
-                         std::vector<const Stub*>& matchedStubsBest) {
-      std::vector<const Stub*> stubsConst(vstubs.begin(), vstubs.end());
-      return matchingTP(settings, stubsConst, nMatchedLayersBest, matchedStubsBest);
+  const TP* Utility::matchingTP(const Settings* settings,
+                                const std::vector<Stub*>& vstubs,
+                                unsigned int& nMatchedLayersBest,
+                                std::vector<const Stub*>& matchedStubsBest) {
+    std::vector<const Stub*> stubsConst(vstubs.begin(), vstubs.end());
+    return matchingTP(settings, stubsConst, nMatchedLayersBest, matchedStubsBest);
   }
 
   const TP* Utility::matchingTP(const Settings* settings,
@@ -122,10 +122,10 @@ namespace tmtt {
 
     // Loop over all the TP that matched the given stubs, looking for the best matching TP.
 
-    nMatchedLayersBest = 0;                   
-    unsigned int nMatchedLayersStrictBest = 0;  
-    matchedStubsBest.clear();                   
-    const TP* tpBest = nullptr;               
+    nMatchedLayersBest = 0;
+    unsigned int nMatchedLayersStrictBest = 0;
+    matchedStubsBest.clear();
+    const TP* tpBest = nullptr;
 
     for (const auto& iter : tpsToStubs) {
       const TP* tp = iter.first;

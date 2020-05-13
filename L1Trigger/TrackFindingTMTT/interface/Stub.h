@@ -60,8 +60,8 @@ namespace tmtt {
          unsigned int index_in_vStubs,
          const Settings* settings,
          const TrackerTopology* trackerTopology,
-	 const TrackerModule* trackerModule,
-	 const StubKiller* stubKiller);
+         const TrackerModule* trackerModule,
+         const StubKiller* stubKiller);
 
     ~Stub() {}
 
@@ -82,7 +82,7 @@ namespace tmtt {
     void calcQoverPtrange();
 
     // Digitize stub for input to GP, HT, SF, TF
-    enum class DigiStage {NONE, GP, HT, SF, TF};
+    enum class DigiStage { NONE, GP, HT, SF, TF };
     void digitize(unsigned int iPhiSec, DigiStage digiStep);
 
     // Control warning messages about accessing non-digitized quantities.
@@ -118,12 +118,10 @@ namespace tmtt {
     // or digitisation).
     float bendInFrontend() const { return bendInFrontend_; }
     float bendCutInFrontend() const { return settings_->bendCut(); }
-    // Get stub bend (i.e. displacement between two hits in stub in units of strip pitch). 
-    float bend() const {return bend_;}
+    // Get stub bend (i.e. displacement between two hits in stub in units of strip pitch).
+    float bend() const { return bend_; }
     // Bend resolution.
-    float bendCut() const {
-      return (settings_->bendCut() + (numMergedBend_ - 1) * settings_->bendCutExtra());
-    }
+    float bendCut() const { return (settings_->bendCut() + (numMergedBend_ - 1) * settings_->bendCutExtra()); }
     // No. of bend values merged into FE bend encoding of this stub.
     float numMergedBend() const { return numMergedBend_; }
     // Estimated track q/Pt based on stub bend info.
@@ -135,13 +133,13 @@ namespace tmtt {
     // Difference in phi between stub and angle at which track crosses given radius, assuming track has given Pt.
     float phiDiff(float rad, float Pt) const { return std::abs(r_ - rad) * (settings_->invPtToDphi()) / Pt; }
     // Phi angle at which particle consistent with this stub & its bend cross specified radius.
-    float trkPhiAtR(float rad) const {return phi_ + (bend_*dphiOverBend_)*(1. - rad/r_);}
+    float trkPhiAtR(float rad) const { return phi_ + (bend_ * dphiOverBend_) * (1. - rad / r_); }
     // Its resolution
-    float trkPhiAtRcut(float rad) const {return (bendCut()*dphiOverBend_)*std::abs(1. - rad/r_);} 
+    float trkPhiAtRcut(float rad) const { return (bendCut() * dphiOverBend_) * std::abs(1. - rad / r_); }
 
     // -- conversion factors
     // Ratio of track crossing angle to bend.
-    float dphiOverBend() const { return dphiOverBend_;}    
+    float dphiOverBend() const { return dphiOverBend_; }
     // Ratio of q/Pt to bend.
     float qOverPtOverBend() const { return dphiOverBend_ / (r_ * settings_->invPtToDphi()); }
 
@@ -184,9 +182,15 @@ namespace tmtt {
     float sigmaR() const { return (barrel() ? 0. : sigmaPar()); }
     float sigmaZ() const { return (barrel() ? sigmaPar() : 0.); }
     // Hit resolution perpendicular to strip. Measures phi.
-    float sigmaPerp() const { constexpr float f = sqrt(1./12); return f * stripPitch_; }
+    float sigmaPerp() const {
+      constexpr float f = sqrt(1. / 12);
+      return f * stripPitch_;
+    }
     // Hit resolution parallel to strip. Measures r or z.
-    float sigmaPar() const { constexpr float f = sqrt(1./12.); return f * stripLength_; }
+    float sigmaPar() const {
+      constexpr float f = sqrt(1. / 12.);
+      return f * stripLength_;
+    }
 
     //--- These module variables could be taken directly from trackerModule_, were it not for need
     //--- to support Hybrid.
@@ -195,7 +199,7 @@ namespace tmtt {
     // Tracker layer ID number (1-6 = barrel layer; 11-15 = endcap A disk; 21-25 = endcap B disk)
     unsigned int layerId() const { return layerId_; }
     // Reduced layer ID (in range 1-7). This encodes the layer ID in only 3 bits (to simplify firmware) by merging some barrel layer and endcap disk layer IDs into a single ID.
-    unsigned int layerIdReduced() const {return layerIdReduced_;}
+    unsigned int layerIdReduced() const { return layerIdReduced_; }
     bool barrel() const { return barrel_; }
     // True if stub is in tilted barrel module.
     bool tiltedBarrel() const { return tiltedBarrel_; }
@@ -204,7 +208,7 @@ namespace tmtt {
     // Strip length (or pixel pitch along longest axis).
     float stripLength() const { return stripLength_; }
     // No. of strips in sensor.
-    unsigned int nStrips() const { return  nStrips_; }
+    unsigned int nStrips() const { return nStrips_; }
 
   private:
     // Degrade assumed stub bend resolution.
@@ -216,8 +220,8 @@ namespace tmtt {
 
     // Set info about the module that this stub is in.
     void setTrackerModule(const TrackerGeometry* trackerGeometry,
-                       const TrackerTopology* trackerTopology,
-                       const DetId& detId);
+                          const TrackerTopology* trackerTopology,
+                          const DetId& detId);
 
     // Function to calculate approximation for dphiOverBendCorrection aka B
     double approxB();
@@ -226,7 +230,6 @@ namespace tmtt {
     void calcDphiOverBend();
 
   private:
-
     TTStubRef ttStubRef_;  // Reference to original TTStub
 
     const Settings* settings_;  // configuration parameters.
@@ -238,9 +241,9 @@ namespace tmtt {
     float phi_;  // stub coords, optionally after digitisation.
     float r_;
     float z_;
-    float bend_;                           // bend of stub.
-    float dphiOverBend_;                   // related to rho parameter.
-    unsigned int min_qOverPt_bin_;         // Range in q/Pt bins in HT array compatible with stub bend.
+    float bend_;                    // bend of stub.
+    float dphiOverBend_;            // related to rho parameter.
+    unsigned int min_qOverPt_bin_;  // Range in q/Pt bins in HT array compatible with stub bend.
     unsigned int max_qOverPt_bin_;
 
     //--- Info about the two clusters that make up the stub.
@@ -265,8 +268,8 @@ namespace tmtt {
     //--- Truth info about the two clusters that make up the stub
     std::array<const TP*, 2> assocTPofCluster_;
 
-    std::unique_ptr<DigitalStub> digitalStub_;   // Class used to digitize stub if required.
-    bool digitizeWarningsOn_;   // Enable warnings about accessing non-digitized quantities.
+    std::unique_ptr<DigitalStub> digitalStub_;  // Class used to digitize stub if required.
+    bool digitizeWarningsOn_;                   // Enable warnings about accessing non-digitized quantities.
     DigiStage lastDigiStep_;
 
     // Info about tracker module containing stub.
@@ -287,7 +290,7 @@ namespace tmtt {
     float stripLength_;
     unsigned int nStrips_;
 
-    const float rejectedStubBend_ = 99999.; // Bend set to this if stub rejected.
+    const float rejectedStubBend_ = 99999.;  // Bend set to this if stub rejected.
   };
 
 }  // namespace tmtt

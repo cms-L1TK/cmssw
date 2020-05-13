@@ -10,39 +10,38 @@ namespace tmtt {
 
   //=== Initialise
 
-Sector::Sector(const Settings* settings, unsigned int iPhiSec, unsigned int iEtaReg) :
-  settings_(settings),
-  // Sector number
-  iPhiSec_(iPhiSec),
-  iEtaReg_(iEtaReg),
+  Sector::Sector(const Settings* settings, unsigned int iPhiSec, unsigned int iEtaReg)
+      : settings_(settings),
+        // Sector number
+        iPhiSec_(iPhiSec),
+        iEtaReg_(iEtaReg),
 
-  beamWindowZ_(settings->beamWindowZ()),  // Assumed half-length of beam-spot
+        beamWindowZ_(settings->beamWindowZ()),  // Assumed half-length of beam-spot
 
-  //===  Characteristics of this eta region.
-  // Using lines of specified rapidity drawn from centre of CMS, determine the z coords at which   
-  // they cross the radius chosenRofZ_.
-  etaMin_(settings->etaRegions()[iEtaReg]),
-  etaMax_(settings->etaRegions()[iEtaReg + 1]),
-  chosenRofZ_(settings->chosenRofZ()),
-  // Get range in z of tracks covered by this sector at chosen radius from beam-line
-  zOuterMin_(chosenRofZ_ / tan(2. * atan(exp(-etaMin_)))),
-  zOuterMax_(chosenRofZ_ / tan(2. * atan(exp(-etaMax_)))),
+        //===  Characteristics of this eta region.
+        // Using lines of specified rapidity drawn from centre of CMS, determine the z coords at which
+        // they cross the radius chosenRofZ_.
+        etaMin_(settings->etaRegions()[iEtaReg]),
+        etaMax_(settings->etaRegions()[iEtaReg + 1]),
+        chosenRofZ_(settings->chosenRofZ()),
+        // Get range in z of tracks covered by this sector at chosen radius from beam-line
+        zOuterMin_(chosenRofZ_ / tan(2. * atan(exp(-etaMin_)))),
+        zOuterMax_(chosenRofZ_ / tan(2. * atan(exp(-etaMax_)))),
 
-  //=== Characteristics of this phi region.
-  chosenRofPhi_(settings->chosenRofPhi()),
-  useStubPhi_(settings->useStubPhi()),
-  minPt_(settings->houghMinPt()),  // Min Pt covered by  HT array.
-  useStubPhiTrk_(settings->useStubPhiTrk()),
-  assumedPhiTrkRes_(settings->assumedPhiTrkRes()),
-  calcPhiTrkRes_(settings->calcPhiTrkRes()),
-  //=== Check if subsectors in eta are being used within each sector.
-  numSubSecsEta_(settings->numSubSecsEta())
-{
+        //=== Characteristics of this phi region.
+        chosenRofPhi_(settings->chosenRofPhi()),
+        useStubPhi_(settings->useStubPhi()),
+        minPt_(settings->houghMinPt()),  // Min Pt covered by  HT array.
+        useStubPhiTrk_(settings->useStubPhiTrk()),
+        assumedPhiTrkRes_(settings->assumedPhiTrkRes()),
+        calcPhiTrkRes_(settings->calcPhiTrkRes()),
+        //=== Check if subsectors in eta are being used within each sector.
+        numSubSecsEta_(settings->numSubSecsEta()) {
     // Centre of phi (tracking) nonant zero must be along x-axis to be consistent with tracker cabling map.
     // Define phi sector zero  to start at lower end of phi range in nonant 0.
     float phiCentreSec0 = -M_PI / float(settings->numPhiNonants()) + M_PI / float(settings->numPhiSectors());
     // Centre of sector in phi
-    phiCentre_ = 2. * M_PI * float(iPhiSec) / float(settings->numPhiSectors()) + phiCentreSec0;  
+    phiCentre_ = 2. * M_PI * float(iPhiSec) / float(settings->numPhiSectors()) + phiCentreSec0;
     sectorHalfWidth_ = M_PI / float(settings->numPhiSectors());  // Sector half width excluding overlaps.
 
     // If eta subsectors have equal width in rapidity, do this.
@@ -129,11 +128,11 @@ Sector::Sector(const Settings* settings, unsigned int iPhiSec, unsigned int iEta
 
     if (useStubPhiTrk_) {
       // Estimate either phi0 of track from stub info, or phi of the track at radius chosenRofPhi_.
-      float phiTrk = stub->trkPhiAtR(chosenRofPhi_); 
+      float phiTrk = stub->trkPhiAtR(chosenRofPhi_);
       // Phi difference between stub & sector in range -PI to +PI.
-      float delPhiTrk = reco::deltaPhi(phiTrk, phiCentre_);  
+      float delPhiTrk = reco::deltaPhi(phiTrk, phiCentre_);
       // Set tolerance equal to nominal resolution assumed in phiTrk
-      float tolerancePhiTrk = assumedPhiTrkRes_ * (2 * sectorHalfWidth_);  
+      float tolerancePhiTrk = assumedPhiTrkRes_ * (2 * sectorHalfWidth_);
       if (calcPhiTrkRes_) {
         // Calculate uncertainty in phiTrk due to poor resolution in stub bend
         float phiTrkRes = stub->trkPhiAtRcut(chosenRofPhi_);
@@ -141,7 +140,7 @@ Sector::Sector(const Settings* settings, unsigned int iPhiSec, unsigned int iEta
         tolerancePhiTrk = min(tolerancePhiTrk, phiTrkRes);
       }
       // If following > 0, then stub is not compatible with being inside this sector.
-      float outsidePhiTrk = std::abs(delPhiTrk) - sectorHalfWidth_ - tolerancePhiTrk;  
+      float outsidePhiTrk = std::abs(delPhiTrk) - sectorHalfWidth_ - tolerancePhiTrk;
 
       if (outsidePhiTrk > 0)
         okPhiTrk = false;
