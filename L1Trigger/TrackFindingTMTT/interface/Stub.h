@@ -182,15 +182,9 @@ namespace tmtt {
     float sigmaR() const { return (barrel() ? 0. : sigmaPar()); }
     float sigmaZ() const { return (barrel() ? sigmaPar() : 0.); }
     // Hit resolution perpendicular to strip. Measures phi.
-    float sigmaPerp() const {
-      static const float f = sqrt(1. / 12);
-      return f * stripPitch_;
-    }
+    float sigmaPerp() const {return invRoot12 * stripPitch_;}
     // Hit resolution parallel to strip. Measures r or z.
-    float sigmaPar() const {
-      static const float f = sqrt(1. / 12.);
-      return f * stripLength_;
-    }
+    float sigmaPar() const {return invRoot12 * stripLength_;}
 
     //--- These module variables could be taken directly from trackerModule_, were it not for need
     //--- to support Hybrid.
@@ -291,6 +285,8 @@ namespace tmtt {
     unsigned int nStrips_;
 
     const float rejectedStubBend_ = 99999.;  // Bend set to this if stub rejected.
+
+    const float invRoot12 = sqrt(1./12.);
   };
 
 }  // namespace tmtt
