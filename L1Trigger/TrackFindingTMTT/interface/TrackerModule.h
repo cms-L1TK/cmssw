@@ -129,7 +129,7 @@ namespace tmtt {
 
     ModuleTypeCfg moduleTypeCfg_;
 
-    const float invRoot12 = sqrt(1./12.);
+    float invRoot12 = sqrt(1./12.);
   };
 
 }  // namespace tmtt
