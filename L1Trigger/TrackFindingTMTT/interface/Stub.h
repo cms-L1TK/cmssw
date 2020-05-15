@@ -42,19 +42,23 @@ namespace tmtt {
   class Stub {
   public:
     // Hybrid L1 tracking: stub constructor.
-    Stub(double phi,
-         double r,
-         double z,
-         double bend,
-         unsigned int layerId,
-         bool psModule,
-         bool barrel,
-         unsigned int iphi,
-         double alpha,
-         const Settings* settings,
-         unsigned int ID,
-         unsigned int iPhiSec);
-
+    Stub(const Settings* settings,
+             unsigned int idStub,
+	     double phi,
+             double r,
+             double z,
+             double bend,
+             unsigned int iphi,
+             double alpha,
+             unsigned int layerId,
+             unsigned int iPhiSec,
+             bool psModule,
+    	     bool barrel,
+    	     bool tiltedBarrel,
+	     float stripPitch,
+	     float stripLength,
+	     unsigned int nStrips);
+ 
     // TMTT L1 tracking: stub constructor.
     Stub(const TTStubRef& ttStubRef,
          unsigned int index_in_vStubs,
