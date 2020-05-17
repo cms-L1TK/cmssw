@@ -79,6 +79,8 @@ etaRegions_({-2.4,-2.08,-1.68,-1.26,-0.90,-0.62,-0.41,-0.20,0.0,0.20,0.41,0.62,0
         magneticFieldInputTag_(iConfig.getParameter<edm::ESInputTag>("magneticFieldInputTag")),
         trackerGeometryInputTag_(iConfig.getParameter<edm::ESInputTag>("trackerGeometryInputTag")),
         trackerTopologyInputTag_(iConfig.getParameter<edm::ESInputTag>("trackerTopologyInputTag")),
+        ttStubAlgoInputTag_(iConfig.getParameter<edm::ESInputTag>("ttStubAlgoInputTag")),
+
         stubInputTag_(iConfig.getParameter<edm::InputTag>("stubInputTag")),
         tpInputTag_(iConfig.getParameter<edm::InputTag>("tpInputTag")),
         stubTruthInputTag_(iConfig.getParameter<edm::InputTag>("stubTruthInputTag")),

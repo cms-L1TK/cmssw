@@ -27,6 +27,8 @@ namespace tmtt {
     edm::ESInputTag magneticFieldInputTag() const { return magneticFieldInputTag_; }
     edm::ESInputTag trackerGeometryInputTag() const { return trackerGeometryInputTag_; }
     edm::ESInputTag trackerTopologyInputTag() const { return trackerTopologyInputTag_; }
+    edm::ESInputTag ttStubAlgoInputTag() const { return ttStubAlgoInputTag_; }
+
     edm::InputTag stubInputTag() const { return stubInputTag_; }
     edm::InputTag tpInputTag() const { return tpInputTag_; }
     edm::InputTag stubTruthInputTag() const { return stubTruthInputTag_; }
@@ -408,6 +410,8 @@ namespace tmtt {
     const edm::ESInputTag magneticFieldInputTag_;
     const edm::ESInputTag trackerGeometryInputTag_;
     const edm::ESInputTag trackerTopologyInputTag_;
+    const edm::ESInputTag ttStubAlgoInputTag_;
+
     const edm::InputTag stubInputTag_;
     const edm::InputTag tpInputTag_;
     const edm::InputTag stubTruthInputTag_;

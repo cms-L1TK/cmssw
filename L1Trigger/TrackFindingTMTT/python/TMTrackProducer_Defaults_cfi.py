@@ -13,6 +13,7 @@ TMTrackProducer_params = cms.PSet(
   magneticFieldInputTag   = cms.ESInputTag( "VolumeBasedMagneticFieldESProducer", "" ), 
   trackerGeometryInputTag = cms.ESInputTag( "trackerGeometry", "" ), 
   trackerTopologyInputTag = cms.ESInputTag( "trackerTopology", "" ), 
+  ttStubAlgoInputTag      = cms.ESInputTag( "TTStubAlgorithm_official_Phase2TrackerDigi_", "" ),
 
   # Tags for ED products
   tpInputTag = cms.InputTag("mix", "MergedTrackTruth"),

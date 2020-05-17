@@ -14,7 +14,6 @@
 #include "L1Trigger/TrackFindingTMTT/interface/DigitalStub.h"
 #include "L1Trigger/TrackFindingTMTT/interface/DegradeBend.h"
 #include "L1Trigger/TrackFindingTMTT/interface/TrackerModule.h"
-#include "L1Trigger/TrackFindingTMTT/interface/StubKiller.h"
 
 #include <vector>
 #include <set>
@@ -28,6 +27,8 @@ class TrackerTopology;
 namespace tmtt {
 
   class TP;
+  class DegradeBend;
+  class StubKiller;
 
   typedef edmNew::DetSetVector<TTStub<Ref_Phase2TrackerDigi_> > TTStubDetSetVec;
   typedef edmNew::DetSet<TTStub<Ref_Phase2TrackerDigi_> > TTStubDetSet;
@@ -65,6 +66,7 @@ namespace tmtt {
          const Settings* settings,
          const TrackerTopology* trackerTopology,
          const TrackerModule* trackerModule,
+	 const DegradeBend* degradeBend,
          const StubKiller* stubKiller);
 
     ~Stub() {}
@@ -274,7 +276,7 @@ namespace tmtt {
     const TrackerModule* trackerModule_;
 
     // Used to degrade stub bend information.
-    DegradeBend degradeBend_;
+    const DegradeBend* degradeBend_;
 
     // These module variables are needed only to support the Hybrid stub constructor.
     // (Otherwise, they could be taken from trackerModule_).

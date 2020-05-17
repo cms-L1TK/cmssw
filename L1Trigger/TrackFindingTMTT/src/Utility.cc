@@ -5,7 +5,7 @@
 
 #include "FWCore/Utilities/interface/Exception.h"
 
-#include <set>
+#include <unordered_set>
 
 using namespace std;
 
@@ -35,7 +35,7 @@ namespace tmtt {
     bool reduce = (disableReducedLayerID) ? false : reduceLayerID;
 
     // Count layers using CMSSW layer ID.
-    set<unsigned int> foundLayers;
+    unordered_set<unsigned int> foundLayers;
     for (const Stub* stub : vstubs) {
       if ((!onlyPS) || stub->psModule()) {  // Consider only stubs in PS modules if that option specified.
         // Use either normal or reduced layer ID depending on request.

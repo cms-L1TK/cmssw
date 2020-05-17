@@ -7,6 +7,7 @@
 
 #include "L1Trigger/TrackFindingTMTT/interface/Stub.h"
 #include "L1Trigger/TrackFindingTMTT/interface/TP.h"
+#include "L1Trigger/TrackFindingTMTT/interface/StubKiller.h"
 #include "L1Trigger/TrackFindingTMTT/interface/PrintL1trk.h"
 
 #include <iostream>
@@ -58,6 +59,7 @@ namespace tmtt {
              const Settings* settings,
              const TrackerTopology* trackerTopology,
              const TrackerModule* trackerModule,
+	     const DegradeBend* degradeBend,
              const StubKiller* stubKiller)
       : ttStubRef_(ttStubRef),
         settings_(settings),
@@ -66,8 +68,8 @@ namespace tmtt {
         digitizeWarningsOn_(true),
         lastDigiStep_(Stub::DigiStage::NONE),
         trackerModule_(trackerModule),  // Info about tracker module containing stub
-        degradeBend_(trackerTopology),  // Used to degrade stub bend information.
-                                        // Module related variables (need to be stored for Hybrid)
+        degradeBend_(degradeBend),  // Used to degrade stub bend information.
+        // Module related variables (need to be stored for Hybrid)
         psModule_(trackerModule->psModule()),
         layerId_(trackerModule->layerId()),
         layerIdReduced_(trackerModule->layerIdReduced()),
@@ -264,7 +266,7 @@ namespace tmtt {
       windowFE = rejectedStubBend_;  // TMTT is not tightening windows.
     }
 
-    degradeBend_.degrade(bend, psModule(), trackerModule_->detId(), windowFE, degradedBend, num);
+    degradeBend_->degrade(bend, psModule(), trackerModule_->detId(), windowFE, degradedBend, num);
   }
 
   //=== Set flag indicating if stub will be output by front-end readout electronics
@@ -286,8 +288,7 @@ namespace tmtt {
 
     if (frontendPass_ && this->bend() == rejectedStubBend_) {
       throw cms::Exception(
-          "LogicError: Window sizes assumed in DegradeBend are tighter than those used for TTStub production. Please "
-          "fix them");
+          "BadConfig: FE stub bend window sizes provided in cfg ES source are tighter than those to make the stubs. Please fix them");
     }
 
     if (settings_->killLowPtStubs()) {
