@@ -832,6 +832,7 @@ namespace tmtt {
 
     set<pair<unsigned, bool>> deadGPlayers;  // GP layer ID & boolean indicating if in barrel.
 
+    // Range of sectors chosen to cover dead regions from StubKiller.
     if (killRecover) {
       if (killScenario == StubKiller::KillOptions::layer5) {  // barrel layer 5
         if (iEtaReg_ >= 3 && iEtaReg_ <= 7 && iPhiSec_ >= 1 && iPhiSec_ <= 5) {
