@@ -45,11 +45,11 @@ namespace tmtt {
   void MiniHTstage::exec(matrix<unique_ptr<HTrphi>>& mHtRphis) {
     for (unsigned int iPhiNon = 0; iPhiNon < numPhiNonants_; iPhiNon++) {
       // Indices are ([link ID, MHT cell], #stubs).
-      map<pair<unsigned int, unsigned int>, unsigned int> numStubsPerLinkStage1;  
+      map<pair<unsigned int, unsigned int>, unsigned int> numStubsPerLinkStage1;
       // Indices are ([link ID, MHT cell], #stubs).
-      map<pair<unsigned int, unsigned int>, unsigned int> numStubsPerLinkStage2;                        
+      map<pair<unsigned int, unsigned int>, unsigned int> numStubsPerLinkStage2;
       // Indices are (link ID, #stubs).
-      map<unsigned int, unsigned int> numStubsPerLink;  
+      map<unsigned int, unsigned int> numStubsPerLink;
       for (unsigned int iSecInNon = 0; iSecInNon < numPhiSecPerNon_; iSecInNon++) {
         unsigned int iPhiSec = iPhiNon * numPhiSecPerNon_ + iSecInNon;
         for (unsigned int iEtaReg = 0; iEtaReg < numEtaRegions_; iEtaReg++) {

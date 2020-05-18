@@ -29,10 +29,10 @@ namespace tmtt {
    */
 
   public:
-
     typedef TTStubAlgorithm_official<Ref_Phase2TrackerDigi_> StubAlgorithmOfficial;
 
-    DegradeBend(const TrackerTopology* trackerTopo, const StubFEWindows* sw, const StubAlgorithmOfficial* stubAlgo) : theTrackerTopo_(trackerTopo), sw_(sw), stubAlgo_(stubAlgo) {}
+    DegradeBend(const TrackerTopology* trackerTopo, const StubFEWindows* sw, const StubAlgorithmOfficial* stubAlgo)
+        : theTrackerTopo_(trackerTopo), sw_(sw), stubAlgo_(stubAlgo) {}
 
     // Given the original bend, flag indicating if this is a PS or 2S module, & detector identifier,
     // this return the degraded stub bend, a boolean indicatng if stub bend was outside the assumed window

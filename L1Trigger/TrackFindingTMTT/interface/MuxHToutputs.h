@@ -28,8 +28,7 @@ namespace tmtt {
 
   class MuxHToutputs {
   public:
-
-    enum class MuxAlgoName {None = 0, mBinPerLink = 1};
+    enum class MuxAlgoName { None = 0, mBinPerLink = 1 };
 
     // Initialize constants from configuration parameters.
     MuxHToutputs(const Settings* settings);

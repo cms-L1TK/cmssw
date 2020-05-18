@@ -39,13 +39,12 @@ namespace tmtt {
   void StubWindowSuggest::updateStoredWindow(const TrackerTopology* trackerTopo,
                                              const Stub* stub,
                                              double bendHalfWind) {
-
     // Code accessing geometry inspired by L1Trigger/TrackTrigger/src/TTStubAlgorithm_official.cc
 
     DetId stDetId(stub->trackerModule()->detId());
 
     double* storedHalfWindow = sw_.storedWindowSize(trackerTopo, stDetId);
-      /*
+    /*
     if (stDetId.subdetId() == StripSubdetector::TOB) {
       unsigned int layer = trackerTopo->layer(stDetId);
       unsigned int ladder = trackerTopo->tobRod(stDetId);
@@ -75,9 +74,8 @@ namespace tmtt {
         storedHalfWindow = bendHalfWind;
     }
 */
-      if (*storedHalfWindow < bendHalfWind)
-        *storedHalfWindow = bendHalfWind;
-
+    if (*storedHalfWindow < bendHalfWind)
+      *storedHalfWindow = bendHalfWind;
   }
 
   //=== Print results (should be done in endJob();

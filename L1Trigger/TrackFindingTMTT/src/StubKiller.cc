@@ -130,7 +130,7 @@ namespace tmtt {
     }
   }
 
-  // Indicate if given stub was killed by dead tracker module, based on specified dead regions 
+  // Indicate if given stub was killed by dead tracker module, based on specified dead regions
   // rather than based on the dead module scenario.
   // layersToKill - a vector stating the layers we are killing stubs in.  Can be an empty vector.
   // Barrel layers are encoded as 1-6. The endcap layers are encoded as 11-15 (-z) and 21-25 (+z)
@@ -155,7 +155,7 @@ namespace tmtt {
       DetId geoDetId(stackDetid.rawId() + 1);
 
       // If this module is in the deadModule list, don't also try to kill the stub here
-      if ( deadModules_.empty() || deadModules_.find(geoDetId) == deadModules_.end() ) {
+      if (deadModules_.empty() || deadModules_.find(geoDetId) == deadModules_.end()) {
         bool isInBarrel = geoDetId.subdetId() == StripSubdetector::TOB || geoDetId.subdetId() == StripSubdetector::TIB;
 
         int layerID = 0;
@@ -212,7 +212,7 @@ namespace tmtt {
         if (deadModule->second == 1) {
           return true;
         } else {
-          if (rndmEngine_->flat() < deadModule->second ) {
+          if (rndmEngine_->flat() < deadModule->second) {
             return true;
           }
         }

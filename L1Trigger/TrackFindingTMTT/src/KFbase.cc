@@ -206,9 +206,9 @@ namespace tmtt {
     }
 
     // iterate using state->nextLayer() to determine next Kalman layer(s) to add stubs from
-    constexpr unsigned int nTypicalLayers = 6; // Number of tracker layers a typical track can pass through.
+    constexpr unsigned int nTypicalLayers = 6;  // Number of tracker layers a typical track can pass through.
     // If user asked to add up to 7 layers to track, increase number of iterations by 1.
-    const unsigned int maxIterations = std::max(nTypicalLayers, settings_->kalmanMaxNumStubs()); 
+    const unsigned int maxIterations = std::max(nTypicalLayers, settings_->kalmanMaxNumStubs());
     for (unsigned iteration = 0; iteration < maxIterations; iteration++) {
       int combinations_per_iteration = 0;
 
@@ -734,7 +734,7 @@ namespace tmtt {
             kalmanLay = 5;
           } else if (layerIDreduced == 5) {
             kalmanLay = 6;
-	  }
+          }
           break;
           //case 5:  // B1 B2 B3+B4 D1 D2 D3 D4/D5
         case 5:  // B1 B2 B3 D1+B4 D2 D3 D4/D5
@@ -742,7 +742,7 @@ namespace tmtt {
             kalmanLay = 5;
           } else if (layerIDreduced == 7) {
             kalmanLay = 6;
-	  }
+          }
           break;
         default:
           break;
@@ -839,25 +839,25 @@ namespace tmtt {
           deadGPlayers.insert(pair<unsigned, bool>(4, true));
         }
       } else if (killScenario == StubKiller::KillOptions::layer1) {  // barrel layer 1
-        if (                 iEtaReg_ <= 7 && iPhiSec_ >= 1 && iPhiSec_ <= 5) {
+        if (iEtaReg_ <= 7 && iPhiSec_ >= 1 && iPhiSec_ <= 5) {
           deadGPlayers.insert(pair<unsigned, bool>(1, true));
-	}
+        }
         remove2PSCut = true;
       } else if (killScenario == StubKiller::KillOptions::layer1layer2) {  // barrel layers 1 & 2
-        if (                 iEtaReg_ <= 7 && iPhiSec_ >= 1 && iPhiSec_ <= 5) {
+        if (iEtaReg_ <= 7 && iPhiSec_ >= 1 && iPhiSec_ <= 5) {
           deadGPlayers.insert(pair<unsigned, bool>(1, true));
-	}
+        }
         if (iEtaReg_ >= 1 && iEtaReg_ <= 7 && iPhiSec_ >= 1 && iPhiSec_ <= 5) {
           deadGPlayers.insert(pair<unsigned, bool>(2, true));
-	}
+        }
         remove2PSCut = true;
       } else if (killScenario == StubKiller::KillOptions::layer1disk1) {  // barrel layer 1 & disk 1
-        if (                 iEtaReg_ <= 7 && iPhiSec_ >= 1 && iPhiSec_ <= 5) {
+        if (iEtaReg_ <= 7 && iPhiSec_ >= 1 && iPhiSec_ <= 5) {
           deadGPlayers.insert(pair<unsigned, bool>(1, true));
-	} 
-        if (                 iEtaReg_ <= 3 && iPhiSec_ >= 1 && iPhiSec_ <= 5) {
+        }
+        if (iEtaReg_ <= 3 && iPhiSec_ >= 1 && iPhiSec_ <= 5) {
           deadGPlayers.insert(pair<unsigned, bool>(3, false));
-	}
+        }
         remove2PSCut = true;
       }
     }

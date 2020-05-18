@@ -32,7 +32,10 @@ namespace tmtt {
     ~StubWindowSuggest() {}
 
     // Get FE window size arrays (via copy) used with stub producer, but set to zero.
-    void setFEWindows(const StubFEWindows* sw) {sw_ = *sw; sw_.setZero();}
+    void setFEWindows(const StubFEWindows* sw) {
+      sw_ = *sw;
+      sw_.setZero();
+    }
 
     // Analyse stub window required for this stub.
     void process(const TrackerTopology* trackerTopo, const Stub* stub);

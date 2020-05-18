@@ -20,13 +20,13 @@ namespace tmtt {
 
   namespace {
     std::mutex myMutex;
-  }  
+  }
 
   class GlobalCacheTMTT {
   public:
     GlobalCacheTMTT(const edm::ParameterSet& iConfig)
         : settings_(iConfig),              // Python configuration params
-          htRphiErrMon_(),    // rphi HT error monitoring
+          htRphiErrMon_(),                 // rphi HT error monitoring
           stubWindowSuggest_(&settings_),  // Recommend FE stub window sizes.
           hists_(&settings_)               // Histograms
     {

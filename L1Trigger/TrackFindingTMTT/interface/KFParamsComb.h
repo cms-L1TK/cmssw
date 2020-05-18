@@ -45,7 +45,6 @@ namespace tmtt {
     virtual bool isGoodState(const KalmanState& state) const;
 
   protected:
-
     std::vector<double> kfLayerVsPtToler_;
     std::vector<double> kfLayerVsD0Cut5_;
     std::vector<double> kfLayerVsZ0Cut5_;

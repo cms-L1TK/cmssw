@@ -309,7 +309,7 @@ namespace tmtt {
       // Firmware assumes this should not exceed 1.0;
       if (errMon_ != nullptr) {
         errMon_->maxLineGradient = max(errMon_->maxLineGradient.load(), this->calcLineGradArray(stub->r()));
-      } 
+      }
     }
   }
 

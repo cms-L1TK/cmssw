@@ -19,8 +19,8 @@ namespace tmtt {
   //=== Hybrid L1 tracking: stub constructor.
 
   Stub::Stub(const Settings* settings,
-	     unsigned int idStub,
-	     double phi,
+             unsigned int idStub,
+             double phi,
              double r,
              double z,
              double bend,
@@ -30,11 +30,11 @@ namespace tmtt {
              unsigned int iPhiSec,
              bool psModule,
              bool barrel,
-	     bool tiltedBarrel,
-	     float stripPitch,
-	     float stripLength,
-	     unsigned int nStrips)
-    :   index_in_vStubs_(idStub),  // A unique ID to label the stub.
+             bool tiltedBarrel,
+             float stripPitch,
+             float stripLength,
+             unsigned int nStrips)
+      : index_in_vStubs_(idStub),  // A unique ID to label the stub.
         phi_(phi),
         r_(r),
         z_(z),
@@ -49,8 +49,7 @@ namespace tmtt {
         tiltedBarrel_(tiltedBarrel),
         stripPitch_(stripPitch),
         stripLength_(stripLength),
-        nStrips_(nStrips)
-{}
+        nStrips_(nStrips) {}
 
   //=== TMTT L1 tracking: stub constructor.
 
@@ -59,7 +58,7 @@ namespace tmtt {
              const Settings* settings,
              const TrackerTopology* trackerTopology,
              const TrackerModule* trackerModule,
-	     const DegradeBend* degradeBend,
+             const DegradeBend* degradeBend,
              const StubKiller* stubKiller)
       : ttStubRef_(ttStubRef),
         settings_(settings),
@@ -68,7 +67,7 @@ namespace tmtt {
         digitizeWarningsOn_(true),
         lastDigiStep_(Stub::DigiStage::NONE),
         trackerModule_(trackerModule),  // Info about tracker module containing stub
-        degradeBend_(degradeBend),  // Used to degrade stub bend information.
+        degradeBend_(degradeBend),      // Used to degrade stub bend information.
         // Module related variables (need to be stored for Hybrid)
         psModule_(trackerModule->psModule()),
         layerId_(trackerModule->layerId()),
@@ -281,7 +280,8 @@ namespace tmtt {
 
     if (frontendPass_ && this->bend() == rejectedStubBend_) {
       throw cms::Exception(
-          "BadConfig: FE stub bend window sizes provided in cfg ES source are tighter than those to make the stubs. Please fix them");
+          "BadConfig: FE stub bend window sizes provided in cfg ES source are tighter than those to make the stubs. "
+          "Please fix them");
     }
 
     if (settings_->killLowPtStubs()) {

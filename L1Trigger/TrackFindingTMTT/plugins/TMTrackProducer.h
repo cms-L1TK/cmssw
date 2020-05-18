@@ -82,7 +82,7 @@ namespace tmtt {
     bool runRZfilter_;
 
     // Stub window sizes used by FE electronics.
-    const StubAlgorithmOfficial* stubAlgo_;
+    const StubAlgorithmOfficial *stubAlgo_;
     std::unique_ptr<StubFEWindows> stubFEWindows_;
     StubWindowSuggest &stubWindowSuggest_;
     std::unique_ptr<DegradeBend> degradeBend_;

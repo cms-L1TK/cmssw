@@ -12,18 +12,17 @@ using namespace std;
 
 namespace tmtt {
 
-  /* Initialize */ 
+  /* Initialize */
 
-KFParamsComb::KFParamsComb(const Settings* settings, const uint nHelixPar, const std::string& fitterName)
-  : KFbase(settings, nHelixPar, fitterName),
-    // Initialize cuts applied to helix states vs KF layer number of last added stub.
-    kfLayerVsPtToler_(settings->kfLayerVsPtToler()),
-    kfLayerVsD0Cut5_(settings->kfLayerVsD0Cut5()),
-    kfLayerVsZ0Cut5_(settings->kfLayerVsZ0Cut5()),
-    kfLayerVsZ0Cut4_(settings->kfLayerVsZ0Cut4()),
-    kfLayerVsChiSq5_(settings->kfLayerVsChiSq5()),
-    kfLayerVsChiSq4_(settings->kfLayerVsChiSq4())
- {}
+  KFParamsComb::KFParamsComb(const Settings* settings, const uint nHelixPar, const std::string& fitterName)
+      : KFbase(settings, nHelixPar, fitterName),
+        // Initialize cuts applied to helix states vs KF layer number of last added stub.
+        kfLayerVsPtToler_(settings->kfLayerVsPtToler()),
+        kfLayerVsD0Cut5_(settings->kfLayerVsD0Cut5()),
+        kfLayerVsZ0Cut5_(settings->kfLayerVsZ0Cut5()),
+        kfLayerVsZ0Cut4_(settings->kfLayerVsZ0Cut4()),
+        kfLayerVsChiSq5_(settings->kfLayerVsChiSq5()),
+        kfLayerVsChiSq4_(settings->kfLayerVsChiSq4()) {}
 
   /* Helix state seed  */
 
@@ -33,7 +32,7 @@ KFParamsComb::KFParamsComb(const Settings* settings, const uint nHelixPar, const
     vecX[PHI0] = reco::deltaPhi(l1track3D.phi0() - sectorPhi(), 0.);
     vecX[Z0] = l1track3D.z0();
     vecX[T] = l1track3D.tanLambda();
-    if (nHelixPar_ == 5) {   // fit without d0 constraint
+    if (nHelixPar_ == 5) {  // fit without d0 constraint
       vecX[D0] = l1track3D.d0();
     }
 
@@ -50,19 +49,19 @@ KFParamsComb::KFParamsComb(const Settings* settings, const uint nHelixPar, const
     // Assumed track seed (from HT) uncertainty in transverse impact parameter.
 
     // Constants optimised by hand for TMTT algo.
-    const float inv2Rsigma    = 0.0314 * invPtToInv2R;
+    const float inv2Rsigma = 0.0314 * invPtToInv2R;
     constexpr float phi0sigma = 0.0102;
-    constexpr float z0sigma   = 5.0;
+    constexpr float z0sigma = 5.0;
     constexpr float tanLsigma = 0.5;
-    constexpr float d0Sigma   = 1.0;
+    constexpr float d0Sigma = 1.0;
     // (z0, tanL, d0) uncertainties could be smaller for Hybrid, if seeded in PS? -- To check!
     // if (L1track3D.seedPS() > 0) z0sigma /= 4; ???
     matC[INV2R][INV2R] = pow(inv2Rsigma, 2);
-    matC[PHI0][PHI0]   = pow(phi0sigma, 2);
-    matC[Z0][Z0]       = pow(z0sigma, 2);
-    matC[T][T]         = pow(tanLsigma, 2);
+    matC[PHI0][PHI0] = pow(phi0sigma, 2);
+    matC[Z0][Z0] = pow(z0sigma, 2);
+    matC[T][T] = pow(tanLsigma, 2);
     if (nHelixPar_ == 5) {  // fit without d0 constraint
-      matC[D0][D0]     = pow(d0Sigma, 2);
+      matC[D0][D0] = pow(d0Sigma, 2);
     }
     return matC;
   }
@@ -168,7 +167,7 @@ KFParamsComb::KFParamsComb(const Settings* settings, const uint nHelixPar, const
     double r = stub->r();
     matH(PHI, INV2R) = -r;
     matH(PHI, PHI0) = 1;
-    if (nHelixPar_ == 5) {    // fit without d0 constraint
+    if (nHelixPar_ == 5) {  // fit without d0 constraint
       matH(PHI, D0) = -1. / r;
     }
     matH(Z, Z0) = 1;
@@ -192,7 +191,7 @@ KFParamsComb::KFParamsComb(const Settings* settings, const uint nHelixPar, const
     vecY[PHI0] = reco::deltaPhi(vecX[PHI0] + sectorPhi(), 0.);
     vecY[Z0] = vecX[Z0];
     vecY[T] = vecX[T];
-    if (nHelixPar_ == 5) {   // fit without d0 constraint
+    if (nHelixPar_ == 5) {  // fit without d0 constraint
       vecY[D0] = vecX[D0];
     }
     return vecY;
@@ -202,7 +201,7 @@ KFParamsComb::KFParamsComb(const Settings* settings, const uint nHelixPar, const
   /* (N.B. chi2rz unchanged by constraint) */
 
   TVectorD KFParamsComb::trackParams_BeamConstr(const KalmanState* state, double& chi2rphi) const {
-    if (nHelixPar_ == 5) {   // fit without d0 constraint
+    if (nHelixPar_ == 5) {  // fit without d0 constraint
       TVectorD vecX = state->vectorX();
       TMatrixD matC = state->matrixC();
       TVectorD vecY(nHelixPar_);
@@ -227,8 +226,8 @@ KFParamsComb::KFParamsComb(const Settings* settings, const uint nHelixPar, const
 
   bool KFParamsComb::isGoodState(const KalmanState& state) const {
     // Set cut values that are different for 4 & 5 param helix fits.
-    vector<double> kfLayerVsZ0Cut = (nHelixPar_ == 5)  ?  kfLayerVsZ0Cut5_  :  kfLayerVsZ0Cut4_; 
-    vector<double> kfLayerVsChiSqCut = (nHelixPar_ == 5)  ?  kfLayerVsChiSq5_  :  kfLayerVsChiSq4_; 
+    vector<double> kfLayerVsZ0Cut = (nHelixPar_ == 5) ? kfLayerVsZ0Cut5_ : kfLayerVsZ0Cut4_;
+    vector<double> kfLayerVsChiSqCut = (nHelixPar_ == 5) ? kfLayerVsChiSq5_ : kfLayerVsChiSq4_;
 
     unsigned nStubLayers = state.nStubLayers();
     bool goodState(true);
@@ -272,7 +271,7 @@ KFParamsComb::KFParamsComb(const Settings* settings, const uint nHelixPar, const
         text << " pt(mc)=" << tpa_->pt();
       text << " pt=" << pt << " q/pt=" << qOverPt << " tanL=" << vecY[T] << " z0=" << vecY[Z0]
            << " phi0=" << vecY[PHI0];
-      if (nHelixPar_ == 5 )     // fit without d0 constraint
+      if (nHelixPar_ == 5)  // fit without d0 constraint
         text << " d0=" << vecY[D0];
       text << " fake" << (tpa_ == nullptr);
       if (tpa_ != nullptr)

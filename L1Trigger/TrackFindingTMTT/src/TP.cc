@@ -65,7 +65,7 @@ namespace tmtt {
     // Keep only those TP that have a chance (allowing for finite track resolution) of being reconstructed as L1 tracks. L1 tracks not matching these TP will be defined as fake.
 
     // Include all possible particle types here, as if some are left out, L1 tracks matching one of missing types will be declared fake.
-    constexpr std::array<int,5> genPdgIdsAllUnsigned = {{11, 13, 211, 321, 2212}};
+    constexpr std::array<int, 5> genPdgIdsAllUnsigned = {{11, 13, 211, 321, 2212}};
     vector<int> genPdgIdsAll;
     for (const int& iPdg : genPdgIdsAllUnsigned) {
       genPdgIdsAll.push_back(iPdg);

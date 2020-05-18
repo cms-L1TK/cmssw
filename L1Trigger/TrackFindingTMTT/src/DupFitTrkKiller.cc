@@ -11,7 +11,7 @@ namespace tmtt {
   //=== Make available cfg parameters & specify which algorithm is to be used for duplicate track removal.
 
   DupFitTrkKiller::DupFitTrkKiller(const Settings* settings)
-    : settings_(settings), dupTrkAlg_(static_cast<DupAlgoName>(settings->dupTrkAlgFit())) {}
+      : settings_(settings), dupTrkAlg_(static_cast<DupAlgoName>(settings->dupTrkAlgFit())) {}
 
   //=== Eliminate duplicate tracks from the input collection, and so return a reduced list of tracks.
 

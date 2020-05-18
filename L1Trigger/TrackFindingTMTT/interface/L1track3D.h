@@ -165,7 +165,8 @@ namespace tmtt {
 
     // Phi and z coordinates at which track crosses "chosenR" values used by r-phi HT and rapidity sectors respectively.
     float phiAtChosenR() const {
-      return reco::deltaPhi(this->phi0() - (settings_->invPtToDphi() * settings_->chosenRofPhi()) * this->qOverPt(),0.);
+      return reco::deltaPhi(this->phi0() - (settings_->invPtToDphi() * settings_->chosenRofPhi()) * this->qOverPt(),
+                            0.);
     }
     float zAtChosenR() const {
       return (this->z0() + (settings_->chosenRofZ()) * this->tanLambda());

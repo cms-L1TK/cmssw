@@ -83,9 +83,9 @@ namespace tmtt {
     // Strip length (or pixel pitch along longest axis).
     float stripLength() const { return stripLength_; }
     // Hit resolution perpendicular to strip (or to longest pixel axis). Measures phi.
-    float sigmaPerp() const {return invRoot12 * stripPitch_;}
+    float sigmaPerp() const { return invRoot12 * stripPitch_; }
     // Hit resolution parallel to strip (or to longest pixel axis). Measures r or z.
-    float sigmaPar() const {return invRoot12 * stripLength_;}
+    float sigmaPar() const { return invRoot12 * stripLength_; }
     // Sensor pitch over separation.
     float pitchOverSep() const { return stripPitch_ / sensorSpacing_; }
     // "B" parameter correction for module tilt.

@@ -19,7 +19,7 @@ namespace tmtt {
     std::once_flag printOnce;
   }
 
-  const float TrackerModule::invRoot12 = sqrt(1./12.);
+  const float TrackerModule::invRoot12 = sqrt(1. / 12.);
 
   //=== Get info about tracker module (where detId is ID of lower sensor in stacked module).
 

@@ -38,11 +38,11 @@ namespace tmtt {
   }
 
   TMTrackProducer::TMTrackProducer(const edm::ParameterSet& iConfig, GlobalCacheTMTT const* globalCacheTMTT)
-      : debug_(true),                                             // Debug printout
-        settings_(iConfig),                                       // Set configuration parameters
-        stubWindowSuggest_(globalCacheTMTT->stubWindowSuggest()), // For tuning FE stub window sizes
-        hists_(globalCacheTMTT->hists()),                         // Initialize histograms
-        htRphiErrMon_(globalCacheTMTT->htRphiErrMon())            // rphi HT error monitoring
+      : debug_(true),                                              // Debug printout
+        settings_(iConfig),                                        // Set configuration parameters
+        stubWindowSuggest_(globalCacheTMTT->stubWindowSuggest()),  // For tuning FE stub window sizes
+        hists_(globalCacheTMTT->hists()),                          // Initialize histograms
+        htRphiErrMon_(globalCacheTMTT->htRphiErrMon())             // rphi HT error monitoring
   {
     using namespace edm;
 
@@ -53,7 +53,8 @@ namespace tmtt {
         settings_.trackerGeometryInputTag());
     trackerTopologyToken_ =
         esConsumes<TrackerTopology, TrackerTopologyRcd, Transition::BeginRun>(settings_.trackerTopologyInputTag());
-    ttStubAlgoToken_ = esConsumes<StubAlgorithm, TTStubAlgorithmRecord, Transition::BeginRun>(settings_.ttStubAlgoInputTag());
+    ttStubAlgoToken_ =
+        esConsumes<StubAlgorithm, TTStubAlgorithmRecord, Transition::BeginRun>(settings_.ttStubAlgoInputTag());
 
     // Get tokens for ED data access.
     stubToken_ = consumes<TTStubDetSetVec>(settings_.stubInputTag());
@@ -93,7 +94,7 @@ namespace tmtt {
     }
   }
 
-//=== Run every run
+  //=== Run every run
 
   void TMTrackProducer::beginRun(const edm::Run& iRun, const edm::EventSetup& iSetup) {
     // Get the B-field and store its value in the Settings class.
@@ -149,7 +150,7 @@ namespace tmtt {
     degradeBend_ = std::make_unique<DegradeBend>(trackerTopology_, stubFEWindows_.get(), stubAlgo_);
   }
 
-//=== Run every event
+  //=== Run every event
 
   void TMTrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     // Note useful info about MC truth particles and about reconstructed stubs .
@@ -157,7 +158,7 @@ namespace tmtt {
                         iSetup,
                         &settings_,
                         &stubWindowSuggest_,
-			degradeBend_.get(),
+                        degradeBend_.get(),
                         trackerGeometry_,
                         trackerTopology_,
                         listTrackerModule_,

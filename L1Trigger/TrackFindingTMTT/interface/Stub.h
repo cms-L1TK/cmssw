@@ -44,29 +44,29 @@ namespace tmtt {
   public:
     // Hybrid L1 tracking: stub constructor.
     Stub(const Settings* settings,
-             unsigned int idStub,
-	     double phi,
-             double r,
-             double z,
-             double bend,
-             unsigned int iphi,
-             double alpha,
-             unsigned int layerId,
-             unsigned int iPhiSec,
-             bool psModule,
-    	     bool barrel,
-    	     bool tiltedBarrel,
-	     float stripPitch,
-	     float stripLength,
-	     unsigned int nStrips);
- 
+         unsigned int idStub,
+         double phi,
+         double r,
+         double z,
+         double bend,
+         unsigned int iphi,
+         double alpha,
+         unsigned int layerId,
+         unsigned int iPhiSec,
+         bool psModule,
+         bool barrel,
+         bool tiltedBarrel,
+         float stripPitch,
+         float stripLength,
+         unsigned int nStrips);
+
     // TMTT L1 tracking: stub constructor.
     Stub(const TTStubRef& ttStubRef,
          unsigned int index_in_vStubs,
          const Settings* settings,
          const TrackerTopology* trackerTopology,
          const TrackerModule* trackerModule,
-	 const DegradeBend* degradeBend,
+         const DegradeBend* degradeBend,
          const StubKiller* stubKiller);
 
     ~Stub() {}
@@ -188,9 +188,9 @@ namespace tmtt {
     float sigmaR() const { return (barrel() ? 0. : sigmaPar()); }
     float sigmaZ() const { return (barrel() ? sigmaPar() : 0.); }
     // Hit resolution perpendicular to strip. Measures phi.
-    float sigmaPerp() const {return invRoot12 * stripPitch_;}
+    float sigmaPerp() const { return invRoot12 * stripPitch_; }
     // Hit resolution parallel to strip. Measures r or z.
-    float sigmaPar() const {return invRoot12 * stripLength_;}
+    float sigmaPar() const { return invRoot12 * stripLength_; }
 
     //--- These module variables could be taken directly from trackerModule_, were it not for need
     //--- to support Hybrid.
@@ -292,7 +292,7 @@ namespace tmtt {
 
     const float rejectedStubBend_ = 99999.;  // Bend set to this if stub rejected.
 
-    const float invRoot12 = sqrt(1./12.);
+    const float invRoot12 = sqrt(1. / 12.);
   };
 
 }  // namespace tmtt

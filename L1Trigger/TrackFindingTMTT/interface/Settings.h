@@ -390,11 +390,11 @@ namespace tmtt {
 
     //=== Hard-wired constants
 
-    double cSpeed() const { return 1.0e8*CLHEP::c_light; }  // Speed of light, with (mm/ns) to (cm/s)
+    double cSpeed() const { return 1.0e8 * CLHEP::c_light; }  // Speed of light, with (mm/ns) to (cm/s)
     // B*c/1E11 - converts q/Pt to 1/radius_of_curvature
-    double invPtToInvR() const {return (this->magneticField()) * (this->cSpeed()) / 1.0E13;} 
+    double invPtToInvR() const { return (this->magneticField()) * (this->cSpeed()) / 1.0E13; }
     // B*c/2E11 - converts q/Pt to track angle at some radius from beamline.
-    double invPtToDphi() const {return (this->magneticField()) * (this->cSpeed()) / 2.0E13;}  
+    double invPtToDphi() const { return (this->magneticField()) * (this->cSpeed()) / 2.0E13; }
     //=== Set and get B-field value (mutable) in Tesla.
     // N.B. This must bet std::set for each run, and can't be initialized at the beginning of the job.
     void setMagneticField(float magneticField) const { magneticField_ = magneticField; }

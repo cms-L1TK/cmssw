@@ -52,7 +52,7 @@ namespace tmtt {
     trackFitters_ = settings->trackFitters();
     useRZfilter_ = settings->useRZfilter();
     ranRZfilter_ = (not useRZfilter_.empty());  // Was any r-z track filter run?
-    resPlotOpt_ = settings->resPlotOpt();      // Only use signal events for helix resolution plots?
+    resPlotOpt_ = settings->resPlotOpt();       // Only use signal events for helix resolution plots?
   }
 
   //=== Book all histograms

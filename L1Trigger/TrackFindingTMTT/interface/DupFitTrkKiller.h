@@ -18,8 +18,7 @@ namespace tmtt {
 
   class DupFitTrkKiller {
   public:
-
-    enum class DupAlgoName {None = 0, Algo1 = 1, Algo2 = 2};
+    enum class DupAlgoName { None = 0, Algo1 = 1, Algo2 = 2 };
 
     /**
   *  Make available cfg parameters & specify which algorithm is to be used for duplicate track removal.
@@ -53,7 +52,7 @@ namespace tmtt {
 
   private:
     const Settings* settings_;  // Configuration parameters.
-    DupAlgoName dupTrkAlg_;    // Specifies choice of algorithm for duplicate track removal.
+    DupAlgoName dupTrkAlg_;     // Specifies choice of algorithm for duplicate track removal.
   };
 
 }  // namespace tmtt
