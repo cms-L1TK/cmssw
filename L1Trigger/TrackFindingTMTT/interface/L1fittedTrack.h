@@ -125,10 +125,6 @@ namespace tmtt {
       nSkippedLayers_ = nSkippedLayers;
       numUpdateCalls_ = numUpdateCalls;
     }
-    void setInfoKF(unsigned int nSkippedLayers, unsigned int numUpdateCalls, bool consistentHLS) {
-      this->setInfoKF(nSkippedLayers_, numUpdateCalls_);
-      // consistentCell_ = consistentHLS; // KF HLS code no longer calculates HT cell consistency.
-    }
     void setInfoLR(int numIterations, std::string lostMatchingState, std::unordered_map<std::string, int> stateCalls) {
       numIterations_ = numIterations;
       lostMatchingState_ = lostMatchingState;

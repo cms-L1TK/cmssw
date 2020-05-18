@@ -92,13 +92,6 @@ namespace tmtt {
     r_ = pos.perp();
     z_ = pos.z();
 
-    if (r_ < settings_->trackerInnerRadius() || r_ > settings_->trackerOuterRadius() ||
-        std::abs(z_) > settings_->trackerHalfLength()) {
-      throw cms::Exception("BadConfig") << "Stub: Stub found outside assumed tracker volume. Please update tracker "
-                                           "dimensions specified in Settings.h!"
-                                        << " r=" << r_ << " z=" << z_ << " id=" << trackerModule_->detId().subdetId();
-    }
-
     // Get the coordinates of the two clusters that make up this stub, measured in units of strip pitch, and measured
     // in the local frame of the sensor. They have a granularity  of 0.5*pitch.
     for (unsigned int iClus = 0; iClus <= 1; iClus++) {  // Loop over two clusters in stub.

@@ -36,7 +36,7 @@ namespace tmtt {
 
   public:
     // Initialize configuration
-    KFbase(const Settings *settings, const uint nPar, const std::string &fitterName = "", const uint nMeas = 2);
+    KFbase(const Settings *settings, const uint nHelixPar, const std::string &fitterName = "", const uint nMeas = 2);
 
     virtual ~KFbase() { this->resetStates(); }
 
@@ -150,7 +150,7 @@ namespace tmtt {
     void printStubs(const std::vector<Stub *> &stubs) const;
 
   protected:
-    unsigned nPar_;
+    unsigned nHelixPar_;
     unsigned nMeas_;
     unsigned numEtaRegions_;
 

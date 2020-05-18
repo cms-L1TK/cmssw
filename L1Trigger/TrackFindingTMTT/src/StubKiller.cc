@@ -111,6 +111,8 @@ namespace tmtt {
     if (killScenario_ == KillOptions::none)
       return false;
     else {
+      // Check if stub is in dead region specified by *ToKill_
+      // And randomly kill stubs throughout tracker (not just thos in specific regions/modules)
       bool killStubRandomly = killStub(stub,
                                        layersToKill_,
                                        minPhiToKill_,
@@ -121,13 +123,15 @@ namespace tmtt {
                                        maxRToKill_,
                                        fractionOfStubsToKillInLayers_,
                                        fractionOfStubsToKillEverywhere_);
+      // Kill modules in specifid modules
+      // Random modules throughout the tracker, and those modules in specific regions (so may already have been killed by killStub above)
       bool killStubInDeadModules = killStubInDeadModule(stub);
       return killStubRandomly || killStubInDeadModules;
     }
   }
 
-  // Indicate if given stub was killed by dead tracker module, based on dead regions specified here,
-  // and ignoring dead module scenario.
+  // Indicate if given stub was killed by dead tracker module, based on specified dead regions 
+  // rather than based on the dead module scenario.
   // layersToKill - a vector stating the layers we are killing stubs in.  Can be an empty vector.
   // Barrel layers are encoded as 1-6. The endcap layers are encoded as 11-15 (-z) and 21-25 (+z)
   // min/max Phi/Z/R - stubs within the region specified by these boundaries and layersToKill are flagged for killing
@@ -150,34 +154,37 @@ namespace tmtt {
       DetId stackDetid = stub->getDetId();
       DetId geoDetId(stackDetid.rawId() + 1);
 
-      bool isInBarrel = geoDetId.subdetId() == StripSubdetector::TOB || geoDetId.subdetId() == StripSubdetector::TIB;
+      // If this module is in the deadModule list, don't also try to kill the stub here
+      if ( deadModules_.empty() || deadModules_.find(geoDetId) == deadModules_.end() ) {
+        bool isInBarrel = geoDetId.subdetId() == StripSubdetector::TOB || geoDetId.subdetId() == StripSubdetector::TIB;
 
-      int layerID = 0;
-      if (isInBarrel) {
-        layerID = trackerTopology_->layer(geoDetId);
-      } else {
-        layerID = 10 * trackerTopology_->side(geoDetId) + trackerTopology_->tidWheel(geoDetId);
-      }
+        int layerID = 0;
+        if (isInBarrel) {
+          layerID = trackerTopology_->layer(geoDetId);
+        } else {
+          layerID = 10 * trackerTopology_->side(geoDetId) + trackerTopology_->tidWheel(geoDetId);
+        }
 
-      if (find(layersToKill.begin(), layersToKill.end(), layerID) != layersToKill.end()) {
-        // Get the phi and z of stub, and check if it's in the region you want to kill
-        const GeomDetUnit* det0 = trackerGeometry_->idToDetUnit(geoDetId);
-        const PixelGeomDetUnit* theGeomDet = dynamic_cast<const PixelGeomDetUnit*>(det0);
-        const PixelTopology* topol = dynamic_cast<const PixelTopology*>(&(theGeomDet->specificTopology()));
-        MeasurementPoint measurementPoint = stub->clusterRef(0)->findAverageLocalCoordinatesCentered();
-        LocalPoint clustlp = topol->localPosition(measurementPoint);
-        GlobalPoint pos = theGeomDet->surface().toGlobal(clustlp);
+        if (find(layersToKill.begin(), layersToKill.end(), layerID) != layersToKill.end()) {
+          // Get the phi and z of stub, and check if it's in the region you want to kill
+          const GeomDetUnit* det0 = trackerGeometry_->idToDetUnit(geoDetId);
+          const PixelGeomDetUnit* theGeomDet = dynamic_cast<const PixelGeomDetUnit*>(det0);
+          const PixelTopology* topol = dynamic_cast<const PixelTopology*>(&(theGeomDet->specificTopology()));
+          MeasurementPoint measurementPoint = stub->clusterRef(0)->findAverageLocalCoordinatesCentered();
+          LocalPoint clustlp = topol->localPosition(measurementPoint);
+          GlobalPoint pos = theGeomDet->surface().toGlobal(clustlp);
 
-        double stubPhi = reco::deltaPhi(pos.phi(), 0.);
+          double stubPhi = reco::deltaPhi(pos.phi(), 0.);
 
-        if (stubPhi > minPhiToKill && stubPhi < maxPhiToKill && pos.z() > minZToKill && pos.z() < maxZToKill &&
-            pos.perp() > minRToKill && pos.perp() < maxRToKill) {
-          // Kill fraction of stubs
-          if (fractionOfStubsToKillInLayers == 1) {
-            return true;
-          } else {
-            if (rndmEngine_->flat() < fractionOfStubsToKillInLayers) {
+          if (stubPhi > minPhiToKill && stubPhi < maxPhiToKill && pos.z() > minZToKill && pos.z() < maxZToKill &&
+              pos.perp() > minRToKill && pos.perp() < maxRToKill) {
+            // Kill fraction of stubs
+            if (fractionOfStubsToKillInLayers == 1) {
               return true;
+            } else {
+              if (rndmEngine_->flat() < fractionOfStubsToKillInLayers) {
+                return true;
+              }
             }
           }
         }
@@ -200,8 +207,16 @@ namespace tmtt {
     if (not deadModules_.empty()) {
       DetId stackDetid = stub->getDetId();
       DetId geoDetId(stackDetid.rawId() + 1);
-      if (deadModules_.find(geoDetId) != deadModules_.end())
-        return true;
+      auto deadModule = deadModules_.find(geoDetId);
+      if (deadModule != deadModules_.end()) {
+        if (deadModule->second == 1) {
+          return true;
+        } else {
+          if (rndmEngine_->flat() < deadModule->second ) {
+            return true;
+          }
+        }
+      }
     }
 
     return false;

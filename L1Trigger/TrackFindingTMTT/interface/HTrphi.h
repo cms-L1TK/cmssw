@@ -104,8 +104,8 @@ namespace tmtt {
                              unsigned int jPhiTrkBinMinLast,
                              unsigned int jPhiTrkBinMaxLast);
 
-    // Calculate maximum |gradient| that any stub's line across this HT array could have, so can check it doesn't exceed 1.
-    float calcMaxLineGradArray() const;
+    // Calculate line |gradient| of stubs in HT array, so can check it doesn't exceed 1.
+    float calcLineGradArray(float r) const;
 
     // If requested, kill those tracks in this sector that can't be read out during the time-multiplexed period, because
     // the HT has associated too many stubs to tracks.

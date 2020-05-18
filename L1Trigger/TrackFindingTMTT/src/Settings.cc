@@ -45,6 +45,12 @@ etaRegions_({-2.4,-2.08,-1.68,-1.26,-0.90,-0.62,-0.41,-0.20,0.0,0.20,0.41,0.62,0
     kalmanMaxSkipLayersHard_(1),  // On "hard" input tracks
     kalmanMaxSkipLayersEasy_(2),  // On "easy" input tracks
     kalmanMaxStubsEasy_(10),      // Max. #stubs an input track can have to be defined "easy"
+    kfLayerVsPtToler_({999., 999., 0.1 , 0.1 , 0.05, 0.05, 0.05}),
+    kfLayerVsD0Cut5_ ({999., 999., 999., 10. , 10. , 10. ,10.  }),
+    kfLayerVsZ0Cut5_ ({999., 999., 25.5, 25.5, 25.5, 25.5,25.5 }),
+    kfLayerVsZ0Cut4_ ({999., 999. ,15. , 15. , 15. , 15. ,15.  }),
+    kfLayerVsChiSq5_ ({999., 999., 10. , 30. , 80. , 120., 160.}),
+    kfLayerVsChiSq4_ ({999., 999., 10. , 30. , 80. , 120., 160.}),
     kalmanMaxStubsPerLayer_(4),   // To save resources, consider at most this many stubs per layer per track.
     kalmanMultiScattTerm_(0.00075),
     kalmanChi2RphiScale_(8),
@@ -268,6 +274,14 @@ etaRegions_({-2.4,-2.08,-1.68,-1.26,-0.90,-0.62,-0.41,-0.20,0.0,0.20,0.41,0.62,0
         kalmanMaxSkipLayersHard_(trackFitSettings_.getParameter<unsigned>("KalmanMaxSkipLayersHard")),
         kalmanMaxSkipLayersEasy_(trackFitSettings_.getParameter<unsigned>("KalmanMaxSkipLayersEasy")),
         kalmanMaxStubsEasy_(trackFitSettings_.getParameter<unsigned>("KalmanMaxStubsEasy")),
+
+        kfLayerVsPtToler_(trackFitSettings_.getParameter<vector<double>>("KFLayerVsPtToler")),
+        kfLayerVsD0Cut5_(trackFitSettings_.getParameter<vector<double>>("KFLayerVsD0Cut5")),
+        kfLayerVsZ0Cut5_(trackFitSettings_.getParameter<vector<double>>("KFLayerVsZ0Cut5")),
+        kfLayerVsZ0Cut4_(trackFitSettings_.getParameter<vector<double>>("KFLayerVsZ0Cut4")),
+        kfLayerVsChiSq5_(trackFitSettings_.getParameter<vector<double>>("KFLayerVsChiSq5")),
+        kfLayerVsChiSq4_(trackFitSettings_.getParameter<vector<double>>("KFLayerVsChiSq4")),
+
         kalmanMaxStubsPerLayer_(trackFitSettings_.getParameter<unsigned>("KalmanMaxStubsPerLayer")),
         kalmanMultiScattTerm_(trackFitSettings_.getParameter<double>("KalmanMultiScattTerm")),
         kalmanChi2RphiScale_(trackFitSettings_.getParameter<unsigned>("KalmanChi2RphiScale")),
