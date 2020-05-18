@@ -157,7 +157,7 @@ namespace tmtt {
         reduce = true;
 
       // or to increase efficiency in the barrel-endcap transition or very forward regions.
-      const vector<unsigned int> etaSecsRed = settings->etaSecsReduceLayers();
+      const vector<unsigned int>& etaSecsRed = settings->etaSecsReduceLayers();
       if (std::count(etaSecsRed.begin(), etaSecsRed.end(), iEtaReg) != 0)
         reduce = true;
 

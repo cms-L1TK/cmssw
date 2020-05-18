@@ -17,32 +17,32 @@ namespace tmtt {
   public:
     KFParamsComb(const Settings* settings, const uint nHelixPar, const std::string& fitterName);
 
-    virtual ~KFParamsComb() {}
+    ~KFParamsComb() override {}
 
   protected:
     //--- Input data
 
     // Seed track helix params & covariance matrix
-    virtual TVectorD seedX(const L1track3D& l1track3D) const;
-    virtual TMatrixD seedC(const L1track3D& l1track3D) const;
+    TVectorD seedX(const L1track3D& l1track3D) const override;
+    TMatrixD seedC(const L1track3D& l1track3D) const override;
 
     // Stub coordinate measurements & resolution
-    virtual TVectorD vectorM(const Stub* stub) const;
-    virtual TMatrixD matrixV(const Stub* stub, const KalmanState* state) const;
+    TVectorD vectorM(const Stub* stub) const override;
+    TMatrixD matrixV(const Stub* stub, const KalmanState* state) const override;
 
     //--- KF maths matrix multiplications
 
     // Derivate of helix intercept point w.r.t. helix params.
-    virtual TMatrixD matrixH(const Stub* stub) const;
+    TMatrixD matrixH(const Stub* stub) const override;
     // Kalman helix ref point extrapolation matrix
-    virtual TMatrixD matrixF(const Stub* stub, const KalmanState* state) const;
+    TMatrixD matrixF(const Stub* stub, const KalmanState* state) const override;
 
     // Convert to physical helix params instead of local ones used by KF
-    virtual TVectorD trackParams(const KalmanState* state) const;
-    virtual TVectorD trackParams_BeamConstr(const KalmanState* state, double& chi2rphi) const;
+    TVectorD trackParams(const KalmanState* state) const override;
+    TVectorD trackParams_BeamConstr(const KalmanState* state, double& chi2rphi) const override;
 
     // Does helix state pass cuts?
-    virtual bool isGoodState(const KalmanState& state) const;
+    bool isGoodState(const KalmanState& state) const override;
 
   protected:
     std::vector<double> kfLayerVsPtToler_;

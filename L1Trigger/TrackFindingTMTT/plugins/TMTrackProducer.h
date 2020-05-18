@@ -42,7 +42,7 @@ namespace tmtt {
   class TMTrackProducer : public edm::stream::EDProducer<edm::GlobalCache<GlobalCacheTMTT>> {
   public:
     explicit TMTrackProducer(const edm::ParameterSet &, GlobalCacheTMTT const *globalCacheTMTT);
-    ~TMTrackProducer() {}
+    ~TMTrackProducer() override {}
 
     static std::unique_ptr<GlobalCacheTMTT> initializeGlobalCache(edm::ParameterSet const &iConfig);
 
@@ -51,9 +51,9 @@ namespace tmtt {
   private:
     typedef std::vector<TTTrack<Ref_Phase2TrackerDigi_>> TTTrackCollection;
 
-    virtual void beginRun(const edm::Run &, const edm::EventSetup &);
+    void beginRun(const edm::Run &, const edm::EventSetup &) override;
 
-    virtual void produce(edm::Event &, const edm::EventSetup &);
+    void produce(edm::Event &, const edm::EventSetup &) override;
 
   private:
     bool debug_;

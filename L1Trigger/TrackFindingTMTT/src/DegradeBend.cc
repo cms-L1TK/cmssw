@@ -54,7 +54,7 @@ namespace tmtt {
     // Convert it to integer measured in half-strip units for this calculation!
     int b = std::round(2 * bend);
 
-    if (abs(b) <= windowHalfStrips) {
+    if ((unsigned int)(std::abs(b)) <= windowHalfStrips) {
       // Call the official CMS bend encoding algorithm.
       degradedBend = stubAlgo_->degradeBend(psModule, windowHalfStrips, b);
     } else {

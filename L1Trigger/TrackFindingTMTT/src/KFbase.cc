@@ -47,7 +47,7 @@ namespace tmtt {
     sort(stubs.begin(), stubs.end(), orderByLayer);  // Makes debug printout pretty.
 
     //TP
-    const TP *tpa(0);
+    const TP *tpa(nullptr);
     if (l1track3D.matchedTP()) {
       tpa = l1track3D.matchedTP();
     }
@@ -234,7 +234,7 @@ namespace tmtt {
           layer += 1;
           ++nSkippedDeadLayers;
         }
-        while (this->kalmanAmbiguousLayer(etaReg, layer) && layerStubs[layer].size() == 0) {
+        while (this->kalmanAmbiguousLayer(etaReg, layer) && layerStubs[layer].empty()) {
           layer += 1;
           ++nSkippedAmbiguousLayers;
         }
