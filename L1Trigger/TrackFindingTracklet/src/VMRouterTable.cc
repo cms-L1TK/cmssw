@@ -9,11 +9,11 @@ using namespace trklet;
 
 VMRouterTable::VMRouterTable(Settings const& settings) : settings_(settings) {}
 
-VMRouterTable::VMRouterTable(Settings const& settings, unsigned int layerdisk) : settings_(settings) {
-  init(layerdisk);
+VMRouterTable::VMRouterTable(Settings const& settings, unsigned int layerdisk, std::string const& name) : settings_(settings) {
+  init(layerdisk, name);
 }
 
-void VMRouterTable::init(unsigned int layerdisk) {
+void VMRouterTable::init(unsigned int layerdisk, std::string const& name) {
   zbits_ = settings_.vmrlutzbits(layerdisk);
   rbits_ = settings_.vmrlutrbits(layerdisk);
 
@@ -96,6 +96,31 @@ void VMRouterTable::init(unsigned int layerdisk) {
       if (layerdisk == 0 || layerdisk == 1) {
         vmrtableteinneroverlap_.push_back(getLookup(6, z, r, layerdisk + 6));
       }
+    }
+  }
+
+  if (settings_.writeTable()) {
+    // write finebin tables
+    writeVMTable(settings_.tablePath()+name+"_finebin.tab",vmrtable_);
+    // write barrel seed teinner tables
+    if (layerdisk == 0 || layerdisk == 1 || layerdisk == 2 || layerdisk == 4) {
+      writeVMTable(settings_.tablePath()+"VMTableInnerL"+to_string(layerdisk+1)+"L"+std::to_string(layerdisk+2)+".tab",vmrtableteinner_);
+    }
+    // write disk seed teinner tables
+    if (layerdisk == 6 || layerdisk == 8) {
+      writeVMTable(settings_.tablePath()+"VMTableInnerD"+to_string(layerdisk-5)+"D"+std::to_string(layerdisk-4)+".tab",vmrtableteinner_);
+    }
+    // write overlap seed teinner tables
+    if (layerdisk == 0 || layerdisk == 1) {
+      writeVMTable(settings_.tablePath()+"VMTableInnerL"+to_string(layerdisk+1)+"D1.tab",vmrtableteinneroverlap_);
+    }
+    // write barrel teouter tables (same as finebin tables)
+    if (layerdisk == 1 || layerdisk == 2 || layerdisk == 3 || layerdisk == 5) {
+      writeVMTable(settings_.tablePath()+"VMTableOuterL"+to_string(layerdisk+1)+".tab",vmrtable_);
+    }
+    // write disk teouter tables
+    if (layerdisk == 6 || layerdisk == 7 || layerdisk == 9) {
+      writeVMTable(settings_.tablePath()+"VMTableOuterD"+to_string(layerdisk-5)+".tab",vmrtabletedisk_);
     }
   }
 }
@@ -286,3 +311,19 @@ int VMRouterTable::lookupinnerThird(int zbin, int rbin) {
   assert(index >= 0 && index < (int)vmrtableteinnerThird_.size());
   return vmrtableteinnerThird_[index];
 }
+
+void VMRouterTable::writeVMTable(std::string const& name, std::vector<int> const& table) {
+  ofstream out;
+  out.open(name.c_str());
+  out << "{" << endl;
+  for (unsigned int i = 0; i < table.size(); i++) {
+    if (i != 0) {
+      out << "," << endl;
+    }
+    int itable = table[i];
+    out << itable;
+  }
+  out << endl << "};" << endl;
+  out.close();
+}
+

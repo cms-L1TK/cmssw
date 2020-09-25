@@ -213,9 +213,17 @@ int main(const int argc, const char **argv) {
 
     edm::LogVerbatim("Tracklet") << "Process event: " << eventnum << " with " << ev.nstubs() << " stubs and "
                                  << ev.nsimtracks() << " simtracks";
+    
 
     eventProcessor.event(ev);
-
+    
+    if (settings.debugTracklet()) {	    
+      for (unsigned int isimtrack = 0; isimtrack < ev.nsimtracks(); isimtrack++) {
+	L1SimTrack simtrack = ev.simtrack(isimtrack);
+	edm::LogVerbatim("Tracklet") << "Evt : "<<eventnum<<" "<<simtrack.eta(); 
+      }
+    }
+    
     std::vector<Track *> &tracks = eventProcessor.tracks();
 
     // ---------------------------------------------------------
@@ -253,7 +261,7 @@ int main(const int argc, const char **argv) {
         if (nlayers + ndisks < 4)
           continue;
         nsim++;
-        for (int seed = -1; seed < 8; seed++) {
+        for (int seed = -1; seed < 12; seed++) {
           bool eff = false;
           bool effloose = false;
           int itrackmatch = -1;

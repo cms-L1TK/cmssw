@@ -46,6 +46,7 @@ void MatchEngineUnit::step() {
 
   int deltaphi = stubfinephi - projfinephi_;
 
+  
   bool dphicut = (abs(deltaphi) < 3) || (abs(deltaphi) > 5);  //TODO - need better implementations
 
   int nbits = isPSmodule ? 3 : 4;
