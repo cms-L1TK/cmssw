@@ -100,7 +100,7 @@ namespace trklet {
         throw cms::Exception("BadConfig")
             << __FILE__ << " " << __LINE__ << " maxStep module = " << module << " not known";
       }
-      return maxstep_.at(module);
+      return maxstep_.at(module) + maxstepoffset_;
     }
 
     double zlength() const { return zlength_; }
@@ -548,12 +548,12 @@ namespace trklet {
 
     //rphi cuts for layers - the column is the seedindex
     std::array<std::array<double, N_SEED>, N_LAYER> rphimatchcut_{
-        {{{0.0,  0.1,  0.07, 0.08, 0.07, 0.05, 0.0,  0.05, 0.08, 0.15, 0.125, 0.15}},  //Layer 1
-         {{0.0,  0.0,  0.06, 0.08, 0.05, 0.0,  0.0,  0.0,  0.0,  0.1,  0.0,   0.0}},         //Layer 2
-         {{0.1,  0.0,  0.0,  0.08, 0.0,  0.0,  0.0,  0.0,  0.0,  0.08, 0.0,   0.0}},          //Layer 3
-         {{0.19, 0.19, 0.0,  0.05, 0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,   0.0}},         //Layer 4
-         {{0.4,  0.4,  0.08, 0.0,  0.0,  0.0,  0.0,  0.0,  0.08, 0.0,  0.0,   0.0}},          //Layer 5
-         {{0.5,  0.0,  0.19, 0.0,  0.0,  0.0,  0.0,  0.0,  0.2,  0.0,  0.0,   0.0}}}};         //Layer 6
+        {{{0.0, 0.1, 0.07, 0.08, 0.07, 0.05, 0.0, 0.05, 0.08, 0.15, 0.125, 0.15}},  //Layer 1
+         {{0.0, 0.0, 0.06, 0.08, 0.05, 0.0, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0}},         //Layer 2
+         {{0.1, 0.0, 0.0, 0.08, 0.0, 0.0, 0.0, 0.0, 0.0, 0.08, 0.0, 0.0}},          //Layer 3
+         {{0.19, 0.19, 0.0, 0.05, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}},         //Layer 4
+         {{0.4, 0.4, 0.08, 0.0, 0.0, 0.0, 0.0, 0.0, 0.08, 0.0, 0.0, 0.0}},          //Layer 5
+         {{0.5, 0.0, 0.19, 0.0, 0.0, 0.0, 0.0, 0.0, 0.2, 0.0, 0.0, 0.0}}}};         //Layer 6
 
     //z cuts for layers - the column is the seedindex
     std::array<std::array<double, N_SEED>, N_LAYER> zmatchcut_{
@@ -614,7 +614,7 @@ namespace trklet {
 
     // If set to true this will generate debub printout in text files
     std::unordered_map<std::string, bool> writeMonitorData_{{"IL", false},
-                                                            {"TE", true},
+                                                            {"TE", false},
                                                             {"CT", false},
                                                             {"HitPattern", false},
                                                             {"ChiSq", false},

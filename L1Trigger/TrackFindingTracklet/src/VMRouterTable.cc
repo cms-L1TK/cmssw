@@ -326,4 +326,3 @@ void VMRouterTable::writeVMTable(std::string const& name, std::vector<int> const
   out << endl << "};" << endl;
   out.close();
 }
-

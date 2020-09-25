@@ -234,7 +234,7 @@ L1FPGATrackProducer::L1FPGATrackProducer(edm::ParameterSet const& iConfig)
   DTCLinkFile = iConfig.getParameter<edm::FileInPath>("DTCLinkFile");
   moduleCablingFile = iConfig.getParameter<edm::FileInPath>("moduleCablingFile");
   DTCLinkLayerDiskFile = iConfig.getParameter<edm::FileInPath>("DTCLinkLayerDiskFile");
-  
+
   extended_ = iConfig.getParameter<bool>("Extended");
   nHelixPar_ = iConfig.getParameter<unsigned int>("Hnpar");
 
@@ -257,11 +257,6 @@ L1FPGATrackProducer::L1FPGATrackProducer(edm::ParameterSet const& iConfig)
   settings.setProcessingModulesFile(processingModulesFile.fullPath());
   settings.setMemoryModulesFile(memoryModulesFile.fullPath());
   settings.setWiresFile(wiresFile.fullPath());
-  
-  if (extended_) {
-    settings.setTableTEDFile(tableTEDFile.fullPath());
-    settings.setTableTREFile(tableTREFile.fullPath());
-  }
 
   if (extended_) {
     settings.setTableTEDFile(tableTEDFile.fullPath());
