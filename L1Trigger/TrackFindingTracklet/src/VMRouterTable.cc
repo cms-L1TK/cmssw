@@ -101,26 +101,31 @@ void VMRouterTable::init(unsigned int layerdisk, std::string const& name) {
 
   if (settings_.writeTable()) {
     // write finebin tables
-    writeVMTable(settings_.tablePath()+name+"_finebin.tab",vmrtable_);
-    // write barrel seed teinner tables
+    writeVMTable(settings_.tablePath() + name + "_finebin.tab", vmrtable_);
+    // write barrel seed teinner tables (L1L2, L2L3, L3L4, L5L6)
     if (layerdisk == 0 || layerdisk == 1 || layerdisk == 2 || layerdisk == 4) {
-      writeVMTable(settings_.tablePath()+"VMTableInnerL"+to_string(layerdisk+1)+"L"+std::to_string(layerdisk+2)+".tab",vmrtableteinner_);
+      std::string fnamesuffix = "L" + to_string(layerdisk + 1) + "L" + std::to_string(layerdisk + 2);
+      writeVMTable(settings_.tablePath() + "VMTableInner" + fnamesuffix + ".tab", vmrtableteinner_);
     }
-    // write disk seed teinner tables
+    // write disk seed teinner tables (D1D2, D3D4)
     if (layerdisk == 6 || layerdisk == 8) {
-      writeVMTable(settings_.tablePath()+"VMTableInnerD"+to_string(layerdisk-5)+"D"+std::to_string(layerdisk-4)+".tab",vmrtableteinner_);
+      std::string fnamesuffix = "D" + to_string(layerdisk - N_LAYER + 1) + "D" + to_string(layerdisk - N_LAYER + 2);
+      writeVMTable(settings_.tablePath() + "VMTableInner" + fnamesuffix + ".tab", vmrtableteinner_);
     }
-    // write overlap seed teinner tables
+    // write overlap seed teinner tables (L1D1, L2D1)
     if (layerdisk == 0 || layerdisk == 1) {
-      writeVMTable(settings_.tablePath()+"VMTableInnerL"+to_string(layerdisk+1)+"D1.tab",vmrtableteinneroverlap_);
+      std::string fnamesuffix = "L" + to_string(layerdisk + 1) + "D1";
+      writeVMTable(settings_.tablePath() + "VMTableInner" + fnamesuffix + ".tab", vmrtableteinneroverlap_);
     }
-    // write barrel teouter tables (same as finebin tables)
+    // write barrel teouter tables (L2, L3, L4, L6, same as finebin tables)
     if (layerdisk == 1 || layerdisk == 2 || layerdisk == 3 || layerdisk == 5) {
-      writeVMTable(settings_.tablePath()+"VMTableOuterL"+to_string(layerdisk+1)+".tab",vmrtable_);
+      std::string fnamesuffix = "L" + to_string(layerdisk + 1);
+      writeVMTable(settings_.tablePath() + "VMTableOuter" + fnamesuffix + ".tab", vmrtable_);
     }
-    // write disk teouter tables
+    // write disk teouter tables (D1, D2, D4)
     if (layerdisk == 6 || layerdisk == 7 || layerdisk == 9) {
-      writeVMTable(settings_.tablePath()+"VMTableOuterD"+to_string(layerdisk-5)+".tab",vmrtabletedisk_);
+      std::string fnamesuffix = "D" + to_string(layerdisk - N_LAYER + 1);
+      writeVMTable(settings_.tablePath() + "VMTableOuter" + fnamesuffix = ".tab", vmrtabletedisk_);
     }
   }
 }
