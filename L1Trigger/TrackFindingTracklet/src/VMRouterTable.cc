@@ -125,7 +125,7 @@ void VMRouterTable::init(unsigned int layerdisk, std::string const& name) {
     // write disk teouter tables (D1, D2, D4)
     if (layerdisk == 6 || layerdisk == 7 || layerdisk == 9) {
       std::string fnamesuffix = "D" + to_string(layerdisk - N_LAYER + 1);
-      writeVMTable(settings_.tablePath() + "VMTableOuter" + fnamesuffix = ".tab", vmrtabletedisk_);
+      writeVMTable(settings_.tablePath() + "VMTableOuter" + fnamesuffix + ".tab", vmrtabletedisk_);
     }
   }
 }
