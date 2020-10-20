@@ -47,7 +47,7 @@ process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:phase2_realistic', '')
 # input and output
 ############################################################
 
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(100))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(10))
 
 # Get list of MC datasets from repo, or specify yourself.
 
@@ -169,6 +169,8 @@ process.L1TrackNtuple = cms.EDAnalyzer('L1TrackNtupleMaker',
                                        # tracking in jets (--> requires AK4 genjet collection present!)
                                        TrackingInJets = cms.bool(False),
                                        GenJetInputTag = cms.InputTag("ak4GenJets", ""),
+                                       # Was track quality performed?
+                                       TrackQuality = cms.bool(False)
                                        )
 
 process.ana = cms.Path(process.L1TrackNtuple)
