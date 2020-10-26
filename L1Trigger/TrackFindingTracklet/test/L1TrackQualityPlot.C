@@ -155,9 +155,9 @@ void L1TrackQualityPlot(TString type, TString type_dir = "", TString treeName = 
   TH1F* h_trk_MVA1 = new TH1F("trk_MVA1", "; MVA1; L1 tracks", 50, 0, 1);
 
   TH1F* h_trk_MVA1_real = new TH1F("trk_MVA1_real", ";MVA1; L1 tracks", 50, 0, 1);
-  h_trk_MVA1_real->SetLineColor(1);
+  h_trk_MVA1_real->SetLineColor(3);
   TH1F* h_trk_MVA1_fake = new TH1F("trk_MVA1_fake", ";MVA1; L1 tracks", 50, 0, 1);
-  h_trk_MVA1_fake->SetLineColor(2);
+  h_trk_MVA1_fake->SetLineColor(4);
 
   // ----------------------------------------------------------------------------------------------------------------
   //        * * * * *     S T A R T   O F   A C T U A L   R U N N I N G   O N   E V E N T S     * * * * *
@@ -202,6 +202,10 @@ void L1TrackQualityPlot(TString type, TString type_dir = "", TString treeName = 
 
   // -------------------------------------------------------------------------------------------
   // create ROC curve
+  // ROC = Receiver Operating Characteristic Curve, a plot of True Positive Rate vs False Positive Rate
+  // TPR = True Positive Rate or Identification efficiency, fraction of real tracks correctly identified as real
+  // FPR = False Positive Rate or Fake Rate, fraction of fake tracks incorrectly identified as real
+  // dt = Decision Threshold or cut on the MVA output, below this identify track as fake, above identify as real 
   // -------------------------------------------------------------------------------------------
 
   vector<float> TPR, TPR_mu, TPR_el, TPR_had;
@@ -210,11 +214,11 @@ void L1TrackQualityPlot(TString type, TString type_dir = "", TString treeName = 
   int n = 100;  //num of entries on ROC curve
   for (int i = 0; i < n; i++) {
     float dt = (float)i / (n - 1);  //make sure it starts at (0,0) and ends at (1,1)
-    float TP = 0, TP_mu = 0, TP_el = 0, TP_had = 0;
-    float FP = 0;
-    float P = 0, P_mu = 0, P_el = 0, P_had = 0;
-    float N = 0;
-    for (int k = 0; k < MVA1s.size(); k++) {
+    float TP = 0, TP_mu = 0, TP_el = 0, TP_had = 0; //True Positives
+    float FP = 0;                                   //False Positives
+    float P = 0, P_mu = 0, P_el = 0, P_had = 0;  //Total Positives
+    float N = 0;                                 //Total Negatives
+    for (int k = 0; k < (int)MVA1s.size(); k++) {
       if (fakes.at(k)) {
         P++;
         if (MVA1s.at(k) > dt)
@@ -246,7 +250,7 @@ void L1TrackQualityPlot(TString type, TString type_dir = "", TString treeName = 
     dec_thresh.push_back(dt);
   }
 
-  // calculate AUC
+  // calculate AUC (Area under the ROC curve)
   float AUC = 0., AUC_mu = 0., AUC_el = 0., AUC_had = 0.;
   for (int i = 0; i < n - 1; i++) {
     AUC += (TPR[i] + TPR[i + 1]) / 2 * (FPR[i] - FPR[i + 1]);
@@ -258,43 +262,52 @@ void L1TrackQualityPlot(TString type, TString type_dir = "", TString treeName = 
   TGraph* ROC = new TGraph(n, FPR.data(), TPR.data());
   ROC->SetName("ROC");
   ROC->SetTitle(("ROC curve (AUC = " + to_string(AUC) + "); FPR; TPR").c_str());
+  ROC->SetLineWidth(4);
 
   TGraph* ROC_mu = new TGraph(n, FPR.data(), TPR_mu.data());
   ROC_mu->SetName("ROC_mu");
   ROC_mu->SetTitle(("ROC curve (muons, AUC = " + to_string(AUC_mu) + "); FPR; TPR").c_str());
+  ROC_mu->SetLineWidth(4);
 
   TGraph* ROC_el = new TGraph(n, FPR.data(), TPR_el.data());
   ROC_el->SetName("ROC_el");
   ROC_el->SetTitle(("ROC curve (electrons, AUC = " + to_string(AUC_el) + "); FPR; TPR").c_str());
+  ROC_el->SetLineWidth(4);
 
   TGraph* ROC_had = new TGraph(n, FPR.data(), TPR_had.data());
   ROC_had->SetName("ROC_had");
   ROC_had->SetTitle(("ROC curve (hadrons, AUC = " + to_string(AUC_had) + "); FPR; TPR").c_str());
+  ROC_had->SetLineWidth(4);
 
   TGraph* TPR_vs_dt = new TGraph(n, dec_thresh.data(), TPR.data());
   TPR_vs_dt->SetName("TPR_vs_dt");
   TPR_vs_dt->SetTitle("TPR vs decision threshold; decision thresh.; TPR");
-  TPR_vs_dt->SetLineColor(1);
+  TPR_vs_dt->SetLineColor(3);
+  TPR_vs_dt->SetLineWidth(4);
 
   TGraph* FPR_vs_dt = new TGraph(n, dec_thresh.data(), FPR.data());
   FPR_vs_dt->SetName("FPR_vs_dt");
   FPR_vs_dt->SetTitle("FPR vs decision threshold; decision thresh.; FPR");
-  FPR_vs_dt->SetLineColor(2);
+  FPR_vs_dt->SetLineColor(4);
+  FPR_vs_dt->SetLineWidth(4);
 
   TGraph* TPR_vs_dt_mu = new TGraph(n, dec_thresh.data(), TPR_mu.data());
   TPR_vs_dt_mu->SetName("TPR_vs_dt_mu");
   TPR_vs_dt_mu->SetTitle("TPR vs decision threshold (muons); decision thresh.; TPR");
-  TPR_vs_dt_mu->SetLineColor(1);
+  TPR_vs_dt_mu->SetLineColor(3);
+  TPR_vs_dt_mu->SetLineWidth(4);
 
   TGraph* TPR_vs_dt_el = new TGraph(n, dec_thresh.data(), TPR_el.data());
   TPR_vs_dt_el->SetName("TPR_vs_dt_el");
   TPR_vs_dt_el->SetTitle("TPR vs decision threshold (electrons); decision thresh.; TPR");
-  TPR_vs_dt_el->SetLineColor(1);
+  TPR_vs_dt_el->SetLineColor(3);
+  TPR_vs_dt_el->SetLineWidth(4);
 
   TGraph* TPR_vs_dt_had = new TGraph(n, dec_thresh.data(), TPR_had.data());
   TPR_vs_dt_had->SetName("TPR_vs_dt_had");
   TPR_vs_dt_had->SetTitle("TPR vs decision threshold (hadrons); decision thresh.; TPR");
-  TPR_vs_dt_had->SetLineColor(1);
+  TPR_vs_dt_had->SetLineColor(3);
+  TPR_vs_dt_had->SetLineWidth(4);
 
   // -------------------------------------------------------------------------------------------
   // create TPR vs. eta and FPR vs. eta
@@ -315,7 +328,7 @@ void L1TrackQualityPlot(TString type, TString type_dir = "", TString treeName = 
     float FP = 0;
     float P = 0, P_mu = 0, P_el = 0, P_had = 0;
     float N = 0;
-    for (int k = 0; k < etas.size(); k++) {
+    for (int k = 0; k < (int)etas.size(); k++) {
       if (etas.at(k) > eta_temp && etas.at(k) <= (eta_temp + eta_step)) {
         if (fakes.at(k)) {
           P++;
@@ -406,7 +419,7 @@ void L1TrackQualityPlot(TString type, TString type_dir = "", TString treeName = 
     float FP = 0;
     float P = 0, P_mu = 0, P_el = 0, P_had = 0;
     float N = 0;
-    for (int k = 0; k < pts.size(); k++) {
+    for (int k = 0; k < (int)pts.size(); k++) {
       if (pts.at(k) > pow(10, logpt_temp) && pts.at(k) <= (pow(10, logpt_temp + logpt_step))) {
         if (fakes.at(k)) {
           P++;
@@ -516,6 +529,7 @@ void L1TrackQualityPlot(TString type, TString type_dir = "", TString treeName = 
   ROC_had->Draw("AL");
   ROC_had->Write();
   c.SaveAs("MVA_plots/ROC_had.pdf");
+  c.Clear();
 
   TPR_vs_dt->Draw();
   FPR_vs_dt->Draw("same");
@@ -526,6 +540,7 @@ void L1TrackQualityPlot(TString type, TString type_dir = "", TString treeName = 
   leg2->Draw("same");
   c.Write("TPR_FPR_vs_dt");
   c.SaveAs("MVA_plots/TPR_FPR_vs_dt.pdf");
+  c.Clear();
 
   TPR_vs_dt_mu->Draw();
   FPR_vs_dt->Draw("same");
@@ -536,6 +551,7 @@ void L1TrackQualityPlot(TString type, TString type_dir = "", TString treeName = 
   leg3->Draw("same");
   c.Write("TPR_FPR_vs_dt_mu");
   c.SaveAs("MVA_plots/TPR_FPR_vs_dt_mu.pdf");
+  c.Clear();
 
   TPR_vs_dt_el->Draw();
   FPR_vs_dt->Draw("same");
@@ -546,6 +562,7 @@ void L1TrackQualityPlot(TString type, TString type_dir = "", TString treeName = 
   leg4->Draw("same");
   c.Write("TPR_FPR_vs_dt_el");
   c.SaveAs("MVA_plots/TPR_FPR_vs_dt_el.pdf");
+  c.Clear();
 
   TPR_vs_dt_had->Draw();
   FPR_vs_dt->Draw("same");
@@ -556,7 +573,8 @@ void L1TrackQualityPlot(TString type, TString type_dir = "", TString treeName = 
   leg5->Draw("same");
   c.Write("TPR_FPR_vs_dt_had");
   c.SaveAs("MVA_plots/TPR_FPR_vs_dt_had.pdf");
-
+  c.Clear();
+  
   TPR_vs_eta->Draw("ap");
   TPR_vs_eta->Write();
   c.SaveAs("MVA_plots/TPR_vs_eta.pdf");
@@ -645,8 +663,8 @@ void SetPlotStyle() {
   // use bold lines and markers
   //gStyle->SetMarkerStyle(20);
   gStyle->SetMarkerSize(1.2);
-  gStyle->SetHistLineWidth(2.);
-  gStyle->SetLineStyleString(2, "[12 12]");
+  gStyle->SetHistLineWidth(4.);
+  gStyle->SetLineStyleString(4, "[12 12]");
 
   // get rid of error bar caps
   gStyle->SetEndErrorSize(0.);
