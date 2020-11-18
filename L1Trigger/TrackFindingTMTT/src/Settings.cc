@@ -45,7 +45,7 @@ namespace tmtt {
         kalmanRemove2PScut_(true),
         kalmanMaxSkipLayersHard_(1),  // On "hard" input tracks
         kalmanMaxSkipLayersEasy_(2),  // On "easy" input tracks
-        kfUseMaybeLayers_(true),
+        KFUseMaybeLayers_(true),
         kalmanMaxStubsEasy_(10),      // Max. #stubs an input track can have to be defined "easy"
         kfLayerVsPtToler_({999., 999., 0.1, 0.1, 0.05, 0.05, 0.05}),
         kfLayerVsD0Cut5_({999., 999., 999., 10., 10., 10., 10.}),
@@ -274,7 +274,7 @@ namespace tmtt {
         kalmanMaxSkipLayersHard_(trackFitSettings_.getParameter<unsigned>("KalmanMaxSkipLayersHard")),
         kalmanMaxSkipLayersEasy_(trackFitSettings_.getParameter<unsigned>("KalmanMaxSkipLayersEasy")),
         kalmanMaxStubsEasy_(trackFitSettings_.getParameter<unsigned>("KalmanMaxStubsEasy")),
-        kfUseMaybeLayers_(trackFitSettings_.getParameter<bool>("kfUseMaybeLayers")),
+        KFUseMaybeLayers_(trackFitSettings_.getParameter<bool>("KFUseMaybeLayers")),
 
         kfLayerVsPtToler_(trackFitSettings_.getParameter<vector<double>>("KFLayerVsPtToler")),
         kfLayerVsD0Cut5_(trackFitSettings_.getParameter<vector<double>>("KFLayerVsD0Cut5")),
