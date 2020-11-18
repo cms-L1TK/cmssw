@@ -58,7 +58,7 @@ MatchCalculator::MatchCalculator(string name, Settings const& settings, Globals*
 
   if (iSector_ == 0 && layerdisk_ < N_LAYER && settings_.writeTable()) {
     ofstream outphicut;
-    outphicut.open(settings_.tablePath()+getName() + "_phicut.tab");
+    outphicut.open(settings_.tablePath() + getName() + "_phicut.tab");
     outphicut << "{" << endl;
     for (unsigned int seedindex = 0; seedindex < N_SEED; seedindex++) {
       if (seedindex != 0)
@@ -69,7 +69,7 @@ MatchCalculator::MatchCalculator(string name, Settings const& settings, Globals*
     outphicut.close();
 
     ofstream outzcut;
-    outzcut.open(settings_.tablePath()+getName() + "_zcut.tab");
+    outzcut.open(settings_.tablePath() + getName() + "_zcut.tab");
     outzcut << "{" << endl;
     for (unsigned int seedindex = 0; seedindex < N_SEED; seedindex++) {
       if (seedindex != 0)
@@ -82,7 +82,7 @@ MatchCalculator::MatchCalculator(string name, Settings const& settings, Globals*
 
   if (iSector_ == 0 && layerdisk_ >= N_LAYER && settings_.writeTable()) {
     ofstream outphicut;
-    outphicut.open(settings_.tablePath()+getName() + "_PSphicut.tab");
+    outphicut.open(settings_.tablePath() + getName() + "_PSphicut.tab");
     outphicut << "{" << endl;
     for (unsigned int seedindex = 0; seedindex < N_SEED; seedindex++) {
       if (seedindex != 0)
@@ -92,7 +92,7 @@ MatchCalculator::MatchCalculator(string name, Settings const& settings, Globals*
     outphicut << endl << "};" << endl;
     outphicut.close();
 
-    outphicut.open(settings_.tablePath()+getName() + "_2Sphicut.tab");
+    outphicut.open(settings_.tablePath() + getName() + "_2Sphicut.tab");
     outphicut << "{" << endl;
     for (unsigned int seedindex = 0; seedindex < N_SEED; seedindex++) {
       if (seedindex != 0)
@@ -103,7 +103,7 @@ MatchCalculator::MatchCalculator(string name, Settings const& settings, Globals*
     outphicut.close();
 
     ofstream outzcut;
-    outzcut.open(settings_.tablePath()+getName() + "_PSrcut.tab");
+    outzcut.open(settings_.tablePath() + getName() + "_PSrcut.tab");
     outzcut << "{" << endl;
     for (unsigned int seedindex = 0; seedindex < N_SEED; seedindex++) {
       if (seedindex != 0)
@@ -113,7 +113,7 @@ MatchCalculator::MatchCalculator(string name, Settings const& settings, Globals*
     outzcut << endl << "};" << endl;
     outzcut.close();
 
-    outzcut.open(settings_.tablePath()+getName() + "_2Srcut.tab");
+    outzcut.open(settings_.tablePath() + getName() + "_2Srcut.tab");
     outzcut << "{" << endl;
     for (unsigned int seedindex = 0; seedindex < N_SEED; seedindex++) {
       if (seedindex != 0)
@@ -501,7 +501,7 @@ std::vector<std::pair<std::pair<Tracklet*, int>, const Stub*> > MatchCalculator:
   int bestIndex = -1;
   do {
     int bestSector = 100;
-    int bestTCID = (1 << 16);
+    int bestTCID = -1;
     bestIndex = -1;
     for (unsigned int i = 0; i < candmatch.size(); i++) {
       if (indexArray[i] >= candmatch[i]->nMatches()) {
@@ -523,7 +523,7 @@ std::vector<std::pair<std::pair<Tracklet*, int>, const Stub*> > MatchCalculator:
         bestIndex = i;
       }
       if (dSector == bestSector) {
-        if (TCID < bestTCID) {
+        if (TCID < bestTCID || bestTCID < 0) {
           bestTCID = TCID;
           bestIndex = i;
         }

@@ -93,6 +93,7 @@
 #include "DataFormats/GeometrySurface/interface/BoundPlane.h"
 
 #include "L1Trigger/TrackTrigger/interface/StubPtConsistency.h"
+#include "L1Trigger/TrackTrigger/interface/TrackQuality.h"
 
 //////////////
 // STD HEADERS
@@ -169,6 +170,10 @@ private:
 
   unsigned int nHelixPar_;
   bool extended_;
+
+  bool trackQuality_;
+  edm::ParameterSet trackQualityParams;
+  std::unique_ptr<TrackQuality> trackQualityModel;
 
   std::map<string, vector<int>> dtclayerdisk;
 
@@ -261,6 +266,11 @@ L1FPGATrackProducer::L1FPGATrackProducer(edm::ParameterSet const& iConfig)
   if (extended_) {
     settings.setTableTEDFile(tableTEDFile.fullPath());
     settings.setTableTREFile(tableTREFile.fullPath());
+
+    //FIXME: The TED and TRE tables are currently disabled by default, so we
+    //need to allow for the additional tracklets that will eventually be
+    //removed by these tables, once they are finalized
+    settings.setNbitstrackletindex(10);
   }
 
   eventnum = 0;
@@ -280,6 +290,12 @@ L1FPGATrackProducer::L1FPGATrackProducer(edm::ParameterSet const& iConfig)
       edm::LogVerbatim("Tracklet") << "table_TED    :  " << tableTEDFile.fullPath()
                                    << "\n table_TRE    :  " << tableTREFile.fullPath();
     }
+  }
+
+  trackQuality_ = iConfig.getParameter<bool>("TrackQuality");
+  if (trackQuality_) {
+    trackQualityParams = iConfig.getParameter<edm::ParameterSet>("TrackQualityPSet");
+    trackQualityModel.reset(new TrackQuality(trackQualityParams));
   }
 }
 
@@ -683,6 +699,10 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
 
     // set TTTrack word
     aTrack.setTrackWordBits();
+
+    if (trackQuality_) {
+      trackQualityModel->setTrackQuality(aTrack);
+    }
 
     // test track word
     //aTrack.testTrackWordBits();

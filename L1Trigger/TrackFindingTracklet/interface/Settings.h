@@ -76,11 +76,11 @@ namespace trklet {
     bool useSeed(unsigned int iSeed) const { return useseeding_.find(iSeed) != useseeding_.end(); }
     unsigned int nbitsvmte(unsigned int inner, unsigned int iSeed) const {
       if (combined_) {
-	return nbitsvmtecm_[inner][iSeed];
+        return nbitsvmtecm_[inner][iSeed];
       }
       return nbitsvmte_[inner][iSeed];
     }
-    unsigned int nvmte(unsigned int inner, unsigned int iSeed) const { return (1 << nbitsvmte(inner,iSeed)); }
+    unsigned int nvmte(unsigned int inner, unsigned int iSeed) const { return (1 << nbitsvmte(inner, iSeed)); }
 
     unsigned int nbitsvmme(unsigned int layerdisk) const { return nbitsvmme_[layerdisk]; }
     unsigned int nvmme(unsigned int layerdisk) const { return (1 << nbitsvmme_[layerdisk]); }
@@ -117,7 +117,7 @@ namespace trklet {
     int nfinephi(unsigned int inner, unsigned int iSeed) const { return nfinephi_[inner][iSeed]; }
     double nphireg(unsigned int inner, unsigned int iSeed) const {
       if (combined_) {
-	return nphiregcm_[inner][iSeed];
+        return nphiregcm_[inner][iSeed];
       }
       return nphireg_[inner][iSeed];
     }
@@ -170,6 +170,7 @@ namespace trklet {
 
     unsigned int writememsect() const { return writememsect_; }
 
+    bool enableTripletTables() const { return enableTripletTables_; }
     bool writeTripletTables() const { return writeTripletTables_; }
 
     bool writeoutReal() const { return writeoutReal_; }
@@ -238,6 +239,9 @@ namespace trklet {
     std::string skimfile() const { return skimfile_; }
     void setSkimfile(std::string skimfile) { skimfile_ = skimfile; }
 
+    unsigned int nbitstrackletindex() const { return nbitstrackletindex_; }
+    void setNbitstrackletindex(unsigned int nbitstrackletindex) { nbitstrackletindex_ = nbitstrackletindex; }
+
     double dphisectorHG() const {
       return 2 * M_PI / N_SECTOR +
              2 * std::max(std::abs(asin(0.5 * rinvmax() * rmean(0)) - asin(0.5 * rinvmax() * rcrit_)),
@@ -282,7 +286,7 @@ namespace trklet {
     unsigned int NLONGVMBITS() const { return NLONGVMBITS_; }
     unsigned int NLONGVMBINS() const { return (1 << NLONGVMBITS_); }
 
-    unsigned int ntrackletmax() const { return ntrackletmax_; }
+    unsigned int ntrackletmax() const { return ((1 << nbitstrackletindex_) - 1); }
 
     //Bits used to store track parameter in tracklet
     int nbitsrinv() const { return nbitsrinv_; }
@@ -434,7 +438,7 @@ namespace trklet {
 
     double ptcutte_{1.8};  //Minimum pt in TE
 
-    unsigned int ntrackletmax_{127};  //maximum number of tracklets that can be stored
+    unsigned int nbitstrackletindex_{7};  //Bits used to store the tracklet index
 
     //Bits used to store track parameter in tracklet
     int nbitsrinv_{14};
@@ -506,7 +510,7 @@ namespace trklet {
     //For combined modules
     std::array<std::array<unsigned int, N_SEED>, 3> nphiregcm_{
         {{{5, 4, 4, 4, 4, 4, 4, 3, 4, 4, 5, 4}},    //inner
-	 {{5, 5, 5, 5, 5, 5, 5, 5, 4, 4, 4, 4}},    //outer
+         {{5, 5, 5, 5, 5, 5, 5, 5, 4, 4, 4, 4}},    //outer
          {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 4}}}};  //outermost (triplets only)
 
     std::array<std::array<unsigned int, N_SEED>, 3> lutwidthtab_{{{{10, 10, 10, 10, 10, 10, 10, 10, 0, 0, 11, 0}},
@@ -596,10 +600,11 @@ namespace trklet {
          {{3.6, 3.8, 0.0, 0.0, 3.6, 0.0, 3.5, 3.8, 0.0, 0.0, 3.0, 3.0}},    //disk 4
          {{0.0, 0.0, 0.0, 0.0, 3.6, 3.4, 3.7, 0.0, 0.0, 0.0, 0.0, 3.0}}}};  //disk 5
 
-    //Offset to the maximum number of steps in each processing step. Set to 0 for standard
-    //trunction. Set to large value, e.g. 10000 to remove truncation
-    unsigned int maxstepoffset_{10000};
-    
+    // Offset to the maximum number of steps in each processing step:
+    // Set to 0 (default) means standard trunction
+    // Set to large value, e.g. 10000, to disable truncation
+    unsigned int maxstepoffset_{0};
+
     //Default number of processing steps for one event
     std::unordered_map<std::string, unsigned int> maxstep_{{"Link", 108},
                                                            {"MC", 107},
@@ -621,8 +626,8 @@ namespace trklet {
                                                             {"Seeds", false},
                                                             {"FT", false},
                                                             {"Residuals", false},
-							    {"MC", false},
-							    {"MP", false},
+                                                            {"MC", false},
+                                                            {"MP", false},
                                                             {"ME", false},
                                                             {"AP", false},
                                                             {"VMP", false},
@@ -659,10 +664,10 @@ namespace trklet {
     bool warnNoMem_{false};  //If true will print out warnings about missing projection memories
     bool warnNoDer_{false};  //If true will print out warnings about missing track fit derivatives
 
-    bool writeMem_{false};    //If true will print out content of memories to files
-    bool writeTable_{false};  //If true will print out content of LUTs to files
-    std::string tablePath_{"../data/LUTs/"}; //path to writing LUTs
-    
+    bool writeMem_{false};                    //If true will print out content of memories to files
+    bool writeTable_{false};                  //If true will print out content of LUTs to files
+    std::string tablePath_{"../data/LUTs/"};  //path to writing LUTs
+
     // Write various lookup tables and autogenerated code (from iMath)
     bool writeVerilog_{false};      //Write out auto-generated Verilog mudules used by TCs
     bool writeHLS_{false};          //Write out auto-generated HLS mudules used by TCs
@@ -671,10 +676,13 @@ namespace trklet {
 
     unsigned int writememsect_{3};  //writemem only for this sector (note that the files will have _4 extension)
 
-    bool writeTripletTables_{false};  //Train and write the TED and TRE tables. N.B.: the tables
-                                      //cannot be applied while they are being trained, i.e.,
-                                      //this flag effectively turns off the cuts in
-                                      //TrackletEngineDisplaced and TripletEngine
+    bool enableTripletTables_{false};  //Enable the application of the TED and
+                                       //TRE tables; when this flag is false,
+                                       //the tables will not be read from disk
+    bool writeTripletTables_{false};   //Train and write the TED and TRE tables. N.B.: the tables
+                                       //cannot be applied while they are being trained, i.e.,
+                                       //this flag effectively turns off the cuts in
+                                       //TrackletEngineDisplaced and TripletEngine
 
     bool writeoutReal_{false};
 
