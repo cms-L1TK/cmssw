@@ -813,8 +813,8 @@ namespace tmtt {
       kfEtaReg = iEtaReg - numEtaRegions_ / 2;
     }
 
-    bool ambiguous = ambiguityMap[kfEtaReg][kfLayer];
-    if (!Settings_->KFUseMaybeLayers()) ambiguous = false;
+    bool ambiguous = false;
+    if (Settings_->KFUseMaybeLayers()) ambiguous = ambiguityMap[kfEtaReg][kfLayer];
       
     return ambiguous;
   }
