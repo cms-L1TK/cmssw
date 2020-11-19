@@ -45,8 +45,8 @@ namespace tmtt {
         kalmanRemove2PScut_(true),
         kalmanMaxSkipLayersHard_(1),  // On "hard" input tracks
         kalmanMaxSkipLayersEasy_(2),  // On "easy" input tracks
-        KFUseMaybeLayers_(true),
         kalmanMaxStubsEasy_(10),      // Max. #stubs an input track can have to be defined "easy"
+        KFUseMaybeLayers_(false),
         kfLayerVsPtToler_({999., 999., 0.1, 0.1, 0.05, 0.05, 0.05}),
         kfLayerVsD0Cut5_({999., 999., 999., 10., 10., 10., 10.}),
         kfLayerVsZ0Cut5_({999., 999., 25.5, 25.5, 25.5, 25.5, 25.5}),
