@@ -826,7 +826,6 @@ namespace tmtt {
 
     bool ambiguous = false;
     if (settings_->KFUseMaybeLayers()) ambiguous = ambiguityMap[kfEtaReg][kfLayer];
-    cout<<ambiguous<<endl;
       
     return ambiguous;
   }
