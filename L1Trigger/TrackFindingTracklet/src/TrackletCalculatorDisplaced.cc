@@ -1740,9 +1740,9 @@ void TrackletCalculatorDisplaced::approxproj(double halfRinv,
           (1.0 / 6.0) * pow(rmean, 3) * t * halfRinv_0 * halfRinv_0;
   zprojder = t;  // removed all high terms
 
-  if (isfinite(phiproj))
-      phiproj = angle0to2pi::make0To2pi(phiproj);
-    assert(!isfinite(phiproj) || fabs(phiproj) < 2 * M_PI);
+  
+  phiproj = angle0to2pi::make0To2pi(phiproj);
+    
 
   if (settings_.debugTracklet())
     edm::LogVerbatim("Tracklet") << "approx proj layer at " << rmean << " : " << phiproj << " " << zproj << endl;
@@ -1786,9 +1786,9 @@ void TrackletCalculatorDisplaced::approxprojdisk(double halfRinv,
   phiproj = phi0 - A + B * (1 + C - 2 * A_0 * A_0) + (1. / 6.) * pow(-A_0 + B_0, 3);
   phiprojder = -halfRinv / t - d0 * t * t * zmeanInv * zmeanInv;
 
-  if (isfinite(phiproj))
-      phiproj = angle0to2pi::make0To2pi(phiproj);
-    assert(!isfinite(phiproj) || fabs(phiproj) < 2 * M_PI);
+  
+  phiproj = angle0to2pi::make0To2pi(phiproj);
+  
 
   if (settings_.debugTracklet())
     edm::LogVerbatim("Tracklet") << "approx proj disk at" << zmean << " : " << phiproj << " " << rproj << endl;
@@ -1866,9 +1866,9 @@ void TrackletCalculatorDisplaced::approxtracklet(double r1,
   rinv = 2.0 * halfRinv;
   phi0 += -phimin_;
 
-  if (isfinite(phi0))
-    phi0 = angle0to2pi::make0To2pi(phi0);
-  assert(!isfinite(phi0) || fabs(phi0) < 2 * M_PI);
+  
+  phi0 = angle0to2pi::make0To2pi(phi0);
+
 
   for (unsigned int i = 0; i < toR_.size(); i++) {
     approxproj(halfRinv,
