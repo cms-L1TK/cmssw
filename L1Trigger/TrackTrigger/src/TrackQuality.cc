@@ -26,7 +26,7 @@ TrackQuality::TrackQuality(const edm::ParameterSet& qualityParams) {
 
   else {
     setONNXModel(AlgorithmString,
-                 edm::FileInPath(qualityParams.getParameter<std::string>("ONNXmodel")),
+                 qualityParams.getParameter<edm::FileInPath>("ONNXmodel"),
                  qualityParams.getParameter<std::string>("ONNXInputName"),
                  qualityParams.getParameter<std::vector<std::string>>("featureNames"));
     ONNXInvRScaling_ = qualityParams.getParameter<double>("ONNXInvRScale");
