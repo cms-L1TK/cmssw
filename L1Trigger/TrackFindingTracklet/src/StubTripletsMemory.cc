@@ -23,7 +23,8 @@ void StubTripletsMemory::writeST(bool first) {
 
     if (not std::filesystem::exists(dirSP)) {
       int fail = system((string("mkdir -p ") + dirSP).c_str());
-      if (fail) throw cms::Exception("BadDir") << __FILE__ << " " << __LINE__ << " could not create directory " <<dirSP << std::endl;
+      if (fail)
+        throw cms::Exception("BadDir") << __FILE__ << " " << __LINE__ << " could not create directory " << dirSP;
     }
     out_.open(fname);
     if (out_.fail())

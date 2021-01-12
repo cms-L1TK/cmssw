@@ -40,7 +40,8 @@ void VMProjectionsMemory::writeVMPROJ(bool first) {
 
     if (not std::filesystem::exists(dirVM)) {
       int fail = system((string("mkdir -p ") + dirVM).c_str());
-      if (fail) throw cms::Exception("BadDir") << __FILE__ << " " << __LINE__ << " could not create directory " <<dirVM << std::endl;
+      if (fail)
+        throw cms::Exception("BadDir") << __FILE__ << " " << __LINE__ << " could not create directory " << dirVM;
     }
     out_.open(fname);
     if (out_.fail())

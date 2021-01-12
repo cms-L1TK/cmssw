@@ -26,7 +26,8 @@ void TrackFitMemory::writeTF(bool first) {
 
     if (not std::filesystem::exists(dirFT)) {
       int fail = system((string("mkdir -p ") + dirFT).c_str());
-      if (fail) throw cms::Exception("BadDir") << __FILE__ << " " << __LINE__ << " could not create directory " <<dirFT << std::endl;
+      if (fail)
+        throw cms::Exception("BadDir") << __FILE__ << " " << __LINE__ << " could not create directory " << dirFT;
     }
     out_.open(fname);
     if (out_.fail())
