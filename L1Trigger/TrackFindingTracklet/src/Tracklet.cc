@@ -387,7 +387,8 @@ std::string Tracklet::fullmatchstr(int layer) {
     tcid.set(TCIndex_, 7, true, __LINE__, __FILE__);
   }
   std::string oss = tcid.str() + "|" + tmp.str() + "|" + layerresid_[layer - 1].fpgastubid().str() + "|" +
-                    layerresid_[layer - 1].fpgaphiresid().str() + "|" + layerresid_[layer - 1].fpgazresid().str();
+                    layerresid_[layer - 1].stubptr()->r().str() + "|" + layerresid_[layer - 1].fpgaphiresid().str() +
+                    "|" + layerresid_[layer - 1].fpgazresid().str();
   return oss;
 }
 
@@ -405,7 +406,9 @@ std::string Tracklet::fullmatchdiskstr(int disk) {
   } else {
     tcid.set(TCIndex_, 7, true, __LINE__, __FILE__);
   }
+  const FPGAWord& stubr = diskresid_[disk - 1].stubptr()->r();
   std::string oss = tcid.str() + "|" + tmp.str() + "|" + diskresid_[disk - 1].fpgastubid().str() + "|" +
+                    ((stubr.nbits() == 4) ? ("00000000" + stubr.str()) : stubr.str()) + "|" +
                     diskresid_[disk - 1].fpgaphiresid().str() + "|" + diskresid_[disk - 1].fpgarresid().str();
   return oss;
 }
@@ -644,149 +647,204 @@ void Tracklet::setFitPars(double rinvfit,
   fpgatrack_ = std::make_unique<Track>(makeTrack(l1stubs));
 }
 
-std::string Tracklet::trackfitstr() {
-  string stubid0 = "111111111";
-  string stubid1 = "111111111";
-  string stubid2 = "111111111";
-  string stubid3 = "111111111";
+const std::string Tracklet::layerstubstr(const unsigned layer) const {
+  assert(layer <= 5);
+
+  std::stringstream oss("");
+  if (!layerresid_[layer].valid())
+    oss << "0|0000000|0000000000|0000000|000000000000|000000000";
+  else {
+    if (trackIndex_ < 0 || trackIndex_ > 127) {
+      cout << "trackIndex_ = " << trackIndex_ << endl;
+      assert(0);
+    }
+    const FPGAWord tmp(trackIndex_, 7, true, __LINE__, __FILE__);
+    oss << "1|";  // valid bit
+    oss << tmp.str() << "|";
+    oss << layerresid_[layer].fpgastubid().str() << "|";
+    oss << layerresid_[layer].stubptr()->r().str() << "|";
+    oss << layerresid_[layer].fpgaphiresid().str() << "|";
+    oss << layerresid_[layer].fpgazresid().str();
+  }
+
+  return oss.str();
+}
+
+const std::string Tracklet::diskstubstr(const unsigned disk) const {
+  assert(disk <= 4);
+
+  std::stringstream oss("");
+  if (!diskresid_[disk].valid())
+    oss << "0|0000000|0000000000|000000000000|000000000000|0000000";
+  else {
+    if (trackIndex_ < 0 || trackIndex_ > 127) {
+      cout << "trackIndex_ = " << trackIndex_ << endl;
+      assert(0);
+    }
+    const FPGAWord tmp(trackIndex_, 7, true, __LINE__, __FILE__);
+    const FPGAWord& stubr = diskresid_[disk].stubptr()->r();
+    oss << "1|";  // valid bit
+    oss << tmp.str() << "|";
+    oss << diskresid_[disk].fpgastubid().str() << "|";
+    oss << ((stubr.nbits() == 4) ? ("00000000" + stubr.str()) : stubr.str()) << "|";
+    oss << diskresid_[disk].fpgaphiresid().str() << "|";
+    oss << diskresid_[disk].fpgarresid().str();
+  }
+
+  return oss.str();
+}
+
+std::string Tracklet::trackfitstr() const {
+  string stub0;
+  string stub1;
+  string stub2;
+  string stub3;
+  string stub4;
+  string stub5;
+  string stub6;
+  string stub7;
+  string hitmap(24, '0');
 
   if (isBarrel()) {
     if (layer() == 1) {
-      if (layerresid_[2].valid()) {
-        stubid0 = layerresid_[2].fpgastubid().str();
-      }
-      if (layerresid_[3].valid()) {
-        stubid1 = layerresid_[3].fpgastubid().str();
-      }
-      if (layerresid_[4].valid()) {
-        stubid2 = layerresid_[4].fpgastubid().str();
-      }
-      if (layerresid_[5].valid()) {
-        stubid3 = layerresid_[5].fpgastubid().str();
-      }
-      if (diskresid_[0].valid()) {
-        stubid3 = diskresid_[0].fpgastubid().str();
-      }
-      if (diskresid_[1].valid()) {
-        stubid2 = diskresid_[1].fpgastubid().str();
-      }
-      if (diskresid_[2].valid()) {
-        stubid1 = diskresid_[2].fpgastubid().str();
-      }
-      if (diskresid_[3].valid()) {
-        stubid0 = diskresid_[3].fpgastubid().str();
-      }
+      stub0 = layerstubstr(2);
+      stub1 = layerstubstr(3);
+      stub2 = layerstubstr(4);
+      stub3 = layerstubstr(5);
+
+      stub4 = diskstubstr(0);
+      stub5 = diskstubstr(1);
+      stub6 = diskstubstr(2);
+      stub7 = diskstubstr(3);
+    }
+    if (layer() == 2) {
+      stub0 = layerstubstr(0);
+      stub1 = layerstubstr(3);
+      stub2 = layerstubstr(4);
+
+      stub3 = diskstubstr(0);
+      stub4 = diskstubstr(1);
+      stub5 = diskstubstr(2);
+      stub6 = diskstubstr(3);
+
+      stub7 = "0";
     }
 
     if (layer() == 3) {
-      if (layerresid_[0].valid()) {
-        stubid0 = layerresid_[0].fpgastubid().str();
-      }
-      if (layerresid_[1].valid()) {
-        stubid1 = layerresid_[1].fpgastubid().str();
-      }
-      if (layerresid_[4].valid()) {
-        stubid2 = layerresid_[4].fpgastubid().str();
-      }
-      if (layerresid_[5].valid()) {
-        stubid3 = layerresid_[5].fpgastubid().str();
-      }
-      if (diskresid_[0].valid()) {
-        stubid3 = diskresid_[0].fpgastubid().str();
-      }
-      if (diskresid_[1].valid()) {
-        stubid2 = diskresid_[1].fpgastubid().str();
-      }
+      stub0 = layerstubstr(0);
+      stub1 = layerstubstr(1);
+      stub2 = layerstubstr(4);
+      stub3 = layerstubstr(5);
+
+      stub4 = diskstubstr(0);
+      stub5 = diskstubstr(1);
+
+      stub6 = "0";
+      stub7 = "0";
     }
 
     if (layer() == 5) {
-      if (layerresid_[0].valid()) {
-        stubid0 = layerresid_[0].fpgastubid().str();
-      }
-      if (layerresid_[1].valid()) {
-        stubid1 = layerresid_[1].fpgastubid().str();
-      }
-      if (layerresid_[2].valid()) {
-        stubid2 = layerresid_[2].fpgastubid().str();
-      }
-      if (layerresid_[3].valid()) {
-        stubid3 = layerresid_[3].fpgastubid().str();
-      }
+      stub0 = layerstubstr(0);
+      stub1 = layerstubstr(1);
+      stub2 = layerstubstr(2);
+      stub3 = layerstubstr(3);
+
+      stub4 = "0";
+      stub5 = "0";
+      stub6 = "0";
+      stub7 = "0";
     }
   }
 
   if (isDisk()) {
-    if (disk() == 1) {
-      if (layerresid_[0].valid()) {
-        stubid0 = layerresid_[0].fpgastubid().str();
-      }
-      if (diskresid_[2].valid()) {
-        stubid1 = diskresid_[2].fpgastubid().str();
-      }
-      if (diskresid_[3].valid()) {
-        stubid2 = diskresid_[3].fpgastubid().str();
-      }
-      if (diskresid_[4].valid()) {
-        stubid3 = diskresid_[4].fpgastubid().str();
-      } else if (layerresid_[1].valid()) {
-        stubid3 = layerresid_[1].fpgastubid().str();
-      }
+    if (abs(disk()) == 1) {
+      stub0 = layerstubstr(0);
+      stub1 = layerstubstr(1);
+
+      stub2 = diskstubstr(2);
+      stub3 = diskstubstr(3);
+      stub4 = diskstubstr(4);
+
+      stub5 = "0";
+      stub6 = "0";
+      stub7 = "0";
     }
 
-    if (disk() == 3) {
-      if (layerresid_[0].valid()) {
-        stubid0 = layerresid_[0].fpgastubid().str();
-      }
-      if (diskresid_[0].valid()) {
-        stubid1 = diskresid_[0].fpgastubid().str();
-      }
-      if (diskresid_[1].valid()) {
-        stubid2 = diskresid_[1].fpgastubid().str();
-      }
-      if (diskresid_[4].valid()) {
-        stubid3 = diskresid_[4].fpgastubid().str();
-      } else if (layerresid_[1].valid()) {
-        stubid3 = layerresid_[1].fpgastubid().str();
-      }
+    if (abs(disk()) == 3) {
+      stub0 = layerstubstr(0);
+
+      stub1 = diskstubstr(0);
+      stub2 = diskstubstr(1);
+      stub3 = diskstubstr(4);
+
+      stub4 = "0";
+      stub5 = "0";
+      stub6 = "0";
+      stub7 = "0";
     }
   }
 
   if (isOverlap()) {
     if (layer() == 1) {
-      if (diskresid_[1].valid()) {
-        stubid0 = diskresid_[1].fpgastubid().str();
-      }
-      if (diskresid_[2].valid()) {
-        stubid1 = diskresid_[2].fpgastubid().str();
-      }
-      if (diskresid_[3].valid()) {
-        stubid2 = diskresid_[3].fpgastubid().str();
-      }
-      if (diskresid_[4].valid()) {
-        stubid3 = diskresid_[4].fpgastubid().str();
-      }
+      stub0 = diskstubstr(1);
+      stub1 = diskstubstr(2);
+      stub2 = diskstubstr(3);
+      stub3 = diskstubstr(4);
+
+      stub4 = "0";
+      stub5 = "0";
+      stub6 = "0";
+      stub7 = "0";
+    }
+
+    if (layer() == 2) {
+      stub0 = layerstubstr(0);
+
+      stub1 = diskstubstr(1);
+      stub2 = diskstubstr(2);
+      stub3 = diskstubstr(3);
+
+      stub4 = "0";
+      stub5 = "0";
+      stub6 = "0";
+      stub7 = "0";
     }
   }
 
-  std::string oss;
-  // real Q print out for fitted tracks
-  if (settings_.writeoutReal()) {
-    oss = std::to_string((fpgafitpars_.rinv().value()) * settings_.krinvpars()) + " " +
-          std::to_string((fpgafitpars_.phi0().value()) * settings_.kphi0pars()) + " " +
-          std::to_string((fpgafitpars_.d0().value()) * settings_.kd0pars()) + " " +
-          std::to_string((fpgafitpars_.t().value()) * settings_.ktpars()) + " " +
-          std::to_string((fpgafitpars_.z0().value()) * settings_.kz()) + " " + innerFPGAStub_->phiregionaddressstr() +
-          " ";
-  }
+  hitmap[2] = stub0[0];
+  hitmap[5] = stub1[0];
+  hitmap[8] = stub2[0];
+  hitmap[11] = stub3[0];
+  hitmap[14] = stub4[0];
+  hitmap[17] = stub5[0];
+  hitmap[20] = stub6[0];
+  hitmap[23] = stub7[0];
+
+  std::string oss("");
   //Binary print out
   if (!settings_.writeoutReal()) {
-    oss = fpgafitpars_.rinv().str() + "|" + fpgafitpars_.phi0().str() + "|" + fpgafitpars_.d0().str() + "|" +
-          fpgafitpars_.t().str() + "|" + fpgafitpars_.z0().str() + "|" + innerFPGAStub_->phiregionaddressstr() + "|";
+    const FPGAWord tmp(getISeed(), 3, true, __LINE__, __FILE__);
+
+    oss += "1|";  // valid bit
+    oss += tmp.str() + "|";
+    oss += fpgapars_.rinv().str() + "|";
+    oss += fpgapars_.phi0().str() + "|";
+    oss += fpgapars_.z0().str() + "|";
+    oss += fpgapars_.t().str() + "|";
+    oss += hitmap + "|";
+    oss += stub0 + "|";
+    oss += stub1 + "|";
+    oss += stub2 + "|";
+    oss += stub3;
+    if (stub4 != "0")
+      oss += "|" + stub4;
+    if (stub5 != "0")
+      oss += "|" + stub5;
+    if (stub6 != "0")
+      oss += "|" + stub6;
+    if (stub7 != "0")
+      oss += "|" + stub7;
   }
-  if (middleFPGAStub_) {
-    oss += middleFPGAStub_->phiregionaddressstr() + " ";
-  }
-  oss += outerFPGAStub_->phiregionaddressstr() + " " + stubid0 + "|" + stubid1 + "|" + stubid2 + "|" + stubid3;
 
   return oss;
 }
@@ -846,17 +904,24 @@ void Tracklet::setTrackletIndex(unsigned int index) {
   assert(index <= settings_.ntrackletmax());
 }
 
-int Tracklet::getISeed() const {
-  int iSeed = TCIndex_ >> 4;
+const int Tracklet::getISeed() const {
+  const int iSeed = TCIndex_ >> 4;
   assert(iSeed >= 0 && iSeed <= (int)N_SEED);
   return iSeed;
 }
 
-int Tracklet::getITC() const {
-  int iSeed = getISeed(), iTC = TCIndex_ - (iSeed << 4);
+const int Tracklet::getITC() const {
+  const int iSeed = getISeed(), iTC = TCIndex_ - (iSeed << 4);
   assert(iTC >= 0 && iTC <= 14);
   return iTC;
 }
+
+void Tracklet::setTrackIndex(int index) {
+  trackIndex_ = index;
+  assert(index < 128);
+}
+
+const int Tracklet::trackIndex() const { return trackIndex_; }
 
 unsigned int Tracklet::calcSeedIndex() const {
   int seedindex = -1;
