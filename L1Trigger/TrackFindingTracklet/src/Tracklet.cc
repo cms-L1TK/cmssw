@@ -276,11 +276,7 @@ std::string Tracklet::trackletprojstr(int layer) const {
   }
   tmp.set(trackletIndex_, settings_.nbitstrackletindex(), true, __LINE__, __FILE__);
   FPGAWord tcid;
-  if (settings_.extended()) {
-    tcid.set(TCIndex_, 8, true, __LINE__, __FILE__);
-  } else {
-    tcid.set(TCIndex_, 7, true, __LINE__, __FILE__);
-  }
+  tcid.set(TCIndex_, settings_.nbitstcindex(), true, __LINE__, __FILE__);
 
   std::string oss = tcid.str() + "|" + tmp.str() + "|" + layerproj_[layer - 1].fpgaphiproj().str() + "|" +
                     layerproj_[layer - 1].fpgazproj().str() + "|" + layerproj_[layer - 1].fpgaphiprojder().str() + "|" +
@@ -296,11 +292,7 @@ std::string Tracklet::trackletprojstrD(int disk) const {
   }
   tmp.set(trackletIndex_, settings_.nbitstrackletindex(), true, __LINE__, __FILE__);
   FPGAWord tcid;
-  if (settings_.extended()) {
-    tcid.set(TCIndex_, 8, true, __LINE__, __FILE__);
-  } else {
-    tcid.set(TCIndex_, 7, true, __LINE__, __FILE__);
-  }
+  tcid.set(TCIndex_, settings_.nbitstcindex(), true, __LINE__, __FILE__);
   std::string oss = tcid.str() + "|" + tmp.str() + "|" + diskproj_[abs(disk) - 1].fpgaphiproj().str() + "|" +
                     diskproj_[abs(disk) - 1].fpgarproj().str() + "|" + diskproj_[abs(disk) - 1].fpgaphiprojder().str() +
                     "|" + diskproj_[abs(disk) - 1].fpgarprojder().str();
@@ -381,11 +373,7 @@ std::string Tracklet::fullmatchstr(int layer) {
   }
   tmp.set(trackletIndex_, settings_.nbitstrackletindex(), true, __LINE__, __FILE__);
   FPGAWord tcid;
-  if (settings_.extended()) {
-    tcid.set(TCIndex_, 8, true, __LINE__, __FILE__);
-  } else {
-    tcid.set(TCIndex_, 7, true, __LINE__, __FILE__);
-  }
+  tcid.set(TCIndex_, settings_.nbitstcindex(), true, __LINE__, __FILE__);
   std::string oss = tcid.str() + "|" + tmp.str() + "|" + layerresid_[layer - 1].fpgastubid().str() + "|" +
                     layerresid_[layer - 1].stubptr()->r().str() + "|" + layerresid_[layer - 1].fpgaphiresid().str() +
                     "|" + layerresid_[layer - 1].fpgazresid().str();
@@ -401,14 +389,11 @@ std::string Tracklet::fullmatchdiskstr(int disk) {
   }
   tmp.set(trackletIndex_, settings_.nbitstrackletindex(), true, __LINE__, __FILE__);
   FPGAWord tcid;
-  if (settings_.extended()) {
-    tcid.set(TCIndex_, 8, true, __LINE__, __FILE__);
-  } else {
-    tcid.set(TCIndex_, 7, true, __LINE__, __FILE__);
-  }
+  tcid.set(TCIndex_, settings_.nbitstcindex(), true, __LINE__, __FILE__);
   const FPGAWord& stubr = diskresid_[disk - 1].stubptr()->r();
+  const bool isPS = diskresid_[disk - 1].stubptr()->isPSmodule();
   std::string oss = tcid.str() + "|" + tmp.str() + "|" + diskresid_[disk - 1].fpgastubid().str() + "|" +
-                    ((stubr.nbits() == 4) ? ("00000000" + stubr.str()) : stubr.str()) + "|" +
+                    (isPS ? stubr.str() : ("00000000" + stubr.str())) + "|" +
                     diskresid_[disk - 1].fpgaphiresid().str() + "|" + diskresid_[disk - 1].fpgarresid().str();
   return oss;
 }
@@ -654,7 +639,7 @@ const std::string Tracklet::layerstubstr(const unsigned layer) const {
   if (!layerresid_[layer].valid())
     oss << "0|0000000|0000000000|0000000|000000000000|000000000";
   else {
-    if (trackIndex_ < 0 || trackIndex_ > 127) {
+    if (trackIndex_ < 0 || trackIndex_ > (int)settings_.ntrackletmax()) {
       cout << "trackIndex_ = " << trackIndex_ << endl;
       assert(0);
     }
@@ -683,10 +668,11 @@ const std::string Tracklet::diskstubstr(const unsigned disk) const {
     }
     const FPGAWord tmp(trackIndex_, 7, true, __LINE__, __FILE__);
     const FPGAWord& stubr = diskresid_[disk].stubptr()->r();
+    const bool isPS = diskresid_[disk].stubptr()->isPSmodule();
     oss << "1|";  // valid bit
     oss << tmp.str() << "|";
     oss << diskresid_[disk].fpgastubid().str() << "|";
-    oss << ((stubr.nbits() == 4) ? ("00000000" + stubr.str()) : stubr.str()) << "|";
+    oss << (isPS ? stubr.str() : ("00000000" + stubr.str())) << "|";
     oss << diskresid_[disk].fpgaphiresid().str() << "|";
     oss << diskresid_[disk].fpgarresid().str();
   }
@@ -905,20 +891,20 @@ void Tracklet::setTrackletIndex(unsigned int index) {
 }
 
 const int Tracklet::getISeed() const {
-  const int iSeed = TCIndex_ >> 4;
+  const int iSeed = TCIndex_ >> settings_.nbitsitc();
   assert(iSeed >= 0 && iSeed <= (int)N_SEED);
   return iSeed;
 }
 
 const int Tracklet::getITC() const {
-  const int iSeed = getISeed(), iTC = TCIndex_ - (iSeed << 4);
+  const int iSeed = getISeed(), iTC = TCIndex_ - (iSeed << settings_.nbitsitc());
   assert(iTC >= 0 && iTC <= 14);
   return iTC;
 }
 
 void Tracklet::setTrackIndex(int index) {
   trackIndex_ = index;
-  assert(index < 128);
+  assert(index <= (int)settings_.ntrackletmax());
 }
 
 const int Tracklet::trackIndex() const { return trackIndex_; }
