@@ -681,135 +681,105 @@ const std::string Tracklet::diskstubstr(const unsigned disk) const {
 }
 
 std::string Tracklet::trackfitstr() const {
-  string stub0;
-  string stub1;
-  string stub2;
-  string stub3;
-  string stub4;
-  string stub5;
-  string stub6;
-  string stub7;
-  string hitmap(24, '0');
+  const unsigned maxNHits = 8;
+  const unsigned nBitsPerHit = 3;
+  vector<string> stub(maxNHits, "0");
+  string hitmap(maxNHits * nBitsPerHit, '0');
 
-  if (isBarrel()) {
-    if (layer() == 1) {
-      stub0 = layerstubstr(2);
-      stub1 = layerstubstr(3);
-      stub2 = layerstubstr(4);
-      stub3 = layerstubstr(5);
+  // Assign stub strings for each of the possible projections for each seed.
+  // The specific layers/disks for a given seed are determined by the wiring.
+  switch (seedIndex()) {
+    case 0:                       // L1L2
+      stub[0] = layerstubstr(2);  // L3
+      stub[1] = layerstubstr(3);  // L4
+      stub[2] = layerstubstr(4);  // L5
+      stub[3] = layerstubstr(5);  // L6
 
-      stub4 = diskstubstr(0);
-      stub5 = diskstubstr(1);
-      stub6 = diskstubstr(2);
-      stub7 = diskstubstr(3);
-    }
-    if (layer() == 2) {
-      stub0 = layerstubstr(0);
-      stub1 = layerstubstr(3);
-      stub2 = layerstubstr(4);
+      stub[4] = diskstubstr(0);  // D1
+      stub[5] = diskstubstr(1);  // D2
+      stub[6] = diskstubstr(2);  // D3
+      stub[7] = diskstubstr(3);  // D4
 
-      stub3 = diskstubstr(0);
-      stub4 = diskstubstr(1);
-      stub5 = diskstubstr(2);
-      stub6 = diskstubstr(3);
+      break;
 
-      stub7 = "0";
-    }
+    case 1:                       // L2L3
+      stub[0] = layerstubstr(0);  // L1
+      stub[1] = layerstubstr(3);  // L4
+      stub[2] = layerstubstr(4);  // L5
 
-    if (layer() == 3) {
-      stub0 = layerstubstr(0);
-      stub1 = layerstubstr(1);
-      stub2 = layerstubstr(4);
-      stub3 = layerstubstr(5);
+      stub[3] = diskstubstr(0);  // D1
+      stub[4] = diskstubstr(1);  // D2
+      stub[5] = diskstubstr(2);  // D3
+      stub[6] = diskstubstr(3);  // D4
 
-      stub4 = diskstubstr(0);
-      stub5 = diskstubstr(1);
+      break;
 
-      stub6 = "0";
-      stub7 = "0";
-    }
+    case 2:                       // L3L4
+      stub[0] = layerstubstr(0);  // L1
+      stub[1] = layerstubstr(1);  // L2
+      stub[2] = layerstubstr(4);  // L5
+      stub[3] = layerstubstr(5);  // L6
 
-    if (layer() == 5) {
-      stub0 = layerstubstr(0);
-      stub1 = layerstubstr(1);
-      stub2 = layerstubstr(2);
-      stub3 = layerstubstr(3);
+      stub[4] = diskstubstr(0);  // D1
+      stub[5] = diskstubstr(1);  // D2
 
-      stub4 = "0";
-      stub5 = "0";
-      stub6 = "0";
-      stub7 = "0";
-    }
+      break;
+
+    case 3:                       // L5L6
+      stub[0] = layerstubstr(0);  // L1
+      stub[1] = layerstubstr(1);  // L2
+      stub[2] = layerstubstr(2);  // L3
+      stub[3] = layerstubstr(3);  // L4
+
+      break;
+
+    case 4:                       // D1D2
+      stub[0] = layerstubstr(0);  // L1
+      stub[1] = layerstubstr(1);  // L2
+
+      stub[2] = diskstubstr(2);  // D3
+      stub[3] = diskstubstr(3);  // D4
+      stub[4] = diskstubstr(4);  // D5
+
+      break;
+
+    case 5:                       // D3D4
+      stub[0] = layerstubstr(0);  // L1
+
+      stub[1] = diskstubstr(0);  // D1
+      stub[2] = diskstubstr(1);  // D2
+      stub[3] = diskstubstr(4);  // D5
+
+      break;
+
+    case 6:                      // L1D1
+      stub[0] = diskstubstr(1);  // D2
+      stub[1] = diskstubstr(2);  // D3
+      stub[2] = diskstubstr(3);  // D4
+      stub[3] = diskstubstr(4);  // D5
+
+      break;
+
+    case 7:                       // L2D1
+      stub[0] = layerstubstr(0);  // L1
+
+      stub[1] = diskstubstr(1);  // D2
+      stub[2] = diskstubstr(2);  // D3
+      stub[3] = diskstubstr(3);  // D4
+
+      break;
   }
 
-  if (isDisk()) {
-    if (abs(disk()) == 1) {
-      stub0 = layerstubstr(0);
-      stub1 = layerstubstr(1);
-
-      stub2 = diskstubstr(2);
-      stub3 = diskstubstr(3);
-      stub4 = diskstubstr(4);
-
-      stub5 = "0";
-      stub6 = "0";
-      stub7 = "0";
-    }
-
-    if (abs(disk()) == 3) {
-      stub0 = layerstubstr(0);
-
-      stub1 = diskstubstr(0);
-      stub2 = diskstubstr(1);
-      stub3 = diskstubstr(4);
-
-      stub4 = "0";
-      stub5 = "0";
-      stub6 = "0";
-      stub7 = "0";
-    }
-  }
-
-  if (isOverlap()) {
-    if (layer() == 1) {
-      stub0 = diskstubstr(1);
-      stub1 = diskstubstr(2);
-      stub2 = diskstubstr(3);
-      stub3 = diskstubstr(4);
-
-      stub4 = "0";
-      stub5 = "0";
-      stub6 = "0";
-      stub7 = "0";
-    }
-
-    if (layer() == 2) {
-      stub0 = layerstubstr(0);
-
-      stub1 = diskstubstr(1);
-      stub2 = diskstubstr(2);
-      stub3 = diskstubstr(3);
-
-      stub4 = "0";
-      stub5 = "0";
-      stub6 = "0";
-      stub7 = "0";
-    }
-  }
-
-  hitmap[2] = stub0[0];
-  hitmap[5] = stub1[0];
-  hitmap[8] = stub2[0];
-  hitmap[11] = stub3[0];
-  hitmap[14] = stub4[0];
-  hitmap[17] = stub5[0];
-  hitmap[20] = stub6[0];
-  hitmap[23] = stub7[0];
+  // Only one hit per layer/disk is allowed currently, so the hit map for a
+  // given layer/disk is just equal to the valid bit of the corresponding stub
+  // string, which is the first character.
+  for (unsigned i = 0; i < maxNHits; i++)
+    hitmap[i * nBitsPerHit + 2] = stub[i][0];
 
   std::string oss("");
   //Binary print out
   if (!settings_.writeoutReal()) {
-    const FPGAWord tmp(getISeed(), 3, true, __LINE__, __FILE__);
+    const FPGAWord tmp(getISeed(), settings_.nbitsseed(), true, __LINE__, __FILE__);
 
     oss += "1|";  // valid bit
     oss += tmp.str() + "|";
@@ -817,19 +787,12 @@ std::string Tracklet::trackfitstr() const {
     oss += fpgapars_.phi0().str() + "|";
     oss += fpgapars_.z0().str() + "|";
     oss += fpgapars_.t().str() + "|";
-    oss += hitmap + "|";
-    oss += stub0 + "|";
-    oss += stub1 + "|";
-    oss += stub2 + "|";
-    oss += stub3;
-    if (stub4 != "0")
-      oss += "|" + stub4;
-    if (stub5 != "0")
-      oss += "|" + stub5;
-    if (stub6 != "0")
-      oss += "|" + stub6;
-    if (stub7 != "0")
-      oss += "|" + stub7;
+    oss += hitmap;
+    for (unsigned i = 0; i < maxNHits; i++)
+      // If a valid stub string was never assigned, then that stub is not
+      // included in the output.
+      if (stub[i] != "0")
+        oss += "|" + stub[i];
   }
 
   return oss;
