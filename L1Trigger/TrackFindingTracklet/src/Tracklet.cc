@@ -633,7 +633,7 @@ void Tracklet::setFitPars(double rinvfit,
 }
 
 const std::string Tracklet::layerstubstr(const unsigned layer) const {
-  assert(layer <= 5);
+  assert(layer < N_LAYER);
 
   std::stringstream oss("");
   if (!layerresid_[layer].valid())
@@ -643,7 +643,7 @@ const std::string Tracklet::layerstubstr(const unsigned layer) const {
       cout << "trackIndex_ = " << trackIndex_ << endl;
       assert(0);
     }
-    const FPGAWord tmp(trackIndex_, 7, true, __LINE__, __FILE__);
+    const FPGAWord tmp(trackIndex_, settings_.nbitstrackletindex(), true, __LINE__, __FILE__);
     oss << "1|";  // valid bit
     oss << tmp.str() << "|";
     oss << layerresid_[layer].fpgastubid().str() << "|";
@@ -656,17 +656,17 @@ const std::string Tracklet::layerstubstr(const unsigned layer) const {
 }
 
 const std::string Tracklet::diskstubstr(const unsigned disk) const {
-  assert(disk <= 4);
+  assert(disk < N_DISK);
 
   std::stringstream oss("");
   if (!diskresid_[disk].valid())
     oss << "0|0000000|0000000000|000000000000|000000000000|0000000";
   else {
-    if (trackIndex_ < 0 || trackIndex_ > 127) {
+    if (trackIndex_ < 0 || trackIndex_ > (int)settings_.ntrackletmax()) {
       cout << "trackIndex_ = " << trackIndex_ << endl;
       assert(0);
     }
-    const FPGAWord tmp(trackIndex_, 7, true, __LINE__, __FILE__);
+    const FPGAWord tmp(trackIndex_, settings_.nbitstrackletindex(), true, __LINE__, __FILE__);
     const FPGAWord& stubr = diskresid_[disk].stubptr()->r();
     const bool isPS = diskresid_[disk].stubptr()->isPSmodule();
     oss << "1|";  // valid bit
