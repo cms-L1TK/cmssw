@@ -161,7 +161,12 @@ namespace tmtt {
                            nHelixParam(),
                            iPhiSec(),
                            iEtaReg(),
-                           accepted());
+                           accepted(),
+			   done_bcon(),
+			   qOverPt_bcon(),
+			   d0_bcon(),
+			   phi0_bcon(),
+			   chi2rphi_bcon());
       return trk_;
     }
 
@@ -247,6 +252,7 @@ namespace tmtt {
       return 1. / (small + this->invPt_bcon());
     }
     float phi0_bcon() const { return phi0_bcon_; }
+    float d0_bcon() const { return d0_bcon_; }
 
     // Phi and z coordinates at which track crosses "chosenR" values used by r-phi HT and rapidity sectors respectively.
     // (Optionally with beam-spot constraint applied).
