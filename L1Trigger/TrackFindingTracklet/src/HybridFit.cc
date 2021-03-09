@@ -195,26 +195,22 @@ void HybridFit::Fit(Tracklet* tracklet, std::vector<const Stub*>& trackstublist)
                                   << ", phi0 = " << trk.phi0() << ", eta = " << trk.eta() << ", z0 = " << trk.z0()
                                   << ", chi2 = " << trk.chi2() << ", accepted = " << trk.accepted();
 
-    double phi0fit,rinvfit = -999;
-    double d0,chi2rphi = -999;
+    double d0,chi2rphi,phi0,qoverpt = -999;
     if (trk.done_bcon()) {
-
       d0 = trk.d0_bcon();
       chi2rphi = trk.chi2rphi_bcon();
-
-      // Tracklet wants phi0 with respect to lower edge of sector, not global phi0.
-      phi0fit = reco::reduceRange(trk.phi0_bcon() - iSector_ * 2 * M_PI / N_SECTOR + 0.5 * settings_.dphisectorHG());
-      rinvfit = 0.01 * settings_.c() * settings_.bfield() * trk.qOverPt_bcon();
-
+      phi0 = trk.phi0_bcon();
+      qoverpt = trk.qOverPt_bcon();
     } else if (!trk.done_bcon()) {
-
       d0 = trk.d0();
       chi2rphi = trk.chi2rphi();
-
-      // Tracklet wants phi0 with respect to lower edge of sector, not global phi0.
-      phi0fit = reco::reduceRange(trk.phi0() - iSector_ * 2 * M_PI / N_SECTOR + 0.5 * settings_.dphisectorHG());
-      rinvfit = 0.01 * settings_.c() * settings_.bfield() * trk.qOverPt();
+      phi0 = trk.phi0();
+      qoverpt = trk.qOverPt();
     }
+
+    // Tracklet wants phi0 with respect to lower edge of sector, not global phi0. 
+    double phi0fit = reco::reduceRange(phi0 - iSector_ * 2 * M_PI / N_SECTOR + 0.5 * settings_.dphisectorHG());
+    double rinvfit = 0.01 * settings_.c() * settings_.bfield() * qoverpt;
 
     int irinvfit = rinvfit / settings_.krinvpars();
     int iphi0fit = phi0fit / settings_.kphi0pars();

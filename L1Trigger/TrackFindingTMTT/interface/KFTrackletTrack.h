@@ -75,14 +75,6 @@ namespace tmtt {
           numIterations_(0),
           accepted_(accepted) {}
 
-    //--- Optionally std::set track helix params & chi2 if beam-spot constraint is used (for 5-parameter fit).
-    void setBeamConstr(float qOverPt_bcon, float phi0_bcon, float chi2rphi_bcon) {
-      done_bcon_ = true;
-      qOverPt_bcon_ = qOverPt_bcon;
-      d0_bcon_ = 0.0, phi0_bcon_ = phi0_bcon;
-      chi2rphi_bcon_ = chi2rphi_bcon;
-    }
-
     //--- Set/get additional info about fitted track that is specific to individual track fit algorithms (KF, LR, chi2)
     //--- and is used for debugging/histogramming purposes.
 
