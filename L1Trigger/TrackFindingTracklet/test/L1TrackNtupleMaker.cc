@@ -172,6 +172,7 @@ private:
   std::vector<float>* m_trk_matchtp_phi;
   std::vector<float>* m_trk_matchtp_z0;
   std::vector<float>* m_trk_matchtp_dxy;
+  std::vector<float>* m_trk_matchtp_d0;
   std::vector<int>* m_trk_injet;          //is the track within dR<0.4 of a genjet with pt > 30 GeV?
   std::vector<int>* m_trk_injet_highpt;   //is the track within dR<0.4 of a genjet with pt > 100 GeV?
   std::vector<int>* m_trk_injet_vhighpt;  //is the track within dR<0.4 of a genjet with pt > 200 GeV?
@@ -340,6 +341,7 @@ void L1TrackNtupleMaker::beginJob() {
   m_trk_matchtp_phi = new std::vector<float>;
   m_trk_matchtp_z0 = new std::vector<float>;
   m_trk_matchtp_dxy = new std::vector<float>;
+  m_trk_matchtp_d0 = new std::vector<float>;
   m_trk_injet = new std::vector<int>;
   m_trk_injet_highpt = new std::vector<int>;
   m_trk_injet_vhighpt = new std::vector<int>;
@@ -437,6 +439,7 @@ void L1TrackNtupleMaker::beginJob() {
     eventTree->Branch("trk_matchtp_phi", &m_trk_matchtp_phi);
     eventTree->Branch("trk_matchtp_z0", &m_trk_matchtp_z0);
     eventTree->Branch("trk_matchtp_dxy", &m_trk_matchtp_dxy);
+    eventTree->Branch("trk_matchtp_d0", &m_trk_matchtp_d0);
     if (TrackingInJets) {
       eventTree->Branch("trk_injet", &m_trk_injet);
       eventTree->Branch("trk_injet_highpt", &m_trk_injet_highpt);
@@ -563,6 +566,7 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
     m_trk_matchtp_phi->clear();
     m_trk_matchtp_z0->clear();
     m_trk_matchtp_dxy->clear();
+    m_trk_matchtp_d0->clear();
     m_trk_injet->clear();
     m_trk_injet_highpt->clear();
     m_trk_injet_vhighpt->clear();
@@ -907,14 +911,14 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
           if (detIdStub.subdetId() == StripSubdetector::TOB) {
             layer = static_cast<int>(tTopo->layer(detIdStub));
             if (DebugMode)
-              edm::LogVerbatim("Tracklet")
-                  << "   stub in layer " << layer << " at position x y z = " << x << " " << y << " " << z;
+	      edm::LogVerbatim("Tracklet")
+		<< "   stub in layer " << layer << " at position x y z = " << x << " " << y << " " << z;
             tmp_trk_lhits += pow(10, layer - 1);
           } else if (detIdStub.subdetId() == StripSubdetector::TID) {
             layer = static_cast<int>(tTopo->layer(detIdStub));
             if (DebugMode)
-              edm::LogVerbatim("Tracklet")
-                  << "   stub in disk " << layer << " at position x y z = " << x << " " << y << " " << z;
+	      edm::LogVerbatim("Tracklet")
+		<< "   stub in disk " << layer << " at position x y z = " << x << " " << y << " " << z;
             tmp_trk_dhits += pow(10, layer - 1);
           }
 
@@ -981,12 +985,13 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
 
       int myFake = 0;
 
-      int myTP_pdgid = -999;
-      float myTP_pt = -999;
-      float myTP_eta = -999;
-      float myTP_phi = -999;
-      float myTP_z0 = -999;
-      float myTP_dxy = -999;
+      int tmp_matchtp_pdgid = -999;
+      float tmp_matchtp_pt = -999;
+      float tmp_matchtp_eta = -999;
+      float tmp_matchtp_phi = -999;
+      float tmp_matchtp_z0 = -999;
+      float tmp_matchtp_dxy = -999;
+      float tmp_matchtp_d0 = -999;
 
       if (my_tp.isNull())
         myFake = 0;
@@ -998,32 +1003,64 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
         else
           myFake = 1;
 
-        myTP_pdgid = my_tp->pdgId();
-        myTP_pt = my_tp->p4().pt();
-        myTP_eta = my_tp->p4().eta();
-        myTP_phi = my_tp->p4().phi();
-        myTP_z0 = my_tp->vertex().z();
+        tmp_matchtp_pdgid = my_tp->pdgId();
+        tmp_matchtp_pt = my_tp->pt();
+        tmp_matchtp_eta = my_tp->eta();
+        tmp_matchtp_phi = my_tp->phi();
 
-        float myTP_x0 = my_tp->vertex().x();
-        float myTP_y0 = my_tp->vertex().y();
-        myTP_dxy = sqrt(myTP_x0 * myTP_x0 + myTP_y0 * myTP_y0);
+	float tmp_matchtp_vz = my_tp->vz();
+	float tmp_matchtp_vx = my_tp->vx();
+	float tmp_matchtp_vy = my_tp->vy();
+        tmp_matchtp_dxy = sqrt(tmp_matchtp_vx * tmp_matchtp_vx + tmp_matchtp_vy * tmp_matchtp_vy);
+
+	// ----------------------------------------------------------------------------------------------
+	// get d0/z0 propagated back to the IP
+
+	float tmp_matchtp_t = tan(2.0 * atan(1.0) - 2.0 * atan(exp(-tmp_matchtp_eta)));
+
+	float delx = -tmp_matchtp_vx;
+	float dely = -tmp_matchtp_vy;
+
+	float A = 0.01 * 0.5696;
+	float Kmagnitude = A / tmp_matchtp_pt;
+
+	float tmp_matchtp_charge = my_tp->charge();
+	float K = Kmagnitude * tmp_matchtp_charge;
+	float d = 0;
+
+	float tmp_matchtp_x0p = delx - (d + 1. / (2. * K) * sin(tmp_matchtp_phi));
+	float tmp_matchtp_y0p = dely + (d + 1. / (2. * K) * cos(tmp_matchtp_phi));
+	float tmp_matchtp_rp = sqrt(tmp_matchtp_x0p * tmp_matchtp_x0p + tmp_matchtp_y0p * tmp_matchtp_y0p);
+	tmp_matchtp_d0 = tmp_matchtp_charge * tmp_matchtp_rp - (1. / (2. * K));
+
+	tmp_matchtp_d0 = tmp_matchtp_d0 * (-1);  //fix d0 sign
+
+	static double pi = 4.0 * atan(1.0);
+	float delphi = tmp_matchtp_phi - atan2(-K * tmp_matchtp_x0p, K * tmp_matchtp_y0p);
+	if (delphi < -pi)
+	  delphi += 2.0 * pi;
+	if (delphi > pi)
+	  delphi -= 2.0 * pi;
+	tmp_matchtp_z0 = tmp_matchtp_vz + tmp_matchtp_t * delphi / (2.0 * K);
+	// ----------------------------------------------------------------------------------------------
 
         if (DebugMode) {
           edm::LogVerbatim("Tracklet") << "TP matched to track has pt = " << my_tp->p4().pt()
                                        << " eta = " << my_tp->momentum().eta() << " phi = " << my_tp->momentum().phi()
                                        << " z0 = " << my_tp->vertex().z() << " pdgid = " << my_tp->pdgId()
-                                       << " dxy = " << myTP_dxy;
+                                       << " dxy = " << tmp_matchtp_dxy;
         }
       }
 
       m_trk_fake->push_back(myFake);
 
-      m_trk_matchtp_pdgid->push_back(myTP_pdgid);
-      m_trk_matchtp_pt->push_back(myTP_pt);
-      m_trk_matchtp_eta->push_back(myTP_eta);
-      m_trk_matchtp_phi->push_back(myTP_phi);
-      m_trk_matchtp_z0->push_back(myTP_z0);
-      m_trk_matchtp_dxy->push_back(myTP_dxy);
+      m_trk_matchtp_pdgid->push_back(tmp_matchtp_pdgid);
+      m_trk_matchtp_pt->push_back(tmp_matchtp_pt);
+      m_trk_matchtp_eta->push_back(tmp_matchtp_eta);
+      m_trk_matchtp_phi->push_back(tmp_matchtp_phi);
+      m_trk_matchtp_z0->push_back(tmp_matchtp_z0);
+      m_trk_matchtp_dxy->push_back(tmp_matchtp_dxy);
+      m_trk_matchtp_d0->push_back(tmp_matchtp_d0);
 
       // ----------------------------------------------------------------------------------------------
       // for tracking in jets
