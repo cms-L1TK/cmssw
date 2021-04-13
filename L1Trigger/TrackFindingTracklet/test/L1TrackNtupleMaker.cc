@@ -56,6 +56,7 @@
 ////////////////
 // PHYSICS TOOLS
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
+#include "CLHEP/Units/PhysicalConstants.h"
 
 ///////////////
 // ROOT HEADERS
@@ -675,6 +676,9 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
   edm::ESHandle<TrackerGeometry> tGeomHandle;
   iSetup.get<TrackerDigiGeometryRecord>().get(tGeomHandle);
 
+  edm::ESHandle<MagneticField> magneticFieldHandle;
+  iSetup.get<IdealMagneticFieldRecord>().get(magneticFieldHandle);
+
   const TrackerTopology* const tTopo = tTopoHandle.product();
   const TrackerGeometry* const theTrackerGeom = tGeomHandle.product();
 
@@ -1021,26 +1025,24 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
 	float delx = -tmp_matchtp_vx;
 	float dely = -tmp_matchtp_vy;
 
-	float A = 0.01 * 0.5696;
-	float Kmagnitude = A / tmp_matchtp_pt;
+	float b_field = magneticFieldHandle.product()->inTesla(GlobalPoint(0, 0, 0)).z();
+	float c_converted = CLHEP::c_light / 1.0E5;
+	float r2_inv = my_tp->charge() * c_converted * b_field / tmp_matchtp_pt / 2.0;
 
-	float tmp_matchtp_charge = my_tp->charge();
-	float K = Kmagnitude * tmp_matchtp_charge;
-
-	float tmp_matchtp_x0p = delx - (1. / (2. * K) * sin(tmp_matchtp_phi));
-	float tmp_matchtp_y0p = dely + (1. / (2. * K) * cos(tmp_matchtp_phi));
+	float tmp_matchtp_x0p = delx - (1. / (2. * r2_inv) * sin(tmp_matchtp_phi));
+	float tmp_matchtp_y0p = dely + (1. / (2. * r2_inv) * cos(tmp_matchtp_phi));
 	float tmp_matchtp_rp = sqrt(tmp_matchtp_x0p * tmp_matchtp_x0p + tmp_matchtp_y0p * tmp_matchtp_y0p);
-	tmp_matchtp_d0 = tmp_matchtp_charge * tmp_matchtp_rp - (1. / (2. * K));
+	tmp_matchtp_d0 = my_tp->charge() * tmp_matchtp_rp - (1. / (2. * r2_inv));
 
 	tmp_matchtp_d0 = tmp_matchtp_d0 * (-1);  //fix d0 sign
 
 	static double pi = 4.0 * atan(1.0);
-	float delphi = tmp_matchtp_phi - atan2(-K * tmp_matchtp_x0p, K * tmp_matchtp_y0p);
+	float delphi = tmp_matchtp_phi - atan2(-r2_inv * tmp_matchtp_x0p, r2_inv * tmp_matchtp_y0p);
 	if (delphi < -pi)
 	  delphi += 2.0 * pi;
 	if (delphi > pi)
 	  delphi -= 2.0 * pi;
-	tmp_matchtp_z0 = tmp_matchtp_vz + tmp_matchtp_t * delphi / (2.0 * K);
+	tmp_matchtp_z0 = tmp_matchtp_vz + tmp_matchtp_t * delphi / (2.0 * r2_inv);
 	// ----------------------------------------------------------------------------------------------
 
         if (DebugMode) {
@@ -1144,30 +1146,29 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
     // get d0/z0 propagated back to the IP
 
     float tmp_tp_t = tan(2.0 * atan(1.0) - 2.0 * atan(exp(-tmp_tp_eta)));
+    float tmp_tp_charge = iterTP->charge();
 
     float delx = -tmp_tp_vx;
     float dely = -tmp_tp_vy;
 
-    float A = 0.01 * 0.5696;
-    float Kmagnitude = A / tmp_tp_pt;
+    float b_field = magneticFieldHandle.product()->inTesla(GlobalPoint(0, 0, 0)).z();
+    float c_converted = CLHEP::c_light / 1.0E5;
+    float r2_inv = tmp_tp_charge * c_converted * b_field / tmp_tp_pt / 2.0;
 
-    float tmp_tp_charge = tp_ptr->charge();
-    float K = Kmagnitude * tmp_tp_charge;
-
-    float tmp_tp_x0p = delx - (1. / (2. * K) * sin(tmp_tp_phi));
-    float tmp_tp_y0p = dely + (1. / (2. * K) * cos(tmp_tp_phi));
+    float tmp_tp_x0p = delx - (1. / (2. * r2_inv) * sin(tmp_tp_phi));
+    float tmp_tp_y0p = dely + (1. / (2. * r2_inv) * cos(tmp_tp_phi));
     float tmp_tp_rp = sqrt(tmp_tp_x0p * tmp_tp_x0p + tmp_tp_y0p * tmp_tp_y0p);
-    float tmp_tp_d0 = tmp_tp_charge * tmp_tp_rp - (1. / (2. * K));
+    float tmp_tp_d0 = tmp_tp_charge * tmp_tp_rp - (1. / (2. * r2_inv));
 
     tmp_tp_d0 = tmp_tp_d0 * (-1);  //fix d0 sign
 
     static double pi = 4.0 * atan(1.0);
-    float delphi = tmp_tp_phi - atan2(-K * tmp_tp_x0p, K * tmp_tp_y0p);
+    float delphi = tmp_tp_phi - atan2(-r2_inv * tmp_tp_x0p, r2_inv * tmp_tp_y0p);
     if (delphi < -pi)
       delphi += 2.0 * pi;
     if (delphi > pi)
       delphi -= 2.0 * pi;
-    float tmp_tp_z0 = tmp_tp_vz + tmp_tp_t * delphi / (2.0 * K);
+    float tmp_tp_z0 = tmp_tp_vz + tmp_tp_t * delphi / (2.0 * r2_inv);
     // ----------------------------------------------------------------------------------------------
 
     if (std::abs(tmp_tp_z0) > TP_maxZ0)
