@@ -1026,10 +1026,9 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
 
 	float tmp_matchtp_charge = my_tp->charge();
 	float K = Kmagnitude * tmp_matchtp_charge;
-	float d = 0;
 
-	float tmp_matchtp_x0p = delx - (d + 1. / (2. * K) * sin(tmp_matchtp_phi));
-	float tmp_matchtp_y0p = dely + (d + 1. / (2. * K) * cos(tmp_matchtp_phi));
+	float tmp_matchtp_x0p = delx - (1. / (2. * K) * sin(tmp_matchtp_phi));
+	float tmp_matchtp_y0p = dely + (1. / (2. * K) * cos(tmp_matchtp_phi));
 	float tmp_matchtp_rp = sqrt(tmp_matchtp_x0p * tmp_matchtp_x0p + tmp_matchtp_y0p * tmp_matchtp_y0p);
 	tmp_matchtp_d0 = tmp_matchtp_charge * tmp_matchtp_rp - (1. / (2. * K));
 
@@ -1154,10 +1153,9 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
 
     float tmp_tp_charge = tp_ptr->charge();
     float K = Kmagnitude * tmp_tp_charge;
-    float d = 0;
 
-    float tmp_tp_x0p = delx - (d + 1. / (2. * K) * sin(tmp_tp_phi));
-    float tmp_tp_y0p = dely + (d + 1. / (2. * K) * cos(tmp_tp_phi));
+    float tmp_tp_x0p = delx - (1. / (2. * K) * sin(tmp_tp_phi));
+    float tmp_tp_y0p = dely + (1. / (2. * K) * cos(tmp_tp_phi));
     float tmp_tp_rp = sqrt(tmp_tp_x0p * tmp_tp_x0p + tmp_tp_y0p * tmp_tp_y0p);
     float tmp_tp_d0 = tmp_tp_charge * tmp_tp_rp - (1. / (2. * K));
 
