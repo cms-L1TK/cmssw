@@ -1036,7 +1036,7 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
 
 	tmp_matchtp_d0 = tmp_matchtp_d0 * (-1);  //fix d0 sign
 
-	static double pi = 4.0 * atan(1.0);
+	static double pi = M_PI;
 	float delphi = tmp_matchtp_phi - atan2(-r2_inv * tmp_matchtp_x0p, r2_inv * tmp_matchtp_y0p);
 	if (delphi < -pi)
 	  delphi += 2.0 * pi;
@@ -1162,7 +1162,7 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
 
     tmp_tp_d0 = tmp_tp_d0 * (-1);  //fix d0 sign
 
-    static double pi = 4.0 * atan(1.0);
+    static double pi = M_PI;
     float delphi = tmp_tp_phi - atan2(-r2_inv * tmp_tp_x0p, r2_inv * tmp_tp_y0p);
     if (delphi < -pi)
       delphi += 2.0 * pi;
