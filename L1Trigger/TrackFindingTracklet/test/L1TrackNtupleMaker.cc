@@ -869,7 +869,7 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
       if (L1Tk_nPar == 5) {
         float tmp_trk_x0 = iterL1Track->POCA().x();
         float tmp_trk_y0 = iterL1Track->POCA().y();
-        tmp_trk_d0 = -tmp_trk_x0 * sin(tmp_trk_phi) + tmp_trk_y0 * cos(tmp_trk_phi);
+        tmp_trk_d0 = tmp_trk_x0 * sin(tmp_trk_phi) - tmp_trk_y0 * cos(tmp_trk_phi);
       }
 
       float tmp_trk_chi2 = iterL1Track->chi2();
@@ -1385,7 +1385,7 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
       if (L1Tk_nPar == 5) {
         float tmp_matchtrk_x0 = matchedTracks.at(i_track)->POCA().x();
         float tmp_matchtrk_y0 = matchedTracks.at(i_track)->POCA().y();
-        tmp_matchtrk_d0 = -tmp_matchtrk_x0 * sin(tmp_matchtrk_phi) + tmp_matchtrk_y0 * cos(tmp_matchtrk_phi);
+        tmp_matchtrk_d0 = tmp_matchtrk_x0 * sin(tmp_matchtrk_phi) - tmp_matchtrk_y0 * cos(tmp_matchtrk_phi);
       }
 
       tmp_matchtrk_chi2 = matchedTracks.at(i_track)->chi2();
