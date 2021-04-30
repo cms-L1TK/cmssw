@@ -1130,18 +1130,6 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
     float tmp_tp_z0_prod = tmp_tp_vz;
     float tmp_tp_d0_prod = tmp_tp_vx * sin(tmp_tp_phi) - tmp_tp_vy * cos(tmp_tp_phi);
 
-    if (MyProcess == 13 && abs(tmp_tp_pdgid) != 13)
-      continue;
-    if (MyProcess == 11 && abs(tmp_tp_pdgid) != 11)
-      continue;
-    if ((MyProcess == 6 || MyProcess == 15 || MyProcess == 211) && abs(tmp_tp_pdgid) != 211)
-      continue;
-
-    if (tmp_tp_pt < TP_minPt)
-      continue;
-    if (std::abs(tmp_tp_eta) > TP_maxEta)
-      continue;
-
     // ----------------------------------------------------------------------------------------------
     // get d0/z0 propagated back to the IP
 
@@ -1171,6 +1159,17 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
     float tmp_tp_z0 = tmp_tp_vz + tmp_tp_t * delphi / (2.0 * r2_inv);
     // ----------------------------------------------------------------------------------------------
 
+    if (MyProcess == 13 && abs(tmp_tp_pdgid) != 13)
+      continue;
+    if (MyProcess == 11 && abs(tmp_tp_pdgid) != 11)
+      continue;
+    if ((MyProcess == 6 || MyProcess == 15 || MyProcess == 211) && abs(tmp_tp_pdgid) != 211)
+      continue;
+
+    if (tmp_tp_pt < TP_minPt)
+      continue;
+    if (std::abs(tmp_tp_eta) > TP_maxEta)
+      continue;
     if (std::abs(tmp_tp_z0) > TP_maxZ0)
       continue;
 
