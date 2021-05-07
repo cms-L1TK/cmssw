@@ -598,7 +598,7 @@ void TrackletLUT::initVMRTable(unsigned int layerdisk, VMRTableType type, int re
 	  table_.push_back(getVMRLookup(layerdisk + 1, z, r, dz, dr));
 	}
 	if (layerdisk == LayerDisk::L2) {
-	  table_.push_back(getVMRLookup(layerdisk + 1, z, r, dz, dr, 1));
+	  table_.push_back(getVMRLookup(layerdisk + 1, z, r, dz, dr, Seed::L2L3));
 	}
       }
 
@@ -611,27 +611,22 @@ void TrackletLUT::initVMRTable(unsigned int layerdisk, VMRTableType type, int re
       
       if (type == VMRTableType::innerthird ) {
 	if (layerdisk == LayerDisk::L2) {  //projection from L2 to D1 for L2L3D1 seeding
-	  table_.push_back(getVMRLookup(6, z, r, dz, dr, 10));
+	  table_.push_back(getVMRLookup(LayerDisk::D1, z, r, dz, dr, Seed::L2L3D1));
 	}
 	
 	if (layerdisk == LayerDisk::L5) {  //projection from L5 to L4 for L5L6L4 seeding
-	  table_.push_back(getVMRLookup(3, z, r, dz, dr));
+	  table_.push_back(getVMRLookup(LayerDisk::L4, z, r, dz, dr));
 	}
 	
 	if (layerdisk == LayerDisk::L3) {  //projection from L3 to L5 for L3L4L2 seeding
-	  table_.push_back(getVMRLookup(1, z, r, dz, dr));
+	  table_.push_back(getVMRLookup(LayerDisk::L2, z, r, dz, dr));
 	}
 	
 	if (layerdisk == LayerDisk::D1) {  //projection from D1 to L2 for D1D2L2 seeding
-	  table_.push_back(getVMRLookup(1, z, r, dz, dr));
+	  table_.push_back(getVMRLookup(LayerDisk::L2, z, r, dz, dr));
 	}
       }
 
-      if (type == VMRTableType::innerthird ) {
-	if (layerdisk == LayerDisk::L1 || layerdisk == 1) {
-	  table_.push_back(getVMRLookup(N_LAYER, z, r, dz, dr, layerdisk + N_LAYER));
-	}
-      }
     }
   }
 
