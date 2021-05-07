@@ -324,7 +324,7 @@ void VMRouter::execute() {
           }
           if (lutval == -1)
             continue;
-          if (settings_.extended() && (iseed == 2 || iseed == 3 || iseed == 4 || iseed == 10)) {
+          if (settings_.extended() && (iseed == Seed::L3L4 || iseed == Seed::L5L6 || iseed == Seed::D1D2 || iseed == Seed::L2L3D1)) {
 	    int lutval2 = innerThirdTable_.lookup((indexz<<nbitsrfinebintable_)+indexr);
             if (lutval2 == -1)
               continue;

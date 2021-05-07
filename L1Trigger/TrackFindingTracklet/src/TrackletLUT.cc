@@ -39,7 +39,7 @@ void TrackletLUT::initmatchcut(unsigned int layerdisk, MatchType type, unsigned 
 
   if (type==barrelphi) {
     name_ += TrackletConfigBuilder::LayerName(layerdisk)+"PHI"+cregion+"_phicut.tab";
-  }
+      }
   if (type==barrelz) {    
     name_ += TrackletConfigBuilder::LayerName(layerdisk)+"PHI"+cregion+"_zcut.tab";
   }
@@ -71,28 +71,12 @@ void TrackletLUT::initTPlut(bool fillInner, unsigned int iSeed, unsigned int lay
       settings_.nallstubs(layerdisk2) * settings_.nvmte(1, iSeed) * (1 << settings_.nfinephi(1, iSeed));
   double dfinephi = settings_.dphisectorHG() / nfinephibins;
 
-  //double rmin = -1.0;
-  //double rmax = -1.0;
-
   int outerrbits = 3;
 
   if (iSeed == Seed::L1L2 || iSeed == Seed::L2L3 ||iSeed == Seed::L3L4 || iSeed == Seed::L5L6 ) {
     outerrbits = 0;
-    //rmin = settings_.rmean(layerdisk1);
-    //rmax = settings_.rmean(layerdisk2);
-  } /*else {
-    if (iSeed == Seed::L1D1) {
-      rmax = settings_.rmaxdiskl1overlapvm();
-      rmin = settings_.rmean(layerdisk1);
-    } else if (iSeed == Seed::L2D1) {
-      rmax = settings_.rmaxdiskvm();
-      rmin = settings_.rmean(layerdisk1);
-    } else {
-      rmax = settings_.rmaxdiskvm();
-      rmin = rmax * settings_.zmean(layerdisk2 - N_LAYER - 1) / settings_.zmean(layerdisk2 - N_LAYER);
-    }
-    }*/
-
+  }
+  
   int outerrbins = (1 << outerrbits);
 
   double dphi[2];
@@ -209,13 +193,9 @@ void TrackletLUT::initTPregionlut(unsigned int iSeed, unsigned int layerdisk1, u
   }
 
   unsigned int nbendbitsinner = 3;
-  //unsigned int nbendbitsouter = 3;
-  //if (iSeed == Seed::L3L4) {
-  //  nbendbitsouter = 4;
-  // } else 
+
   if (iSeed == Seed::L5L6) {
     nbendbitsinner = 4;
-    // nbendbitsouter = 4;
   }
 
   for (int innerfinephi = 0; innerfinephi < (1 << nbitsfinephi); innerfinephi++) {
