@@ -1034,8 +1034,6 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
 	float tmp_matchtp_rp = sqrt(tmp_matchtp_x0p * tmp_matchtp_x0p + tmp_matchtp_y0p * tmp_matchtp_y0p);
 	tmp_matchtp_d0 = my_tp->charge() * tmp_matchtp_rp - (1. / (2. * r2_inv));
 
-	tmp_matchtp_d0 = tmp_matchtp_d0 * (-1);  //fix d0 sign
-
 	static double pi = M_PI;
 	float delphi = tmp_matchtp_phi - atan2(-r2_inv * tmp_matchtp_x0p, r2_inv * tmp_matchtp_y0p);
 	if (delphi < -pi)
@@ -1147,8 +1145,6 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
     float tmp_tp_y0p = dely + (1. / (2. * r2_inv) * cos(tmp_tp_phi));
     float tmp_tp_rp = sqrt(tmp_tp_x0p * tmp_tp_x0p + tmp_tp_y0p * tmp_tp_y0p);
     float tmp_tp_d0 = tmp_tp_charge * tmp_tp_rp - (1. / (2. * r2_inv));
-
-    tmp_tp_d0 = tmp_tp_d0 * (-1);  //fix d0 sign
 
     static double pi = M_PI;
     float delphi = tmp_tp_phi - atan2(-r2_inv * tmp_tp_x0p, r2_inv * tmp_tp_y0p);
