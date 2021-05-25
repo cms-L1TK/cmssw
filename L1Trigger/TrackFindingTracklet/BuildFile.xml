@@ -3,6 +3,7 @@
 <use name="root"/>
 <use name="rootrflx"/>
 <use name="xerces-c"/>
+<use name="CommonTools/UtilAlgos"/>
 <use name="CondFormats/DataRecord"/>
 <use name="CondFormats/L1TObjects"/>
 <use name="DataFormats/Common"/>
@@ -38,6 +39,8 @@
 <use name="TrackingTools/TrajectoryParametrization"/>
 <use name="TrackingTools/TrajectoryState"/>
 <use name="TrackingTools/TransientTrack"/>
+<use name="L1Trigger/TrackerDTC"/>
+<use name="L1Trigger/TrackerTFP"/>
 <flags CXXFLAGS="-DUSEHYBRID"/>
 
 <export>

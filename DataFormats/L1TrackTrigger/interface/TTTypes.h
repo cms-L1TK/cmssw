@@ -18,8 +18,12 @@
 #include "DataFormats/L1TrackTrigger/interface/TTStub.h"
 #include "DataFormats/L1TrackTrigger/interface/TTTrack.h"
 #include "DataFormats/L1TrackTrigger/interface/TTTrack_TrackWord.h"
+#include "DataFormats/L1TrackTrigger/interface/TTBV.h"
+
+#include <bitset>
 
 /// The reference types
+
 typedef edm::Ref<edm::DetSetVector<Phase2TrackerDigi>, Phase2TrackerDigi> Ref_Phase2TrackerDigi_;
 
 typedef edmNew::DetSetVector<TTCluster<Ref_Phase2TrackerDigi_> > TTClusterDetSetVec;
@@ -29,5 +33,25 @@ typedef edm::Ref<TTStubDetSetVec, TTStub<Ref_Phase2TrackerDigi_> > TTStubRef;
 typedef edm::Ref<TTClusterDetSetVec, TTCluster<Ref_Phase2TrackerDigi_> > TTClusterRef;
 
 typedef edmNew::DetSet<TTStub<Ref_Phase2TrackerDigi_> > TTStubDetSet;
+typedef edmNew::DetSet<TTCluster<Ref_Phase2TrackerDigi_> > TTClusterDetSet;
+
+typedef edm::Ref<std::vector<TTTrack<Ref_Phase2TrackerDigi_>>, TTTrack<Ref_Phase2TrackerDigi_>> TTTrackRef;
+
+namespace tt {
+  // types including digitized info on an optical link
+
+  // emp framework firmware frame (64 bit word)
+  typedef std::bitset<TTBV::S_> Frame;
+  // reference to TTStub with bit accurate f/w word
+  typedef std::pair<TTStubRef, Frame> FrameStub;
+  // reference to TTTrack with bit accurate f/w word, only used before TFP output since TFP output uses more then one frame per TTTrack
+  typedef std::pair<TTTrackRef, Frame> FrameTrack;
+  typedef std::vector<FrameStub> StreamStub;
+  typedef std::vector<FrameTrack> StreamTrack;
+  typedef std::vector<StreamStub> StreamsStub;
+  typedef std::vector<StreamTrack> StreamsTrack;
+  typedef std::map<TTTrackRef, TTTrackRef> TTTrackRefMap;
+  typedef std::vector<TTTrack<Ref_Phase2TrackerDigi_>> TTTracks;
+} // namespace tt
 
 #endif
