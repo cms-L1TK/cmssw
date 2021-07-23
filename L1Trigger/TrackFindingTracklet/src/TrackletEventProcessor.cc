@@ -80,7 +80,7 @@ void TrackletEventProcessor::init(Settings const& theSettings) {
 
   sector_ = make_unique<Sector>(*settings_, globals_.get());
 
-  if (settings_->extended()) {
+  if (settings_->extended() || settings_->reduced()) {
     ifstream inmem(settings_->memoryModulesFile().c_str());
     assert(inmem.good());
 
@@ -92,7 +92,8 @@ void TrackletEventProcessor::init(Settings const& theSettings) {
 
     configure(inwire, inmem, inproc);
 
-  } else {
+  }
+  else {
     TrackletConfigBuilder config(*settings_);
 
     //Write configurations to file.

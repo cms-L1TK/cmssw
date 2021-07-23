@@ -3,7 +3,7 @@ from L1Trigger.TrackTrigger.TrackQualityParams_cfi import *
 
 TTTracksFromTrackletEmulation = cms.EDProducer("L1FPGATrackProducer",
                                                TTStubSource = cms.InputTag("TTStubsFromPhase2TrackerDigis","StubAccepted"),
-                                               InputTagTTDTC = cms.InputTag("TrackerDTCProducer", "StubAccepted"), 
+                                               InputTagTTDTC = cms.InputTag("TrackerDTCProducer", "StubAccepted"),
                                                readMoreMcTruth = cms.bool(True),
                                                MCTruthClusterInputTag = cms.InputTag("TTClusterAssociatorFromPixelDigis", "ClusterAccepted"),
                                                MCTruthStubInputTag = cms.InputTag("TTStubAssociatorFromPixelDigis", "StubAccepted"),
@@ -31,5 +31,12 @@ TTTracksFromExtendedTrackletEmulation = TTTracksFromTrackletEmulation.clone(
                                                # Quality Flag and Quality params
                                                TrackQuality = cms.bool(False),
                                                TrackQualityPSet = cms.PSet(TrackQualityParams)
+    )
+TTTracksFromReducedTrackletEmulation = TTTracksFromTrackletEmulation.clone(
+                                               Reduced = cms.bool(True),
+                                               # specifying where the reduced configuration files are
+                                               memoryModulesFile = cms.FileInPath('L1Trigger/TrackFindingTracklet/data/reduced_memorymodules.dat'),
+                                               processingModulesFile = cms.FileInPath('L1Trigger/TrackFindingTracklet/data/reduced_processingmodules.dat'),
+                                               wiresFile = cms.FileInPath('L1Trigger/TrackFindingTracklet/data/reduced_wires.dat'),
     )
 
