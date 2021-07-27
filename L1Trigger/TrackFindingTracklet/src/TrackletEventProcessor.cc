@@ -92,8 +92,7 @@ void TrackletEventProcessor::init(Settings const& theSettings) {
 
     configure(inwire, inmem, inproc);
 
-  }
-  else {
+  } else {
     TrackletConfigBuilder config(*settings_);
 
     //Write configurations to file.
