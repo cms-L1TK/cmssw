@@ -868,7 +868,7 @@ namespace trklet {
     // This is a temporary fix for compatibilty with HLS. We will need to implement multiple match
     // printing in emulator eventually, possibly after CMSSW-integration inspired rewrites
     // Use false when generating HLS files, use true when doing full hybrid tracking
-    bool doMultipleMatches_{false};
+    bool doMultipleMatches_{true};
 
     // if true, run a dummy fit, producing TTracks directly from output of tracklet pattern reco stage
     bool fakefit_{false};
