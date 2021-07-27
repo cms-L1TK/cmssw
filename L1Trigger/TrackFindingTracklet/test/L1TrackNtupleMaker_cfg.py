@@ -77,8 +77,6 @@ if GEOMETRY == "D49":
 
   # Or read specified .root file:
   inputMC = ["/store/relval/CMSSW_11_3_0_pre3/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU_113X_mcRun4_realistic_v3_2026D49PU200_rsb-v1/00000/00260a30-734a-4a3a-a4b0-f836ce5502c6.root"]
-  #inputMC = ["/store/relval/CMSSW_11_3_0_pre3/RelValTTbar_14TeV/CMSSW_11_3_0_pre3-PU_113X_mcRun4_realistic_v3_2026D49PU200_rsb-v1/GEN-SIM-DIGI-RAW"]
-
 
 elif GEOMETRY == "D76":
     inputMC = ["/store/relval/CMSSW_11_3_0_pre6/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU_113X_mcRun4_realistic_v6_2026D76PU200-v1/00000/00026541-6200-4eed-b6f8-d3a1fd720e9c.root"]
