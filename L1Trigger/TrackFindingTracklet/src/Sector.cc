@@ -394,7 +394,7 @@ void Sector::executePR() {
 
 void Sector::executeME() {
   for (auto& i : ME_) {
-    i->execute();
+    i->execute(isector_);
   }
 }
 
