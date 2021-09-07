@@ -378,10 +378,10 @@ namespace trackFindingTracklet {
           if (iTrack % 2 == 0){
             // TODO actually make ttTrackRefMap work properly
             if (iTrack <= maxTracksPerEvent){
-              accepted[iLink].emplace_back(std::make_pair(streamsTracks[iLink][(int)iTrack/3].first,(SortedPartialTracks[iLink][iTrack] + SortedPartialTracks[iLink][iTrack+1]).bs() ));
+              accepted[iLink].emplace_back(std::make_pair(ttTrackRefMap.at(streamsTracks[iLink][(int)iTrack/3].first),(SortedPartialTracks[iLink][iTrack] + SortedPartialTracks[iLink][iTrack+1]).bs() ));
             }
             else{
-              lost[iLink].emplace_back(std::make_pair(streamsTracks[iLink][(int)iTrack/3].first,(SortedPartialTracks[iLink][iTrack] + SortedPartialTracks[iLink][iTrack+1]).bs() ));
+              lost[iLink].emplace_back(std::make_pair(ttTrackRefMap.at(streamsTracks[iLink][(int)iTrack/3].first),(SortedPartialTracks[iLink][iTrack] + SortedPartialTracks[iLink][iTrack+1]).bs() ));
             }
           }
         }
