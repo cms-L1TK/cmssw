@@ -191,6 +191,25 @@ TrackTrigger_params = cms.PSet (
     MaxLayers   = cms.int32 ( 4   )  # maximum number of  layers added to a track
   ),
 
+  # Parmeter specifying KalmanFilter Output Formatter
+  KalmanFilterOut = cms.PSet (
+    dPhiBins = cms.vint32( 0,10,35,70,100,130,165,200,225,260,300,330,360,512 ),        # Bins used to digitize dPhi for chi2 calculation
+    dZBins   = cms.vint32( 0,100,150,233,266,300,333,366,400,433,466,500,533,566,1024), # Bins used to digitize dZ for chi2 calculation
+    v0Bins   = cms.vint32(32716, 7139, 209, 82, 43, 26, 18, 13, 9, 7, 6, 5, 4),         # v0 weight Bins corresponding to dPhi Bins for chi2 calculation
+    v1Bins   = cms.vint32(63607, 486, 155, 121, 97, 77, 63, 52, 44, 39, 33, 29, 26, 0), # v1 weight Bins corresponding to dZ Bins for chi2 calculation
+
+    chi2rphiBins = cms.vdouble( 0, 0.25, 0.5, 1, 2, 3, 5, 7, 10, 20, 40, 100, 200, 500, 1000, 3000,6000 ), # Final Chi2rphi digitization TODO extract from TTTrack Word 
+    chi2rzBins   = cms.vdouble( 0, 0.25, 0.5, 1, 2, 3, 5, 7, 10, 20, 40, 100, 200, 500, 1000, 3000,6000 ), # Final Chi2rz digitization TODO extract from TTTrack Word 
+
+    chi2rphiConv = cms.int32 ( 525 ), # Conversion factor between dphi^2/weight and chi2rphi
+    chi2rzConv   = cms.int32 ( 626 ), # Conversion factor between dz^2/weight and chi2rz
+
+    chi2ScaleFactor = cms.int32 ( 1024 ), # Final chi2 scale factor so calculated chi2s correspond to TTTrack output bins 
+    
+    maxTracksPerEvent = cms.int32 ( 104 ) # Max number of tracks per link per event
+
+  ),
+
   # Parmeter specifying DuplicateRemoval
   DuplicateRemoval = cms.PSet (
     DepthMemory  = cms.int32( 16 ) # internal memory depth

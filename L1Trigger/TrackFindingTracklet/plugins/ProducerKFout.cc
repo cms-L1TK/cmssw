@@ -32,6 +32,8 @@ namespace trackFindingTracklet {
   public:
     explicit ProducerKFout(const ParameterSet&);
     ~ProducerKFout() override {}
+    template<typename T>
+    int digitise(const vector<T> Bins, T Value, T factor = 1 );
 
   private:
     void beginRun(const Run&, const EventSetup&) override;
@@ -58,6 +60,45 @@ namespace trackFindingTracklet {
     const Setup* setup_;
     // helper class to extract structured data from TTDTC::Frames
     const DataFormats* dataFormats_;
+    // Cot bins used to convert from cot to TanL
+    vector<int> cotBins;
+    // Factors used to convert between phi/Z at a radius T, modified to include scale conversions needed in calculation
+    double modChosenRofZ = 0;
+    double modChosenRofPhi = 0;
+    // Corrections to Phi depending on which phi sector
+    int BaseSectorCorr = 0;
+    int UnsignedBaseSector = 0;
+    // Redefine these here to avoid impossible to read code later
+    // Widths used for each part of data stored in the KF track and KF stubs
+    int wTm = 0;
+    int wTSp = 0;
+    int wTSe = 0;
+    int wTphi = 0;
+    int wTinvR = 0;
+    int wTcot = 0;
+    int wTz = 0;
+
+    int wSr = 0;
+    int wSphi = 0;
+    int wSz  = 0;
+    int wSdPhi = 0;
+    int wSdZ = 0;
+
+    int chi2rphiConv = 0;
+    int chi2rzConv = 0;
+    // Bins for dPhi/dZ use to access weight LUT below
+    vector<int> dPhiBins;
+    vector<int> dZBins;
+    // LUT for weighting functions for chi2 calculation
+    vector<int> v0Bins;
+    vector<int> v1Bins;
+    // Bins for final Chi2 Packing
+    vector<double> chi2rphiBins;
+    vector<double> chi2rzBins;
+
+    int chi2ScaleFactor;
+
+    int maxTracksPerEvent;
   };
 
   ProducerKFout::ProducerKFout(const ParameterSet& iConfig) :
@@ -92,6 +133,53 @@ namespace trackFindingTracklet {
       setup_->checkHistory(iRun.processHistory());
     // helper class to extract structured data from TTDTC::Frames
     dataFormats_ = &iSetup.getData(esGetTokenDataFormats_);
+
+    for (int i = 0; i < setup_->numSectorsEta(); i++){
+      cotBins.push_back(setup_->sectorCot(i)*(1/dataFormats_->base(Variable::cot,Process::kf)));
+    };
+    modChosenRofZ = setup_->chosenRofZ() * (dataFormats_->base(Variable::cot,Process::kf) / dataFormats_->base(Variable::zT,Process::kf));
+    modChosenRofPhi = setup_->hybridChosenRofPhi() * dataFormats_->base(Variable::inv2R,Process::kf) / dataFormats_->base(Variable::phiT,Process::kf);
+
+    UnsignedBaseSector = (M_PI / (double)(setup_->numRegions() * setup_->numSectorsPhi()) ) / (dataFormats_->base(Variable::phiT,Process::kf)); 
+
+    wTm    = dataFormats_->width(Variable::match,Process::kf);
+    wTSp   = dataFormats_->width(Variable::sectorPhi,Process::kf);
+    wTSe   = dataFormats_->width(Variable::sectorEta,Process::kf);
+    wTphi  = dataFormats_->width(Variable::phiT,Process::kf);
+    wTinvR = dataFormats_->width(Variable::inv2R,Process::kf);
+    wTcot  = dataFormats_->width(Variable::cot,Process::kf);
+    wTz    = dataFormats_->width(Variable::zT,Process::kf);
+
+    wSr    = dataFormats_->width(Variable::r,Process::kf);
+    wSphi  = dataFormats_->width(Variable::phi,Process::kf);
+    wSz    = dataFormats_->width(Variable::z,Process::kf);
+    wSdPhi = dataFormats_->width(Variable::dPhi,Process::kf);
+    wSdZ   = dataFormats_->width(Variable::dZ,Process::kf);
+
+    dPhiBins = setup_->kfoutdPhiBins();
+    dZBins   = setup_->kfoutdZBins();
+    v0Bins   = setup_->kfoutv0Bins();
+    v1Bins   = setup_->kfoutv1Bins();
+
+    chi2rphiBins = setup_->kfoutchi2rphiBins();
+    chi2rzBins   = setup_->kfoutchi2rzBins();
+
+    chi2rphiConv = setup_->kfoutchi2rphiConv();
+    chi2rzConv   = setup_->kfoutchi2rzConv();
+
+    chi2ScaleFactor = setup_->kfoutchi2ScaleFactor();
+
+    maxTracksPerEvent = setup_->kfoutmaxTracksPerEvent();
+
+  }
+
+
+  template<typename T>
+  int ProducerKFout::digitise(const vector<T> Bins, T Value, T factor ) {
+    for (int i = 0; i < (int)Bins.size(); i++){
+      if (Value > Bins[i]*factor && Value <= Bins[i+1]*factor) {return i;}
+    }
+    return -1;
   }
 
   void ProducerKFout::produce(Event& iEvent, const EventSetup& iSetup) {
@@ -109,6 +197,169 @@ namespace trackFindingTracklet {
       Handle<TTTrackRefMap> handleTTTrackRefMap;
       iEvent.getByToken<TTTrackRefMap>(edGetTokenTTTrackRefMap_, handleTTTrackRefMap);
       const TTTrackRefMap& ttTrackRefMap = *handleTTTrackRefMap.product();
+      // 18 Output Links (First Vector) each has a vector of tracks per event (second vector) each track is 3 32 bit TTBV partial tracks 
+      vector<vector<TTBV>> SortedPartialTracks(setup_->numRegions() * setup_->tfpNumChannel(),vector<TTBV>(0));   
+
+      for (int iLink = 0; iLink < (int)streamsTracks.size(); iLink++ ){
+
+        for (int iTrack = 0; iTrack < (int)streamsTracks[iLink].size(); iTrack++ ){
+          std::cout << "Link: " << iLink << " Num Tracks: " << streamsTracks[iLink].size() << std::endl;
+          auto track = streamsTracks[iLink][iTrack];
+
+          std::vector<TTBV> Svalids;
+          std::vector<TTBV> Srs;
+          std::vector<TTBV> Sphis;
+          std::vector<TTBV> Szs;
+          std::vector<TTBV> SdPhis;
+          std::vector<TTBV> SdZs;
+
+          // Create bit vector (gives us all the slicing etc. )
+          TTBV InputLinkTrack(track.second);
+          // Slice Constructor (const TTBV& ttBV, int begin, int end = 0, bool twos =  false)
+          // Unpack KF track 
+          TTBV Tvalid(     InputLinkTrack , wTz + wTcot + wTinvR + wTphi + wTSe + wTSp + wTm + 1, wTz + wTcot + wTinvR + wTphi + wTSe + wTSp + wTm , false );
+          TTBV Tmatch(     InputLinkTrack , wTz + wTcot + wTinvR + wTphi + wTSe + wTSp + wTm    , wTz + wTcot + wTinvR + wTphi + wTSe + wTSp , false );
+          TTBV TsectorPhi( InputLinkTrack , wTz + wTcot + wTinvR + wTphi + wTSe + wTSp          , wTz + wTcot + wTinvR + wTphi + wTSe , false );
+          TTBV TsectorEta( InputLinkTrack , wTz + wTcot + wTinvR + wTphi + wTSe                 , wTz + wTcot + wTinvR + wTphi , false );
+          TTBV TphiT(      InputLinkTrack , wTz + wTcot + wTinvR + wTphi                        , wTz + wTcot + wTinvR , true );
+          TTBV TinvR(      InputLinkTrack , wTz + wTcot + wTinvR                                , wTz + wTcot , true );
+          TTBV Tcot(       InputLinkTrack , wTz + wTcot                                         , wTz , true );
+          TTBV TzT(        InputLinkTrack , wTz                                                 , 0 , true );
+
+          int temp_z0 = TzT.val() - ((Tcot.val() * modChosenRofZ));
+
+          // Correction to Phi calcuation depending if +ve/-ve phi sector
+          if (TsectorPhi.val() == 0) {
+            BaseSectorCorr = -UnsignedBaseSector;
+          }
+          else{
+            BaseSectorCorr = UnsignedBaseSector;
+          }
+
+          int temp_phi0 = TphiT.val() - ((TinvR.val()) * modChosenRofPhi) + BaseSectorCorr;
+          
+          int temp_tanL = cotBins[TsectorEta.val()] + Tcot.val();
+        
+          TTBV HitPattern(0,setup_->numLayers());
+
+          //std::cout << "From Track Bits " << InputLinkTrack << std::endl;
+          //std::cout << Tvalid.val() << " | ";
+          //std::cout << TinvR.val()   << " | ";
+          //std::cout << TphiT.val()   << " | ";
+          //std::cout << Tcot.val()   << " | ";
+          //std::cout << TzT.val()  << " | ";
+          //std::cout << TsectorPhi.val()   << " | ";
+          //std::cout << TsectorEta.val()   << " | ";
+          //std::cout << Tmatch.val()  << std::endl;
+
+          int tempchi2rphi = 0;
+          int tempchi2rz   = 0;
+
+          for (int iStub = 0; iStub < setup_->numLayers() - 1; iStub++ ){
+            auto stub = streamsStubs[setup_->numLayers()*iLink+iStub][iTrack];
+            TTBV InputLinkStub(stub.second);
+
+            // Unpack and store stub bits  
+            TTBV Svalid( InputLinkStub , wSdZ + wSdPhi + wSz + wSphi + wSr + 1 , wSdZ + wSdPhi + wSz + wSphi + wSr , false );
+            TTBV Sr(     InputLinkStub , wSdZ + wSdPhi + wSz + wSphi + wSr     , wSdZ + wSdPhi + wSz+ wSphi , true );
+            TTBV Sphi(   InputLinkStub , wSdZ + wSdPhi + wSz + wSphi           , wSdZ + wSdPhi + wSz , true );
+            TTBV Sz(     InputLinkStub , wSdZ + wSdPhi + wSz                   , wSdZ + wSdPhi , true );
+            TTBV SdPhi(  InputLinkStub , wSdZ + wSdPhi                         , wSdZ , true );
+            TTBV SdZ(    InputLinkStub , wSdZ                                  , 0 , true );
+
+            if (Svalid.val() == 1){
+              HitPattern.set(iStub);
+              Svalids.push_back(Svalid);
+              Srs.push_back(Sr);
+              Sphis.push_back(Sphi);
+              Szs.push_back(Sz);
+              SdPhis.push_back(SdPhi);
+              SdZs.push_back(SdZ);
+
+              int phiSquared = Sphi.val() * Sphi.val();
+              int zSquared   = Sz.val() * Sz.val();
+
+              int tempv0 = (v0Bins[digitise(dPhiBins, SdPhi.val())]);
+              int tempv1 = (v1Bins[digitise(dZBins  , SdZ.val())]);
+
+              int tempRphi = phiSquared * tempv0;
+              int tempRz   = zSquared * tempv1;
+
+              tempchi2rphi += tempRphi / chi2ScaleFactor;
+              tempchi2rz   += tempRz / chi2ScaleFactor;
+            }
+
+            //std::cout << "From Stub Bits " << InputLinkStub << std::endl;
+            //std::cout << Svalid.val() << " | ";
+            //std::cout << Sr.val()  << " | ";
+            //std::cout << Sphi.val()  << " | ";
+            //std::cout << Sz.val() << " | ";
+            //std::cout << SdPhi.val()  << " | ";
+            //std::cout << SdZ.val()  << std::endl;
+          }
+          // TODO extract TTTrack bit widths from TTTrack word
+          TTBV TrackValid(Tvalid,1,false);
+          TTBV extraMVA(0,6,false);
+          TTBV TQMVA(0,3,false);
+          TTBV BendChi2(0,3,false); 
+          TTBV Chi2rphi(digitise(chi2rphiBins,(double)tempchi2rphi,(double)chi2rphiConv),4,false);
+          TTBV Chi2rz(digitise(chi2rzBins,(double)tempchi2rz,(double)chi2rzConv),4,false);
+          TTBV D0(0,13,false);
+          TTBV z0(temp_z0 ,12,true);
+          TTBV TanL(temp_tanL,16,true);
+          TTBV phi0(temp_phi0 ,12,true);
+          TTBV InvR(-1*TinvR.val() ,15,true );
+
+                              // 6      +   3   +   7        +  3       + 13
+          TTBV PartialTrack1 = extraMVA + TQMVA + HitPattern + BendChi2 + D0;
+                             // 4       + 12    + 16
+          TTBV PartialTrack2 = Chi2rz   + z0    + TanL;
+                             // 4       + 12    +  15  +    1
+          TTBV PartialTrack3 = Chi2rphi + phi0  + InvR + TrackValid;
+
+          //std::cout << "From TTTrack Emulator " << PartialTrack1 << " " << PartialTrack2 << " " << PartialTrack3 << std::endl;
+          //std::cout << TrackValid.val() << " | ";
+          //std::cout << InvR.val()   << " | ";
+          //std::cout << phi0.val()   << " | ";
+          //std::cout << TanL.val()   << " | ";
+          //std::cout << z0.val()  << " | ";
+          //std::cout << Chi2rz.val()   << " | ";
+          //std::cout << Chi2rphi.val()   << " | ";
+          //std::cout << HitPattern.val() << std::endl;
+
+
+          // Sort Tracks based on eta
+
+          if (Tcot.val() > 0){
+            if (iLink % 2 == 0){
+              SortedPartialTracks[iLink].push_back(PartialTrack1);
+              SortedPartialTracks[iLink].push_back(PartialTrack2);
+              SortedPartialTracks[iLink].push_back(PartialTrack3);
+            }
+            else{
+              SortedPartialTracks[iLink-1].push_back(PartialTrack1);
+              SortedPartialTracks[iLink-1].push_back(PartialTrack2);
+              SortedPartialTracks[iLink-1].push_back(PartialTrack3);
+            }
+
+          }
+          else{
+            if (iLink % 2 == 0){
+              SortedPartialTracks[iLink+1].push_back(PartialTrack1);
+              SortedPartialTracks[iLink+1].push_back(PartialTrack2);
+              SortedPartialTracks[iLink+1].push_back(PartialTrack3);
+            }
+            else{
+              SortedPartialTracks[iLink].push_back(PartialTrack1);
+              SortedPartialTracks[iLink].push_back(PartialTrack2);
+              SortedPartialTracks[iLink].push_back(PartialTrack3);
+            }
+ 
+          }
+        } // Trcks
+      } // Links
+
+
       // perform KFout emulation and fill accepted and lost
       // StreamsTrack is a vector of StreamTrack which is a vector of FrameTrack which is a pair of an edm::Ref<TTTrack> and std::bitset<64>
       // the std::bitset<64> are the frames of an emp link
@@ -116,11 +367,33 @@ namespace trackFindingTracklet {
       // your input streamsTracks contain edm::Ref<TTTrack> to KF input TTTracks
       // use ttTrackRefMap to lookup edm::Ref<TTTrack> of KF output TTTracks, that allows us to meassure the tracking efficiency after the KFout block
       // your output frames belong to either only one TTTrack or to two, in the later case chose any edm::Ref<TTTrack> of the two
-    }
+       
+      // Fill products and match up tracks
+      for (int iLink = 0; iLink < (int)streamsTracks.size(); iLink++ ){
+        // Iterate through partial tracks
+        int numLinkTracks = 3*(int)streamsTracks[iLink].size();
+        if (numLinkTracks % 2 != 0) { numLinkTracks++;}
+        for (int iTrack = 0; iTrack <= numLinkTracks; iTrack++ ){
+          
+          if (iTrack % 2 == 0){
+            // TODO actually make ttTrackRefMap work properly
+            if (iTrack <= maxTracksPerEvent){
+              accepted[iLink].emplace_back(std::make_pair(streamsTracks[iLink][(int)iTrack/3].first,(SortedPartialTracks[iLink][iTrack] + SortedPartialTracks[iLink][iTrack+1]).bs() ));
+            }
+            else{
+              lost[iLink].emplace_back(std::make_pair(streamsTracks[iLink][(int)iTrack/3].first,(SortedPartialTracks[iLink][iTrack] + SortedPartialTracks[iLink][iTrack+1]).bs() ));
+            }
+          }
+        }
+      }
+
+    } // Config Supported
     // store products
     iEvent.emplace(edPutTokenAccepted_, move(accepted));
     iEvent.emplace(edPutTokenLost_, move(lost));
   }
+
+
 
 } // namespace trackFindingTracklet
 

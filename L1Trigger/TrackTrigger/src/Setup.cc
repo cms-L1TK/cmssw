@@ -187,6 +187,18 @@ namespace tt {
         kfMinLayers_(pSetKF_.getParameter<int>("MinLayers")),
         kfMaxLayers_(pSetKF_.getParameter<int>("MaxLayers")),
         kfRangeFactor_(pSetKF_.getParameter<double>("RangeFactor")),
+        // Parmeter specifying KalmanFilter Output Formatter
+        pSetKFOut_(iConfig.getParameter<ParameterSet>("KalmanFilterOut")),
+        kfoutdPhiBins_(pSetKFOut_.getParameter<vector<int>>("dPhiBins")),
+        kfoutdZBins_(pSetKFOut_.getParameter<vector<int>>("dZBins")),
+        kfoutv0Bins_(pSetKFOut_.getParameter<vector<int>>("v0Bins")),
+        kfoutv1Bins_(pSetKFOut_.getParameter<vector<int>>("v1Bins")),
+        kfoutchi2rphiBins_(pSetKFOut_.getParameter<vector<double>>("chi2rphiBins")),
+        kfoutchi2rzBins_(pSetKFOut_.getParameter<vector<double>>("chi2rzBins")),
+        kfoutchi2rphiConv_(pSetKFOut_.getParameter<int>("chi2rphiConv")),
+        kfoutchi2rzConv_(pSetKFOut_.getParameter<int>("chi2rzConv")),
+        kfoutchi2ScaleFactor_(pSetKFOut_.getParameter<int>("chi2ScaleFactor")),
+        kfoutmaxTracksPerEvent_(pSetKFOut_.getParameter<int>("maxTracksPerEvent")),
         // Parmeter specifying DuplicateRemoval
         pSetDR_(iConfig.getParameter<ParameterSet>("DuplicateRemoval")),
         drDepthMemory_(pSetDR_.getParameter<int>("DepthMemory")) {

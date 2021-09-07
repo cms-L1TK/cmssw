@@ -447,6 +447,29 @@ namespace tt {
     // search window of each track parameter in initial uncertainties
     double kfRangeFactor() const { return kfRangeFactor_; }
 
+    // Parameter specifying KalmanFilter Output Formatter
+
+    // Bins used to digitize dPhi for chi2 calculation
+    std::vector<int> kfoutdPhiBins() const { return kfoutdPhiBins_; }
+    // Bins used to digitize dZ for chi2 calculation
+    std::vector<int> kfoutdZBins() const { return kfoutdZBins_; }
+    // v0 weight Bins corresponding to dPhi Bins for chi2 calculation
+    std::vector<int> kfoutv0Bins() const { return kfoutv0Bins_; }
+    // v1 weight Bins corresponding to dZ Bins for chi2 calculation
+    std::vector<int> kfoutv1Bins() const { return kfoutv1Bins_; }
+    // Final Chi2rphi digitization TODO extract from TTTrack Word 
+    std::vector<double> kfoutchi2rphiBins() const { return kfoutchi2rphiBins_; }
+    // Final Chi2rz digitization TODO extract from TTTrack Word 
+    std::vector<double> kfoutchi2rzBins() const { return kfoutchi2rzBins_; }
+    // Conversion factor between dphi^2/weight and chi2rphi 
+    int kfoutchi2rphiConv() const { return kfoutchi2rphiConv_; }
+    // Conversion factor between dz^2/weight and chi2rz
+    int kfoutchi2rzConv() const { return kfoutchi2rzConv_; }
+    // Final chi2 scale factor so calculated chi2s correspond to TTTrack output bins 
+    int kfoutchi2ScaleFactor() const { return kfoutchi2ScaleFactor_; }
+    // Max number of tracks per link per event
+    int kfoutmaxTracksPerEvent() const { return kfoutmaxTracksPerEvent_; }
+
     // Parameter specifying DuplicateRemoval
 
     // internal memory depth
@@ -802,6 +825,29 @@ namespace tt {
     int kfMaxLayers_;
     // search window of each track parameter in initial uncertainties
     double kfRangeFactor_;
+
+    // Parameter specifying KalmanFilter Output Formatter
+    edm::ParameterSet pSetKFOut_;
+    // Bins used to digitize dPhi for chi2 calculation
+    std::vector<int> kfoutdPhiBins_; 
+    // Bins used to digitize dZ for chi2 calculation
+    std::vector<int> kfoutdZBins_;
+    // v0 weight Bins corresponding to dPhi Bins for chi2 calculation
+    std::vector<int> kfoutv0Bins_;
+    // v1 weight Bins corresponding to dZ Bins for chi2 calculation
+    std::vector<int> kfoutv1Bins_;
+    // Final Chi2rphi digitization TODO extract from TTTrack Word 
+    std::vector<double> kfoutchi2rphiBins_;
+    // Final Chi2rz digitization TODO extract from TTTrack Word 
+    std::vector<double> kfoutchi2rzBins_;
+    // Conversion factor between dphi^2/weight and chi2rphi 
+    int kfoutchi2rphiConv_;
+    // Conversion factor between dz^2/weight and chi2rz
+    int kfoutchi2rzConv_;
+    // Final chi2 scale factor so calculated chi2s correspond to TTTrack output bins 
+    int kfoutchi2ScaleFactor_;
+    // Max number of tracks per link per event
+    int kfoutmaxTracksPerEvent_;
 
     // Parameter specifying DuplicateRemoval
     edm::ParameterSet pSetDR_;
