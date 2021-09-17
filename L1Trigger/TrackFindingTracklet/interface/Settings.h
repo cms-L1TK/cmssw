@@ -805,7 +805,7 @@ namespace trklet {
     // various printouts for debugging and warnings
     bool printDebugKF_{false};   // if true print lots of debugging statements related to the KF fit
     bool debugTracklet_{false};  //Print detailed debug information about tracklet tracking
-    bool writetrace_{false};     //Print out details about parsing configuration files
+    bool writetrace_{true};     //Print out details about parsing configuration files
 
     bool warnNoMem_{false};  //If true will print out warnings about missing projection memories
     bool warnNoDer_{false};  //If true will print out warnings about missing track fit derivatives

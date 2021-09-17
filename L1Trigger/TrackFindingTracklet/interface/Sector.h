@@ -50,6 +50,7 @@ namespace trklet {
   class TripletEngine;
   class TrackletCalculator;
   class TrackletProcessor;
+  class TrackletProcessorDisplaced;
   class TrackletCalculatorDisplaced;
   class ProjectionRouter;
   class MatchEngine;
@@ -108,6 +109,7 @@ namespace trklet {
     void executeTED();
     void executeTRE();
     void executeTP();
+    /* void executeTPD(); */
     void executeTC();
     void executeTCD();
     void executePR();
@@ -172,6 +174,7 @@ namespace trklet {
     std::vector<std::unique_ptr<TrackletEngineDisplaced> > TED_;
     std::vector<std::unique_ptr<TripletEngine> > TRE_;
     std::vector<std::unique_ptr<TrackletProcessor> > TP_;
+    std::vector<std::unique_ptr<TrackletProcessorDisplaced> > TPD_;
     std::vector<std::unique_ptr<TrackletCalculator> > TC_;
     std::vector<std::unique_ptr<TrackletCalculatorDisplaced> > TCD_;
     std::vector<std::unique_ptr<ProjectionRouter> > PR_;
