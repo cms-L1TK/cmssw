@@ -11,6 +11,7 @@ TTTracksFromTrackletEmulation = cms.EDProducer("L1FPGATrackProducer",
                                                BeamSpotSource = cms.InputTag("offlineBeamSpot"),
                                                asciiFileName = cms.untracked.string(""),
                                                Extended = cms.bool(False),
+                                               Reduced = cms.bool(False),
                                                Hnpar = cms.uint32(4),
                                                # (if running on CRAB use "../../fitpattern.txt" etc instead)
                                                fitPatternFile = cms.FileInPath('L1Trigger/TrackFindingTracklet/data/fitpattern.txt'),
@@ -24,6 +25,7 @@ TTTracksFromTrackletEmulation = cms.EDProducer("L1FPGATrackProducer",
 
 TTTracksFromExtendedTrackletEmulation = TTTracksFromTrackletEmulation.clone(
                                                Extended = cms.bool(True),
+                                               Reduced = cms.bool(False),
                                                Hnpar = cms.uint32(5),
                                                # specifying where the TrackletEngineDisplaced(TED)/TripletEngine(TRE) tables are located
                                                tableTEDFile = cms.FileInPath('L1Trigger/TrackFindingTracklet/data/table_TED/table_TED_D1PHIA1_D2PHIA1.txt'),
