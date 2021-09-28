@@ -16,7 +16,7 @@ GEOMETRY = "D49"
 # 'HYBRID' (baseline, 4par fit) or 'HYBRID_DISPLACED' (extended, 5par fit).
 # 'HYBRID_REDUCED' to use the "Summer Chain" configuration with reduced inputs
 # (Or legacy algos 'TMTT' or 'TRACKLET').
-L1TRKALGO = 'HYBRID_REDUCED'
+L1TRKALGO = 'HYBRID'
 
 WRITE_DATA = False
 
@@ -54,7 +54,7 @@ process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:phase2_realistic', '')
 # input and output
 ############################################################
 
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(1))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(10))
 
 #--- To use MCsamples scripts, defining functions get*data*(),
 #--- follow instructions https://cernbox.cern.ch/index.php/s/enCnnfUZ4cpK7mT
@@ -83,9 +83,9 @@ elif GEOMETRY == "D76":
 else:
   print("this is not a valid geometry!!!")
 
-#process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring(*inputMC))
+process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring(*inputMC))
 # Use skipEvents to select particular single events for test vectors
-process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring(*inputMC), skipEvents = cms.untracked.uint32(11))
+#process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring(*inputMC), skipEvents = cms.untracked.uint32(11))
 
 process.TFileService = cms.Service("TFileService", fileName = cms.string('TTbar_PU200_'+GEOMETRY+'.root'), closeFileFast = cms.untracked.bool(True))
 process.Timing = cms.Service("Timing", summaryOnly = cms.untracked.bool(True))
