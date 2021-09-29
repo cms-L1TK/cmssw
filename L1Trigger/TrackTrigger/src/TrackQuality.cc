@@ -11,7 +11,7 @@ C.Brown & C.Savard 07/2020
 
 TrackQuality::TrackQuality() {}
 
-TrackQuality::TrackQuality(const edm::ParameterSet& qualityParams) {
+TrackQuality::TrackQuality(const edm::ParameterSet& qualityParams):Setup_(),useHPH(false) {
   std::string AlgorithmString = qualityParams.getParameter<std::string>("qualityAlgorithm");
   // Unpacks EDM parameter set itself to save unecessary processing within TrackProducers
   if (AlgorithmString == "Cut") {
@@ -66,12 +66,6 @@ std::vector<float> TrackQuality::featureTransform(TTTrack<Ref_Phase2TrackerDigi_
 
   // iterate through bits of the hitpattern and compare to 1 filling the hitpattern binary vector
   int tmp_trk_hitpattern = aTrack.hitPattern();
-  for (int i = 6; i >= 0; i--) {
-    int k = tmp_trk_hitpattern >> i;
-    if (k & 1)
-      hitpattern_binary[i] = 1;
-  }
-
   // calculate number of missed interior layers from hitpattern
   int nbits = floor(log2(tmp_trk_hitpattern)) + 1;
   int lay_i = 0;
@@ -86,10 +80,20 @@ std::vector<float> TrackQuality::featureTransform(TTTrack<Ref_Phase2TrackerDigi_
       tmp_trk_nlaymiss_interior++;
   }
 
+  if (useHPH){
+  double tmp_trk_tanL = aTrack.tanL();
+  double tmp_trk_z0 = aTrack.z0();
+  HPH::HitPatternHelper hph(Setup_, tmp_trk_hitpattern, tmp_trk_tanL, tmp_trk_z0);
+  hitpattern_expanded_binary=hph.getbinary();
+  }else{
+  for (int i = 6; i >= 0; i--) {
+      int k = tmp_trk_hitpattern >> i;
+      if (k & 1)
+          hitpattern_binary[i] = 1;
+  }
   float eta = abs(aTrack.eta());
   int eta_size = static_cast<int>(eta_bins.size());
   // First iterate through eta bins
-
   for (int j = 1; j < eta_size; j++) {
     if (eta < eta_bins[j] && eta >= eta_bins[j - 1])  // if track in eta bin
     {
@@ -99,6 +103,7 @@ std::vector<float> TrackQuality::featureTransform(TTTrack<Ref_Phase2TrackerDigi_
         hitpattern_expanded_binary[hitmap[j - 1][k]] = hitpattern_binary[k];
       break;
     }
+  }
   }
 
   int tmp_trk_ltot = 0;
@@ -303,4 +308,9 @@ void TrackQuality::setONNXModel(std::string const& AlgorithmString,
   ONNXmodel_ = ONNXmodel;
   ONNXInputName_ = ONNXInputName;
   featureNames_ = featureNames;
+}
+
+void TrackQuality::setHPHsetup(const HPH::Setup* Setup){
+     Setup_ = Setup;
+     useHPH = true;
 }
