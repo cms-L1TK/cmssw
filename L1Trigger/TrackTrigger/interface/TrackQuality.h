@@ -61,7 +61,7 @@ public:
                     edm::FileInPath const& ONNXmodel,
                     std::string const& ONNXInputName,
                     std::vector<std::string> const& featureNames);
-    
+
   void setHPHsetup(const HPH::Setup* Setup);
 
 private:
