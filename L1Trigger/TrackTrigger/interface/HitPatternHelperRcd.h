@@ -14,10 +14,10 @@
 
 namespace HPH {
 
-    typedef edm::mpl::Vector<TrackerDigiGeometryRecord,TrackerTopologyRcd> Rcds;
+  typedef edm::mpl::Vector<TrackerDigiGeometryRecord, TrackerTopologyRcd> Rcds;
 
-    // record of HPH::SetupRcd
-    class SetupRcd : public edm::eventsetup::DependentRecordImplementation<SetupRcd, Rcds> {};
+  // record of HPH::SetupRcd
+  class SetupRcd : public edm::eventsetup::DependentRecordImplementation<SetupRcd, Rcds> {};
 
 }  // namespace HPH
 

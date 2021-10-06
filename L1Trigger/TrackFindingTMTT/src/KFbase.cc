@@ -758,7 +758,7 @@ namespace tmtt {
           }
           break;
           //case 5:  // B1 B2 B3+B4 D1 D2 D3 D4/D5
-        case 5:  
+        case 5:
           if (layerIDreduced == 5) {
             kalmanLay = 5;
           } else if (layerIDreduced == 7) {
