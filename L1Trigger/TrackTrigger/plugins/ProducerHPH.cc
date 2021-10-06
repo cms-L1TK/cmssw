@@ -31,17 +31,15 @@ namespace HPH {
   };
 
   ProducerHPH::ProducerHPH(const ParameterSet& iConfig) : iConfig_(iConfig) {
-      auto cc = setWhatProduced(this);
-      getTokenTrackerGeometry_ = cc.consumes();
-      getTokenTrackerTopology_ = cc.consumes();
+    auto cc = setWhatProduced(this);
+    getTokenTrackerGeometry_ = cc.consumes();
+    getTokenTrackerTopology_ = cc.consumes();
   }
 
   unique_ptr<Setup> ProducerHPH::produce(const SetupRcd& Rcd) {
     const TrackerGeometry& trackerGeometry = Rcd.get(getTokenTrackerGeometry_);
     const TrackerTopology& trackerTopology = Rcd.get(getTokenTrackerTopology_);
-    return make_unique<Setup>(iConfig_,
-                              trackerGeometry,
-                              trackerTopology);
+    return make_unique<Setup>(iConfig_, trackerGeometry, trackerTopology);
   }
 
 }  // namespace HPH
