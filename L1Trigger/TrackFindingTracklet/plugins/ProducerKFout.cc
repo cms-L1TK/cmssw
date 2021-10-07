@@ -299,12 +299,6 @@ namespace trackFindingTracklet {
                              // 4       + 12    +  15  +    1
           TTBV PartialTrack3((Chi2rphi + phi0  + InvR + TrackValid),32,false);
 
-          //TTBV PartialTrack1(0,32,false);
-                             // 4       + 12    + 16
-          //TTBV PartialTrack2(0,32,false);
-                             // 4       + 12    +  15  +    1
-          //TTBV PartialTrack3(InvR,32,false);
-
           // Sort Tracks based on eta
           if (iLink % 2 == 0){
             if (TsectorEta.val() < 8){
@@ -335,23 +329,12 @@ namespace trackFindingTracklet {
             }
  
           }
-        } // Trcks
+        } // Tracks
       } // Links
 
-
-      // perform KFout emulation and fill accepted and lost
-      // StreamsTrack is a vector of StreamTrack which is a vector of FrameTrack which is a pair of an edm::Ref<TTTrack> and std::bitset<64>
-      // the std::bitset<64> are the frames of an emp link
-      // the edm::Ref<TTTrack> is used to meassure tracking efficiency
-      // your input streamsTracks contain edm::Ref<TTTrack> to KF input TTTracks
-      // use ttTrackRefMap to lookup edm::Ref<TTTrack> of KF output TTTracks, that allows us to meassure the tracking efficiency after the KFout block
-      // your output frames belong to either only one TTTrack or to two, in the later case chose any edm::Ref<TTTrack> of the two
-       
       // Fill products and match up tracks
       TTBV NullBitTrack(0,32,false);
       for (int iLink = 0; iLink < (int)OutputStreamsTracks.size(); iLink++ ){
-        
-        
         // Iterate through partial tracks
         int numLinkTracks = (int)OutputStreamsTracks[iLink].size();
         std::cout << SortedPartialTracks[iLink].size() << " " << OutputStreamsTracks[iLink].size() << std::endl;
@@ -366,12 +349,8 @@ namespace trackFindingTracklet {
           for (int iTrack = 0; iTrack < (int)(SortedPartialTracks[iLink].size()); iTrack++ ){  
             std::cout << iLink << " " << iTrack << " PT - " << SortedPartialTracks[iLink][iTrack].resize(32).bs().to_string() << std::endl;
             if (iTrack % 2 == 1){
-              //std::cout << iLink << "MT - " << (SortedPartialTracks[iLink][iTrack].slice(32) + SortedPartialTracks[iLink][iTrack-1].slice(32)).bs()  << std::endl;
               if ((int)iTrack/3 <= maxTracksPerEvent){
-                std::cout << iLink << " " << iTrack << " PT! - " << SortedPartialTracks[iLink][iTrack].resize(32).bs().to_string() << std::endl;
-                std::cout << iLink << " " << iTrack << " PT! - " << SortedPartialTracks[iLink][iTrack-1].resize(32).bs().to_string() << std::endl;
                 accepted[iLink].emplace_back(std::make_pair(ttTrackRefMap.at(OutputStreamsTracks[iLink][(int)(iTrack-1)/3].first),(SortedPartialTracks[iLink][iTrack].slice(32) + SortedPartialTracks[iLink][iTrack-1].slice(32)).bs()));
-                
               }
               else{
                 lost[iLink].emplace_back(std::make_pair(ttTrackRefMap.at(OutputStreamsTracks[iLink][(int)(iTrack-1)/3].first),(SortedPartialTracks[iLink][iTrack].slice(32) + SortedPartialTracks[iLink][iTrack-1].slice(32)).bs()));
@@ -386,9 +365,6 @@ namespace trackFindingTracklet {
     iEvent.emplace(edPutTokenAccepted_, move(accepted));
     iEvent.emplace(edPutTokenLost_, move(lost));
   }
-
-
-
 } // namespace trackFindingTracklet
 
 DEFINE_FWK_MODULE(trackFindingTracklet::ProducerKFout);
