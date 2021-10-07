@@ -199,12 +199,12 @@ namespace trackFindingTracklet {
       const TTTrackRefMap& ttTrackRefMap = *handleTTTrackRefMap.product();
       // 18 Output Links (First Vector) each has a vector of tracks per event (second vector) each track is 3 32 bit TTBV partial tracks 
       vector<vector<TTBV>> SortedPartialTracks(setup_->numRegions() * setup_->tfpNumChannel(),vector<TTBV>(0));   
+      StreamsTrack OutputStreamsTracks(setup_->numRegions() * setup_->tfpNumChannel());
 
       for (int iLink = 0; iLink < (int)streamsTracks.size(); iLink++ ){
 
         for (int iTrack = 0; iTrack < (int)streamsTracks[iLink].size(); iTrack++ ){
-          std::cout << "Link: " << iLink << " Num Tracks: " << streamsTracks[iLink].size() << std::endl;
-          auto track = streamsTracks[iLink][iTrack];
+          auto track = streamsTracks[iLink].at(iTrack);
 
           std::vector<TTBV> Svalids;
           std::vector<TTBV> Srs;
@@ -242,21 +242,11 @@ namespace trackFindingTracklet {
         
           TTBV HitPattern(0,setup_->numLayers());
 
-          //std::cout << "From Track Bits " << InputLinkTrack << std::endl;
-          //std::cout << Tvalid.val() << " | ";
-          //std::cout << TinvR.val()   << " | ";
-          //std::cout << TphiT.val()   << " | ";
-          //std::cout << Tcot.val()   << " | ";
-          //std::cout << TzT.val()  << " | ";
-          //std::cout << TsectorPhi.val()   << " | ";
-          //std::cout << TsectorEta.val()   << " | ";
-          //std::cout << Tmatch.val()  << std::endl;
-
           int tempchi2rphi = 0;
           int tempchi2rz   = 0;
 
           for (int iStub = 0; iStub < setup_->numLayers() - 1; iStub++ ){
-            auto stub = streamsStubs[setup_->numLayers()*iLink+iStub][iTrack];
+            auto stub = streamsStubs[setup_->numLayers()*iLink+iStub].at(iTrack);
             TTBV InputLinkStub(stub.second);
 
             // Unpack and store stub bits  
@@ -288,16 +278,8 @@ namespace trackFindingTracklet {
               tempchi2rphi += tempRphi / chi2ScaleFactor;
               tempchi2rz   += tempRz / chi2ScaleFactor;
             }
-
-            //std::cout << "From Stub Bits " << InputLinkStub << std::endl;
-            //std::cout << Svalid.val() << " | ";
-            //std::cout << Sr.val()  << " | ";
-            //std::cout << Sphi.val()  << " | ";
-            //std::cout << Sz.val() << " | ";
-            //std::cout << SdPhi.val()  << " | ";
-            //std::cout << SdZ.val()  << std::endl;
           }
-          // TODO extract TTTrack bit widths from TTTrack word
+          // TODO extract TTTrack bit widths from TTTrack word pending update to the TTTrack_word class
           TTBV TrackValid(Tvalid,1,false);
           TTBV extraMVA(0,6,false);
           TTBV TQMVA(0,3,false);
@@ -308,51 +290,48 @@ namespace trackFindingTracklet {
           TTBV z0(temp_z0 ,12,true);
           TTBV TanL(temp_tanL,16,true);
           TTBV phi0(temp_phi0 ,12,true);
-          TTBV InvR(-1*TinvR.val() ,15,true );
+          TTBV InvR(-1*TinvR.val() ,16,true );
 
                               // 6      +   3   +   7        +  3       + 13
-          TTBV PartialTrack1 = extraMVA + TQMVA + HitPattern + BendChi2 + D0;
+          TTBV PartialTrack1((extraMVA + TQMVA + HitPattern + BendChi2 + D0),32,false);
                              // 4       + 12    + 16
-          TTBV PartialTrack2 = Chi2rz   + z0    + TanL;
+          TTBV PartialTrack2((Chi2rz   + z0    + TanL),32,false);
                              // 4       + 12    +  15  +    1
-          TTBV PartialTrack3 = Chi2rphi + phi0  + InvR + TrackValid;
+          TTBV PartialTrack3((Chi2rphi + phi0  + InvR + TrackValid),32,false);
 
-          //std::cout << "From TTTrack Emulator " << PartialTrack1 << " " << PartialTrack2 << " " << PartialTrack3 << std::endl;
-          //std::cout << TrackValid.val() << " | ";
-          //std::cout << InvR.val()   << " | ";
-          //std::cout << phi0.val()   << " | ";
-          //std::cout << TanL.val()   << " | ";
-          //std::cout << z0.val()  << " | ";
-          //std::cout << Chi2rz.val()   << " | ";
-          //std::cout << Chi2rphi.val()   << " | ";
-          //std::cout << HitPattern.val() << std::endl;
-
+          //TTBV PartialTrack1(0,32,false);
+                             // 4       + 12    + 16
+          //TTBV PartialTrack2(0,32,false);
+                             // 4       + 12    +  15  +    1
+          //TTBV PartialTrack3(InvR,32,false);
 
           // Sort Tracks based on eta
-
-          if (Tcot.val() > 0){
-            if (iLink % 2 == 0){
-              SortedPartialTracks[iLink].push_back(PartialTrack1);
-              SortedPartialTracks[iLink].push_back(PartialTrack2);
-              SortedPartialTracks[iLink].push_back(PartialTrack3);
+          if (iLink % 2 == 0){
+            if (TsectorEta.val() < 8){
+                SortedPartialTracks[iLink].push_back(PartialTrack1);
+                SortedPartialTracks[iLink].push_back(PartialTrack2);
+                SortedPartialTracks[iLink].push_back(PartialTrack3);
+                OutputStreamsTracks[iLink].emplace_back(track);
+              }
+              else{
+                SortedPartialTracks[iLink+1].push_back(PartialTrack1);
+                SortedPartialTracks[iLink+1].push_back(PartialTrack2);
+                SortedPartialTracks[iLink+1].push_back(PartialTrack3);
+                OutputStreamsTracks[iLink+1].emplace_back(track);
+              }
             }
-            else{
+          else{
+            if (TsectorEta.val() < 8){
               SortedPartialTracks[iLink-1].push_back(PartialTrack1);
               SortedPartialTracks[iLink-1].push_back(PartialTrack2);
               SortedPartialTracks[iLink-1].push_back(PartialTrack3);
-            }
-
-          }
-          else{
-            if (iLink % 2 == 0){
-              SortedPartialTracks[iLink+1].push_back(PartialTrack1);
-              SortedPartialTracks[iLink+1].push_back(PartialTrack2);
-              SortedPartialTracks[iLink+1].push_back(PartialTrack3);
+              OutputStreamsTracks[iLink-1].emplace_back(track);
             }
             else{
               SortedPartialTracks[iLink].push_back(PartialTrack1);
               SortedPartialTracks[iLink].push_back(PartialTrack2);
               SortedPartialTracks[iLink].push_back(PartialTrack3);
+              OutputStreamsTracks[iLink].emplace_back(track);
             }
  
           }
@@ -369,19 +348,34 @@ namespace trackFindingTracklet {
       // your output frames belong to either only one TTTrack or to two, in the later case chose any edm::Ref<TTTrack> of the two
        
       // Fill products and match up tracks
-      for (int iLink = 0; iLink < (int)streamsTracks.size(); iLink++ ){
+      TTBV NullBitTrack(0,32,false);
+      for (int iLink = 0; iLink < (int)OutputStreamsTracks.size(); iLink++ ){
+        
+        
         // Iterate through partial tracks
-        int numLinkTracks = 3*(int)streamsTracks[iLink].size();
-        if (numLinkTracks % 2 != 0) { numLinkTracks++;}
-        for (int iTrack = 0; iTrack <= numLinkTracks; iTrack++ ){
-          
-          if (iTrack % 2 == 0){
-            // TODO actually make ttTrackRefMap work properly
-            if (iTrack <= maxTracksPerEvent){
-              accepted[iLink].emplace_back(std::make_pair(ttTrackRefMap.at(streamsTracks[iLink][(int)iTrack/3].first),(SortedPartialTracks[iLink][iTrack] + SortedPartialTracks[iLink][iTrack+1]).bs() ));
-            }
-            else{
-              lost[iLink].emplace_back(std::make_pair(ttTrackRefMap.at(streamsTracks[iLink][(int)iTrack/3].first),(SortedPartialTracks[iLink][iTrack] + SortedPartialTracks[iLink][iTrack+1]).bs() ));
+        int numLinkTracks = (int)OutputStreamsTracks[iLink].size();
+        std::cout << SortedPartialTracks[iLink].size() << " " << OutputStreamsTracks[iLink].size() << std::endl;
+
+        if (numLinkTracks > 0){
+          if ((numLinkTracks % 2 != 0)) { 
+            SortedPartialTracks[iLink].push_back(NullBitTrack);
+            OutputStreamsTracks[iLink].emplace_back(OutputStreamsTracks[iLink][numLinkTracks]);
+            numLinkTracks++;
+            } //If there is an odd number of tracks 
+          std::cout << SortedPartialTracks[iLink].size() << " " << OutputStreamsTracks[iLink].size() << std::endl;
+          for (int iTrack = 0; iTrack < (int)(SortedPartialTracks[iLink].size()); iTrack++ ){  
+            std::cout << iLink << " " << iTrack << " PT - " << SortedPartialTracks[iLink][iTrack].resize(32).bs().to_string() << std::endl;
+            if (iTrack % 2 == 1){
+              //std::cout << iLink << "MT - " << (SortedPartialTracks[iLink][iTrack].slice(32) + SortedPartialTracks[iLink][iTrack-1].slice(32)).bs()  << std::endl;
+              if ((int)iTrack/3 <= maxTracksPerEvent){
+                std::cout << iLink << " " << iTrack << " PT! - " << SortedPartialTracks[iLink][iTrack].resize(32).bs().to_string() << std::endl;
+                std::cout << iLink << " " << iTrack << " PT! - " << SortedPartialTracks[iLink][iTrack-1].resize(32).bs().to_string() << std::endl;
+                accepted[iLink].emplace_back(std::make_pair(ttTrackRefMap.at(OutputStreamsTracks[iLink][(int)(iTrack-1)/3].first),(SortedPartialTracks[iLink][iTrack].slice(32) + SortedPartialTracks[iLink][iTrack-1].slice(32)).bs()));
+                
+              }
+              else{
+                lost[iLink].emplace_back(std::make_pair(ttTrackRefMap.at(OutputStreamsTracks[iLink][(int)(iTrack-1)/3].first),(SortedPartialTracks[iLink][iTrack].slice(32) + SortedPartialTracks[iLink][iTrack-1].slice(32)).bs()));
+              }
             }
           }
         }

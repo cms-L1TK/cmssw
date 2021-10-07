@@ -62,11 +62,13 @@ namespace trackerTFP {
     const string& labelOut = iConfig.getParameter<string>("LabelOut");
     const string& branchStubs = iConfig.getParameter<string>("BranchAcceptedStubs");
     const string& branchTracks = iConfig.getParameter<string>("BranchAcceptedTracks");
+
     edGetTokenStubsIn_ = consumes<StreamsStub>(InputTag(labelIn, branchStubs));
-    edGetTokenStubsOut_ = consumes<StreamsStub>(InputTag(labelOut, branchStubs));
+    if (labelOut != "TrackFindingTrackletProducerKFout")
+      edGetTokenStubsOut_ = consumes<StreamsStub>(InputTag(labelOut, branchStubs));
     if (labelIn == "TrackerTFPProducerKFin" || labelIn == "TrackerTFPProducerKF" || labelIn == "TrackFindingTrackletProducerKFin" || labelIn == "TrackFindingTrackletProducerKF")
       edGetTokenTracksIn_ = consumes<StreamsTrack>(InputTag(labelIn, branchTracks));
-    if (labelOut == "TrackerTFPProducerKF" || labelOut == "TrackerTFPProducerDR" || labelOut == "TrackFindingTrackletProducerKF")
+    if (labelOut == "TrackerTFPProducerKF" || labelOut == "TrackerTFPProducerDR" || labelOut == "TrackFindingTrackletProducerKF" || labelOut == "TrackFindingTrackletProducerKFout")
       edGetTokenTracksOut_ = consumes<StreamsTrack>(InputTag(labelOut, branchTracks));
     // book ES products
     esGetTokenSetup_ = esConsumes<Setup, SetupRcd, Transition::BeginRun>();
@@ -94,10 +96,14 @@ namespace trackerTFP {
   //
   void AnalyzerDemonstrator::convert(const Event& iEvent, const EDGetTokenT<StreamsTrack>& tokenTracks, const EDGetTokenT<StreamsStub>& tokenStubs, vector<vector<Frame>>& bits) const {
     const bool tracks = !tokenTracks.isUninitialized();
+    const bool stubs = !tokenStubs.isUninitialized();
     Handle<StreamsStub> handleStubs;
     Handle<StreamsTrack> handleTracks;
-    iEvent.getByToken<StreamsStub>(tokenStubs, handleStubs);
-    int numChannelStubs = handleStubs->size();
+    int numChannelStubs(0);
+    if (stubs){
+      iEvent.getByToken<StreamsStub>(tokenStubs, handleStubs);
+      numChannelStubs = handleStubs->size();
+    }
     int numChannelTracks(0);
     if (tracks) {
       iEvent.getByToken<StreamsTrack>(tokenTracks, handleTracks);
@@ -112,11 +118,14 @@ namespace trackerTFP {
         const int offsetStubs = (region * numChannelTracks + channelTracks) * numChannelStubs;
         if (tracks)
           convert(handleTracks->at(offsetTracks + channelTracks), bits);
-        for (int channelStubs = 0; channelStubs < numChannelStubs; channelStubs++)
-          convert(handleStubs->at(offsetStubs + channelStubs), bits);
+        if (stubs){
+          for (int channelStubs = 0; channelStubs < numChannelStubs; channelStubs++)
+            convert(handleStubs->at(offsetStubs + channelStubs), bits);
+        }
       }
     }
   }
+
 
   //
   template<typename T>
