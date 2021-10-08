@@ -16,7 +16,7 @@
 using namespace std;
 using namespace edm;
 
-namespace HPH {
+namespace hph {
 
   class ProducerHPH : public ESProducer {
   public:
@@ -42,6 +42,6 @@ namespace HPH {
     return make_unique<Setup>(iConfig_, trackerGeometry, trackerTopology);
   }
 
-}  // namespace HPH
+}  // namespace hph
 
-DEFINE_FWK_EVENTSETUP_MODULE(HPH::ProducerHPH);
+DEFINE_FWK_EVENTSETUP_MODULE(hph::ProducerHPH);
