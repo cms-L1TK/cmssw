@@ -1,13 +1,13 @@
-//  This is a helper function that can be used to decode hitpattern, which is a 7-bit integer produced by KF.
+// This is a helper function that can be used to decode hitpattern, which is a 7-bit integer produced by KF.
 //
-//  There are three classes declared in HitPatternHelper (HPH) namesapce:
-//  1)SensorModule: This is used to store important information about the sensor modules. For example: r,z coordinates.
-//  2)Setup: This is used to produce a collection of <SensorModule> needed by HPH.
-//  3)HitPatternHelper: This is used to decode hitpattern with the help of the information from sensor modules and layermap.
+// There are three classes declared in HitPatternHelper (HPH) namesapce:
+// 1)SensorModule: This is used to store important information about the sensor modules. For example r,z coordinates.
+// 2)Setup: This is used to produce a collection of <SensorModule> needed by HPH.
+// 3)HitPatternHelper: This is used to decode hitpattern with the help of the information from sensor modules and layermap.
 //
-//  Two predictions on which layers particls will hit are made using different information:
-//  i)Loop over sensor modules and make predictions based on spactial coordinates of tracks. This prediction is considerd more accurate.
-//  ii)Make predictions based on a hard coded layermap. This prediction is considered less accurate and is used by Old KF to encode hitpattern.
+// Two predictions on which layers particles will hit are made using different information:
+// i)Loop over sensor modules and make predictions based on spatial coordinates of tracks. This prediction is considered more accurate.
+// ii)Make predictions based on a hard-coded layermap. This prediction is considered less accurate and is used by Old KF to encode hitpattern.
 //
 //
 //  Created by J.Li on 1/23/21.
@@ -114,7 +114,7 @@ namespace HPH {
     int getnumMissingInterior2() {
       return numMissingInterior2_;
     }  //The number of missing interior layers (using hitpattern and sensor modules)
-    std::vector<int> getbinary() { return binary_; }  //11-bit hitmask needed by TrackQuality.cc
+    std::vector<int> getbinary() { return binary_; }  //11-bit hitmask needed by TrackQuality.cc (0~5->L1~L6;6~10->D1~D5)
     static auto smallerID(SensorModule lhs, SensorModule rhs) { return lhs.layerid() < rhs.layerid(); }
     static auto equalID(SensorModule lhs, SensorModule rhs) { return lhs.layerid() == rhs.layerid(); }
 
