@@ -61,44 +61,24 @@ namespace trackFindingTracklet {
     // helper class to extract structured data from TTDTC::Frames
     const DataFormats* dataFormats_;
     // Cot bins used to convert from cot to TanL
-    vector<int> cotBins;
+    vector<double> cotBins_;
     // Factors used to convert between phi/Z at a radius T, modified to include scale conversions needed in calculation
-    double modChosenRofZ = 0;
-    double modChosenRofPhi = 0;
+    double modChosenRofZ_ = 0;
+    double modChosenRofPhi_ = 0;
     // Corrections to Phi depending on which phi sector
-    int BaseSectorCorr = 0;
-    int UnsignedBaseSector = 0;
-    // Redefine these here to avoid impossible to read code later
-    // Widths used for each part of data stored in the KF track and KF stubs
-    int wTm = 0;
-    int wTSp = 0;
-    int wTSe = 0;
-    int wTphi = 0;
-    int wTinvR = 0;
-    int wTcot = 0;
-    int wTz = 0;
-
-    int wSr = 0;
-    int wSphi = 0;
-    int wSz  = 0;
-    int wSdPhi = 0;
-    int wSdZ = 0;
-
-    int chi2rphiConv = 0;
-    int chi2rzConv = 0;
+    double BaseSectorCorr_ = 0;
+    double UnsignedBaseSector_ = 0;
     // Bins for dPhi/dZ use to access weight LUT below
-    vector<int> dPhiBins;
-    vector<int> dZBins;
+    vector<double> dPhiBins_;
+    vector<double> dZBins_;
     // LUT for weighting functions for chi2 calculation
-    vector<int> v0Bins;
-    vector<int> v1Bins;
+    vector<double> v0Bins_;
+    vector<double> v1Bins_;
     // Bins for final Chi2 Packing
-    vector<double> chi2rphiBins;
-    vector<double> chi2rzBins;
+    vector<double> chi2rphiBins_;
+    vector<double> chi2rzBins_;
 
-    int chi2ScaleFactor;
-
-    int maxTracksPerEvent;
+    int maxTracksPerEvent_;
   };
 
   ProducerKFout::ProducerKFout(const ParameterSet& iConfig) :
@@ -134,43 +114,27 @@ namespace trackFindingTracklet {
     // helper class to extract structured data from TTDTC::Frames
     dataFormats_ = &iSetup.getData(esGetTokenDataFormats_);
 
-    for (int i = 0; i < setup_->numSectorsEta(); i++){
-      cotBins.push_back(setup_->sectorCot(i)*(1/dataFormats_->base(Variable::cot,Process::kf)));
-    };
-    modChosenRofZ = setup_->chosenRofZ() * (dataFormats_->base(Variable::cot,Process::kf) / dataFormats_->base(Variable::zT,Process::kf));
-    modChosenRofPhi = setup_->hybridChosenRofPhi() * dataFormats_->base(Variable::inv2R,Process::kf) / dataFormats_->base(Variable::phiT,Process::kf);
+    for (int i = 0; i < setup_->numSectorsEta(); i++) cotBins_.push_back(setup_->sectorCot(i));
 
-    UnsignedBaseSector = (M_PI / (double)(setup_->numRegions() * setup_->numSectorsPhi()) ) / (dataFormats_->base(Variable::phiT,Process::kf)); 
+    modChosenRofZ_ = setup_->chosenRofZ();
+    modChosenRofPhi_ = setup_->hybridChosenRofPhi();
 
-    wTm    = dataFormats_->width(Variable::match,Process::kf);
-    wTSp   = dataFormats_->width(Variable::sectorPhi,Process::kf);
-    wTSe   = dataFormats_->width(Variable::sectorEta,Process::kf);
-    wTphi  = dataFormats_->width(Variable::phiT,Process::kf);
-    wTinvR = dataFormats_->width(Variable::inv2R,Process::kf);
-    wTcot  = dataFormats_->width(Variable::cot,Process::kf);
-    wTz    = dataFormats_->width(Variable::zT,Process::kf);
-
-    wSr    = dataFormats_->width(Variable::r,Process::kf);
-    wSphi  = dataFormats_->width(Variable::phi,Process::kf);
-    wSz    = dataFormats_->width(Variable::z,Process::kf);
-    wSdPhi = dataFormats_->width(Variable::dPhi,Process::kf);
-    wSdZ   = dataFormats_->width(Variable::dZ,Process::kf);
-
-    dPhiBins = setup_->kfoutdPhiBins();
-    dZBins   = setup_->kfoutdZBins();
-    v0Bins   = setup_->kfoutv0Bins();
-    v1Bins   = setup_->kfoutv1Bins();
-
-    chi2rphiBins = setup_->kfoutchi2rphiBins();
-    chi2rzBins   = setup_->kfoutchi2rzBins();
-
-    chi2rphiConv = setup_->kfoutchi2rphiConv();
-    chi2rzConv   = setup_->kfoutchi2rzConv();
-
-    chi2ScaleFactor = setup_->kfoutchi2ScaleFactor();
-
-    maxTracksPerEvent = setup_->kfoutmaxTracksPerEvent();
-
+    UnsignedBaseSector_ = (M_PI / (double)(setup_->numRegions() * setup_->numSectorsPhi()) );
+    
+    // Convert Integer bins to doubles for internal calculation
+    for(size_t i = 0; i < setup_->kfoutdPhiBins().size(); i++)
+      dPhiBins_.push_back((double)setup_->kfoutdPhiBins()[i] * dataFormats_->base(Variable::dPhi, Process::kfin));
+    for(size_t i = 0; i < setup_->kfoutdZBins().size(); i++) 
+      dZBins_.push_back((double)setup_->kfoutdZBins()[i] * dataFormats_->base(Variable::dZ, Process::kfin));
+    for(size_t i = 0; i < setup_->kfoutv0Bins().size(); i++) 
+      v0Bins_.push_back(setup_->kfoutv0Bins()[i]*dataFormats_->base(Variable::dPhi, Process::kfin));
+    for(size_t i = 0; i < setup_->kfoutv1Bins().size(); i++) 
+      v1Bins_.push_back(setup_->kfoutv1Bins()[i]*dataFormats_->base(Variable::dZ, Process::kfin));
+    for(size_t i = 0; i < setup_->kfoutchi2rphiBins().size(); i++)
+      chi2rphiBins_.push_back((double)setup_->kfoutchi2rphiBins()[i] *setup_->kfoutchi2rphiConv() * pow(dataFormats_->base(Variable::dPhi, Process::kfin),3));
+    for(size_t i = 0; i < setup_->kfoutchi2rzBins().size(); i++)
+      chi2rzBins_.push_back((double)setup_->kfoutchi2rzBins()[i] *setup_->kfoutchi2rzConv() * pow(dataFormats_->base(Variable::dZ, Process::kfin),3));
+    maxTracksPerEvent_ = setup_->numFramesIO() * setup_->clockRatio();
   }
 
 
@@ -205,92 +169,55 @@ namespace trackFindingTracklet {
 
         for (int iTrack = 0; iTrack < (int)streamsTracks[iLink].size(); iTrack++ ){
           auto track = streamsTracks[iLink].at(iTrack);
-
-          std::vector<TTBV> Svalids;
-          std::vector<TTBV> Srs;
-          std::vector<TTBV> Sphis;
-          std::vector<TTBV> Szs;
-          std::vector<TTBV> SdPhis;
-          std::vector<TTBV> SdZs;
-
-          // Create bit vector (gives us all the slicing etc. )
-          TTBV InputLinkTrack(track.second);
-          // Slice Constructor (const TTBV& ttBV, int begin, int end = 0, bool twos =  false)
-          // Unpack KF track 
-          TTBV Tvalid(     InputLinkTrack , wTz + wTcot + wTinvR + wTphi + wTSe + wTSp + wTm + 1, wTz + wTcot + wTinvR + wTphi + wTSe + wTSp + wTm , false );
-          TTBV Tmatch(     InputLinkTrack , wTz + wTcot + wTinvR + wTphi + wTSe + wTSp + wTm    , wTz + wTcot + wTinvR + wTphi + wTSe + wTSp , false );
-          TTBV TsectorPhi( InputLinkTrack , wTz + wTcot + wTinvR + wTphi + wTSe + wTSp          , wTz + wTcot + wTinvR + wTphi + wTSe , false );
-          TTBV TsectorEta( InputLinkTrack , wTz + wTcot + wTinvR + wTphi + wTSe                 , wTz + wTcot + wTinvR + wTphi , false );
-          TTBV TphiT(      InputLinkTrack , wTz + wTcot + wTinvR + wTphi                        , wTz + wTcot + wTinvR , true );
-          TTBV TinvR(      InputLinkTrack , wTz + wTcot + wTinvR                                , wTz + wTcot , true );
-          TTBV Tcot(       InputLinkTrack , wTz + wTcot                                         , wTz , true );
-          TTBV TzT(        InputLinkTrack , wTz                                                 , 0 , true );
-
-          int temp_z0 = TzT.val() - ((Tcot.val() * modChosenRofZ));
+          TrackKF InTrack(track,dataFormats_);
+          
+          double temp_z0 = InTrack.zT() - ((InTrack.cot() * setup_->chosenRofZ()));
 
           // Correction to Phi calcuation depending if +ve/-ve phi sector
-          if (TsectorPhi.val() == 0) {
-            BaseSectorCorr = -UnsignedBaseSector;
-          }
-          else{
-            BaseSectorCorr = UnsignedBaseSector;
-          }
+          if (InTrack.sectorPhi() == 0) BaseSectorCorr_ = -UnsignedBaseSector_;
+          else BaseSectorCorr_ = UnsignedBaseSector_;
 
-          int temp_phi0 = TphiT.val() - ((TinvR.val()) * modChosenRofPhi) + BaseSectorCorr;
+          double temp_phi0 = InTrack.phiT() - ((InTrack.inv2R()) * setup_->hybridChosenRofPhi()) + BaseSectorCorr_;
           
-          int temp_tanL = cotBins[TsectorEta.val()] + Tcot.val();
+          double temp_tanL = cotBins_[InTrack.sectorEta()] + InTrack.cot();
         
           TTBV HitPattern(0,setup_->numLayers());
 
-          int tempchi2rphi = 0;
-          int tempchi2rz   = 0;
+          double tempchi2rphi = 0;
+          double tempchi2rz   = 0;
 
           for (int iStub = 0; iStub < setup_->numLayers() - 1; iStub++ ){
             auto stub = streamsStubs[setup_->numLayers()*iLink+iStub].at(iTrack);
-            TTBV InputLinkStub(stub.second);
+            StubKF InStub(stub,dataFormats_,iStub);
 
-            // Unpack and store stub bits  
-            TTBV Svalid( InputLinkStub , wSdZ + wSdPhi + wSz + wSphi + wSr + 1 , wSdZ + wSdPhi + wSz + wSphi + wSr , false );
-            TTBV Sr(     InputLinkStub , wSdZ + wSdPhi + wSz + wSphi + wSr     , wSdZ + wSdPhi + wSz+ wSphi , true );
-            TTBV Sphi(   InputLinkStub , wSdZ + wSdPhi + wSz + wSphi           , wSdZ + wSdPhi + wSz , true );
-            TTBV Sz(     InputLinkStub , wSdZ + wSdPhi + wSz                   , wSdZ + wSdPhi , true );
-            TTBV SdPhi(  InputLinkStub , wSdZ + wSdPhi                         , wSdZ , true );
-            TTBV SdZ(    InputLinkStub , wSdZ                                  , 0 , true );
-
-            if (Svalid.val() == 1){
+            if (stub.first.isNonnull()){
               HitPattern.set(iStub);
-              Svalids.push_back(Svalid);
-              Srs.push_back(Sr);
-              Sphis.push_back(Sphi);
-              Szs.push_back(Sz);
-              SdPhis.push_back(SdPhi);
-              SdZs.push_back(SdZ);
 
-              int phiSquared = Sphi.val() * Sphi.val();
-              int zSquared   = Sz.val() * Sz.val();
+              double phiSquared = InStub.phi() * InStub.phi();
+              double zSquared   = InStub.z() * InStub.z();
 
-              int tempv0 = (v0Bins[digitise(dPhiBins, SdPhi.val())]);
-              int tempv1 = (v1Bins[digitise(dZBins  , SdZ.val())]);
+              double tempv0 = (v0Bins_[digitise(dPhiBins_, InStub.dPhi())]);
+              double tempv1 = (v1Bins_[digitise(dZBins_  , InStub.dZ())]);
 
-              int tempRphi = phiSquared * tempv0;
-              int tempRz   = zSquared * tempv1;
+              double tempRphi = phiSquared * tempv0;
+              double tempRz   = zSquared * tempv1;
 
-              tempchi2rphi += tempRphi / chi2ScaleFactor;
-              tempchi2rz   += tempRz / chi2ScaleFactor;
+              tempchi2rphi += tempRphi;
+              tempchi2rz   += tempRz;
             }
           }
           // TODO extract TTTrack bit widths from TTTrack word pending update to the TTTrack_word class
-          TTBV TrackValid(Tvalid,1,false);
+          TTBV TrackValid(1,1,false);
           TTBV extraMVA(0,6,false);
           TTBV TQMVA(0,3,false);
           TTBV BendChi2(0,3,false); 
-          TTBV Chi2rphi(digitise(chi2rphiBins,(double)tempchi2rphi,(double)chi2rphiConv),4,false);
-          TTBV Chi2rz(digitise(chi2rzBins,(double)tempchi2rz,(double)chi2rzConv),4,false);
+          TTBV Chi2rphi(digitise(chi2rphiBins_,tempchi2rphi),4,false);
+          TTBV Chi2rz(digitise(chi2rzBins_,tempchi2rz),4,false);
           TTBV D0(0,13,false);
-          TTBV z0(temp_z0 ,12,true);
-          TTBV TanL(temp_tanL,16,true);
-          TTBV phi0(temp_phi0 ,12,true);
-          TTBV InvR(-1*TinvR.val() ,16,true );
+          TTBV z0(temp_z0 ,dataFormats_->base(Variable::zT,Process::kf) ,12,true);
+          TTBV TanL(temp_tanL,dataFormats_->base(Variable::cot,Process::kf),16,true);
+          TTBV phi0(temp_phi0,dataFormats_->base(Variable::phiT,Process::kf),12,true);
+          TTBV InvR(-1*InTrack.inv2R(),dataFormats_->base(Variable::inv2R,Process::kf) ,16,true );
 
                               // 6      +   3   +   7        +  3       + 13
           TTBV PartialTrack1((extraMVA + TQMVA + HitPattern + BendChi2 + D0),32,false);
@@ -301,7 +228,7 @@ namespace trackFindingTracklet {
 
           // Sort Tracks based on eta
           if (iLink % 2 == 0){
-            if (TsectorEta.val() < (int)(setup_->numSectorsEta()/2)){
+            if (InTrack.sectorEta() < (int)(setup_->numSectorsEta()/2)){
                 SortedPartialTracks[iLink].push_back(PartialTrack1);
                 SortedPartialTracks[iLink].push_back(PartialTrack2);
                 SortedPartialTracks[iLink].push_back(PartialTrack3);
@@ -315,7 +242,7 @@ namespace trackFindingTracklet {
               }
             }
           else{
-            if (TsectorEta.val() < (int)(setup_->numSectorsEta()/2)){
+            if (InTrack.sectorEta() < (int)(setup_->numSectorsEta()/2)){
               SortedPartialTracks[iLink-1].push_back(PartialTrack1);
               SortedPartialTracks[iLink-1].push_back(PartialTrack2);
               SortedPartialTracks[iLink-1].push_back(PartialTrack3);
@@ -345,11 +272,17 @@ namespace trackFindingTracklet {
             } //If there is an odd number of tracks 
           for (int iTrack = 0; iTrack < (int)(SortedPartialTracks[iLink].size()); iTrack++ ){  
             if (iTrack % 2 == 1){
-              if ((int)iTrack/3 <= maxTracksPerEvent){
-                accepted[iLink].emplace_back(std::make_pair(ttTrackRefMap.at(OutputStreamsTracks[iLink][(int)(iTrack-1)/3].first),(SortedPartialTracks[iLink][iTrack].slice(32) + SortedPartialTracks[iLink][iTrack-1].slice(32)).bs()));
+              TTTrackRef TrackRef;
+              for (auto &it : ttTrackRefMap) {   //Iterate throguh ttTrackRefMap to find TTTrackRef Key by a TTTrack Value
+                if(it.second == OutputStreamsTracks[iLink][(int)(iTrack-1)/3].first) { 
+                  TrackRef = it.first;
+                } 
+              }
+              if ((int)iTrack/3 <= maxTracksPerEvent_){
+                accepted[iLink].emplace_back(std::make_pair(TrackRef,(SortedPartialTracks[iLink][iTrack].slice(32) + SortedPartialTracks[iLink][iTrack-1].slice(32)).bs()));
               }
               else{
-                lost[iLink].emplace_back(std::make_pair(ttTrackRefMap.at(OutputStreamsTracks[iLink][(int)(iTrack-1)/3].first),(SortedPartialTracks[iLink][iTrack].slice(32) + SortedPartialTracks[iLink][iTrack-1].slice(32)).bs()));
+                lost[iLink].emplace_back(std::make_pair(TrackRef,(SortedPartialTracks[iLink][iTrack].slice(32) + SortedPartialTracks[iLink][iTrack-1].slice(32)).bs()));
               }
             }
           }

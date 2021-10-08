@@ -116,7 +116,7 @@ namespace tt {
     //
     const std::vector<SensorModule>& sensorModules() const { return sensorModules_; }
 
-    // Fimrware specific Parameter
+    // Firmware specific Parameter
 
     // width of the 'A' port of an DSP slice
     int widthDSPa() const { return widthDSPa_; }
@@ -152,6 +152,9 @@ namespace tt {
     double maxdPhi() const { return maxdPhi_; }
     // maximum representable stub z uncertainty
     double maxdZ() const { return maxdZ_; }
+    // firmware clock / 360 MHz
+    double clockRatio() const { return clockRatio_; }
+    
 
     // Common track finding parameter
 
@@ -465,10 +468,6 @@ namespace tt {
     int kfoutchi2rphiConv() const { return kfoutchi2rphiConv_; }
     // Conversion factor between dz^2/weight and chi2rz
     int kfoutchi2rzConv() const { return kfoutchi2rzConv_; }
-    // Final chi2 scale factor so calculated chi2s correspond to TTTrack output bins 
-    int kfoutchi2ScaleFactor() const { return kfoutchi2ScaleFactor_; }
-    // Max number of tracks per link per event
-    int kfoutmaxTracksPerEvent() const { return kfoutmaxTracksPerEvent_; }
 
     // Parameter specifying DuplicateRemoval
 
@@ -629,7 +628,7 @@ namespace tt {
     // required number of associated ps layers to a TP to consider it reconstruct-able
     int tpMinLayersPS_;
 
-    // Fimrware specific Parameter
+    // Firmware specific Parameter
     edm::ParameterSet pSetFW_;
     // width of the 'A' port of an DSP slice
     int widthDSPa_;
@@ -691,6 +690,8 @@ namespace tt {
     double mindZ_;
     // maximum representable stub z uncertainty
     double maxdZ_;
+    // firmware clock / 360 MHz
+    double clockRatio_;
 
     // Parameter specifying front-end
     edm::ParameterSet pSetFE_;
@@ -844,10 +845,6 @@ namespace tt {
     int kfoutchi2rphiConv_;
     // Conversion factor between dz^2/weight and chi2rz
     int kfoutchi2rzConv_;
-    // Final chi2 scale factor so calculated chi2s correspond to TTTrack output bins 
-    int kfoutchi2ScaleFactor_;
-    // Max number of tracks per link per event
-    int kfoutmaxTracksPerEvent_;
 
     // Parameter specifying DuplicateRemoval
     edm::ParameterSet pSetDR_;

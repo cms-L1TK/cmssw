@@ -103,7 +103,8 @@ TrackTrigger_params = cms.PSet (
     #MaxdPhi             = cms.double(  0.01              ), # maximum representable stub phi uncertainty
     MaxdPhi             = cms.double(  0.02              ), # maximum representable stub phi uncertainty
     MindZ               = cms.double(  0.1               ), # minimum representable stub z uncertainty
-    MaxdZ               = cms.double( 30.                )  # maximum representable stub z uncertainty
+    MaxdZ               = cms.double( 30.                ), # maximum representable stub z uncertainty
+    ClockRatio          = cms.double( 0.666              )  # firmware clock / 360 MHz
   ),
 
   # Parmeter specifying front-end
@@ -201,13 +202,8 @@ TrackTrigger_params = cms.PSet (
     chi2rphiBins = cms.vdouble( 0, 0.25, 0.5, 1, 2, 3, 5, 7, 10, 20, 40, 100, 200, 500, 1000, 3000,6000 ), # Final Chi2rphi digitization TODO extract from TTTrack Word 
     chi2rzBins   = cms.vdouble( 0, 0.25, 0.5, 1, 2, 3, 5, 7, 10, 20, 40, 100, 200, 500, 1000, 3000,6000 ), # Final Chi2rz digitization TODO extract from TTTrack Word 
 
-    chi2rphiConv = cms.int32 ( 525 ), # Conversion factor between dphi^2/weight and chi2rphi
-    chi2rzConv   = cms.int32 ( 626 ), # Conversion factor between dz^2/weight and chi2rz
-
-    chi2ScaleFactor = cms.int32 ( 1024 ), # Final chi2 scale factor so calculated chi2s correspond to TTTrack output bins 
-    
-    maxTracksPerEvent = cms.int32 ( 104 ) # Max number of tracks per link per event
-
+    chi2rphiConv = cms.int32 ( 537600 ), # Conversion factor between dphi^2/weight and chi2rphi
+    chi2rzConv   = cms.int32 ( 641024 ), # Conversion factor between dz^2/weight and chi2rz
   ),
 
   # Parmeter specifying DuplicateRemoval

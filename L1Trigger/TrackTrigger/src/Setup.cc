@@ -118,6 +118,7 @@ namespace tt {
         maxdPhi_(pSetFW_.getParameter<double>("MaxdPhi")),
         mindZ_(pSetFW_.getParameter<double>("MindZ")),
         maxdZ_(pSetFW_.getParameter<double>("MaxdZ")),
+        clockRatio_(pSetFW_.getParameter<double>("ClockRatio")),
         // Parmeter specifying front-end
         pSetFE_(iConfig.getParameter<ParameterSet>("FrontEnd")),
         widthBend_(pSetFE_.getParameter<int>("WidthBend")),
@@ -197,8 +198,6 @@ namespace tt {
         kfoutchi2rzBins_(pSetKFOut_.getParameter<vector<double>>("chi2rzBins")),
         kfoutchi2rphiConv_(pSetKFOut_.getParameter<int>("chi2rphiConv")),
         kfoutchi2rzConv_(pSetKFOut_.getParameter<int>("chi2rzConv")),
-        kfoutchi2ScaleFactor_(pSetKFOut_.getParameter<int>("chi2ScaleFactor")),
-        kfoutmaxTracksPerEvent_(pSetKFOut_.getParameter<int>("maxTracksPerEvent")),
         // Parmeter specifying DuplicateRemoval
         pSetDR_(iConfig.getParameter<ParameterSet>("DuplicateRemoval")),
         drDepthMemory_(pSetDR_.getParameter<int>("DepthMemory")) {
