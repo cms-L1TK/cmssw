@@ -342,7 +342,7 @@ namespace trackFindingTracklet {
             SortedPartialTracks[iLink].push_back(NullBitTrack);  //Pad out final set of bits
             OutputStreamsTracks[iLink].emplace_back(OutputStreamsTracks[iLink][numLinkTracks]); //Pad out with final repeated track
             numLinkTracks++;
-            } 
+            } //If there is an odd number of tracks 
           for (int iTrack = 0; iTrack < (int)(SortedPartialTracks[iLink].size()); iTrack++ ){  
             if (iTrack % 2 == 1){
               if ((int)iTrack/3 <= maxTracksPerEvent){
