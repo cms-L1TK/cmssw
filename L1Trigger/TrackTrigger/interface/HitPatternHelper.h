@@ -31,20 +31,20 @@
 using namespace std;
 using namespace edm;
 
-namespace HPH {
+namespace hph {
 
   class SensorModule {
   public:
     SensorModule() {}
     SensorModule(
-        bool isbarrel, bool isPS, int numColumns, int layerid, double r, double z, double pitchCol, double tilt);
+        bool isBarrel, bool isPS, int numColumns, int layerId, double r, double z, double pitchCol, double tilt);
     ~SensorModule() {}
 
-    bool isbarrel() const { return isbarrel_; }
+    bool isBarrel() const { return isBarrel_; }
     bool isPS() const { return isPS_; }
     bool isMaybe() const { return isMaybe_; }
     int numColumns() const { return numColumns_; }
-    int layerid() const { return layerid_; }
+    int layerId() const { return layerId_; }
     double r() const { return r_; }
     double z() const { return z_; }
     double pitchCol() const { return pitchCol_; }
@@ -55,11 +55,11 @@ namespace HPH {
     void setMaybe() { isMaybe_ = true; }
 
   private:
-    bool isbarrel_;
+    bool isBarrel_;
     bool isPS_;
     bool isMaybe_;
     int numColumns_;
-    int layerid_;
+    int layerId_;
     double r_;
     double z_;
     double pitchCol_;
@@ -81,9 +81,9 @@ namespace HPH {
     static auto equalRZ(SensorModule lhs, SensorModule rhs) {
       return abs(lhs.r() - rhs.r()) < delta_ && abs(lhs.z() - rhs.z()) < delta_;
     }
-    std::vector<SensorModule> SensorModules() const { return SensorModules_; }
+    std::vector<SensorModule> sensorModules() const { return sensorModules_; }
 
-    bool HPHdebug() const { return iConfig_.getParameter<bool>("HPHdebug"); }
+    bool hphDebug() const { return iConfig_.getParameter<bool>("hphDebug"); }
     bool useNewKF() const { return iConfig_.getParameter<bool>("useNewKF"); }
     double chosenRofZ() const { return iConfig_.getParameter<double>("chosenRofZ"); }
     double deltaTanL() const { return iConfig_.getParameter<double>("deltaTanL"); }
@@ -93,7 +93,7 @@ namespace HPH {
     const TrackerGeometry* trackerGeometry_;
     const TrackerTopology* trackerTopology_;
     static constexpr double delta_ = 1.e-3;
-    std::vector<SensorModule> SensorModules_;
+    std::vector<SensorModule> sensorModules_;
   };
 
   class HitPatternHelper {
@@ -102,21 +102,21 @@ namespace HPH {
     HitPatternHelper(const Setup* setup, int hitpattern, double cot, double z0);
     ~HitPatternHelper() {}
 
-    int getetaSector() { return etaSector_; }        //Eta sectors defined in KF
-    int getnumExpLayer() { return numExpLayer_; }    //The number of layers KF expects
-    int getnumMissingPS() { return numMissingPS_; }  //The number of PS layers that are missing
-    int getnumMissing2S() { return numMissing2S_; }  //The number of 2S layers that are missing
-    int getnumPS() { return numPS_; }                //The number of PS layers are found in hitpattern
-    int getnum2S() { return num2S_; }                //The number of 2S layers are found in hitpattern
-    int getnumMissingInterior1() {
+    int etaSector() { return etaSector_; }        //Eta sectors defined in KF
+    int numExpLayer() { return numExpLayer_; }    //The number of layers KF expects
+    int numMissingPS() { return numMissingPS_; }  //The number of PS layers that are missing
+    int numMissing2S() { return numMissing2S_; }  //The number of 2S layers that are missing
+    int numPS() { return numPS_; }                //The number of PS layers are found in hitpattern
+    int num2S() { return num2S_; }                //The number of 2S layers are found in hitpattern
+    int numMissingInterior1() {
       return numMissingInterior1_;
     }  //The number of missing interior layers (using only hitpattern)
-    int getnumMissingInterior2() {
+    int numMissingInterior2() {
       return numMissingInterior2_;
     }  //The number of missing interior layers (using hitpattern and sensor modules)
-    std::vector<int> getbinary() { return binary_; }  //11-bit hitmask needed by TrackQuality.cc (0~5->L1~L6;6~10->D1~D5)
-    static auto smallerID(SensorModule lhs, SensorModule rhs) { return lhs.layerid() < rhs.layerid(); }
-    static auto equalID(SensorModule lhs, SensorModule rhs) { return lhs.layerid() == rhs.layerid(); }
+    std::vector<int> binary() { return binary_; }  //11-bit hitmask needed by TrackQuality.cc (0~5->L1~L6;6~10->D1~D5)
+    static auto smallerID(SensorModule lhs, SensorModule rhs) { return lhs.layerId() < rhs.layerId(); }
+    static auto equalID(SensorModule lhs, SensorModule rhs) { return lhs.layerId() == rhs.layerId(); }
 
     int ReducedId(
         int layerId);  //Converts layer id (1~6->L1~L6;11~15->D1~D5) to reduced layer id (0~5->L1~L6;6~10->D1~D5)
@@ -135,10 +135,10 @@ namespace HPH {
     int numMissingInterior2_;
     double cot_;
     double z0_;
-    const Setup* Setup_;
+    const Setup* setup_;
     std::vector<SensorModule> layers_;  //Sensor modules that particles are expected to hit
     std::vector<int> binary_;
-    bool HPHdebug_;
+    bool hphDebug_;
     bool useNewKF_;
     float chosenRofZ_;
     float deltaTanL_;
@@ -162,8 +162,8 @@ namespace HPH {
     };
   };
 
-}  // namespace HPH
+}  // namespace hph
 
-EVENTSETUP_DATA_DEFAULT_RECORD(HPH::Setup, HPH::SetupRcd);
+EVENTSETUP_DATA_DEFAULT_RECORD(hph::Setup, hph::SetupRcd);
 
 #endif

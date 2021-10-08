@@ -11,7 +11,7 @@ C.Brown & C.Savard 07/2020
 
 TrackQuality::TrackQuality() {}
 
-TrackQuality::TrackQuality(const edm::ParameterSet& qualityParams) : Setup_(), useHPH(false) {
+TrackQuality::TrackQuality(const edm::ParameterSet& qualityParams) : setup_(), useHPH(false) {
   std::string AlgorithmString = qualityParams.getParameter<std::string>("qualityAlgorithm");
   // Unpacks EDM parameter set itself to save unecessary processing within TrackProducers
   if (AlgorithmString == "Cut") {
@@ -86,10 +86,10 @@ std::vector<float> TrackQuality::featureTransform(TTTrack<Ref_Phase2TrackerDigi_
   if (useHPH) {
     double tmp_trk_tanL = aTrack.tanL();
     double tmp_trk_z0 = aTrack.z0();
-    HPH::HitPatternHelper hph(Setup_, tmp_trk_hitpattern, tmp_trk_tanL, tmp_trk_z0);
-    hitpattern_expanded_binary = hph.getbinary();
-    tmp_trk_nlaymiss_PS = hph.getnumMissingPS();
-    tmp_trk_nlaymiss_2S = hph.getnumMissing2S();
+    hph::HitPatternHelper hph(setup_, tmp_trk_hitpattern, tmp_trk_tanL, tmp_trk_z0);
+    hitpattern_expanded_binary = hph.binary();
+    tmp_trk_nlaymiss_PS = hph.numMissingPS();
+    tmp_trk_nlaymiss_2S = hph.numMissing2S();
   } else {
     for (int i = 6; i >= 0; i--) {
       int k = tmp_trk_hitpattern >> i;
@@ -319,7 +319,7 @@ void TrackQuality::setONNXModel(std::string const& AlgorithmString,
   featureNames_ = featureNames;
 }
 
-void TrackQuality::setHPHsetup(const HPH::Setup* Setup) {
-  Setup_ = Setup;
+void TrackQuality::setHPHSetup(const hph::Setup* setup) {
+  setup_ = setup;
   useHPH = true;
 }

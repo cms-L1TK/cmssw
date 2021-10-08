@@ -202,11 +202,11 @@ private:
 
   // helper class to store DTC configuration
   tt::Setup setup_;
-  const HPH::Setup* HPHsetup_;  
+  const hph::Setup* setupHPH_;
 
   // Setup token
   edm::ESGetToken<tt::Setup, tt::SetupRcd> esGetToken_;
-  edm::ESGetToken<HPH::Setup, HPH::SetupRcd> esGetTokenHPH_;
+  edm::ESGetToken<hph::Setup, hph::SetupRcd> esGetTokenHPH_;
 
   /// ///////////////// ///
   /// MANDATORY METHODS ///
@@ -258,7 +258,7 @@ L1FPGATrackProducer::L1FPGATrackProducer(edm::ParameterSet const& iConfig)
   // book ES product
   esGetTokenChannelAssignment_ = esConsumes<ChannelAssignment, ChannelAssignmentRcd, Transition::BeginRun>();
   esGetToken_ = esConsumes<tt::Setup, tt::SetupRcd, edm::Transition::BeginRun>();
-  esGetTokenHPH_ = esConsumes<HPH::Setup, HPH::SetupRcd, edm::Transition::BeginRun>();
+  esGetTokenHPH_ = esConsumes<hph::Setup, hph::SetupRcd, edm::Transition::BeginRun>();
   // initial ES products
   channelAssignment_ = nullptr;
 
@@ -345,9 +345,9 @@ void L1FPGATrackProducer::beginRun(const edm::Run& run, const edm::EventSetup& i
   settings_.setBfield(mMagneticFieldStrength);
 
   setup_ = iSetup.getData(esGetToken_);
-  HPHsetup_ = &iSetup.getData(esGetTokenHPH_);
+  setupHPH_ = &iSetup.getData(esGetTokenHPH_);
   if (trackQuality_) {
-    trackQualityModel_->setHPHsetup(HPHsetup_);
+    trackQualityModel_->setHPHSetup(setupHPH_);
   }
   channelAssignment_ = &iSetup.getData(esGetTokenChannelAssignment_);
   // initialize the tracklet event processing (this sets all the processing & memory modules, wiring, etc)
