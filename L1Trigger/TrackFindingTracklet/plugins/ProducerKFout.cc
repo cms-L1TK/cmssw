@@ -301,7 +301,7 @@ namespace trackFindingTracklet {
 
           // Sort Tracks based on eta
           if (iLink % 2 == 0){
-            if (TsectorEta.val() < 8){
+            if (TsectorEta.val() < (int)(setup_->numSectorsEta()/2)){
                 SortedPartialTracks[iLink].push_back(PartialTrack1);
                 SortedPartialTracks[iLink].push_back(PartialTrack2);
                 SortedPartialTracks[iLink].push_back(PartialTrack3);
@@ -315,7 +315,7 @@ namespace trackFindingTracklet {
               }
             }
           else{
-            if (TsectorEta.val() < 8){
+            if (TsectorEta.val() < (int)(setup_->numSectorsEta()/2)){
               SortedPartialTracks[iLink-1].push_back(PartialTrack1);
               SortedPartialTracks[iLink-1].push_back(PartialTrack2);
               SortedPartialTracks[iLink-1].push_back(PartialTrack3);
@@ -337,17 +337,13 @@ namespace trackFindingTracklet {
       for (int iLink = 0; iLink < (int)OutputStreamsTracks.size(); iLink++ ){
         // Iterate through partial tracks
         int numLinkTracks = (int)OutputStreamsTracks[iLink].size();
-        std::cout << SortedPartialTracks[iLink].size() << " " << OutputStreamsTracks[iLink].size() << std::endl;
-
         if (numLinkTracks > 0){
-          if ((numLinkTracks % 2 != 0)) { 
-            SortedPartialTracks[iLink].push_back(NullBitTrack);
-            OutputStreamsTracks[iLink].emplace_back(OutputStreamsTracks[iLink][numLinkTracks]);
+          if ((numLinkTracks % 2 != 0)) { //If there is an odd number of tracks 
+            SortedPartialTracks[iLink].push_back(NullBitTrack);  //Pad out final set of bits
+            OutputStreamsTracks[iLink].emplace_back(OutputStreamsTracks[iLink][numLinkTracks]); //Pad out with final repeated track
             numLinkTracks++;
-            } //If there is an odd number of tracks 
-          std::cout << SortedPartialTracks[iLink].size() << " " << OutputStreamsTracks[iLink].size() << std::endl;
+            } 
           for (int iTrack = 0; iTrack < (int)(SortedPartialTracks[iLink].size()); iTrack++ ){  
-            std::cout << iLink << " " << iTrack << " PT - " << SortedPartialTracks[iLink][iTrack].resize(32).bs().to_string() << std::endl;
             if (iTrack % 2 == 1){
               if ((int)iTrack/3 <= maxTracksPerEvent){
                 accepted[iLink].emplace_back(std::make_pair(ttTrackRefMap.at(OutputStreamsTracks[iLink][(int)(iTrack-1)/3].first),(SortedPartialTracks[iLink][iTrack].slice(32) + SortedPartialTracks[iLink][iTrack-1].slice(32)).bs()));
