@@ -5,4 +5,4 @@
 #include "FWCore/Utilities/interface/typelookup.h"
 #include "L1Trigger/TrackTrigger/interface/HitPatternHelper.h"
 
-TYPELOOKUP_DATA_REG(HPH::Setup);
+TYPELOOKUP_DATA_REG(hph::Setup);

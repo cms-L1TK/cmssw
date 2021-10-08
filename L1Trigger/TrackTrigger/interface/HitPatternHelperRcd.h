@@ -12,13 +12,13 @@
 
 #include "FWCore/Utilities/interface/mplVector.h"
 
-namespace HPH {
+namespace hph {
 
   typedef edm::mpl::Vector<TrackerDigiGeometryRecord, TrackerTopologyRcd> Rcds;
 
-  // record of HPH::SetupRcd
+  // record of hph::SetupRcd
   class SetupRcd : public edm::eventsetup::DependentRecordImplementation<SetupRcd, Rcds> {};
 
-}  // namespace HPH
+}  // namespace hph
 
 #endif

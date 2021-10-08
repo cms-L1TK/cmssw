@@ -5,4 +5,4 @@
 #include "L1Trigger/TrackTrigger/interface/HitPatternHelperRcd.h"
 #include "FWCore/Framework/interface/eventsetuprecord_registration_macro.h"
 
-EVENTSETUP_RECORD_REG(HPH::SetupRcd);
+EVENTSETUP_RECORD_REG(hph::SetupRcd);

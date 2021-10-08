@@ -8,15 +8,15 @@
 #include <algorithm>
 #include <cmath>
 
-namespace HPH {
+namespace hph {
 
   SensorModule::SensorModule(
-      bool isbarrel, bool isPS, int numColumns, int layerid, double r, double z, double pitchCol, double tilt)
-      : isbarrel_(isbarrel),
+      bool isBarrel, bool isPS, int numColumns, int layerId, double r, double z, double pitchCol, double tilt)
+      : isBarrel_(isBarrel),
         isPS_(isPS),
         isMaybe_(false),
         numColumns_(numColumns),
-        layerid_(layerid),
+        layerId_(layerId),
         r_(r),
         z_(z),
         pitchCol_(pitchCol),
@@ -48,21 +48,21 @@ namespace HPH {
       double z = pos0.z();
 
       bool flipped = pos0.mag() > pos1.mag();
-      bool isbarrel = detid.subdetId() == StripSubdetector::TOB;
+      bool isBarrel = detid.subdetId() == StripSubdetector::TOB;
       bool isPS = trackerGeometry_->getDetectorType(detid) == TrackerGeometry::ModuleType::Ph2PSP;
       double tilt = flipped ? atan2(pos1.z() - pos0.z(), pos0.perp() - pos1.perp())
                             : atan2(pos0.z() - pos1.z(), pos1.perp() - pos0.perp());
 
-      int layerid = isbarrel ? trackerTopology_->layer(detid) : trackerTopology_->layer(detid) + 10;
+      int layerId = isBarrel ? trackerTopology_->layer(detid) : trackerTopology_->layer(detid) + 10;
       int numColumns = topol->ncolumns();
       double pitchCol = topol->pitch().second;
 
-      SensorModules_.emplace_back(isbarrel, isPS, numColumns, layerid, r, z, pitchCol, tilt);
+      sensorModules_.emplace_back(isBarrel, isPS, numColumns, layerId, r, z, pitchCol, tilt);
     }
 
-    sort(SensorModules_.begin(), SensorModules_.end(), smallerR);
-    sort(SensorModules_.begin(), SensorModules_.end(), smallerZ);
-    SensorModules_.erase(unique(SensorModules_.begin(), SensorModules_.end(), equalRZ), SensorModules_.end());
+    sort(sensorModules_.begin(), sensorModules_.end(), smallerR);
+    sort(sensorModules_.begin(), sensorModules_.end(), smallerZ);
+    sensorModules_.erase(unique(sensorModules_.begin(), sensorModules_.end(), equalRZ), sensorModules_.end());
   }
 
   HitPatternHelper::HitPatternHelper(const Setup* setup, int hitpattern, double cot, double z0)
@@ -77,13 +77,13 @@ namespace HPH {
         numMissingInterior2_(0),
         cot_(cot),
         z0_(z0),
-        Setup_(setup),
+        setup_(setup),
         layers_(),
         binary_(11, 0),
-        HPHdebug_(Setup_->HPHdebug()),
-        useNewKF_(Setup_->useNewKF()),
-        chosenRofZ_(Setup_->chosenRofZ()),
-        deltaTanL_(Setup_->deltaTanL()) {
+        hphDebug_(setup_->hphDebug()),
+        useNewKF_(setup_->useNewKF()),
+        chosenRofZ_(setup_->chosenRofZ()),
+        deltaTanL_(setup_->deltaTanL()) {
     //Calculating eta sector based on cot and z0
     float kfzRef = z0_ + chosenRofZ_ * cot_;
     int kf_eta_reg = 0;
@@ -101,7 +101,7 @@ namespace HPH {
       kf_eta_reg = kf_eta_reg - (int)(etaRegions_.size() - 1) / 2;
     }
     //Looping over sensor modules to make predictions on which layers particles are expected to hit
-    for (SensorModule sm : Setup_->SensorModules()) {
+    for (SensorModule sm : setup_->sensorModules()) {
       double d = (z0_ - sm.z() + sm.r() * cot_) / (sm.cos() - sm.sin() * cot_);
       double d_p = (z0_ - sm.z() + sm.r() * (cot_ + deltaTanL_ / 2)) / (sm.cos() - sm.sin() * (cot_ + deltaTanL_ / 2));
       double d_m = (z0_ - sm.z() + sm.r() * (cot_ - deltaTanL_ / 2)) / (sm.cos() - sm.sin() * (cot_ - deltaTanL_ / 2));
@@ -146,7 +146,7 @@ namespace HPH {
       }
     }
 
-    if (HPHdebug_) {
+    if (hphDebug_) {
       if (useNewKF_) {
         edm::LogVerbatim("TrackTriggerHPH") << "Running with New KF";
       } else {
@@ -160,29 +160,29 @@ namespace HPH {
     if (useNewKF_) {
       //New KF uses sensor modules to determine the hitmask already
       for (int i = 0; i < numExpLayer_; i++) {
-        if (HPHdebug_) {
+        if (hphDebug_) {
           edm::LogVerbatim("TrackTriggerHPH") << "--------------------------";
           edm::LogVerbatim("TrackTriggerHPH") << "Looking at KF layer " << i;
-          if (layers_[i].layerid() < 10) {
-            edm::LogVerbatim("TrackTriggerHPH") << "KF expects L" << layers_[i].layerid();
+          if (layers_[i].layerId() < 10) {
+            edm::LogVerbatim("TrackTriggerHPH") << "KF expects L" << layers_[i].layerId();
           } else {
-            edm::LogVerbatim("TrackTriggerHPH") << "KF expects D" << layers_[i].layerid() - 10;
+            edm::LogVerbatim("TrackTriggerHPH") << "KF expects D" << layers_[i].layerId() - 10;
           }
         }
 
         if (((1 << i) & hitpattern_) >> i) {
-          if (HPHdebug_) {
+          if (hphDebug_) {
             edm::LogVerbatim("TrackTriggerHPH") << "Layer found in hitpattern";
           }
 
-          binary_[ReducedId(layers_[i].layerid())] = 1;
+          binary_[ReducedId(layers_[i].layerId())] = 1;
           if (layers_[i].isPS()) {
             numPS_++;
           } else {
             num2S_++;
           }
         } else {
-          if (HPHdebug_) {
+          if (hphDebug_) {
             edm::LogVerbatim("TrackTriggerHPH") << "Layer missing in hitpattern";
           }
 
@@ -198,7 +198,7 @@ namespace HPH {
       //Old KF uses the hard coded layermap to determien hitmask
       for (int i = 0; i < 7; i++) {  //Loop over each digit of hitpattern
 
-        if (HPHdebug_) {
+        if (hphDebug_) {
           edm::LogVerbatim("TrackTriggerHPH") << "--------------------------";
           edm::LogVerbatim("TrackTriggerHPH") << "Looking at KF layer " << i;
         }
@@ -206,14 +206,14 @@ namespace HPH {
         for (int j :
              hitmap_[kf_eta_reg][i]) {  //Find out which layer the Old KF is dealing with when hitpattern is encoded
           if (j < 1) {
-            if (HPHdebug_) {
+            if (hphDebug_) {
               edm::LogVerbatim("TrackTriggerHPH") << "KF does not expect this layer";
             }
 
             continue;
           }
 
-          if (HPHdebug_) {
+          if (hphDebug_) {
             if (j < 10) {
               edm::LogVerbatim("TrackTriggerHPH") << "KF expects L" << j;
             } else {
@@ -224,19 +224,19 @@ namespace HPH {
           int k = findLayer(j);
           if (k < 0) {
             //k<0 means even though layer j is predicted by Old KF, this prediction is rejected because it contradicts
-            if (HPHdebug_) {  //a more accurate prediction made with the help of information from sensor modules.
+            if (hphDebug_) {  //a more accurate prediction made with the help of information from sensor modules.
               edm::LogVerbatim("TrackTriggerHPH") << "Rejected by sensor modules";
             }
 
             continue;
           }
 
-          if (HPHdebug_) {
+          if (hphDebug_) {
             edm::LogVerbatim("TrackTriggerHPH") << "Confirmed by sensor modules";
           }
           //prediction is accepted
           if (((1 << i) & hitpattern_) >> i) {
-            if (HPHdebug_) {
+            if (hphDebug_) {
               edm::LogVerbatim("TrackTriggerHPH") << "Layer found in hitpattern";
             }
 
@@ -247,7 +247,7 @@ namespace HPH {
               num2S_++;
             }
           } else {
-            if (HPHdebug_) {
+            if (hphDebug_) {
               edm::LogVerbatim("TrackTriggerHPH") << "Layer missing in hitpattern";
             }
 
@@ -261,7 +261,7 @@ namespace HPH {
       }
     }
 
-    if (HPHdebug_) {
+    if (hphDebug_) {
       edm::LogVerbatim("TrackTriggerHPH") << "------------------------------";
       edm::LogVerbatim("TrackTriggerHPH") << "numPS = " << numPS_ << ", num2S = " << num2S_
                                           << ", missingPS = " << numMissingPS_ << ", missing2S = " << numMissing2S_;
@@ -269,26 +269,26 @@ namespace HPH {
     }
   }
 
-  int HitPatternHelper::ReducedId(int layerid) {
-    if (HPHdebug_ && (layerid > 15 || layerid < 1)) {
+  int HitPatternHelper::ReducedId(int layerId) {
+    if (hphDebug_ && (layerId > 15 || layerId < 1)) {
       edm::LogVerbatim("TrackTriggerHPH") << "Warning: invalid layer id !";
     }
-    if (layerid <= 6) {
-      layerid = layerid - 1;
-      return layerid;
+    if (layerId <= 6) {
+      layerId = layerId - 1;
+      return layerId;
     } else {
-      layerid = layerid - 5;
-      return layerid;
+      layerId = layerId - 5;
+      return layerId;
     }
   };
 
-  int HitPatternHelper::findLayer(int layerid) {
+  int HitPatternHelper::findLayer(int layerId) {
     for (int i = 0; i < (int)layers_.size(); i++) {
-      if (layerid == (int)layers_[i].layerid()) {
+      if (layerId == (int)layers_[i].layerId()) {
         return i;
       }
     }
     return -1;
   }
 
-}  // namespace HPH
+}  // namespace hph
