@@ -73,6 +73,8 @@ std::vector<float> TrackQuality::featureTransform(TTTrack<Ref_Phase2TrackerDigi_
   int tmp_trk_nlaymiss_interior = 0;
   int tmp_trk_nlaymiss_PS = 0;
   int tmp_trk_nlaymiss_2S = 0;
+  double tmp_trk_tanL = aTrack.tanL();
+  double tmp_trk_z0 = aTrack.z0();
   bool seq = false;
   for (int i = 0; i < nbits; i++) {
     lay_i = ((1 << i) & tmp_trk_hitpattern) >> i;  //0 or 1 in ith bit (right to left)
@@ -84,8 +86,6 @@ std::vector<float> TrackQuality::featureTransform(TTTrack<Ref_Phase2TrackerDigi_
   }
 
   if (useHPH) {
-    double tmp_trk_tanL = aTrack.tanL();
-    double tmp_trk_z0 = aTrack.z0();
     hph::HitPatternHelper hph(setup_, tmp_trk_hitpattern, tmp_trk_tanL, tmp_trk_z0);
     hitpattern_expanded_binary = hph.binary();
     tmp_trk_nlaymiss_PS = hph.numMissingPS();
@@ -172,8 +172,8 @@ std::vector<float> TrackQuality::featureTransform(TTTrack<Ref_Phase2TrackerDigi_
   // fill the feature map
   feature_map["nstub"] = stubRefs.size();
   feature_map["rinv"] = ONNXInvRScaling_ * abs(aTrack.rInv());
-  feature_map["tanl"] = abs(aTrack.tanL());
-  feature_map["z0"] = aTrack.z0();
+  feature_map["tanl"] = abs(tmp_trk_tanL);
+  feature_map["z0"] = tmp_trk_z0;
   feature_map["phi"] = aTrack.phi();
   feature_map["pt"] = aTrack.momentum().perp();
   feature_map["eta"] = aTrack.eta();
