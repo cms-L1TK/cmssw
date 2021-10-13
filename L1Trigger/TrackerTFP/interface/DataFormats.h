@@ -665,6 +665,8 @@ namespace trackerTFP {
     double cot() const { return std::get<5>(data_); }
     // track z at radius chosenRofZ wrt eta sector centre
     double zT() const { return std::get<6>(data_); }
+    // global cotTheta
+    double cotGlobal() const { return cot() + setup()->sectorCot(sectorEta()); }
     // conversion to TTTrack with given stubs
     TTTrack<Ref_Phase2TrackerDigi_> ttTrack(const std::vector<StubKF>& stubs) const;
   private:

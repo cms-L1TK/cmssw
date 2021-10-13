@@ -152,9 +152,6 @@ namespace tt {
     double maxdPhi() const { return maxdPhi_; }
     // maximum representable stub z uncertainty
     double maxdZ() const { return maxdZ_; }
-    // firmware clock / 360 MHz
-    double clockRatio() const { return clockRatio_; }
-    
 
     // Common track finding parameter
 
@@ -451,15 +448,7 @@ namespace tt {
     double kfRangeFactor() const { return kfRangeFactor_; }
 
     // Parameter specifying KalmanFilter Output Formatter
-
-    // Bins used to digitize dPhi for chi2 calculation
-    std::vector<int> kfoutdPhiBins() const { return kfoutdPhiBins_; }
-    // Bins used to digitize dZ for chi2 calculation
-    std::vector<int> kfoutdZBins() const { return kfoutdZBins_; }
-    // v0 weight Bins corresponding to dPhi Bins for chi2 calculation
-    std::vector<int> kfoutv0Bins() const { return kfoutv0Bins_; }
-    // v1 weight Bins corresponding to dZ Bins for chi2 calculation
-    std::vector<int> kfoutv1Bins() const { return kfoutv1Bins_; }
+    
     // Final Chi2rphi digitization TODO extract from TTTrack Word 
     std::vector<double> kfoutchi2rphiBins() const { return kfoutchi2rphiBins_; }
     // Final Chi2rz digitization TODO extract from TTTrack Word 
@@ -468,6 +457,10 @@ namespace tt {
     int kfoutchi2rphiConv() const { return kfoutchi2rphiConv_; }
     // Conversion factor between dz^2/weight and chi2rz
     int kfoutchi2rzConv() const { return kfoutchi2rzConv_; }
+    // Number of bits for the tttrack word
+    int tttrackBits() const { return tttrackBits_; }
+    // Fraction of total dphi and dz ranges to calculate v0 and v1 LUT for
+    double weightBinFraction() const { return weightBinFraction_; }
 
     // Parameter specifying DuplicateRemoval
 
@@ -690,8 +683,6 @@ namespace tt {
     double mindZ_;
     // maximum representable stub z uncertainty
     double maxdZ_;
-    // firmware clock / 360 MHz
-    double clockRatio_;
 
     // Parameter specifying front-end
     edm::ParameterSet pSetFE_;
@@ -845,6 +836,10 @@ namespace tt {
     int kfoutchi2rphiConv_;
     // Conversion factor between dz^2/weight and chi2rz
     int kfoutchi2rzConv_;
+    // Number of bits for the tttrack word
+    int tttrackBits_;
+    // Fraction of total dphi and dz ranges to calculate v0 and v1 LUT for
+    double weightBinFraction_;
 
     // Parameter specifying DuplicateRemoval
     edm::ParameterSet pSetDR_;

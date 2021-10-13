@@ -118,7 +118,6 @@ namespace tt {
         maxdPhi_(pSetFW_.getParameter<double>("MaxdPhi")),
         mindZ_(pSetFW_.getParameter<double>("MindZ")),
         maxdZ_(pSetFW_.getParameter<double>("MaxdZ")),
-        clockRatio_(pSetFW_.getParameter<double>("ClockRatio")),
         // Parmeter specifying front-end
         pSetFE_(iConfig.getParameter<ParameterSet>("FrontEnd")),
         widthBend_(pSetFE_.getParameter<int>("WidthBend")),
@@ -190,14 +189,12 @@ namespace tt {
         kfRangeFactor_(pSetKF_.getParameter<double>("RangeFactor")),
         // Parmeter specifying KalmanFilter Output Formatter
         pSetKFOut_(iConfig.getParameter<ParameterSet>("KalmanFilterOut")),
-        kfoutdPhiBins_(pSetKFOut_.getParameter<vector<int>>("dPhiBins")),
-        kfoutdZBins_(pSetKFOut_.getParameter<vector<int>>("dZBins")),
-        kfoutv0Bins_(pSetKFOut_.getParameter<vector<int>>("v0Bins")),
-        kfoutv1Bins_(pSetKFOut_.getParameter<vector<int>>("v1Bins")),
         kfoutchi2rphiBins_(pSetKFOut_.getParameter<vector<double>>("chi2rphiBins")),
         kfoutchi2rzBins_(pSetKFOut_.getParameter<vector<double>>("chi2rzBins")),
         kfoutchi2rphiConv_(pSetKFOut_.getParameter<int>("chi2rphiConv")),
         kfoutchi2rzConv_(pSetKFOut_.getParameter<int>("chi2rzConv")),
+        tttrackBits_(pSetKFOut_.getParameter<int>("TTTrackBits")),
+        weightBinFraction_(pSetKFOut_.getParameter<double>("WeightBinFraction")),
         // Parmeter specifying DuplicateRemoval
         pSetDR_(iConfig.getParameter<ParameterSet>("DuplicateRemoval")),
         drDepthMemory_(pSetDR_.getParameter<int>("DepthMemory")) {

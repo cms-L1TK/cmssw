@@ -104,7 +104,6 @@ TrackTrigger_params = cms.PSet (
     MaxdPhi             = cms.double(  0.02              ), # maximum representable stub phi uncertainty
     MindZ               = cms.double(  0.1               ), # minimum representable stub z uncertainty
     MaxdZ               = cms.double( 30.                ), # maximum representable stub z uncertainty
-    ClockRatio          = cms.double( 0.666              )  # firmware clock / 360 MHz
   ),
 
   # Parmeter specifying front-end
@@ -194,16 +193,15 @@ TrackTrigger_params = cms.PSet (
 
   # Parmeter specifying KalmanFilter Output Formatter
   KalmanFilterOut = cms.PSet (
-    dPhiBins = cms.vint32( 0,10,35,70,100,130,165,200,225,260,300,330,360,512 ),        # Bins used to digitize dPhi for chi2 calculation
-    dZBins   = cms.vint32( 0,100,150,233,266,300,333,366,400,433,466,500,533,566,1024), # Bins used to digitize dZ for chi2 calculation
-    v0Bins   = cms.vint32(32716, 7139, 209, 82, 43, 26, 18, 13, 9, 7, 6, 5, 4),         # v0 weight Bins corresponding to dPhi Bins for chi2 calculation
-    v1Bins   = cms.vint32(63607, 486, 155, 121, 97, 77, 63, 52, 44, 39, 33, 29, 26, 0), # v1 weight Bins corresponding to dZ Bins for chi2 calculation
-
     chi2rphiBins = cms.vdouble( 0, 0.25, 0.5, 1, 2, 3, 5, 7, 10, 20, 40, 100, 200, 500, 1000, 3000,6000 ), # Final Chi2rphi digitization TODO extract from TTTrack Word 
     chi2rzBins   = cms.vdouble( 0, 0.25, 0.5, 1, 2, 3, 5, 7, 10, 20, 40, 100, 200, 500, 1000, 3000,6000 ), # Final Chi2rz digitization TODO extract from TTTrack Word 
 
-    chi2rphiConv = cms.int32 ( 537600 ), # Conversion factor between dphi^2/weight and chi2rphi
-    chi2rzConv   = cms.int32 ( 641024 ), # Conversion factor between dz^2/weight and chi2rz
+    chi2rphiConv = cms.int32 ( 1 ), # Conversion factor between dphi^2/weight and chi2rphi
+    chi2rzConv   = cms.int32 ( 1 ), # Conversion factor between dz^2/weight and chi2rz
+
+    WeightBinFraction = cms.double( 0.5 ), # Fraction of total dphi and dz ranges to calculate v0 and v1 LUT for
+
+    TTTrackBits  = cms.int32( 96 )  # Number of bits for the tttrack word TODO extract from TTTrack_word dataformat
   ),
 
   # Parmeter specifying DuplicateRemoval
