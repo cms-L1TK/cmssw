@@ -63,7 +63,7 @@ process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(10))
 #from MCsamples.Scripts.getCMSlocaldata_cfi import *
 
 if GEOMETRY == "D49":
-  inputMC = ["/store/relval/CMSSW_11_3_0_pre3/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU_113X_mcRun4_realistic_v3_2026D49PU200_rsb-v1/00000/00260a30-734a-4a3a-a4b0-f836ce5502c6.root"]
+  inputMC = ["/store/relval/CMSSW_11_3_0_pre3/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU_113X_mcRun4_realistic_v3_2026D49PU200_rsb-v1/00000/00260a30-734a-4a3a-a4b0-f836ce5502c6.root"] 
 
 elif GEOMETRY == "D76":
   # Read data from card files (defines getCMSdataFromCards()):
