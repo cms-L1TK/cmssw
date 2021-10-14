@@ -460,7 +460,7 @@ namespace tt {
     // Number of bits for the tttrack word
     int tttrackBits() const { return tttrackBits_; }
     // Fraction of total dphi and dz ranges to calculate v0 and v1 LUT for
-    double weightBinFraction() const { return weightBinFraction_; }
+    int weightBinFraction() const { return weightBinFraction_; }
 
     // Parameter specifying DuplicateRemoval
 
@@ -839,7 +839,7 @@ namespace tt {
     // Number of bits for the tttrack word
     int tttrackBits_;
     // Fraction of total dphi and dz ranges to calculate v0 and v1 LUT for
-    double weightBinFraction_;
+    int weightBinFraction_;
 
     // Parameter specifying DuplicateRemoval
     edm::ParameterSet pSetDR_;

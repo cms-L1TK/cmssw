@@ -194,7 +194,7 @@ namespace tt {
         kfoutchi2rphiConv_(pSetKFOut_.getParameter<int>("chi2rphiConv")),
         kfoutchi2rzConv_(pSetKFOut_.getParameter<int>("chi2rzConv")),
         tttrackBits_(pSetKFOut_.getParameter<int>("TTTrackBits")),
-        weightBinFraction_(pSetKFOut_.getParameter<double>("WeightBinFraction")),
+        weightBinFraction_(pSetKFOut_.getParameter<int>("WeightBinFraction")),
         // Parmeter specifying DuplicateRemoval
         pSetDR_(iConfig.getParameter<ParameterSet>("DuplicateRemoval")),
         drDepthMemory_(pSetDR_.getParameter<int>("DepthMemory")) {

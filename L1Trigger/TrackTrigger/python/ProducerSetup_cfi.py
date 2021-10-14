@@ -196,10 +196,10 @@ TrackTrigger_params = cms.PSet (
     chi2rphiBins = cms.vdouble( 0, 0.25, 0.5, 1, 2, 3, 5, 7, 10, 20, 40, 100, 200, 500, 1000, 3000,6000 ), # Final Chi2rphi digitization TODO extract from TTTrack Word 
     chi2rzBins   = cms.vdouble( 0, 0.25, 0.5, 1, 2, 3, 5, 7, 10, 20, 40, 100, 200, 500, 1000, 3000,6000 ), # Final Chi2rz digitization TODO extract from TTTrack Word 
 
-    chi2rphiConv = cms.int32 ( 1 ), # Conversion factor between dphi^2/weight and chi2rphi
-    chi2rzConv   = cms.int32 ( 1 ), # Conversion factor between dz^2/weight and chi2rz
+    chi2rphiConv = cms.int32 ( 3 ), # Conversion factor between dphi^2/weight and chi2rphi
+    chi2rzConv   = cms.int32 ( 13 ), # Conversion factor between dz^2/weight and chi2rz
 
-    WeightBinFraction = cms.double( 0.5 ), # Fraction of total dphi and dz ranges to calculate v0 and v1 LUT for
+    WeightBinFraction = cms.int32( 0 ), # Number of bits dropped from dphi and dz for v0 and v1 LUTs
 
     TTTrackBits  = cms.int32( 96 )  # Number of bits for the tttrack word TODO extract from TTTrack_word dataformat
   ),

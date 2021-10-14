@@ -102,10 +102,11 @@ namespace trackFindingTracklet {
     dataFormats_ = &iSetup.getData(esGetTokenDataFormats_);
 
     // Calculate 1/dz**2 and 1/dphi**2 bins for v0 and v1 weightings
-    for(int i = 0; i < pow(2,dataFormats_->width(Variable::dPhi, Process::kfin)) * setup_->weightBinFraction(); i++)
-      dPhiBins_.push_back( 1/pow((dataFormats_->base(Variable::dPhi, Process::kfin) * (i / setup_->weightBinFraction() ) ),2));
-    for(int i = 0; i < pow(2,dataFormats_->width(Variable::dZ, Process::kfin)) * setup_->weightBinFraction(); i++)
-      dZBins_.push_back( 1/pow((dataFormats_->base(Variable::dZ, Process::kfin) * (i / setup_->weightBinFraction() )),2));
+    for (int i = 0; i < pow(2,dataFormats_->width(Variable::dPhi, Process::kfin)) / pow(2, setup_->weightBinFraction()); i++)
+        dPhiBins_.push_back( pow(dataFormats_->base(Variable::dPhi, Process::kfin) * ( i + 1) * pow(2, setup_->weightBinFraction()),-2));
+
+    for (int i = 0; i < pow(2,dataFormats_->width(Variable::dZ, Process::kfin)) / pow(2, setup_->weightBinFraction()); i++)
+        dZBins_.push_back( pow(dataFormats_->base(Variable::dZ, Process::kfin) * ( i + 1) * pow(2, setup_->weightBinFraction()),-2));  
 
     partialTrackWordBits_ = TTBV::S_/2;
   }
@@ -116,7 +117,7 @@ namespace trackFindingTracklet {
   template<typename T>
   int ProducerKFout::digitise(const vector<T> Bins, T Value, T factor ) {
     for (int i = 0; i < (int)Bins.size(); i++){
-      if (Value > Bins[i] && Value*factor <= Bins[i+1]) {return i;}
+      if (Value*factor > Bins[i] && Value*factor <= Bins[i+1]) {return i;}
     }
     return -1;
   }
@@ -171,8 +172,8 @@ namespace trackFindingTracklet {
             double phiSquared = InStub.phi() * InStub.phi();
             double zSquared   = InStub.z() * InStub.z();
 
-            double tempv0 = dPhiBins_[(InStub.dPhi()/dataFormats_->base(Variable::dPhi, Process::kfin))*setup_->weightBinFraction()];
-            double tempv1 = dZBins_[(InStub.dZ()/dataFormats_->base(Variable::dZ, Process::kfin))*setup_->weightBinFraction()];
+            double tempv0 = dPhiBins_[(InStub.dPhi()/(dataFormats_->base(Variable::dPhi, Process::kfin)*pow(2,setup_->weightBinFraction())))];
+            double tempv1 = dZBins_[(InStub.dZ()/(dataFormats_->base(Variable::dZ, Process::kfin)*pow(2,setup_->weightBinFraction())))];
 
             double tempRphi = phiSquared * tempv0;
             double tempRz   = zSquared * tempv1;
