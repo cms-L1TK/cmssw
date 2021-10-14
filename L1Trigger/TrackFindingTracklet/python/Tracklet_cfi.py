@@ -34,6 +34,8 @@ TTTracksFromExtendedTrackletEmulation = TTTracksFromTrackletEmulation.clone(
                                                TrackQuality = cms.bool(False),
                                                TrackQualityPSet = cms.PSet(TrackQualityParams)
     )
+# The included files correspond to the reduced "Summer Chain" configuration
+# These files can be modified to emulate any other reduced configuration
 TTTracksFromReducedTrackletEmulation = TTTracksFromTrackletEmulation.clone(
                                                Reduced = cms.bool(True),
                                                # specifying where the reduced configuration files are
