@@ -91,7 +91,7 @@ void TrackletLUT::initTPlut(bool fillInner,
   }
 
   int nbinsfinephidiff = (1 << nbitsfinephidiff);
-
+  
   for (int iphibin = 0; iphibin < nbinsfinephidiff; iphibin++) {
     int iphidiff = iphibin;
     if (iphibin >= nbinsfinephidiff / 2) {
