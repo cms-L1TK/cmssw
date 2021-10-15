@@ -245,7 +245,7 @@ void MatchEngine::execute(unsigned int iSector) {
       constexpr int mindeltaphicut = 3;
       constexpr int maxdeltaphicut = 5;
       bool passphi = (std::abs(deltaphi) < mindeltaphicut) || (std::abs(deltaphi) > maxdeltaphicut);
-
+      
       unsigned int index = (projrinv << nbits) + vmstub.bend().value();
       if (!barrel_ && isPSmodule) {
         index += (1 << (nrinv_ + N_BENDBITS_2S));
