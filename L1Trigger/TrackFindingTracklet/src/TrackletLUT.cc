@@ -312,7 +312,11 @@ void TrackletLUT::initteptlut(bool fillInner,
               } else {
                 rinner = settings_.rmean(layerdisk1);
               }
+<<<<<<< HEAD
               double rinv1 = (rinner < router[i3]) ? -rinv(phiinner[i1], phiouter[i2], rinner, router[i3]) : -20.0;
+=======
+	      double rinv1 = (rinner<router[i3]) ? -rinv(phiinner[i1], phiouter[i2], rinner, router[i3]) : -20.0;
+>>>>>>> Correction to LUT code
               double pitchinner =
                   (rinner < settings_.rcrit()) ? settings_.stripPitch(true) : settings_.stripPitch(false);
               double pitchouter =
