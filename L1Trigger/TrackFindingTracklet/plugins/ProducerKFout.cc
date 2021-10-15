@@ -150,7 +150,7 @@ namespace trackFindingTracklet {
           double temp_z0 = InTrack.zT() - ((InTrack.cot() * setup_->chosenRofZ()));
 
           // Correction to Phi calcuation depending if +ve/-ve phi sector
-          const double baseSectorCorr = InTrack.sectorPhi() ? -setup_->baseSector(): -setup_->baseSector();
+          const double baseSectorCorr = InTrack.sectorPhi() ? -setup_->baseSector(): setup_->baseSector();
 
           double temp_phi0 = InTrack.phiT() - ((InTrack.inv2R()) * setup_->hybridChosenRofPhi()) + baseSectorCorr;
           
@@ -169,8 +169,8 @@ namespace trackFindingTracklet {
               continue;
 
             HitPattern.set(iStub);
-            double phiSquared = InStub.phi() * InStub.phi();
-            double zSquared   = InStub.z() * InStub.z();
+            double phiSquared = pow(InStub.phi(),2);
+            double zSquared   = pow(InStub.z(),2);
 
             double tempv0 = dPhiBins_[(InStub.dPhi()/(dataFormats_->base(Variable::dPhi, Process::kfin)*pow(2,setup_->weightBinFraction())))];
             double tempv1 = dZBins_[(InStub.dZ()/(dataFormats_->base(Variable::dZ, Process::kfin)*pow(2,setup_->weightBinFraction())))];
