@@ -254,9 +254,9 @@ namespace trackFindingTracklet {
               TrackRef = it.first;
           }
           if ((int)iTrack/3 <= setup_->numFramesIO()* ((double)TTBV::S_/setup_->tttrackBits()))
-            accepted[iLink].emplace_back(std::make_pair(TrackRef,(SortedPartialTracks[iLink][iTrack].slice(partialTrackWordBits_) + SortedPartialTracks[iLink][iTrack-1].slice(partialTrackWordBits_)).bs()));
+            accepted[iLink].emplace_back(std::make_pair(TrackRef,(SortedPartialTracks[iLink][iTrack-1].slice(partialTrackWordBits_) + SortedPartialTracks[iLink][iTrack].slice(partialTrackWordBits_)).bs()));
           else
-            lost[iLink].emplace_back(std::make_pair(TrackRef,(SortedPartialTracks[iLink][iTrack].slice(partialTrackWordBits_) + SortedPartialTracks[iLink][iTrack-1].slice(partialTrackWordBits_)).bs()));
+            lost[iLink].emplace_back(std::make_pair(TrackRef,(SortedPartialTracks[iLink][iTrack-1].slice(partialTrackWordBits_) + SortedPartialTracks[iLink][iTrack].slice(partialTrackWordBits_)).bs()));
         } //Iterate through sorted partial tracks
       } // Iterate through links
     } // Config Supported
