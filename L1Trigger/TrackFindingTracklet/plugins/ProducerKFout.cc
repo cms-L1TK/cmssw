@@ -12,6 +12,7 @@
 
 #include "L1Trigger/TrackTrigger/interface/Setup.h"
 #include "L1Trigger/TrackerTFP/interface/DataFormats.h"
+#include "L1Trigger/TrackerTFP/interface/DistServer.h"
 
 #include <string>
 #include <numeric>
@@ -111,8 +112,6 @@ namespace trackFindingTracklet {
     partialTrackWordBits_ = TTBV::S_/2;
   }
 
-
-
   // Helper function to convert floating chi2 to chi2 bin
   template<typename T>
   int ProducerKFout::digitise(const vector<T> Bins, T Value, T factor ) {
@@ -138,7 +137,26 @@ namespace trackFindingTracklet {
       iEvent.getByToken<TTTrackRefMap>(edGetTokenTTTrackRefMap_, handleTTTrackRefMap);
       const TTTrackRefMap& ttTrackRefMap = *handleTTTrackRefMap.product();
       // 18 Output Links (First Vector) each has a vector of tracks per event (second vector) each track is 3 32 bit TTBV partial tracks 
-      vector<vector<TTBV>> SortedPartialTracks(setup_->numRegions() * setup_->tfpNumChannel(),vector<TTBV>(0));   
+      vector<vector<TTBV>> SortedPartialTracks(setup_->numRegions() * setup_->tfpNumChannel(),vector<TTBV>(0));  
+      //vector<vector<TrackKFOut>> TrackStreams(setup_->numRegions() * setup_->tfpNumChannel(),vector<TrackKFOut>);
+
+      //Time//regions//Links  std::vector< std::vector< std::vector<std::shared_ptr<TrackKFOut> > > > TrackKFOutSAPtrCollectionss;
+      TrackKFOutSAPtrCollectionss  InTrackStreams;
+      TrackKFOutSAPtrCollectionss OutTrackStreams;
+
+      for (int iRegion = 0; iRegion < setup_->numRegions(); iRegion++){
+        TrackKFOutSAPtrCollections temp_collection;
+        for (int iLink=0; iLink < setup_->tfpNumChannel(); iLink++){
+          TrackKFOutSAPtrCollection temp;
+          for (int iTrack = 0; iTrack < setup_->numFramesIO()* ((double)TTBV::S_/setup_->tttrackBits()); iTrack++)
+            temp.emplace_back(std::make_shared<TrackKFOut>());
+          temp_collection.push_back(temp);
+        }
+        InTrackStreams.push_back(temp_collection);
+        OutTrackStreams.push_back(temp_collection);
+      }
+
+
       StreamsTrack OutputStreamsTracks(setup_->numRegions() * setup_->tfpNumChannel());
 
       for (int iLink = 0; iLink < (int)streamsTracks.size(); iLink++ ){
@@ -202,39 +220,39 @@ namespace trackFindingTracklet {
                              // 1        + 15   +  12 +    4
           TTBV PartialTrack1((TrackValid + InvR + phi0 + Chi2rphi),partialTrackWordBits_,false);
 
-          // Sort Tracks based on eta
-          if (iLink % 2 == 0){
-            if (InTrack.sectorEta() < (int)(setup_->numSectorsEta()/2)){
-                SortedPartialTracks[iLink].push_back(PartialTrack1);
-                SortedPartialTracks[iLink].push_back(PartialTrack2);
-                SortedPartialTracks[iLink].push_back(PartialTrack3);
-                OutputStreamsTracks[iLink].emplace_back(track);
-              }
-              else{
-                SortedPartialTracks[iLink+1].push_back(PartialTrack1);
-                SortedPartialTracks[iLink+1].push_back(PartialTrack2);
-                SortedPartialTracks[iLink+1].push_back(PartialTrack3);
-                OutputStreamsTracks[iLink+1].emplace_back(track);
-              }
-            }
-          else{
-            if (InTrack.sectorEta() < (int)(setup_->numSectorsEta()/2)){
-              SortedPartialTracks[iLink-1].push_back(PartialTrack1);
-              SortedPartialTracks[iLink-1].push_back(PartialTrack2);
-              SortedPartialTracks[iLink-1].push_back(PartialTrack3);
-              OutputStreamsTracks[iLink-1].emplace_back(track);
-            }
-            else{
-              SortedPartialTracks[iLink].push_back(PartialTrack1);
-              SortedPartialTracks[iLink].push_back(PartialTrack2);
-              SortedPartialTracks[iLink].push_back(PartialTrack3);
-              OutputStreamsTracks[iLink].emplace_back(track);
-            }
- 
-          }
+
+          int sortKey = (InTrack.sectorEta() < (int)(setup_->numSectorsEta()/2)) ? 0 : 1;
+          TrackKFOut Temp_track(PartialTrack1,PartialTrack2,PartialTrack3,sortKey,track,iTrack,iLink,true);
+
+          InTrackStreams[iLink/2][iLink%2][iTrack] = (std::make_shared<TrackKFOut>(Temp_track));
         } // Iterate over Tracks
       } // Iterate over Links
       // Fill products and match up tracks
+
+      vector< DistServer > distServers(setup_->numRegions(), DistServer(2, setup_->tfpNumChannel(),2));  //Magic Numbers
+
+      for (int i=0; i<setup_->numRegions(); i++){
+        for (int iTrack=0; iTrack<setup_->numFramesIO()* ((double)TTBV::S_/setup_->tttrackBits()); iTrack++){
+          TrackKFOutSAPtrCollection DistIn;
+          DistIn.push_back(InTrackStreams[i][0][iTrack]);
+          DistIn.push_back(InTrackStreams[i][1][iTrack]);
+          TrackKFOutSAPtrCollection DistOut = distServers[i].clock(DistIn);
+          for (int iLink=0; iLink<setup_->tfpNumChannel(); iLink++)
+             OutTrackStreams[i][iLink][iTrack] = DistOut[iLink];
+        }     
+      }
+
+      for (int iRegion = 0; iRegion < setup_->numRegions(); iRegion++ ){
+        for (int iLink = 0; iLink < setup_->tfpNumChannel(); iLink++ ){
+          for (int iTrack = 0; iTrack < (int)OutTrackStreams[iRegion][iLink].size(); iTrack++ ){
+              SortedPartialTracks[2*iRegion+iLink].push_back(OutTrackStreams[iRegion][iLink][iTrack]->PartialTrack1());
+              SortedPartialTracks[2*iRegion+iLink].push_back(OutTrackStreams[iRegion][iLink][iTrack]->PartialTrack2());
+              SortedPartialTracks[2*iRegion+iLink].push_back(OutTrackStreams[iRegion][iLink][iTrack]->PartialTrack3());
+              OutputStreamsTracks[2*iRegion+iLink].emplace_back(OutTrackStreams[iRegion][iLink][iTrack]->track());
+          }
+        }
+      }
+
       const TTBV NullBitTrack(0,partialTrackWordBits_,false);
       for (int iLink = 0; iLink < (int)OutputStreamsTracks.size(); iLink++ ){
         // Iterate through partial tracks
