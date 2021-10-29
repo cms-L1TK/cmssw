@@ -482,9 +482,9 @@ namespace trackerTFP {
     }
     static constexpr int nPar = 4;
     static constexpr double d0 = 0.;
-    static constexpr double trkMVA1 = 0.;
-    static constexpr double trkMVA2 = 0.;
-    static constexpr double trkMVA3 = 0.;
+    const double trkMVA1 = frame_.first->trkMVA1();
+    const double trkMVA2 = frame_.first->trkMVA2();
+    const  double trkMVA3 = frame_.first->trkMVA3();
     const int hitPattern = hitVector.val();
     const double bField = setup()->bField();
     TTTrack<Ref_Phase2TrackerDigi_> ttTrack(invR, phi0, cot, z0, d0, chi2phi, chi2z, trkMVA1, trkMVA2, trkMVA3, hitPattern, nPar, bField);
