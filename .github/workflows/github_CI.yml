@@ -1,12 +1,12 @@
 #####################################################################
-# This triggers git Continuous Integration tests when a PR is made  #
-# to the cms-L1TK default github branch or if code is committed to  #
-# any test branch specified below.                                  #
+# This triggers git Continuous Integration tests when a PR to       #
+# any branch is made. Or if a code-commit is made to any            #
+# test branch (temporarily) specified below.                        #
 #                                                                   #
 # The tests themselves are delegated to a gitlab CI runner          #
 # controlled by the .gitlab-ci.yml file at                          #
 # https://gitlab.cern.ch/cms-l1tk/cmssw_CI .                        #
-# (Both this file & that must be updated if CMSSW version changes). #
+# N.B. .gitlab-ci.yml must be update if the CMSSW version changes.  #
 #                                                                   # 
 # Communication between the github & gitlab CIs is done via scripts #
 # at https://github.com/cms-L1TK/gitlab-mirror-and-ci-action        #
@@ -18,8 +18,8 @@ on: # Controls when the action will run.
   workflow_dispatch:
   push: # Please specify your branch down here if you want CI to run for each push to it.
     branches: [myBranchUnderTest]
-  pull_request: # Run CI if someone makes a PR to default branch.
-    branches: [L1TK-dev-12_0_0_pre4]
+  pull_request: # Run CI if someone makes a PR to any branch
+    # branches: [L1TK-dev-12_0_0_pre4] # Optionally only run CI if PR is to this branch.
     
 env:
   mirror_repo: "https://gitlab.cern.ch/cms-l1tk/cmssw_CI" # gitlab mirror
