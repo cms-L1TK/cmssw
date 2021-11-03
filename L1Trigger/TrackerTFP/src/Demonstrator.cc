@@ -60,7 +60,7 @@ namespace trackerTFP {
           ss << (frame < (int)bvs.size() ? hex(bvs[frame]) : hex(Frame()));
         }
         for (int channel = 0; channel < voidChannel; channel++)
-          ss << " 0v" << string(TTBV::S_ / 4, '0' );
+          ss << " 0v" << string(TTBV::S_ / 4, '0');
         ss << endl;
       }
     }
@@ -75,7 +75,8 @@ namespace trackerTFP {
     fs.close();
     // run modelsim
     stringstream cmd;
-    cmd << "cd " << dirIPBB_ << " && ./run_sim -quiet -c work.top -do 'run " << runTime_ << "us' -do 'quit' &> /dev/null";
+    cmd << "cd " << dirIPBB_ << " && ./run_sim -quiet -c work.top -do 'run " << runTime_
+        << "us' -do 'quit' &> /dev/null";
     system(cmd.str().c_str());
   }
 
