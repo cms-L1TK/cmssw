@@ -14,13 +14,12 @@ namespace trackFindingTracklet {
         boundaries_(iConfig.getParameter<vector<double>>("PtBoundaries")),
         seedTypeNames_(iConfig.getParameter<vector<string>>("SeedTypes")),
         numSeedTypes_(seedTypeNames_.size()),
-        maxNumProjectionLayers_(iConfig.getParameter<int>("MaxNumProjectionLayers"))
-  {
+        maxNumProjectionLayers_(iConfig.getParameter<int>("MaxNumProjectionLayers")) {
     if (summerChain_)
       numChannels_ = 1;
     else if (useDuplicateRemoval_)
       numChannels_ = 2 * boundaries_.size();
-    else 
+    else
       numChannels_ = numSeedTypes_;
     const ParameterSet& pSetSeedTypesSeedLayers = iConfig.getParameter<ParameterSet>("SeedTypesSeedLayers");
     const ParameterSet& pSetSeedTypesProjectionLayers = iConfig.getParameter<ParameterSet>("SeedTypesProjectionLayers");
@@ -83,11 +82,12 @@ namespace trackFindingTracklet {
       const string& name = seedTypeNames_[seedType];
       cms::Exception exception("logic_error");
       exception.addContext("trackFindingTracklet::TrackBuilderChannel::layerId");
-      exception << "TTStub from layer " << layer << " (barrel: 1-6; discs: 11-15) from seed type " << name << " not supported.";
+      exception << "TTStub from layer " << layer << " (barrel: 1-6; discs: 11-15) from seed type " << name
+                << " not supported.";
       throw exception;
     }
     layerId = distance(projectingLayers.begin(), pos);
-     return true;
-   }
+    return true;
+  }
 
 }  // namespace trackFindingTracklet
