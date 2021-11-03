@@ -35,7 +35,8 @@ namespace trackFindingTracklet {
   }
 
   unique_ptr<TrackBuilderChannel> ProducerTrackBuilderChannel::produce(const TrackBuilderChannelRcd& rcd) {
-    return make_unique<TrackBuilderChannel>(*iConfig_);
+    const Setup* setup = &rcd.get(esGetToken_);
+    return make_unique<TrackBuilderChannel>(*iConfig_, setup);
   }
 
 }  // namespace trackFindingTracklet

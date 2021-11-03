@@ -134,23 +134,26 @@ namespace trackFindingTracklet {
     StreamsTrack streamLostTracks(numStreamsTracks);
     // read in hybrid track finding product and produce KFin product
     if (setup_->configurationSupported()) {
+      // create TTrackRefs
       Handle<TTTracks> handleTTTracks;
       iEvent.getByToken<TTTracks>(edGetTokenTTTracks_, handleTTTracks);
-      const TTTracks& ttTracks = *handleTTTracks;
+      vector<TTTrackRef> ttTrackRefs;
+      ttTrackRefs.reserve(handleTTTracks->size());
+      for (int i = 0; i < (int)handleTTTracks->size(); i++)
+        ttTrackRefs.emplace_back(TTTrackRef(handleTTTracks, i));
       // Assign input tracks to channels according to TrackBuilder step.
       vector<vector<TTTrackRef>> ttTrackRefsStreams(numStreamsTracks);
       vector<int> nTTTracksStreams(numStreamsTracks, 0);
       int channelId;
-      for (const TTTrack<Ref_Phase2TrackerDigi_>& ttTrack : ttTracks)
-        if (trackBuilderChannel_->channelId(ttTrack, channelId))
+      for (const TTTrackRef& ttTrackRef : ttTrackRefs)
+        if (trackBuilderChannel_->channelId(ttTrackRef, channelId))
           nTTTracksStreams[channelId]++;
       channelId = 0;
       for (int nTTTracksStream : nTTTracksStreams)
         ttTrackRefsStreams[channelId++].reserve(nTTTracksStream);
-      int i(0);
-      for (const TTTrack<Ref_Phase2TrackerDigi_>& ttTrack : ttTracks)
-        if (trackBuilderChannel_->channelId(ttTrack, channelId))
-          ttTrackRefsStreams[channelId].emplace_back(TTTrackRef(handleTTTracks, i++));
+      for (const TTTrackRef& ttTrackRef : ttTrackRefs)
+        if (trackBuilderChannel_->channelId(ttTrackRef, channelId))
+          ttTrackRefsStreams[channelId].push_back(ttTrackRef);
       for (channelId = 0; channelId < numStreamsTracks; channelId++) {
         // Create vector of stubs/tracks in KF format from TTTracks
         deque<FrameTrack> streamTracks;
