@@ -55,9 +55,7 @@ namespace trackFindingTracklet {
     vector<int> channelEncoding_;
   };
 
-  ProducerIRin::ProducerIRin(const ParameterSet& iConfig) :
-    iConfig_(iConfig)
-  {
+  ProducerIRin::ProducerIRin(const ParameterSet& iConfig) : iConfig_(iConfig) {
     const InputTag& inputTag = iConfig.getParameter<InputTag>("InputTagDTC");
     const string& branchStubs = iConfig.getParameter<string>("BranchAcceptedStubs");
     // book in- and output ED products
@@ -90,7 +88,8 @@ namespace trackFindingTracklet {
     if (setup_->configurationSupported()) {
       Handle<TTDTC> handleTTDTC;
       iEvent.getByToken<TTDTC>(edGetTokenTTDTC_, handleTTDTC);
-      const int numChannel = summerChain_ ? channelEncoding_.size() : handleTTDTC->tfpRegions().size() * handleTTDTC->tfpChannels().size();
+      const int numChannel =
+          summerChain_ ? channelEncoding_.size() : handleTTDTC->tfpRegions().size() * handleTTDTC->tfpChannels().size();
       streamStubs.reserve(numChannel);
       for (int tfpRegion : handleTTDTC->tfpRegions())
         for (int tfpChannel : summerChain_ ? channelEncoding_ : handleTTDTC->tfpChannels())
@@ -100,6 +99,6 @@ namespace trackFindingTracklet {
     iEvent.emplace(edPutTokenStubs_, move(streamStubs));
   }
 
-} // namespace trackFindingTracklet
+}  // namespace trackFindingTracklet
 
-DEFINE_FWK_MODULE(trackFindingTracklet::ProducerIRin); 
+DEFINE_FWK_MODULE(trackFindingTracklet::ProducerIRin);

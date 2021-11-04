@@ -100,9 +100,7 @@ namespace trackFindingTracklet {
     trklet::Settings settings_;
   };
 
-  ProducerTBout::ProducerTBout(const ParameterSet& iConfig) :
-    iConfig_(iConfig)
-  {
+  ProducerTBout::ProducerTBout(const ParameterSet& iConfig) : iConfig_(iConfig) {
     const InputTag& inputTag = iConfig.getParameter<InputTag>("InputTag");
     const InputTag& inputTagDTC = iConfig.getParameter<InputTag>("InputTagDTC");
     const string& branchAcceptedStubs = iConfig.getParameter<string>("BranchAcceptedStubs");
@@ -193,7 +191,7 @@ namespace trackFindingTracklet {
         const bool valid = trackBuilderChannel_->channelId(ttTrackRef, channelId);
         const bool truncate = enableTruncation_ && (int)streamAcceptedTracks[channelId].size() > setup_->numFrames();
         StreamTrack& tracks = truncate ? streamLostTracks[channelId] : streamAcceptedTracks[channelId];
-        if (!valid && !truncate) { // fill gap
+        if (!valid && !truncate) {  // fill gap
           tracks.emplace_back(FrameTrack());
           for (int projection = 0; projection < trackBuilderChannel_->maxNumProjectionLayers(); projection++) {
             const int channelStub = channelId * trackBuilderChannel_->maxNumProjectionLayers() + projection;
@@ -245,7 +243,8 @@ namespace trackFindingTracklet {
     static const double baseTanL = settings_.kz() / settings_.kr() * pow(2, settings_.t_shift());
     // sub words
     // phi0 w.r.t. processing region border in rad
-    double phi0 = deltaPhi(ttTrackRef->phi() - ttTrackRef->phiSector() * setup_->baseRegion() + setup_->hybridRangePhi() / 2.);
+    double phi0 =
+        deltaPhi(ttTrackRef->phi() - ttTrackRef->phiSector() * setup_->baseRegion() + setup_->hybridRangePhi() / 2.);
     if (phi0 < 0.)
       phi0 += 2. * M_PI;
     const TTBV hwValid(1, 1);
@@ -290,6 +289,6 @@ namespace trackFindingTracklet {
     return hw.bs();
   }
 
-} // namespace trackFindingTracklet
+}  // namespace trackFindingTracklet
 
-DEFINE_FWK_MODULE(trackFindingTracklet::ProducerTBout); 
+DEFINE_FWK_MODULE(trackFindingTracklet::ProducerTBout);
