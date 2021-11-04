@@ -5,6 +5,7 @@
 #include "L1Trigger/TrackFindingTracklet/interface/TrackBuilderChannelRcd.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "DataFormats/L1TrackTrigger/interface/TTTypes.h"
+#include "L1Trigger/TrackTrigger/interface/Setup.h"
 
 #include <vector>
 
