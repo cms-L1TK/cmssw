@@ -26,6 +26,8 @@ process.load( 'L1Trigger.TrackerDTC.ProducerED_cff' )
 process.load( 'L1Trigger.TrackerDTC.Analyzer_cff' )
 # L1 tracking => hybrid emulation 
 process.load("L1Trigger.TrackFindingTracklet.L1HybridEmulationTracks_cff")
+from L1Trigger.TrackFindingTracklet.Customize_cff import *
+newKFConfig( process )
 #--- Load code that analyzes hybrid emulation 
 process.load( 'L1Trigger.TrackFindingTracklet.Analyzer_cff' )
 # load code that fits hybrid tracks
@@ -41,7 +43,7 @@ process.TTTrackAssociatorFromPixelDigis.TTTracks = cms.VInputTag( cms.InputTag(
 # build schedule
 process.mc = cms.Sequence( process.StubAssociator )
 process.dtc = cms.Sequence( process.TrackerDTCProducer + process.TrackerDTCAnalyzer )
-process.tracklet = cms.Sequence( process.L1TrackletTracks + process.TrackFindingTrackletAnalyzerTracklet )
+process.tracklet = cms.Sequence( process.L1HybridTracks + process.TrackFindingTrackletAnalyzerTracklet )
 process.interIn = cms.Sequence( process.TrackFindingTrackletProducerKFin + process.TrackFindingTrackletAnalyzerKFin )
 process.kf = cms.Sequence( process.TrackFindingTrackletProducerKF + process.TrackFindingTrackletAnalyzerKF )
 process.TTTracks = cms.Sequence( process.TrackFindingTrackletProducerTT + process.TrackFindingTrackletProducerAS + process.TrackTriggerAssociatorTracks )
