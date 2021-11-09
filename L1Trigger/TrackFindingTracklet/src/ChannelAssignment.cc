@@ -1,4 +1,5 @@
 #include "L1Trigger/TrackFindingTracklet/interface/ChannelAssignment.h"
+#include "L1Trigger/TrackFindingTracklet/interface/Settings.h"
 
 #include <vector>
 

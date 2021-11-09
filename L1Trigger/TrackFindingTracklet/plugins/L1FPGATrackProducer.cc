@@ -194,11 +194,7 @@ private:
   // ChannelAssignment token
   ESGetToken<ChannelAssignment, ChannelAssignmentRcd> esGetTokenChannelAssignment_;
   // helper class to assign tracks to channel
-<<<<<<< HEAD
   const ChannelAssignment* channelAssignment_;
-=======
-  ChannelAssignment* channelAssignment_;
->>>>>>> rebased and name change of TrackBuilderChannel adopted.
 
   // helper class to store DTC configuration
   tt::Setup setup_;
@@ -255,7 +251,6 @@ L1FPGATrackProducer::L1FPGATrackProducer(edm::ParameterSet const& iConfig)
 
   // book ES product to assign tracks and stubs to InputRouter input channel and TrackBuilder output channel
   esGetTokenChannelAssignment_ = esConsumes<ChannelAssignment, ChannelAssignmentRcd, Transition::BeginRun>();
-  // book ES product for track trigger cinfiguration
   esGetToken_ = esConsumes<tt::Setup, tt::SetupRcd, edm::Transition::BeginRun>();
   // initial ES products
   channelAssignment_ = nullptr;

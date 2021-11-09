@@ -24,7 +24,7 @@ namespace trklet {
     ChannelAssignment(const edm::ParameterSet& iConfig, const tt::Setup* setup);
     ~ChannelAssignment() {}
     // sets channelId of given TTTrackRef from TrackBuilder or PurgeDuplicate (if enabled), return false if track outside pt range
-    bool channelId(const TTTrackRef& ttTrackRef, int& channelId);
+    bool channelId(const TTTrackRef& ttTrackRef, int& channelId) const;
     // number of used channels
     int numChannels() const { return numChannels_; }
     // sets layerId (0-7 in sequence the seed type projects to) of given TTStubRef and seedType, returns false if seeed stub
