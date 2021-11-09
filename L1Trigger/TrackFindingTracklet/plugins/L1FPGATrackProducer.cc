@@ -83,6 +83,10 @@
 #include "L1Trigger/TrackFindingTracklet/interface/Sector.h"
 #include "L1Trigger/TrackFindingTracklet/interface/Track.h"
 #include "L1Trigger/TrackFindingTracklet/interface/TrackletEventProcessor.h"
+#include "L1Trigger/TrackFindingTracklet/interface/TrackBuilderChannel.h"
+#include "L1Trigger/TrackFindingTracklet/interface/Tracklet.h"
+#include "L1Trigger/TrackFindingTracklet/interface/Residual.h"
+#include "L1Trigger/TrackFindingTracklet/interface/Stub.h"
 
 ////////////////
 // PHYSICS TOOLS
@@ -106,6 +110,8 @@
 // NAMESPACES
 using namespace edm;
 using namespace std;
+using namespace tt;
+using namespace trklet;
 
 //////////////////////////////
 //                          //
@@ -184,6 +190,13 @@ private:
   edm::EDGetTokenT<std::vector<TrackingParticle>> TrackingParticleToken_;
   edm::EDGetTokenT<TTDTC> tokenDTC_;
 
+  // ED output token for clock and bit accurate stubs
+  EDPutTokenT<StreamsStub> edPutTokenStubs_;
+  // TrackBuilderChannel token
+  ESGetToken<TrackBuilderChannel, TrackBuilderChannelRcd> esGetTokenTrackBuilderChannel_;
+  // helper class to assign tracks to channel
+  TrackBuilderChannel* trackBuilderChannel_;
+
   // helper class to store DTC configuration
   tt::Setup setup_;
 
@@ -233,8 +246,14 @@ L1FPGATrackProducer::L1FPGATrackProducer(edm::ParameterSet const& iConfig)
     tableTREFile = iConfig.getParameter<edm::FileInPath>("tableTREFile");
   }
 
+
+  // book ED output token for clock and bit accurate stubs
+  edPutTokenStubs_ = produces<StreamsStub>("Level1TTTracks");
   // book ES product
+  esGetTokenTrackBuilderChannel_ = esConsumes<TrackBuilderChannel, TrackBuilderChannelRcd, Transition::BeginRun>();
   esGetToken_ = esConsumes<tt::Setup, tt::SetupRcd, edm::Transition::BeginRun>();
+  // initial ES products
+  trackBuilderChannel_ = nullptr;
 
   // --------------------------------------------------------------------------------
   // set options in Settings based on inputs from configuration files
@@ -250,6 +269,7 @@ L1FPGATrackProducer::L1FPGATrackProducer(edm::ParameterSet const& iConfig)
   settings.setWiresFile(wiresFile.fullPath());
 
   settings.setFakefit(iConfig.getParameter<bool>("Fakefit"));
+  settings.setEmulateTB(iConfig.getParameter<bool>("EmulateTB"));
 
   if (extended_) {
     settings.setTableTEDFile(tableTEDFile.fullPath());
@@ -281,6 +301,15 @@ L1FPGATrackProducer::L1FPGATrackProducer(edm::ParameterSet const& iConfig)
   if (trackQuality_) {
     trackQualityModel_ = std::make_unique<TrackQuality>(iConfig.getParameter<edm::ParameterSet>("TrackQualityPSet"));
   }
+  if (settings.emulateTB() && (settings.doMultipleMatches() || settings.removalType() != "")) {
+    cms::Exception exception("ConfigurationNotSupported.");
+    exception.addContext("L1FPGATrackProducer::produce");
+    if (settings.doMultipleMatches())
+      exception << "Emulation of TrackBuilder does not support doMultipleMatches.";
+    if (settings.removalType() != "")
+      exception << "Emulation of TrackBuilder does not support duplicate removal.";
+    throw exception;
+  }
 }
 
 /////////////
@@ -307,9 +336,10 @@ void L1FPGATrackProducer::beginRun(const edm::Run& run, const edm::EventSetup& i
   settings.setBfield(mMagneticFieldStrength);
 
   setup_ = iSetup.getData(esGetToken_);
+  trackBuilderChannel_ = const_cast<TrackBuilderChannel*>(&iSetup.getData(esGetTokenTrackBuilderChannel_));
 
   // initialize the tracklet event processing (this sets all the processing & memory modules, wiring, etc)
-  eventProcessor.init(settings);
+  eventProcessor.init(settings, trackBuilderChannel_);
 }
 
 //////////
@@ -548,7 +578,8 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
                    ttPos.z(),
                    stubbend,
                    stub.first->innerClusterPosition(),
-                   assocTPs);
+                   assocTPs,
+                   stub.first);
 
         const trklet::L1TStub& lastStub = ev.lastStub();
         stubMap[lastStub] = stub.first;
@@ -642,6 +673,10 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
   }
 
   iEvent.put(std::move(L1TkTracksForOutput), "Level1TTTracks");
+
+  // produce clock and bit output stubs
+  const StreamsStub& streamsStub = eventProcessor.produce();
+  iEvent.emplace(edPutTokenStubs_, move(streamsStub));
 
 }  /// End of produce()
 

@@ -23,9 +23,9 @@ using namespace std;
 using namespace edm;
 using namespace tt;
 
-namespace trackFindingTracklet {
+namespace trklet {
 
-  /*! \class  trackFindingTracklet::ProducerIRin
+  /*! \class  trklet::ProducerIRin
    *  \brief  Transforms TTTDCinto f/w comparable format for summer chain configuratiotn
    *  \author Thomas Schuh
    *  \date   2021, Oct
@@ -99,6 +99,6 @@ namespace trackFindingTracklet {
     iEvent.emplace(edPutTokenStubs_, move(streamStubs));
   }
 
-}  // namespace trackFindingTracklet
+}  // namespace trklet
 
-DEFINE_FWK_MODULE(trackFindingTracklet::ProducerIRin);
+DEFINE_FWK_MODULE(trklet::ProducerIRin);

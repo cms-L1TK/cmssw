@@ -241,6 +241,8 @@ namespace trklet {
     bool doMultipleMatches() const { return doMultipleMatches_; }
     bool fakefit() const { return fakefit_; }
     void setFakefit(bool fakefit) { fakefit_ = fakefit; }
+    bool emulateTB() const { return emulateTB_; }
+    void setEmulateTB(bool emulateTB) { emulateTB_ = emulateTB; }
 
     // configurable
     unsigned int nHelixPar() const { return nHelixPar_; }
@@ -905,6 +907,8 @@ namespace trklet {
 
     // if true, run a dummy fit, producing TTracks directly from output of tracklet pattern reco stage
     bool fakefit_{false};
+    // if true EDProducer prduces additionaly bit and clock accurate TrackBuilder output
+    bool emulateTB_{false};
 
     unsigned int nHelixPar_{4};  // 4 or 5 param helix fit
     bool extended_{false};       // turn on displaced tracking

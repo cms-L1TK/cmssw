@@ -27,9 +27,9 @@ using namespace edm;
 using namespace trackerTFP;
 using namespace tt;
 
-namespace trackFindingTracklet {
+namespace trklet {
 
-  /*! \class  trackFindingTracklet::ProducerTBout
+  /*! \class  trklet::ProducerTBout
    *  \brief  Transforms TTTracks from Tracklet pattern reco. into f/w comparable format
    *  \author Thomas Schuh
    *  \date   2021, Oct
@@ -44,36 +44,13 @@ namespace trackFindingTracklet {
     virtual void produce(Event&, const EventSetup&) override;
     virtual void endJob() {}
 
-    // dtc stub
-    struct Stub {
-      Stub(const FrameStub& frame, int region, int channel, const Setup* setup) {
-        region_ = region;
-        ttStubRef_ = frame.first;
-        frame_ = frame.second;
-        gp_ = setup->stubPos(true, frame, region, channel);
-        barrel_ = setup->barrel(ttStubRef_);
-        const bool ps = setup->psModule(ttStubRef_);
-        const TTBV ttBV(frame.second);
-        r_ = TTBV(ttBV, 39, 39 - (barrel_ || ps ? 7 : 12), true);
-        if (!barrel_ && !ps)
-          r_.resize(12);
-      }
-      int region_;
-      TTStubRef ttStubRef_;
-      Frame frame_;
-      GlobalPoint gp_;
-      bool barrel_;
-      TTBV r_;
-    };
     // return h/w bits for given ttTrackRef
     Frame conv(const TTTrackRef& ttTrackRef) const;
-    // return h/w bits for given dtc stub and origin ttTrackRef
-    Frame conv(const TTTrackRef& ttTrackRef, const Stub& stub) const;
 
     // ED input token of TTTracks
     EDGetTokenT<TTTracks> edGetTokenTTTracks_;
-    // ED input token of DTC Stubs
-    EDGetTokenT<TTDTC> edGetTokenTTDTC_;
+    // ED input token of Tracklet Stubs
+    EDGetTokenT<StreamsStub> edGetTokenStubs_;
     // ED output token for stubs
     EDPutTokenT<StreamsStub> edPutTokenAcceptedStubs_;
     EDPutTokenT<StreamsStub> edPutTokenLostStubs_;
@@ -102,14 +79,13 @@ namespace trackFindingTracklet {
 
   ProducerTBout::ProducerTBout(const ParameterSet& iConfig) : iConfig_(iConfig) {
     const InputTag& inputTag = iConfig.getParameter<InputTag>("InputTag");
-    const InputTag& inputTagDTC = iConfig.getParameter<InputTag>("InputTagDTC");
     const string& branchAcceptedStubs = iConfig.getParameter<string>("BranchAcceptedStubs");
     const string& branchAcceptedTracks = iConfig.getParameter<string>("BranchAcceptedTracks");
     const string& branchLostStubs = iConfig.getParameter<string>("BranchLostStubs");
     const string& branchLostTracks = iConfig.getParameter<string>("BranchLostTracks");
     // book in- and output ED products
     edGetTokenTTTracks_ = consumes<TTTracks>(inputTag);
-    edGetTokenTTDTC_ = consumes<TTDTC>(inputTagDTC);
+    edGetTokenStubs_ = consumes<StreamsStub>(inputTag);
     edPutTokenAcceptedStubs_ = produces<StreamsStub>(branchAcceptedStubs);
     edPutTokenAcceptedTracks_ = produces<StreamsTrack>(branchAcceptedTracks);
     edPutTokenLostStubs_ = produces<StreamsStub>(branchLostStubs);
@@ -150,17 +126,6 @@ namespace trackFindingTracklet {
     StreamsTrack streamLostTracks(numStreamsTracks);
     // read in hybrid track finding product and produce KFin product
     if (setup_->configurationSupported()) {
-      // create DTC stub frames
-      Handle<TTDTC> handleTTDTC;
-      iEvent.getByToken<TTDTC>(edGetTokenTTDTC_, handleTTDTC);
-      const TTDTC& ttDTC = *handleTTDTC;
-      vector<Stub> stubsDTC;
-      stubsDTC.reserve(ttDTC.nStubs());
-      for (int region : ttDTC.tfpRegions())
-        for (int channel : ttDTC.tfpChannels())
-          for (const FrameStub& frame : ttDTC.stream(region, channel))
-            if (frame.first.isNonnull())
-              stubsDTC.emplace_back(frame, region, channel, setup_);
       // create TTrackRefs
       Handle<TTTracks> handleTTTracks;
       iEvent.getByToken<TTTracks>(edGetTokenTTTracks_, handleTTTracks);
@@ -168,7 +133,7 @@ namespace trackFindingTracklet {
       ttTrackRefs.reserve(handleTTTracks->size());
       for (int i = 0; i < (int)handleTTTracks->size(); i++)
         ttTrackRefs.emplace_back(TTTrackRef(handleTTTracks, i));
-      // count tracks per channel and size output products
+      // count tracks per channel and reserve output products
       vector<int> nTTTracksStreams(numStreamsTracks, 0);
       int channelId;
       for (const TTTrackRef& ttTrackRef : ttTrackRefs)
@@ -180,47 +145,26 @@ namespace trackFindingTracklet {
         const int accepted = lost == 0 ? num : setup_->numFrames();
         streamAcceptedTracks[channelTrack].reserve(accepted);
         streamLostTracks[channelTrack].reserve(lost);
-        for (int projection = 0; projection < trackBuilderChannel_->maxNumProjectionLayers(); projection++) {
-          const int channelStub = channelTrack * trackBuilderChannel_->maxNumProjectionLayers() + projection;
-          streamAcceptedStubs[channelStub].reserve(accepted);
-          streamLostStubs[channelStub].reserve(lost);
-        }
       }
       // fill output products
       for (const TTTrackRef& ttTrackRef : ttTrackRefs) {
-        const bool valid = trackBuilderChannel_->channelId(ttTrackRef, channelId);
+        if (!trackBuilderChannel_->channelId(ttTrackRef, channelId))
+          continue;
         const bool truncate = enableTruncation_ && (int)streamAcceptedTracks[channelId].size() > setup_->numFrames();
         StreamTrack& tracks = truncate ? streamLostTracks[channelId] : streamAcceptedTracks[channelId];
-        if (!valid && !truncate) {  // fill gap
-          tracks.emplace_back(FrameTrack());
-          for (int projection = 0; projection < trackBuilderChannel_->maxNumProjectionLayers(); projection++) {
-            const int channelStub = channelId * trackBuilderChannel_->maxNumProjectionLayers() + projection;
-            streamAcceptedStubs[channelStub].emplace_back(FrameStub());
-          }
-          continue;
-        }
         // conv track word
         tracks.emplace_back(ttTrackRef, conv(ttTrackRef));
-        // conv stub words
-        StreamsStub& streams = truncate ? streamLostStubs : streamAcceptedStubs;
-        TTBV pattern(0, trackBuilderChannel_->maxNumProjectionLayers());
-        int layerId;
-        for (const TTStubRef& ttStubRef : ttTrackRef->getStubRefs()) {
-          if (!trackBuilderChannel_->layerId(ttTrackRef, ttStubRef, layerId))
-            continue;
-          pattern.set(layerId);
-          StreamStub& stubs = streams[channelId * trackBuilderChannel_->maxNumProjectionLayers() + layerId];
-          // find dtc stub
-          auto found = [ttTrackRef, ttStubRef](const Stub& stub) {
-            return stub.ttStubRef_ == ttStubRef && stub.region_ == (int)ttTrackRef->phiSector();
-          };
-          const Stub& stub = *find_if(stubsDTC.begin(), stubsDTC.end(), found);
-          // conv stub word
-          stubs.emplace_back(ttStubRef, conv(ttTrackRef, stub));
-        }
-        // add gaps to layer w/o stub
-        for (int layerId : pattern.ids(false))
-          streams[channelId * trackBuilderChannel_->maxNumProjectionLayers() + layerId].emplace_back(FrameStub());
+      }
+      // get and trunacte stubs
+      Handle<StreamsStub> handleStubs;
+      iEvent.getByToken<StreamsStub>(edGetTokenStubs_, handleStubs);
+      int channel(0);
+      for (const StreamStub& streamStub : *handleStubs) {
+        auto limit = streamStub.end();
+        if (enableTruncation_ && (int)streamStub.size() > setup_->numFrames())
+          limit = next(streamStub.begin(), setup_->numFrames());
+        streamAcceptedStubs[channel] = StreamStub(streamStub.begin(), limit);
+        streamLostStubs[channel++] = StreamStub(limit, streamStub.end());
       }
     }
     // store products
@@ -253,42 +197,10 @@ namespace trackFindingTracklet {
     const TTBV hwPhi0(phi0, basePhi0, widthPhi0, false);
     const TTBV hwZ0(ttTrackRef->z0(), baseZ0, widthZ0, true);
     const TTBV hwTanL(ttTrackRef->tanL(), baseTanL, widthTanL, true);
-    const TTBV hw(hwValid.str() + hwSeedType.str() + hwInvR.str() + hwZ0.str() + hwTanL.str());
+    const TTBV hw(hwValid.str() + hwSeedType.str() + hwInvR.str() + hwPhi0.str() + hwZ0.str() + hwTanL.str());
     return hw.bs();
   }
 
-  // return h/w bits for given dtc stub and origin ttTrackRef
-  Frame ProducerTBout::conv(const TTTrackRef& ttTrackRef, const Stub& stub) const {
-    static constexpr int widthPhi = 12;
-    static constexpr int widthZ = 9;
-    static constexpr int widthR = 7;
-    static const double basePhi = settings_.kphi1();
-    static const double baseR = settings_.kr();
-    static const double baseZ = settings_.kz();
-    static const double baseInvR = settings_.kphi1() / settings_.kr() * pow(2, settings_.rinv_shift());
-    static const double basePhi0 = settings_.kphi1() * pow(2, settings_.phi0_shift());
-    static const double baseZ0 = settings_.kz() * pow(2, settings_.z0_shift());
-    static const double baseTanL = settings_.kz() / settings_.kr() * pow(2, settings_.t_shift());
-    const int widthRZ = stub.barrel_ ? widthZ : widthR;
-    const double baseRZ = stub.barrel_ ? baseZ : baseR;
-    // calc residuals
-    const double rInv = (ttTrackRef->rInv() / baseInvR + .5) * baseInvR;
-    const double phi0 = (ttTrackRef->phi() / basePhi0 + .5) * basePhi0;
-    const double z0 = (ttTrackRef->z0() / baseZ0 + .5) * baseZ0;
-    const double tanL = (ttTrackRef->tanL() / baseTanL + .5) * baseTanL;
-    const double phi = deltaPhi(phi0 - rInv * stub.gp_.perp() / 2. - stub.gp_.phi());
-    const double r = (stub.gp_.z() - z0) / tanL - stub.gp_.perp();
-    const double z = z0 + tanL * stub.gp_.perp() - stub.gp_.z();
-    const double rz = stub.barrel_ ? r : z;
-    // sub words
-    const TTBV hwValid(1, 1);
-    const TTBV hwR(stub.r_);
-    const TTBV hwPhi(phi, basePhi, widthPhi, true);
-    const TTBV hwRZ(rz, baseRZ, widthRZ, true);
-    const TTBV hw(hwValid.str() + hwR.str() + hwPhi.str() + hwRZ.str());
-    return hw.bs();
-  }
+}  // namespace trklet
 
-}  // namespace trackFindingTracklet
-
-DEFINE_FWK_MODULE(trackFindingTracklet::ProducerTBout);
+DEFINE_FWK_MODULE(trklet::ProducerTBout);
