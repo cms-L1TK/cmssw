@@ -30,11 +30,15 @@ using namespace tt;
 namespace trklet {
 
   /*! \class  trklet::ProducerTBout
+<<<<<<< HEAD
    *  \brief  Transforms TTTracks and Streams from Tracklet pattern reco. into StreamsTrack
    *          by adding to the digitised track stream a reference to the corresponding TTTrack.
    *          (Could not be done in previous L1TrackFPGAProducer, as single EDProducer can't
    *          produce output containing both an EDProduct and refs to that product).
    *          Writes Tracks & stubs rejected/kept after truncation to separate StreamsTrack & StreamsStub branches.
+=======
+   *  \brief  Transforms TTTracks from Tracklet pattern reco. into f/w comparable format
+>>>>>>> StreamsStub added as EDProduct of L1FPGATrackProducer
    *  \author Thomas Schuh
    *  \date   2021, Oct
    */
@@ -48,10 +52,18 @@ namespace trklet {
     virtual void produce(Event&, const EventSetup&) override;
     virtual void endJob() {}
 
+<<<<<<< HEAD
     // ED input token of TTTracks
     EDGetTokenT<TTTracks> edGetTokenTTTracks_;
     // ED input token of Tracklet tracks
     EDGetTokenT<Streams> edGetTokenTracks_;
+=======
+    // return h/w bits for given ttTrackRef
+    Frame conv(const TTTrackRef& ttTrackRef) const;
+
+    // ED input token of TTTracks
+    EDGetTokenT<TTTracks> edGetTokenTTTracks_;
+>>>>>>> StreamsStub added as EDProduct of L1FPGATrackProducer
     // ED input token of Tracklet Stubs
     EDGetTokenT<StreamsStub> edGetTokenStubs_;
     // ED output token for stubs
@@ -88,7 +100,10 @@ namespace trklet {
     const string& branchLostTracks = iConfig.getParameter<string>("BranchLostTracks");
     // book in- and output ED products
     edGetTokenTTTracks_ = consumes<TTTracks>(inputTag);
+<<<<<<< HEAD
     edGetTokenTracks_ = consumes<Streams>(inputTag);
+=======
+>>>>>>> StreamsStub added as EDProduct of L1FPGATrackProducer
     edGetTokenStubs_ = consumes<StreamsStub>(inputTag);
     edPutTokenAcceptedStubs_ = produces<StreamsStub>(branchAcceptedStubs);
     edPutTokenAcceptedTracks_ = produces<StreamsTrack>(branchAcceptedTracks);
