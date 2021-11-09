@@ -6,7 +6,7 @@ using namespace std;
 using namespace edm;
 using namespace tt;
 
-namespace trackFindingTracklet {
+namespace trklet {
 
   ChannelAssignment::ChannelAssignment(const edm::ParameterSet& iConfig, const Setup* setup)
       : setup_(setup),
@@ -114,7 +114,7 @@ namespace trackFindingTracklet {
       channelId = ttTrackRef->phiSector() * numSeedTypes_ + seedType;
       return true;
     }
-    const double pt = ttTrackRef->momentum().perp();
+    const double pt = 2. * setup_->invPtToDphi() / abs(rInv);
     channelId = -1;
     for (double boundary : boundaries_) {
       if (pt < boundary)
@@ -124,15 +124,14 @@ namespace trackFindingTracklet {
     }
     if (channelId == -1)
       return false;
-    channelId = ttTrackRef->rInv() < 0. ? channelId : numChannels_ - channelId - 1;
-    channelId += ttTrackRef->phiSector() * numChannels_;
+    channelId = rInv < 0. ? channelId : numChannels_ - channelId - 1;
+    channelId += phiSector * numChannels_;
     return true;
   }
 
   // sets layerId of given TTStubRef and TTTrackRef, returns false if seeed stub
   bool ChannelAssignment::layerId(const TTTrackRef& ttTrackRef, const TTStubRef& ttStubRef, int& layerId) {
     layerId = -1;
-    const int seedType = ttTrackRef->trackSeedType();
     if (seedType < 0 || seedType >= numSeedTypes_) {
       cms::Exception exception("logic_error");
       exception.addContext("trackFindingTracklet::ChannelAssignment::layerId");
