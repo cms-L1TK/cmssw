@@ -86,6 +86,8 @@ namespace trackerTFP {
     // initial ES product
     setup_ = nullptr;
     demonstrator_ = nullptr;
+    nEvents_ = 0;
+    nEventsSuccessful_ = 0;
   }
 
   void AnalyzerDemonstrator::beginRun(const Run& iEvent, const EventSetup& iSetup) {
