@@ -17,7 +17,8 @@ L1TStub::L1TStub(std::string DTClink,
                  double bend,
                  double strip,
                  std::vector<int> tps,
-                 const TTStubRef& ttStubRef) : ttStubRef_(ttStubRef) {
+                 const TTStubRef& ttStubRef)
+    : ttStubRef_(ttStubRef) {
   DTClink_ = DTClink;
   layerdisk_ = layerdisk;
   region_ = region;

@@ -40,7 +40,9 @@ namespace trklet {
 
     std::vector<Tracklet*> orderedMatches(std::vector<FullMatchMemory*>& fullmatch);
 
-    void execute(TrackBuilderChannel* trackBuilderChannel, std::vector<std::deque<tt::FrameStub>>& streamsStub, unsigned int iSector);
+    void execute(TrackBuilderChannel* trackBuilderChannel,
+                 std::vector<std::deque<tt::FrameStub>>& streamsStub,
+                 unsigned int iSector);
 
   private:
     std::vector<TrackletParametersMemory*> seedtracklet_;

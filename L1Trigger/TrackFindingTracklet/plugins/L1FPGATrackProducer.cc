@@ -246,7 +246,6 @@ L1FPGATrackProducer::L1FPGATrackProducer(edm::ParameterSet const& iConfig)
     tableTREFile = iConfig.getParameter<edm::FileInPath>("tableTREFile");
   }
 
-
   // book ED output token for clock and bit accurate stubs
   edPutTokenStubs_ = produces<StreamsStub>("Level1TTTracks");
   // book ES product

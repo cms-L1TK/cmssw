@@ -869,7 +869,9 @@ std::vector<Tracklet*> FitTrack::orderedMatches(vector<FullMatchMemory*>& fullma
   return tmp;
 }
 
-void FitTrack::execute(TrackBuilderChannel* trackBuilderChannel, vector<deque<tt::FrameStub>>& streamsStub, unsigned int iSector) {
+void FitTrack::execute(TrackBuilderChannel* trackBuilderChannel,
+                       vector<deque<tt::FrameStub>>& streamsStub,
+                       unsigned int iSector) {
   // merge
   const std::vector<Tracklet*>& matches1 = orderedMatches(fullmatch1_);
   const std::vector<Tracklet*>& matches2 = orderedMatches(fullmatch2_);
