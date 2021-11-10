@@ -190,6 +190,8 @@ private:
   edm::EDGetTokenT<std::vector<TrackingParticle>> TrackingParticleToken_;
   edm::EDGetTokenT<TTDTC> tokenDTC_;
 
+  // ED output token for clock and bit accurate tracks
+  EDPutTokenT<Streams> edPutTokenTracks_;
   // ED output token for clock and bit accurate stubs
   EDPutTokenT<StreamsStub> edPutTokenStubs_;
   // TrackBuilderChannel token
@@ -246,6 +248,8 @@ L1FPGATrackProducer::L1FPGATrackProducer(edm::ParameterSet const& iConfig)
     tableTREFile = iConfig.getParameter<edm::FileInPath>("tableTREFile");
   }
 
+  // book ED output token for clock and bit accurate tracks
+  edPutTokenTracks_ = produces<Streams>("Level1TTTracks");
   // book ED output token for clock and bit accurate stubs
   edPutTokenStubs_ = produces<StreamsStub>("Level1TTTracks");
   // book ES product
@@ -673,8 +677,11 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
 
   iEvent.put(std::move(L1TkTracksForOutput), "Level1TTTracks");
 
-  // produce clock and bit output stubs
-  const StreamsStub& streamsStub = eventProcessor.produce();
+  // produce clock and bit output tracks and stubs
+  Streams streamsTrack;
+  StreamsStub streamsStub;
+  eventProcessor.produce(streamsTrack, streamsStub);
+  iEvent.emplace(edPutTokenTracks_, move(streamsTrack));
   iEvent.emplace(edPutTokenStubs_, move(streamsStub));
 
 }  /// End of produce()

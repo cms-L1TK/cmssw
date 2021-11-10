@@ -44,11 +44,10 @@ namespace trklet {
     virtual void produce(Event&, const EventSetup&) override;
     virtual void endJob() {}
 
-    // return h/w bits for given ttTrackRef
-    Frame conv(const TTTrackRef& ttTrackRef) const;
-
     // ED input token of TTTracks
     EDGetTokenT<TTTracks> edGetTokenTTTracks_;
+    // ED input token of Tracklet tracks
+    EDGetTokenT<Streams> edGetTokenTracks_;
     // ED input token of Tracklet Stubs
     EDGetTokenT<StreamsStub> edGetTokenStubs_;
     // ED output token for stubs
@@ -85,6 +84,7 @@ namespace trklet {
     const string& branchLostTracks = iConfig.getParameter<string>("BranchLostTracks");
     // book in- and output ED products
     edGetTokenTTTracks_ = consumes<TTTracks>(inputTag);
+    edGetTokenTracks_ = consumes<Streams>(inputTag);
     edGetTokenStubs_ = consumes<StreamsStub>(inputTag);
     edPutTokenAcceptedStubs_ = produces<StreamsStub>(branchAcceptedStubs);
     edPutTokenAcceptedTracks_ = produces<StreamsTrack>(branchAcceptedTracks);
@@ -126,45 +126,50 @@ namespace trklet {
     StreamsTrack streamLostTracks(numStreamsTracks);
     // read in hybrid track finding product and produce KFin product
     if (setup_->configurationSupported()) {
-      // create TTrackRefs
+      // create and structure TTrackRefs in h/w channel
+      vector<deque<TTTrackRef>> ttTrackRefs(numStreamsTracks);
       Handle<TTTracks> handleTTTracks;
       iEvent.getByToken<TTTracks>(edGetTokenTTTracks_, handleTTTracks);
-      vector<TTTrackRef> ttTrackRefs;
-      ttTrackRefs.reserve(handleTTTracks->size());
-      for (int i = 0; i < (int)handleTTTracks->size(); i++)
-        ttTrackRefs.emplace_back(TTTrackRef(handleTTTracks, i));
-      // count tracks per channel and reserve output products
-      vector<int> nTTTracksStreams(numStreamsTracks, 0);
-      int channelId;
-      for (const TTTrackRef& ttTrackRef : ttTrackRefs)
+      int channelId(-1);
+      for (int i = 0; i < (int)handleTTTracks->size(); i++) {
+        const TTTrackRef ttTrackRef(handleTTTracks, i);
         if (trackBuilderChannel_->channelId(ttTrackRef, channelId))
-          nTTTracksStreams[channelId]++;
-      for (int channelTrack = 0; channelTrack < numStreamsTracks; channelTrack++) {
-        const int num = nTTTracksStreams[channelTrack];
-        const int lost = enableTruncation_ && num > setup_->numFrames() ? num - setup_->numFrames() : 0;
-        const int accepted = lost == 0 ? num : setup_->numFrames();
-        streamAcceptedTracks[channelTrack].reserve(accepted);
-        streamLostTracks[channelTrack].reserve(lost);
+          ttTrackRefs[channelId].push_back(ttTrackRef);
       }
-      // fill output products
-      for (const TTTrackRef& ttTrackRef : ttTrackRefs) {
-        if (!trackBuilderChannel_->channelId(ttTrackRef, channelId))
-          continue;
-        const bool truncate = enableTruncation_ && (int)streamAcceptedTracks[channelId].size() > setup_->numFrames();
-        StreamTrack& tracks = truncate ? streamLostTracks[channelId] : streamAcceptedTracks[channelId];
-        // conv track word
-        tracks.emplace_back(ttTrackRef, conv(ttTrackRef));
+      // get and trunacte tracks
+      Handle<Streams> handleTracks;
+      iEvent.getByToken<Streams>(edGetTokenTracks_, handleTracks);
+      channelId = 0;
+      for (const Stream& streamTrack : *handleTracks) {
+        StreamTrack& accepted = streamAcceptedTracks[channelId];
+        StreamTrack& lost = streamLostTracks[channelId];
+        auto limit = streamTrack.end();
+        if (enableTruncation_ && (int)streamTrack.size() > setup_->numFrames())
+          limit = next(streamTrack.begin(), setup_->numFrames());
+        accepted.reserve(distance(streamTrack.begin(), limit));
+        lost.reserve(distance(limit, streamTrack.end()));
+        int nFrame(0);
+        const deque<TTTrackRef>& ttTracks = ttTrackRefs[channelId++];
+        auto toFrameTrack = [&nFrame, &ttTracks](const Frame& frame) {
+          if (frame.any())
+            return FrameTrack(ttTracks[nFrame++], frame);
+          return FrameTrack();
+        };
+        transform(streamTrack.begin(), limit, back_inserter(accepted), toFrameTrack);
+        transform(limit, streamTrack.end(), back_inserter(lost), toFrameTrack);
       }
       // get and trunacte stubs
       Handle<StreamsStub> handleStubs;
       iEvent.getByToken<StreamsStub>(edGetTokenStubs_, handleStubs);
-      int channel(0);
-      for (const StreamStub& streamStub : *handleStubs) {
+      const StreamsStub& streamsStub = *handleStubs;
+      // reserve output ed products
+      channelId = 0;
+      for (const StreamStub& streamStub : streamsStub) {
         auto limit = streamStub.end();
         if (enableTruncation_ && (int)streamStub.size() > setup_->numFrames())
           limit = next(streamStub.begin(), setup_->numFrames());
-        streamAcceptedStubs[channel] = StreamStub(streamStub.begin(), limit);
-        streamLostStubs[channel++] = StreamStub(limit, streamStub.end());
+        streamAcceptedStubs[channelId] = StreamStub(streamStub.begin(), limit);
+        streamLostStubs[channelId++] = StreamStub(limit, streamStub.end());
       }
     }
     // store products
@@ -172,33 +177,6 @@ namespace trklet {
     iEvent.emplace(edPutTokenAcceptedTracks_, move(streamAcceptedTracks));
     iEvent.emplace(edPutTokenLostStubs_, move(streamLostStubs));
     iEvent.emplace(edPutTokenLostTracks_, move(streamLostTracks));
-  }
-
-  // return h/w bits for given ttTrackRef
-  Frame ProducerTBout::conv(const TTTrackRef& ttTrackRef) const {
-    static constexpr int widthSeedType = 3;
-    static constexpr int widthInvR = 14;
-    static constexpr int widthPhi0 = 18;
-    static constexpr int widthZ0 = 10;
-    static constexpr int widthTanL = 14;
-    static const double baseInvR = settings_.kphi1() / settings_.kr() * pow(2, settings_.rinv_shift());
-    static const double basePhi0 = settings_.kphi1() * pow(2, settings_.phi0_shift());
-    static const double baseZ0 = settings_.kz() * pow(2, settings_.z0_shift());
-    static const double baseTanL = settings_.kz() / settings_.kr() * pow(2, settings_.t_shift());
-    // sub words
-    // phi0 w.r.t. processing region border in rad
-    double phi0 =
-        deltaPhi(ttTrackRef->phi() - ttTrackRef->phiSector() * setup_->baseRegion() + setup_->hybridRangePhi() / 2.);
-    if (phi0 < 0.)
-      phi0 += 2. * M_PI;
-    const TTBV hwValid(1, 1);
-    const TTBV hwSeedType((int)ttTrackRef->trackSeedType(), widthSeedType);
-    const TTBV hwInvR(ttTrackRef->rInv(), baseInvR, widthInvR, true);
-    const TTBV hwPhi0(phi0, basePhi0, widthPhi0, false);
-    const TTBV hwZ0(ttTrackRef->z0(), baseZ0, widthZ0, true);
-    const TTBV hwTanL(ttTrackRef->tanL(), baseTanL, widthTanL, true);
-    const TTBV hw(hwValid.str() + hwSeedType.str() + hwInvR.str() + hwPhi0.str() + hwZ0.str() + hwTanL.str());
-    return hw.bs();
   }
 
 }  // namespace trklet

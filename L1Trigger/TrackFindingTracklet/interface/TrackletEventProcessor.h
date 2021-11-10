@@ -34,7 +34,7 @@ namespace trklet {
 
     const std::vector<Track>& tracks() const { return tracks_; }
 
-    tt::StreamsStub produce() const { return streamsStub_; }
+    void produce(tt::Streams& streamsTrack, tt::StreamsStub& streamsStub);
 
   private:
     void configure(std::istream& inwire, std::istream& inmem, std::istream& inproc);
@@ -68,6 +68,7 @@ namespace trklet {
     Timer PDTimer_;
 
     std::vector<Track> tracks_;
+    tt::Streams streamsTrack_;
     tt::StreamsStub streamsStub_;
   };
 

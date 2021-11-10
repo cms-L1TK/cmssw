@@ -115,7 +115,7 @@ namespace trklet {
     void executeME();
     void executeMC();
     void executeMP();
-    void executeFT(TrackBuilderChannel* trackBuilderChannel, tt::StreamsStub& streamsStub);
+    void executeFT(TrackBuilderChannel* trackBuilderChannel, tt::Streams& streamsTrack, tt::StreamsStub& streamsStub);
     void executePD(std::vector<Track>& tracks);
 
     std::vector<Tracklet*> getAllTracklets() const;

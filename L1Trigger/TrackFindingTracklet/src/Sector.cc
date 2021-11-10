@@ -417,17 +417,20 @@ void Sector::executeMP() {
 // (unless duplicate removal disabled, in which case FitTrack runs KF).
 
 void Sector::executeFT(TrackBuilderChannel* trackBuilderChannel, tt::StreamsStub& streamsStub) {
+void Sector::executeFT(TrackBuilderChannel* trackBuilderChannel, tt::Streams& streamsTrack, tt::StreamsStub& streamsStub) {
   int channelTrack(0);
+  const int offsetTrack = isector_ * trackBuilderChannel->numChannels();
   for (auto& i : FT_) {
-    vector<deque<tt::FrameStub>> streams(trackBuilderChannel->maxNumProjectionLayers());
-    i->execute(trackBuilderChannel, streams, isector_);
+    deque<tt::Frame> streamsTrackTmp;
+    vector<deque<tt::FrameStub>> streamsStubTmp(trackBuilderChannel->maxNumProjectionLayers());
+    i->execute(trackBuilderChannel, streamsTrackTmp, streamsStubTmp, isector_);
     if (!settings_.emulateTB())
       continue;
-    const int offest = (isector_ * trackBuilderChannel->numChannels() + channelTrack++) *
-                       trackBuilderChannel->maxNumProjectionLayers();
+    const int offestStub = (offsetTrack + channelTrack) * trackBuilderChannel->maxNumProjectionLayers();
+    streamsTrack[offsetTrack + channelTrack++] = tt::Stream(streamsTrackTmp.begin(), streamsTrackTmp.end());
     int channelStub(0);
-    for (deque<tt::FrameStub>& stream : streams)
-      streamsStub[offest + channelStub++] = tt::StreamStub(stream.begin(), stream.end());
+    for (deque<tt::FrameStub>& stream : streamsStubTmp)
+      streamsStub[offestStub + channelStub++] = tt::StreamStub(stream.begin(), stream.end());
   }
 }
 

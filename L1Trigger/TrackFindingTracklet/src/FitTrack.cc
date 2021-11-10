@@ -870,6 +870,7 @@ std::vector<Tracklet*> FitTrack::orderedMatches(vector<FullMatchMemory*>& fullma
 }
 
 void FitTrack::execute(TrackBuilderChannel* trackBuilderChannel,
+                       deque<tt::Frame>& streamTrack,
                        vector<deque<tt::FrameStub>>& streamsStub,
                        unsigned int iSector) {
   // merge
@@ -1025,48 +1026,57 @@ void FitTrack::execute(TrackBuilderChannel* trackBuilderChannel,
         trackfit_->addTrack(bestTracklet);
       }
     }
+    // store bit and clock accurate TB output
+    if (settings_.emulateTB() && bestTracklet) {
+      // add gap if enough layer to form track
+      static constexpr int limit = 4;
+      if ((int)bestTracklet->getL1Stubs().size() < limit) {
+        streamTrack.emplace_back(tt::Frame());
+        for (auto& stream : streamsStub)
+          stream.emplace_back(tt::FrameStub());
+        continue;
+      }
+      // convert Track word
+      const int seedType = bestTracklet->getISeed();
+      static const string valid = "1";
+      const string seed = TTBV(seedType, settings_.nbitsseed()).str();
+      const string rinv = bestTracklet->fpgarinv().str();
+      const string phi0 = bestTracklet->fpgaphi0().str();
+      const string z0 = bestTracklet->fpgaz0().str();
+      const string t = bestTracklet->fpgat().str();
+      streamTrack.emplace_back(valid + seed + rinv + phi0 + z0 + t);
+      // hitMap used to remember whcih layer had no stub to fill them with gaps
+      TTBV hitMap(0, trackBuilderChannel->maxNumProjectionLayers());
+      // convert and fill stubs on this track into streamsStub
+      for (const auto& stub : bestTracklet->getL1Stubs()) {
+        // get TTStubRef of this stub
+        const TTStubRef& ttStubRef = stub->ttStubRef();
+        // get layerId and skip over seeding layer
+        int layerId(-1);
+        if (!trackBuilderChannel->layerId(seedType, ttStubRef, layerId))
+          continue;
+        // mark layerId
+        hitMap.set(layerId);
+        // tracklet layerId
+        const int trackletLayerId = trackBuilderChannel->trackletLayerId(ttStubRef);
+        // get stub Residual
+        const Residual& resid = bestTracklet->resid(trackletLayerId);
+        // create bit accurate 64 bit word
+        const string& r = resid.stubptr()->r().str();
+        const string& phi = resid.fpgaphiresid().str();
+        const string& rz = resid.fpgarzresid().str();
+        // store TTStubRef and bit accurate 64 bit word in clock accurate output
+        streamsStub[layerId].emplace_back(ttStubRef, valid + r + phi + rz);
+      }
+      // fill all layer with no stubs with gaps
+      for (int layer : hitMap.ids(false)) {
+        streamsStub[layer].emplace_back(tt::FrameStub());
+      }
+    }
 
   } while (bestTracklet != nullptr && countAll < settings_.maxStep("TB"));
 
   if (settings_.writeMonitorData("FT")) {
     globals_->ofstream("fittrack.txt") << getName() << " " << countAll << " " << countFit << endl;
-  }
-  if (!settings_.emulateTB())
-    return;
-  for (int n = 0; n < (int)trackfit_->nTracks(); n++) {
-    const auto& tracklet = trackfit_->getTrack(n);
-    const int seedType = tracklet->getISeed();
-    const double rInv = tracklet->rinvapprox();
-    int channelTrack(-1);
-    if (!trackBuilderChannel->channelId(seedType, (int)iSector, rInv, channelTrack))
-      continue;
-    // hitMap used to remember whcih layer had no stub to fill them with gaps
-    TTBV hitMap(0, trackBuilderChannel->maxNumProjectionLayers());
-    // convert and fill stubs on this track into streamsStub
-    for (const auto& stub : tracklet->getL1Stubs()) {
-      // get TTStubRef of this stub
-      const TTStubRef& ttStubRef = stub->ttStubRef();
-      // get layerId and skip over seeding layer
-      int layerId(-1);
-      if (!trackBuilderChannel->layerId(seedType, ttStubRef, layerId))
-        continue;
-      // mark layerId
-      hitMap.set(layerId);
-      // tracklet layerId
-      const int trackletLayerId = trackBuilderChannel->trackletLayerId(ttStubRef);
-      // get stub Residual
-      const Residual& resid = tracklet->resid(trackletLayerId);
-      // create bit accurate 64 bit word
-      static const string valid = "1";
-      const string& r = resid.stubptr()->r().str();
-      const string& phi = resid.fpgaphiresid().str();
-      const string& rz = resid.fpgarzresid().str();
-      // store TTStubRef and bit accurate 64 bit word in clock accurate output
-      streamsStub[layerId].emplace_back(ttStubRef, valid + r + phi + rz);
-    }
-    // fill all layer with no stubs with gaps
-    for (int layer : hitMap.ids(false)) {
-      streamsStub[layer].emplace_back(tt::FrameStub());
-    }
   }
 }
