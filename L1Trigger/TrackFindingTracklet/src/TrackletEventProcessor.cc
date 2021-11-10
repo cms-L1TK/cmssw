@@ -184,6 +184,8 @@ void TrackletEventProcessor::event(SLHCEvent& ev) {
   globals_->event() = &ev;
 
   tracks_.clear();
+  for (tt::Stream& streamTrack : streamsTrack_)
+    streamTrack.clear();
   for (tt::StreamStub& streamStub : streamsStub_)
     streamStub.clear();
 
@@ -373,7 +375,11 @@ void TrackletEventProcessor::event(SLHCEvent& ev) {
 
     // fit track
     FTTimer_.start();
+<<<<<<< HEAD
     sector_->executeFT(channelAssignment_, streamsTrack_, streamsStub_);
+=======
+    sector_->executeFT(trackBuilderChannel_, streamsTrack_, streamsStub_);
+>>>>>>> undo last commit, adding trackword ed product and adding gaps to stubs and tracks to get clock accurate emulation.
     if ((settings_->writeMem() || settings_->writeMonitorData("IFit")) && k == settings_->writememsect()) {
       sector_->writeTF(first);
     }
