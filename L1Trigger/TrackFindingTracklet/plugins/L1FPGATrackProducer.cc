@@ -678,8 +678,12 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
   iEvent.put(std::move(L1TkTracksForOutput), "Level1TTTracks");
 
   // produce clock and bit output tracks and stubs
-  Streams streamsTrack;
-  StreamsStub streamsStub;
+  // number of track channel
+  const int numStreamsTrack = N_SECTOR * trackBuilderChannel_->numChannels();
+  // number of stub channel
+  const int numStreamsStub = numStreamsTrack * trackBuilderChannel_->maxNumProjectionLayers();
+  Streams streamsTrack(numStreamsTrack);
+  StreamsStub streamsStub(numStreamsStub);
   eventProcessor.produce(streamsTrack, streamsStub);
   iEvent.emplace(edPutTokenTracks_, move(streamsTrack));
   iEvent.emplace(edPutTokenStubs_, move(streamsStub));
