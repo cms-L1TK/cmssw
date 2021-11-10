@@ -8,6 +8,7 @@ def fwConfig(process):
     process.TrackTriggerSetup.Firmware.FreqBE = 240
     process.TTTracksFromTrackletEmulation.RemovalType = ""
     process.TTTracksFromTrackletEmulation.DoMultipleMatches = False
+    process.TTTracksFromTrackletEmulation.EmulateTB = True
 
 def reducedConfig(process):
     fwConfig(process)
