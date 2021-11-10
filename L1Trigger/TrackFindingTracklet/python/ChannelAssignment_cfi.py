@@ -1,7 +1,4 @@
-<<<<<<< HEAD
 # defines PSet to assign tracklet tracks and stubs to output channel based on their Pt or seed type as well as DTC stubs to input channel
-=======
->>>>>>> renamed TrackBuilderChannel to ChannelAssignment now also containing DTC to IR mapping
 import FWCore.ParameterSet.Config as cms
 
 ChannelAssignment_params = cms.PSet (

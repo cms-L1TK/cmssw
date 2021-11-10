@@ -1,4 +1,5 @@
 #include "L1Trigger/TrackFindingTracklet/interface/ChannelAssignment.h"
+#include "L1Trigger/TrackFindingTracklet/interface/Settings.h"
 
 #include <vector>
 
@@ -99,7 +100,8 @@ namespace trklet {
   }
 
   // sets channelId of given TTTrackRef, return false if track outside pt range
-  bool ChannelAssignment::channelId(const TTTrackRef& ttTrackRef, int& channelId) {
+  bool ChannelAssignment::channelId(const TTTrackRef& ttTrackRef, int& channelId) const {
+    const double phiSector = ttTrackRef->phiSector();
     if (!useDuplicateRemoval_) {
       const int seedType = ttTrackRef->trackSeedType();
       if (seedType >= numSeedTypes_) {
@@ -111,9 +113,10 @@ namespace trklet {
         exception.addContext("trackFindingTracklet:ChannelAssignment:channelId");
         throw exception;
       }
-      channelId = ttTrackRef->phiSector() * numSeedTypes_ + seedType;
+      channelId = phiSector * numSeedTypes_ + seedType;
       return true;
     }
+    const double rInv = ttTrackRef->rInv();
     const double pt = 2. * setup_->invPtToDphi() / abs(rInv);
     channelId = -1;
     for (double boundary : boundaries_) {
@@ -154,18 +157,6 @@ namespace trklet {
     }
     layerId = distance(projectingLayers.begin(), pos);
     return true;
-  }
-
-  // sets layerId of given TTStubRef and TTTrackRef, returns false if seeed stub
-  bool TrackBuilderChannel::layerId(const TTTrackRef& ttTrackRef, const TTStubRef& ttStubRef, int& layerId) const {
-    return this->layerId(ttTrackRef->trackSeedType(), ttStubRef, layerId);
-  }
-
-  // return tracklet layerId (barrel: [0-5], endcap: [6-10]) for given TTStubRef
-  int TrackBuilderChannel::trackletLayerId(const TTStubRef& ttStubRef) const {
-    static constexpr int offsetBarrel = 1;
-    static constexpr int offsetDisks = 5;
-    return setup_->layerId(ttStubRef) - (setup_->barrel(ttStubRef) ? offsetBarrel : offsetDisks);
   }
 
 }  // namespace trklet
