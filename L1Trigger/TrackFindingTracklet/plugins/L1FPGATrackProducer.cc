@@ -83,11 +83,7 @@
 #include "L1Trigger/TrackFindingTracklet/interface/Sector.h"
 #include "L1Trigger/TrackFindingTracklet/interface/Track.h"
 #include "L1Trigger/TrackFindingTracklet/interface/TrackletEventProcessor.h"
-<<<<<<< HEAD
 #include "L1Trigger/TrackFindingTracklet/interface/ChannelAssignment.h"
-=======
-#include "L1Trigger/TrackFindingTracklet/interface/TrackBuilderChannel.h"
->>>>>>> StreamsStub added as EDProduct of L1FPGATrackProducer
 #include "L1Trigger/TrackFindingTracklet/interface/Tracklet.h"
 #include "L1Trigger/TrackFindingTracklet/interface/Residual.h"
 #include "L1Trigger/TrackFindingTracklet/interface/Stub.h"
