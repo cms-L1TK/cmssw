@@ -146,7 +146,7 @@ namespace trklet {
       vector<int> nTTTracksStreams(numStreamsTracks, 0);
       int channelId;
       for (const TTTrackRef& ttTrackRef : ttTrackRefs)
-        if (trackBuilderChannel_->channelId(ttTrackRef, channelId))
+        if (channelAssignment_->channelId(ttTrackRef, channelId))
           nTTTracksStreams[channelId]++;
       channelId = 0;
       for (int nTTTracksStream : nTTTracksStreams)
