@@ -24,13 +24,13 @@ TrackletEventProcessor::~TrackletEventProcessor() {
   }
 }
 
-void TrackletEventProcessor::init(Settings const& theSettings, TrackBuilderChannel* trackBuilderChannel) {
+void TrackletEventProcessor::init(Settings const& theSettings, ChannelAssignment* channelAssignment) {
   settings_ = &theSettings;
-  trackBuilderChannel_ = trackBuilderChannel;
+  channelAssignment_ = channelAssignment;
   // number of track channel
-  const int numStreamsTrack = N_SECTOR * trackBuilderChannel_->numChannels();
+  const int numStreamsTrack = N_SECTOR * channelAssignment_->numChannels();
   // number of stub channel
-  const int numStreamsStub = numStreamsTrack * trackBuilderChannel_->maxNumProjectionLayers();
+  const int numStreamsStub = numStreamsTrack * channelAssignment_->maxNumProjectionLayers();
   streamsTrack_ = tt::Streams(numStreamsTrack);
   streamsStub_ = tt::StreamsStub(numStreamsStub);
 
@@ -371,7 +371,7 @@ void TrackletEventProcessor::event(SLHCEvent& ev) {
 
     // fit track
     FTTimer_.start();
-    sector_->executeFT(trackBuilderChannel_, streamsTrack_, streamsStub_);
+    sector_->executeFT(channelAssignment_, streamsTrack_, streamsStub_);
     if ((settings_->writeMem() || settings_->writeMonitorData("IFit")) && k == settings_->writememsect()) {
       sector_->writeTF(first);
     }

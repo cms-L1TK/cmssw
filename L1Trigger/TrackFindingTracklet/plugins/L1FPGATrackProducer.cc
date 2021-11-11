@@ -83,7 +83,7 @@
 #include "L1Trigger/TrackFindingTracklet/interface/Sector.h"
 #include "L1Trigger/TrackFindingTracklet/interface/Track.h"
 #include "L1Trigger/TrackFindingTracklet/interface/TrackletEventProcessor.h"
-#include "L1Trigger/TrackFindingTracklet/interface/TrackBuilderChannel.h"
+#include "L1Trigger/TrackFindingTracklet/interface/ChannelAssignment.h"
 #include "L1Trigger/TrackFindingTracklet/interface/Tracklet.h"
 #include "L1Trigger/TrackFindingTracklet/interface/Residual.h"
 #include "L1Trigger/TrackFindingTracklet/interface/Stub.h"
@@ -194,10 +194,10 @@ private:
   EDPutTokenT<Streams> edPutTokenTracks_;
   // ED output token for clock and bit accurate stubs
   EDPutTokenT<StreamsStub> edPutTokenStubs_;
-  // TrackBuilderChannel token
-  ESGetToken<TrackBuilderChannel, TrackBuilderChannelRcd> esGetTokenTrackBuilderChannel_;
+  // ChannelAssignment token
+  ESGetToken<ChannelAssignment, ChannelAssignmentRcd> esGetTokenChannelAssignment_;
   // helper class to assign tracks to channel
-  TrackBuilderChannel* trackBuilderChannel_;
+  ChannelAssignment* channelAssignment_;
 
   // helper class to store DTC configuration
   tt::Setup setup_;
@@ -253,10 +253,10 @@ L1FPGATrackProducer::L1FPGATrackProducer(edm::ParameterSet const& iConfig)
   // book ED output token for clock and bit accurate stubs
   edPutTokenStubs_ = produces<StreamsStub>("Level1TTTracks");
   // book ES product
-  esGetTokenTrackBuilderChannel_ = esConsumes<TrackBuilderChannel, TrackBuilderChannelRcd, Transition::BeginRun>();
+  esGetTokenChannelAssignment_ = esConsumes<ChannelAssignment, ChannelAssignmentRcd, Transition::BeginRun>();
   esGetToken_ = esConsumes<tt::Setup, tt::SetupRcd, edm::Transition::BeginRun>();
   // initial ES products
-  trackBuilderChannel_ = nullptr;
+  channelAssignment_ = nullptr;
 
   // --------------------------------------------------------------------------------
   // set options in Settings based on inputs from configuration files
@@ -339,10 +339,10 @@ void L1FPGATrackProducer::beginRun(const edm::Run& run, const edm::EventSetup& i
   settings.setBfield(mMagneticFieldStrength);
 
   setup_ = iSetup.getData(esGetToken_);
-  trackBuilderChannel_ = const_cast<TrackBuilderChannel*>(&iSetup.getData(esGetTokenTrackBuilderChannel_));
+  channelAssignment_ = const_cast<ChannelAssignment*>(&iSetup.getData(esGetTokenChannelAssignment_));
 
   // initialize the tracklet event processing (this sets all the processing & memory modules, wiring, etc)
-  eventProcessor.init(settings, trackBuilderChannel_);
+  eventProcessor.init(settings, channelAssignment_);
 }
 
 //////////
@@ -679,9 +679,9 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
 
   // produce clock and bit output tracks and stubs
   // number of track channel
-  const int numStreamsTrack = N_SECTOR * trackBuilderChannel_->numChannels();
+  const int numStreamsTrack = N_SECTOR * channelAssignment_->numChannels();
   // number of stub channel
-  const int numStreamsStub = numStreamsTrack * trackBuilderChannel_->maxNumProjectionLayers();
+  const int numStreamsStub = numStreamsTrack * channelAssignment_->maxNumProjectionLayers();
   Streams streamsTrack(numStreamsTrack);
   StreamsStub streamsStub(numStreamsStub);
   eventProcessor.produce(streamsTrack, streamsStub);

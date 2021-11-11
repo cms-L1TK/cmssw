@@ -4,7 +4,7 @@
 
 #include "L1Trigger/TrackFindingTracklet/interface/L1TStub.h"
 #include "L1Trigger/TrackFindingTracklet/interface/SLHCEvent.h"
-#include "L1Trigger/TrackFindingTracklet/interface/TrackBuilderChannel.h"
+#include "L1Trigger/TrackFindingTracklet/interface/ChannelAssignment.h"
 
 #include <string>
 #include <map>
@@ -115,7 +115,7 @@ namespace trklet {
     void executeME();
     void executeMC();
     void executeMP();
-    void executeFT(TrackBuilderChannel* trackBuilderChannel, tt::Streams& streamsTrack, tt::StreamsStub& streamsStub);
+    void executeFT(ChannelAssignment* channelAssignment, tt::Streams& streamsTrack, tt::StreamsStub& streamsStub);
     void executePD(std::vector<Track>& tracks);
 
     std::vector<Tracklet*> getAllTracklets() const;

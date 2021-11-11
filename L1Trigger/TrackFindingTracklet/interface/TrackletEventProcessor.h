@@ -3,7 +3,7 @@
 #define L1Trigger_TrackFindingTracklet_interface_TrackletEventProcessor_h
 
 #include "L1Trigger/TrackFindingTracklet/interface/Timer.h"
-#include "L1Trigger/TrackFindingTracklet/interface/TrackBuilderChannel.h"
+#include "L1Trigger/TrackFindingTracklet/interface/ChannelAssignment.h"
 
 #include <map>
 #include <memory>
@@ -26,7 +26,7 @@ namespace trklet {
 
     ~TrackletEventProcessor();
 
-    void init(Settings const& theSettings, TrackBuilderChannel* trackBuilderChannel);
+    void init(Settings const& theSettings, ChannelAssignment* channelAssignment);
 
     void event(SLHCEvent& ev);
 
@@ -40,7 +40,7 @@ namespace trklet {
     void configure(std::istream& inwire, std::istream& inmem, std::istream& inproc);
 
     const Settings* settings_{nullptr};
-    TrackBuilderChannel* trackBuilderChannel_{nullptr};
+    ChannelAssignment* channelAssignment_{nullptr};
 
     std::unique_ptr<Globals> globals_;
 

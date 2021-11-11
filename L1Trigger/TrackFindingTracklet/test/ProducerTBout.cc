@@ -12,7 +12,7 @@
 
 #include "L1Trigger/TrackTrigger/interface/Setup.h"
 #include "L1Trigger/TrackerTFP/interface/DataFormats.h"
-#include "L1Trigger/TrackFindingTracklet/interface/TrackBuilderChannel.h"
+#include "L1Trigger/TrackFindingTracklet/interface/ChannelAssignment.h"
 #include "L1Trigger/TrackFindingTracklet/interface/Settings.h"
 
 #include <string>
@@ -60,8 +60,8 @@ namespace trklet {
     ESGetToken<Setup, SetupRcd> esGetTokenSetup_;
     // DataFormats token
     ESGetToken<DataFormats, DataFormatsRcd> esGetTokenDataFormats_;
-    // TrackBuilderChannel token
-    ESGetToken<TrackBuilderChannel, TrackBuilderChannelRcd> esGetTokenTrackBuilderChannel_;
+    // ChannelAssignment token
+    ESGetToken<ChannelAssignment, ChannelAssignmentRcd> esGetTokenChannelAssignment_;
     // configuration
     ParameterSet iConfig_;
     // helper class to store configurations
@@ -69,7 +69,7 @@ namespace trklet {
     // helper class to extract structured data from TTDTC::Frames
     const DataFormats* dataFormats_;
     // helper class to assign tracks to channel
-    TrackBuilderChannel* trackBuilderChannel_;
+    ChannelAssignment* channelAssignment_;
     //
     bool enableTruncation_;
     //
@@ -93,11 +93,11 @@ namespace trklet {
     // book ES products
     esGetTokenSetup_ = esConsumes<Setup, SetupRcd, Transition::BeginRun>();
     esGetTokenDataFormats_ = esConsumes<DataFormats, DataFormatsRcd, Transition::BeginRun>();
-    esGetTokenTrackBuilderChannel_ = esConsumes<TrackBuilderChannel, TrackBuilderChannelRcd, Transition::BeginRun>();
+    esGetTokenChannelAssignment_ = esConsumes<ChannelAssignment, ChannelAssignmentRcd, Transition::BeginRun>();
     // initial ES products
     setup_ = nullptr;
     dataFormats_ = nullptr;
-    trackBuilderChannel_ = nullptr;
+    channelAssignment_ = nullptr;
     //
     enableTruncation_ = iConfig.getParameter<bool>("EnableTruncation");
   }
@@ -113,12 +113,12 @@ namespace trklet {
     // helper class to extract structured data from TTDTC::Frames
     dataFormats_ = &iSetup.getData(esGetTokenDataFormats_);
     // helper class to assign tracks to channel
-    trackBuilderChannel_ = const_cast<TrackBuilderChannel*>(&iSetup.getData(esGetTokenTrackBuilderChannel_));
+    channelAssignment_ = const_cast<ChannelAssignment*>(&iSetup.getData(esGetTokenChannelAssignment_));
   }
 
   void ProducerTBout::produce(Event& iEvent, const EventSetup& iSetup) {
-    const int numStreamsTracks = setup_->numRegions() * trackBuilderChannel_->numChannels();
-    const int numStreamsStubs = numStreamsTracks * trackBuilderChannel_->maxNumProjectionLayers();
+    const int numStreamsTracks = setup_->numRegions() * channelAssignment_->numChannels();
+    const int numStreamsStubs = numStreamsTracks * channelAssignment_->maxNumProjectionLayers();
     // empty KFin products
     StreamsStub streamAcceptedStubs(numStreamsStubs);
     StreamsTrack streamAcceptedTracks(numStreamsTracks);
@@ -133,7 +133,7 @@ namespace trklet {
       int channelId(-1);
       for (int i = 0; i < (int)handleTTTracks->size(); i++) {
         const TTTrackRef ttTrackRef(handleTTTracks, i);
-        if (trackBuilderChannel_->channelId(ttTrackRef, channelId))
+        if (channelAssignment_->channelId(ttTrackRef, channelId))
           ttTrackRefs[channelId].push_back(ttTrackRef);
       }
       // get and trunacte tracks
