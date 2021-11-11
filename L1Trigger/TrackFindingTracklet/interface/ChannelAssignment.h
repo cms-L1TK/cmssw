@@ -37,6 +37,9 @@ namespace trklet {
     std::vector<int> channelEncoding() const { return channelEncoding_; }
 
   private:
+    // checks is seedType is supported
+    void checkSeedType(int seedType) const;
+
     // helper class to store configurations
     const tt::Setup* setup_;
     // use tracklet seed type as channel id if False, binned track pt used if True

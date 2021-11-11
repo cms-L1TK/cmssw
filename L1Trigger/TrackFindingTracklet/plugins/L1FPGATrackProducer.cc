@@ -194,7 +194,11 @@ private:
   // ChannelAssignment token
   ESGetToken<ChannelAssignment, ChannelAssignmentRcd> esGetTokenChannelAssignment_;
   // helper class to assign tracks to channel
+<<<<<<< HEAD
   const ChannelAssignment* channelAssignment_;
+=======
+  ChannelAssignment* channelAssignment_;
+>>>>>>> rebased and name change of TrackBuilderChannel adopted.
 
   // helper class to store DTC configuration
   tt::Setup setup_;
