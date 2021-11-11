@@ -1,6 +1,0 @@
-import FWCore.ParameterSet.Config as cms
-
-from L1Trigger.TrackFindingTracklet.ProducerTrackBuilderChannel_cfi import TrackBuilderChannel_params
-from L1Trigger.TrackFindingTracklet.ProducerKF_cfi import TrackFindingTrackletProducerKF_params
-
-TrackBuilderChannel = cms.ESProducer("trackFindingTracklet::ProducerTrackBuilderChannel", TrackBuilderChannel_params, TrackFindingTrackletProducerKF_params)
