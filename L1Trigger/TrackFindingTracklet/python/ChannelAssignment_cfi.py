@@ -1,15 +1,18 @@
+<<<<<<< HEAD
 # defines PSet to assign tracklet tracks and stubs to output channel based on their Pt or seed type as well as DTC stubs to input channel
+=======
+>>>>>>> renamed TrackBuilderChannel to ChannelAssignment now also containing DTC to IR mapping
 import FWCore.ParameterSet.Config as cms
 
 ChannelAssignment_params = cms.PSet (
 
   UseDuplicateRemoval = cms.bool   ( True ), # use tracklet seed type as channel id if False, binned track pt used if True
-  PtBoundaries        = cms.vdouble( 1.34 ), # positive pt Boundaries in GeV (symmetric negatives are assumed), last boundary is infinity, defining ot bins used by DR
+  PtBoundaries        = cms.vdouble( 1.34 ), # pt Boundaries in GeV, last boundary is infinity
 
-  SeedTypesReduced = cms.vstring( "L1L2", "L2L3", "L3L4", "L5L6", "D1D2", "D3D4", "L1D1", "L2D1" ), # seed types used in reduced tracklet algorithm (position gives int value)
+  SeedTypes = cms.vstring( "L1L2", "L2L3", "L3L4", "L5L6", "D1D2", "D3D4", "L1D1", "L1D2" ), # seed types used in tracklet algorithm (position gives int value)
 
-  MaxNumProjectionLayers     = cms.int32( 8 ), # max number layers a sedd type may project to
-  SeedTypesSeedLayersReduced = cms.PSet (      # seeding layers of seed types in reduced config using default layer id [barrel: 1-6, discs: 11-15]
+  MaxNumProjectionLayers    = cms.int32( 8 ), # max number layers a sedd type may project to
+  SeedTypesSeedLayers       = cms.PSet (      # seeding layers of seed types using default layer id [barrel: 1-6, discs: 11-15]
     L1L2 = cms.vint32(  1,  2 ),
     L2L3 = cms.vint32(  2,  3 ),
     L3L4 = cms.vint32(  3,  4 ),
