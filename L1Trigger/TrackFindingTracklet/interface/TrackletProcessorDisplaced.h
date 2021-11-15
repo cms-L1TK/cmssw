@@ -37,40 +37,42 @@ namespace trklet {
   private:
     int iTC_;
     int iAllStub_;
-
     unsigned int maxStep_;
 
     VMStubsTEMemory* outervmstubs_;
 
-    //                                 istub          imem          start imem    end imem
+    int TCIndex_;
+    int layer_;
+    int disk_;
+
+    int iSeed_;
+
+    double rproj_[N_LAYER - 2];
+    int lproj_[N_LAYER - 2];
+    double zproj_[N_DISK - 2];
+    int dproj_[N_DISK - 2];
+    double rzmeanInv_[N_DISK - 2];
+
+    /* unsigned int iSector_; */
+    /* double phimin_, phimax_; */
+
+
+    /*                                 istub          imem          start imem    end imem */
     /* std::tuple<CircularBuffer<TEData>, unsigned int, unsigned int, unsigned int, unsigned int> tebuffer_; */
 
     /* std::vector<TrackletEngineUnit> teunits_; */
 
-    std::vector<AllInnerStubsMemory*> innerallstubs_;
+
+    std::vector<double> toR_;
+    std::vector<double> toZ_;
+
+    std::vector<AllStubsMemory*> innerallstubs_;
+    std::vector<AllStubsMemory*> middleallstubs_;
     std::vector<AllStubsMemory*> outerallstubs_;
+    std::vector<StubTripletsMemory*> stubtriplets_;
 
-    /* TrackletLUT pttableinner_; */
-    /* TrackletLUT pttableouter_; */
-    /* TrackletLUT useregiontable_; */
-
-    /* int nbitsfinephi_; */
-    /* int nbitsfinephidiff_; */
-
-    /* int innerphibits_; */
-    /* int outerphibits_; */
-
-    /* unsigned int nbitszfinebintable_; */
-    /* unsigned int nbitsrfinebintable_; */
-
-    /* unsigned int nbitsrzbin_; */
-
-    /* TrackletLUT innerTable_;         //projection to next layer/disk */
-    /* TrackletLUT innerOverlapTable_;  //projection to disk from layer */
-
-    /* TrackletParametersMemory* trackletpars_; */
-
-    //First index is layer/disk second is phi region                                                                     
+    TrackletParametersMemory* trackletpars_;
+                                                         
     std::vector<std::vector<TrackletProjectionsMemory*> > trackletprojlayers_;
     std::vector<std::vector<TrackletProjectionsMemory*> > trackletprojdisks_;
 
