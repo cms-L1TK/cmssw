@@ -39,7 +39,7 @@ namespace trklet {
     int iAllStub_;
     unsigned int maxStep_;
 
-    VMStubsTEMemory* outervmstubs_;
+    /* VMStubsTEMemory* outervmstubs_; */
 
     int TCIndex_;
     int layer_;
@@ -70,6 +70,8 @@ namespace trklet {
     std::vector<AllStubsMemory*> middleallstubs_;
     std::vector<AllStubsMemory*> outerallstubs_;
     std::vector<StubTripletsMemory*> stubtriplets_;
+    std::vector<VMStubsTEMemory*> innervmstubs_;
+    std::vector<VMStubsTEMemory*> outervmstubs_;
 
     TrackletParametersMemory* trackletpars_;
                                                          

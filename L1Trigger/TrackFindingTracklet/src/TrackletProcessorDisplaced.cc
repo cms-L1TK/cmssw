@@ -32,10 +32,8 @@ TrackletProcessorDisplaced::TrackletProcessorDisplaced(string name, Settings con
     trackletprojdisks_.push_back(tmp);
   }
 
-  outervmstubs_ = nullptr;
-
+  // outervmstubs_ = nullptr; 
   // initLayerDisksandISeed(layerdisk1_, layerdisk2_, iSeed_);
-
 
   layer_ = 0;
   disk_ = 0;
@@ -231,6 +229,19 @@ void TrackletProcessorDisplaced::addInput(MemoryBase* memory, string input) {
     stubtriplets_.push_back(tmp);
     return;
   }
+  if (input == "thirdvmstubin") {
+    auto* tmp = dynamic_cast<VMStubsTEMemory*>(memory);
+    assert(tmp != nullptr);
+    innervmstubs_.push_back(tmp);
+    return;
+  }
+  if (input == "secondvmstubin") {
+    auto* tmp = dynamic_cast<VMStubsTEMemory*>(memory);
+    assert(tmp != nullptr);
+    outervmstubs_.push_back(tmp);
+    return;
+  }
+
 
   throw cms::Exception("BadConfig") << __FILE__ << " " << __LINE__ << " Could not find input : " << input;
 
