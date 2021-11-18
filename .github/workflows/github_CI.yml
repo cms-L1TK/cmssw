@@ -12,7 +12,7 @@
 # at https://github.com/cms-L1TK/gitlab-mirror-and-ci-action        #
 #####################################################################
 
-name: Mirror and run GitLab CI
+name: PR validation with GitLab CI
  
 on: # Controls when the action will run.
   workflow_dispatch:
@@ -26,8 +26,8 @@ env:
   current_branch: "unitialized"
 
 jobs:
-  mirror_trig: # https://github.com/marketplace/actions/mirror-to-gitlab-and-run-gitlab-ci
-    name: mirror_trig
+  trigger_gitlab_CI: # https://github.com/marketplace/actions/mirror-to-gitlab-and-run-gitlab-ci
+    name: trigger_gitlab_CI
     runs-on: ubuntu-latest
     steps:
 
