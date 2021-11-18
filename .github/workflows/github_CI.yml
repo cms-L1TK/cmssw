@@ -59,7 +59,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # https://help.github.com/en/articles/virtual-environments-for-github-actions#github_token-secret
         MIRROR_REPO: ${{ env.mirror_repo }} # gitlab mirror.
         IS_CMSSW: "true" # Is repo CMSSW or something else (e.g. HLS)?
-        L1TRKALGO_CMSSW : "HYBRID" # If CMSSW, specify L1TRKALGO parameter in L1Trigger/TrackFindingTracklet/test/L1TrackNtupleMaker_cfg.py
         CHECKOUT_BRANCH: ${{ env.current_branch }} # Needed so push to gitlab can work
         REMOVE_BRANCH: "true" # Refreshes branch on mirror, which triggers CI run there.
         REBASE_MASTER: "false" # If true would rebase to "master", which isn't used in cms-L1TK.
