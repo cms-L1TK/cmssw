@@ -1,3 +1,4 @@
+//  This ESproducer produces a number of constants need by HitPatternHelper
 //
 //  Created by J.Li on 1/23/21.
 //

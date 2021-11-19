@@ -202,6 +202,7 @@ private:
 
   // helper class to store DTC configuration
   tt::Setup setup_;
+  // helper class to store configuration needed by HitPatternHelper
   const hph::Setup* setupHPH_;
 
   // Setup token

@@ -1,14 +1,17 @@
-// This is a helper function that can be used to decode hitpattern, which is a 7-bit integer produced by KF.
+// This is a helper function that can be used to decode hitpattern, which is a 7-bit integer produced by the Kalman filter.
 //
-// There are three classes declared in HitPatternHelper (HPH) namesapce:
-// 1)SensorModule: This is used to store important information about the sensor modules. For example r,z coordinates.
-// 2)Setup: This is used to produce a collection of <SensorModule> needed by HPH.
-// 3)HitPatternHelper: This is used to decode hitpattern with the help of the information from sensor modules and layermap.
+// There are three classes declared in HitPatternHelper (hph) namesapce:
+// 1)SensorModule: This is used to store important information about the sensor modules. (e.g. r,z coordinates of the tracker modules)
+// 2)Setup: This is used to produce a collection of <SensorModule> needed by HitPatternHelper.
+// 3)HitPatternHelper: This function returns more specific information (e.g. module type, layer id,...) about each stub on the TTTrack objects.
+// This function needs three variables from TTTrack: hitPattern(),tanL() and z0().
+// It makes predictions in two different ways depending on which version of the Kalman filter is deployed:
 //
-// Two predictions on which layers particles will hit are made using different information:
-// i)Loop over sensor modules and make predictions based on spatial coordinates of tracks. This prediction is considered more accurate.
-// ii)Make predictions based on a hard-coded layermap. This prediction is considered less accurate and is used by Old KF to encode hitpattern.
+// Old KF (L1Trigger/TrackFindingTMTT/plugins/TMTrackProducer.cc)
+// With this version of the KF, HitPatternHelper relys on a hard-coded layermap to deterimne layer id of each stub.
 //
+// New KF (L1Trigger/TrackerTFP/plugins/ProducerKF.cc)
+// With this version of the KF, HitPatternHelper makes predictions based on the spatial coordinates of tracks and detector modules.
 //
 //  Created by J.Li on 1/23/21.
 //
@@ -33,6 +36,7 @@ using namespace edm;
 
 namespace hph {
 
+   //Class that stores constants related to tracker modules
   class SensorModule {
   public:
     SensorModule() {}
@@ -67,7 +71,8 @@ namespace hph {
     double sin_;
     double cos_;
   };
-
+   
+   //Class that stores configuration for HitPatternHelper
   class Setup {
   public:
     Setup() {}
@@ -87,6 +92,7 @@ namespace hph {
     bool useNewKF() const { return iConfig_.getParameter<bool>("useNewKF"); }
     double chosenRofZ() const { return iConfig_.getParameter<double>("chosenRofZ"); }
     double deltaTanL() const { return iConfig_.getParameter<double>("deltaTanL"); }
+    std::vector<double> etaRegions() const { return iConfig_.getParameter<vector<double>>("etaRegions"); }
 
   private:
     edm::ParameterSet iConfig_;
@@ -96,6 +102,7 @@ namespace hph {
     std::vector<SensorModule> sensorModules_;
   };
 
+   //Class that returns decoded information from hitpattern
   class HitPatternHelper {
   public:
     HitPatternHelper() {}
@@ -142,8 +149,7 @@ namespace hph {
     bool useNewKF_;
     float chosenRofZ_;
     float deltaTanL_;
-    std::vector<float> etaRegions_ = {
-        -2.4, -2.08, -1.68, -1.26, -0.90, -0.62, -0.41, -0.20, 0.0, 0.20, 0.41, 0.62, 0.90, 1.26, 1.68, 2.08, 2.4};
+    std::vector<double> etaRegions_;
 
     //Layermap used in Old KF
     //Ultimate config is assumed (with maybe layer)

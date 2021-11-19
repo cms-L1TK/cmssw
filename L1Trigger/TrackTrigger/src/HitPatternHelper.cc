@@ -83,7 +83,8 @@ namespace hph {
         hphDebug_(setup_->hphDebug()),
         useNewKF_(setup_->useNewKF()),
         chosenRofZ_(setup_->chosenRofZ()),
-        deltaTanL_(setup_->deltaTanL()) {
+        deltaTanL_(setup_->deltaTanL()),
+        etaRegions_(setup_->etaRegions()){
     //Calculating eta sector based on cot and z0
     float kfzRef = z0_ + chosenRofZ_ * cot_;
     int kf_eta_reg = 0;
