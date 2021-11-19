@@ -16,7 +16,7 @@ namespace trackFindingTracklet {
         numSeedTypes_(seedTypeNames_.size()),
         numChannels_(useDuplicateRemoval_ ? 2 * boundaries_.size() : numSeedTypes_),
         maxNumProjectionLayers_(iConfig.getParameter<int>("MaxNumProjectionLayers")),
-        channelEncoding_(iConfig.getParameter<int>("IRChannelsIn")) {
+        channelEncoding_(iConfig.getParameter<vector<int>>("IRChannelsIn")) {
     const ParameterSet& pSetSeedTypesSeedLayers = iConfig.getParameter<ParameterSet>("SeedTypesSeedLayers");
     const ParameterSet& pSetSeedTypesProjectionLayers = iConfig.getParameter<ParameterSet>("SeedTypesProjectionLayers");
     seedTypesSeedLayers_.reserve(numSeedTypes_);
