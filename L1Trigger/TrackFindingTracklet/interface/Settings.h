@@ -758,6 +758,7 @@ namespace trklet {
     //IR should be set to 108 to match the FW for the summer chain, but ultimately should be at 156
     std::unordered_map<std::string, unsigned int> maxstep_{{"IR", 156},  //IR will run at a higher clock speed to handle
                                                                          //input links running at 25 Gbits/s
+                                                                         //Set to 108 to match firmware project 240 MHz clock
 
                                                            {"VMR", 108},
                                                            {"TE", 107},
