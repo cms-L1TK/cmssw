@@ -1,4 +1,4 @@
-//  This ESproducer produces a number of constants need by HitPatternHelper
+//  This ESproducer produces configuration needed by HitPatternHelper
 //
 //  Created by J.Li on 1/23/21.
 //
@@ -11,6 +11,7 @@
 #include "FWCore/Utilities/interface/ESInputTag.h"
 #include "DataFormats/Provenance/interface/ParameterSetID.h"
 #include "L1Trigger/TrackTrigger/interface/HitPatternHelper.h"
+#include "L1Trigger/TrackTrigger/interface/Setup.h"
 
 #include <memory>
 
@@ -27,20 +28,17 @@ namespace hph {
 
   private:
     const ParameterSet iConfig_;
-    ESGetToken<TrackerGeometry, TrackerDigiGeometryRecord> getTokenTrackerGeometry_;
-    ESGetToken<TrackerTopology, TrackerTopologyRcd> getTokenTrackerTopology_;
+    ESGetToken<tt::Setup, tt::SetupRcd> getTokenSetup_;
   };
 
   ProducerHPH::ProducerHPH(const ParameterSet& iConfig) : iConfig_(iConfig) {
     auto cc = setWhatProduced(this);
-    getTokenTrackerGeometry_ = cc.consumes();
-    getTokenTrackerTopology_ = cc.consumes();
+    getTokenSetup_ = cc.consumes();
   }
 
   unique_ptr<Setup> ProducerHPH::produce(const SetupRcd& Rcd) {
-    const TrackerGeometry& trackerGeometry = Rcd.get(getTokenTrackerGeometry_);
-    const TrackerTopology& trackerTopology = Rcd.get(getTokenTrackerTopology_);
-    return make_unique<Setup>(iConfig_, trackerGeometry, trackerTopology);
+    const tt::Setup& setupTT = Rcd.get(getTokenSetup_);
+    return make_unique<Setup>(iConfig_, setupTT);
   }
 
 }  // namespace hph

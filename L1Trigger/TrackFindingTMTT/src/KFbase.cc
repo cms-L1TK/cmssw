@@ -760,6 +760,7 @@ namespace tmtt {
             kalmanLay = 6;
           }
           break;
+          //case 5:  // B1 B2 B3+B4 D1 D2 D3 D4/D5
         case 5:  // B1 B2 B3+B4 D1 D2 D3 D4/D5
           if (layerIDreduced == 5) {
             kalmanLay = 5;

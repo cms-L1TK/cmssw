@@ -10,60 +10,7 @@
 
 namespace hph {
 
-  SensorModule::SensorModule(
-      bool isBarrel, bool isPS, int numColumns, int layerId, double r, double z, double pitchCol, double tilt)
-      : isBarrel_(isBarrel),
-        isPS_(isPS),
-        isMaybe_(false),
-        numColumns_(numColumns),
-        layerId_(layerId),
-        r_(r),
-        z_(z),
-        pitchCol_(pitchCol),
-        tilt_(tilt) {
-    sin_ = std::sin(tilt_);
-    cos_ = std::cos(tilt_);
-  }
-
-  Setup::Setup(const edm::ParameterSet& iConfig,
-               const TrackerGeometry& trackerGeometry,
-               const TrackerTopology& trackerTopology)
-      : trackerGeometry_(&trackerGeometry), trackerTopology_(&trackerTopology) {
-    iConfig_ = iConfig;
-
-    for (const auto& gd : trackerGeometry_->dets()) {
-      DetId detid = (*gd).geographicalId();
-      if (detid.subdetId() != StripSubdetector::TOB && detid.subdetId() != StripSubdetector::TID)
-        continue;  // only run on OT
-      if (!trackerTopology_->isLower(detid))
-        continue;  // loop on the stacks: choose the lower arbitrarily
-
-      // Get the DetSets of the Clusters
-      const GeomDetUnit* det0 = trackerGeometry_->idToDetUnit(detid);
-      const auto* theGeomDet = dynamic_cast<const PixelGeomDetUnit*>(det0);
-      const PixelTopology* topol = dynamic_cast<const PixelTopology*>(&(theGeomDet->specificTopology()));
-      const GlobalPoint pos0 = det0->position();
-      const GlobalPoint pos1 = trackerGeometry_->idToDetUnit(trackerTopology_->partnerDetId(detid))->position();
-      double r = pos0.perp();
-      double z = pos0.z();
-
-      bool flipped = pos0.mag() > pos1.mag();
-      bool isBarrel = detid.subdetId() == StripSubdetector::TOB;
-      bool isPS = trackerGeometry_->getDetectorType(detid) == TrackerGeometry::ModuleType::Ph2PSP;
-      double tilt = flipped ? atan2(pos1.z() - pos0.z(), pos0.perp() - pos1.perp())
-                            : atan2(pos0.z() - pos1.z(), pos1.perp() - pos0.perp());
-
-      int layerId = isBarrel ? trackerTopology_->layer(detid) : trackerTopology_->layer(detid) + 10;
-      int numColumns = topol->ncolumns();
-      double pitchCol = topol->pitch().second;
-
-      sensorModules_.emplace_back(isBarrel, isPS, numColumns, layerId, r, z, pitchCol, tilt);
-    }
-
-    sort(sensorModules_.begin(), sensorModules_.end(), smallerR);
-    sort(sensorModules_.begin(), sensorModules_.end(), smallerZ);
-    sensorModules_.erase(unique(sensorModules_.begin(), sensorModules_.end(), equalRZ), sensorModules_.end());
-  }
+  Setup::Setup(const edm::ParameterSet& iConfig, const tt::Setup& setupTT) : iConfig_(iConfig), setupTT_(setupTT) {}
 
   HitPatternHelper::HitPatternHelper(const Setup* setup, int hitpattern, double cot, double z0)
       : hitpattern_(hitpattern),
@@ -84,7 +31,7 @@ namespace hph {
         useNewKF_(setup_->useNewKF()),
         chosenRofZ_(setup_->chosenRofZ()),
         deltaTanL_(setup_->deltaTanL()),
-        etaRegions_(setup_->etaRegions()){
+        etaRegions_(setup_->etaRegions()) {
     //Calculating eta sector based on cot and z0
     float kfzRef = z0_ + chosenRofZ_ * cot_;
     int kf_eta_reg = 0;
@@ -102,12 +49,14 @@ namespace hph {
       kf_eta_reg = kf_eta_reg - (int)(etaRegions_.size() - 1) / 2;
     }
     //Looping over sensor modules to make predictions on which layers particles are expected to hit
-    for (SensorModule sm : setup_->sensorModules()) {
-      double d = (z0_ - sm.z() + sm.r() * cot_) / (sm.cos() - sm.sin() * cot_);
-      double d_p = (z0_ - sm.z() + sm.r() * (cot_ + deltaTanL_ / 2)) / (sm.cos() - sm.sin() * (cot_ + deltaTanL_ / 2));
-      double d_m = (z0_ - sm.z() + sm.r() * (cot_ - deltaTanL_ / 2)) / (sm.cos() - sm.sin() * (cot_ - deltaTanL_ / 2));
-      if (!(abs(d_p) < sm.numColumns() * sm.pitchCol() / 2. && abs(d_m) < sm.numColumns() * sm.pitchCol() / 2.))
-        sm.setMaybe();
+    for (const tt::SensorModule& sm : setup_->sensorModules()) {
+      double d = (z0_ - sm.z() + sm.r() * cot_) / (sm.cosTilt() - sm.sinTilt() * cot_);
+      double d_p =
+          (z0_ - sm.z() + sm.r() * (cot_ + deltaTanL_ / 2)) / (sm.cosTilt() - sm.sinTilt() * (cot_ + deltaTanL_ / 2));
+      double d_m =
+          (z0_ - sm.z() + sm.r() * (cot_ - deltaTanL_ / 2)) / (sm.cosTilt() - sm.sinTilt() * (cot_ - deltaTanL_ / 2));
+      //      if (!(abs(d_p) < sm.numColumns() * sm.pitchCol() / 2. && abs(d_m) < sm.numColumns() * sm.pitchCol() / 2.))
+      //        sm.setMaybe();
       if (useNewKF_ &&
           (abs(d_p) < sm.numColumns() * sm.pitchCol() / 2. || abs(d_m) < sm.numColumns() * sm.pitchCol() / 2.)) {
         layers_.push_back(sm);
@@ -135,7 +84,7 @@ namespace hph {
       }
       if (!lay_i) {
         bool realhit = false;
-        for (int j : hitmap_[kf_eta_reg][i]) {
+        for (int j : layermap_[kf_eta_reg][i]) {
           if (j < 1)
             continue;
           int k = findLayer(j);
@@ -177,7 +126,7 @@ namespace hph {
           }
 
           binary_[ReducedId(layers_[i].layerId())] = 1;
-          if (layers_[i].isPS()) {
+          if (layers_[i].psModule()) {
             numPS_++;
           } else {
             num2S_++;
@@ -187,7 +136,7 @@ namespace hph {
             edm::LogVerbatim("TrackTriggerHPH") << "Layer missing in hitpattern";
           }
 
-          if (layers_[i].isPS()) {
+          if (layers_[i].psModule()) {
             numMissingPS_++;
           } else {
             numMissing2S_++;
@@ -205,7 +154,7 @@ namespace hph {
         }
 
         for (int j :
-             hitmap_[kf_eta_reg][i]) {  //Find out which layer the Old KF is dealing with when hitpattern is encoded
+             layermap_[kf_eta_reg][i]) {  //Find out which layer the Old KF is dealing with when hitpattern is encoded
           if (j < 1) {
             if (hphDebug_) {
               edm::LogVerbatim("TrackTriggerHPH") << "KF does not expect this layer";
@@ -242,7 +191,7 @@ namespace hph {
             }
 
             binary_[ReducedId(j)] = 1;
-            if (layers_[k].isPS()) {
+            if (layers_[k].psModule()) {
               numPS_++;
             } else {
               num2S_++;
@@ -252,7 +201,7 @@ namespace hph {
               edm::LogVerbatim("TrackTriggerHPH") << "Layer missing in hitpattern";
             }
 
-            if (layers_[k].isPS()) {
+            if (layers_[k].psModule()) {
               numMissingPS_++;
             } else {
               numMissing2S_++;

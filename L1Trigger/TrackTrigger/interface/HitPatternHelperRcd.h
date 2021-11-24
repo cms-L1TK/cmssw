@@ -7,14 +7,13 @@
 
 #include "FWCore/Framework/interface/DependentRecordImplementation.h"
 
-#include "Geometry/Records/interface/TrackerDigiGeometryRecord.h"
-#include "DataFormats/TrackerCommon/interface/TrackerTopology.h"
+#include "L1Trigger/TrackTrigger/interface/SetupRcd.h"
 
 #include "FWCore/Utilities/interface/mplVector.h"
 
 namespace hph {
 
-  typedef edm::mpl::Vector<TrackerDigiGeometryRecord, TrackerTopologyRcd> Rcds;
+  typedef edm::mpl::Vector<tt::SetupRcd> Rcds;
 
   // record of hph::SetupRcd
   class SetupRcd : public edm::eventsetup::DependentRecordImplementation<SetupRcd, Rcds> {};
