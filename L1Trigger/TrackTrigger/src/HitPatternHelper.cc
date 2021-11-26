@@ -3,6 +3,9 @@
 //
 
 #include "L1Trigger/TrackTrigger/interface/HitPatternHelper.h"
+#include "L1Trigger/TrackFindingTMTT/interface/KFbase.h"
+#include "L1Trigger/TrackFindingTMTT/interface/TrackerModule.h"
+
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
 #include <algorithm>
@@ -10,7 +13,32 @@
 
 namespace hph {
 
-  Setup::Setup(const edm::ParameterSet& iConfig, const tt::Setup& setupTT) : iConfig_(iConfig), setupTT_(setupTT) {}
+  Setup::Setup(const edm::ParameterSet& iConfig, const tt::Setup& setupTT)
+      : iConfig_(iConfig),
+        setupTT_(setupTT),
+        layerIds_(),
+        layermap_(),
+        nEtaRegions_(tmtt::KFbase::nEta / 2),
+        nKalmanLayers_(tmtt::KFbase::invalidKFlayer) {
+    for (const tt::SensorModule& sm : setupTT_.sensorModules()) {
+      layerIds_.push_back(std::make_pair(sm.layerId(), sm.barrel()));
+    }
+    sort(layerIds_.begin(), layerIds_.end(), smallerID);
+    layerIds_.erase(unique(layerIds_.begin(), layerIds_.end(), equalID), layerIds_.end());  //Keep only unique layerIds
+    for (int i = 0; i < nEtaRegions_; i++) {
+      for (int j = 0; j < (int)layerIds_.size(); j++) {
+        int layer = nKalmanLayers_;
+        if (layerIds_[j].second) {
+          layer = tmtt::KFbase::layerMap[i][tmtt::TrackerModule::calcLayerIdReduced(layerIds_[j].first)].first;
+        } else {
+          layer = tmtt::KFbase::layerMap[i][tmtt::TrackerModule::calcLayerIdReduced(layerIds_[j].first)].second;
+        }
+        if (layer < nKalmanLayers_) {
+          layermap_[i][layer].push_back(layerIds_[j].first);
+        }
+      }
+    }
+  }
 
   HitPatternHelper::HitPatternHelper(const Setup* setup, int hitpattern, double cot, double z0)
       : hitpattern_(hitpattern),
@@ -25,13 +53,14 @@ namespace hph {
         cot_(cot),
         z0_(z0),
         setup_(setup),
-        layers_(),
         binary_(11, 0),
         hphDebug_(setup_->hphDebug()),
         useNewKF_(setup_->useNewKF()),
         chosenRofZ_(setup_->chosenRofZ()),
         deltaTanL_(setup_->deltaTanL()),
-        etaRegions_(setup_->etaRegions()) {
+        etaRegions_(setup_->etaRegions()),
+        nKalmanLayers_(setup_->nKalmanLayers()),
+        layermap_(setup_->layermap()) {
     //Calculating eta sector based on cot and z0
     float kfzRef = z0_ + chosenRofZ_ * cot_;
     int kf_eta_reg = 0;
@@ -146,22 +175,23 @@ namespace hph {
 
     } else {
       //Old KF uses the hard coded layermap to determien hitmask
-      for (int i = 0; i < 7; i++) {  //Loop over each digit of hitpattern
+      for (int i = 0; i < nKalmanLayers_; i++) {  //Loop over each digit of hitpattern
 
         if (hphDebug_) {
           edm::LogVerbatim("TrackTriggerHPH") << "--------------------------";
           edm::LogVerbatim("TrackTriggerHPH") << "Looking at KF layer " << i;
         }
 
+        if (!layermap_[kf_eta_reg][i].size()) {
+          if (hphDebug_) {
+            edm::LogVerbatim("TrackTriggerHPH") << "KF does not expect this layer";
+          }
+
+          continue;
+        }
+
         for (int j :
              layermap_[kf_eta_reg][i]) {  //Find out which layer the Old KF is dealing with when hitpattern is encoded
-          if (j < 1) {
-            if (hphDebug_) {
-              edm::LogVerbatim("TrackTriggerHPH") << "KF does not expect this layer";
-            }
-
-            continue;
-          }
 
           if (hphDebug_) {
             if (j < 10) {

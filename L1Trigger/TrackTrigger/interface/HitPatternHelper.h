@@ -50,10 +50,18 @@ namespace hph {
     double chosenRofZ() const { return setupTT_.chosenRofZ(); }
     std::vector<double> etaRegions() const { return setupTT_.boundarieEta(); }
     std::vector<tt::SensorModule> sensorModules() const { return setupTT_.sensorModules(); }
+    std::map<int, std::map<int, std::vector<int>>> layermap() const { return layermap_; }
+    int nKalmanLayers() const { return nKalmanLayers_; }
+    static auto smallerID(std::pair<int, bool> lhs, std::pair<int, bool> rhs) { return lhs.first < rhs.first; }
+    static auto equalID(std::pair<int, bool> lhs, std::pair<int, bool> rhs) { return lhs.first == rhs.first; }
 
   private:
     edm::ParameterSet iConfig_;
     const tt::Setup setupTT_;
+    std::vector<std::pair<int, bool>> layerIds_;
+    std::map<int, std::map<int, std::vector<int>>> layermap_;
+    int nEtaRegions_;    // # of eta regions
+    int nKalmanLayers_;  // # of maximum KF layers allowed
   };
 
   //Class that returns decoded information from hitpattern
@@ -104,22 +112,8 @@ namespace hph {
     float chosenRofZ_;
     float deltaTanL_;
     std::vector<double> etaRegions_;
-
-    //Layermap used in Old KF
-    //Ultimate config is assumed (with maybe layer)
-    //Index across is kalman layer
-    //Index down is eta sector
-    //Element is layer id where barrel layers=1,2,3,4,5,6 & endcap wheels=11,12,13,14,15; 0 is invalid.
-    std::vector<int> layermap_[8][7] = {
-        {{1}, {2}, {3}, {4}, {5}, {6}, {0}},
-        {{1}, {2}, {3}, {4}, {5}, {6}, {0}},
-        {{1}, {2}, {3}, {4}, {5}, {6}, {0}},
-        {{1}, {2}, {3}, {4}, {5}, {6}, {0}},
-        {{1}, {2}, {3}, {4}, {5, 11}, {6, 12}, {13}},
-        {{1}, {2}, {3, 4}, {11}, {12}, {13}, {14, 15}},
-        {{1}, {2}, {11}, {12}, {13}, {14}, {15}},
-        {{1}, {11}, {12}, {13}, {14}, {15}, {0}},
-    };
+    int nKalmanLayers_;
+    std::map<int, std::map<int, std::vector<int>>> layermap_;
   };
 
 }  // namespace hph
