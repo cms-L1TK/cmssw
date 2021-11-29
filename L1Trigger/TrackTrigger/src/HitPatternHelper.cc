@@ -25,6 +25,7 @@ namespace hph {
     }
     sort(layerIds_.begin(), layerIds_.end(), smallerID);
     layerIds_.erase(unique(layerIds_.begin(), layerIds_.end(), equalID), layerIds_.end());  //Keep only unique layerIds
+    // Converting tmtt::KFbase::layerMap to a format that is acceptatble by HitPatternHelper
     for (int i = 0; i < nEtaRegions_; i++) {
       for (int j = 0; j < (int)layerIds_.size(); j++) {
         int layer = nKalmanLayers_;
@@ -113,15 +114,14 @@ namespace hph {
       }
       if (!lay_i) {
         bool realhit = false;
+        if (!layermap_[kf_eta_reg][i].size()) continue;
         for (int j : layermap_[kf_eta_reg][i]) {
-          if (j < 1)
-            continue;
           int k = findLayer(j);
           if (k > 0)
             realhit = true;
         }
         if (realhit)
-          numMissingInterior2_++;
+          numMissingInterior2_++; //This variable doesn't make sense for new KF because it uses the layermap from Old KF
       }
     }
 
@@ -204,7 +204,7 @@ namespace hph {
           int k = findLayer(j);
           if (k < 0) {
             //k<0 means even though layer j is predicted by Old KF, this prediction is rejected because it contradicts
-            if (hphDebug_) {  //a more accurate prediction made with the help of information from sensor modules.
+            if (hphDebug_) {  //a more accurate prediction made with the help of information from sensor modules
               edm::LogVerbatim("TrackTriggerHPH") << "Rejected by sensor modules";
             }
 

@@ -1,16 +1,19 @@
-// This is a helper function that can be used to decode hitpattern, which is a 7-bit integer produced by the Kalman filter.
+// This is a helper function that can be used to decode hitpattern, which is a 7-bit integer produced by the Kalman filter (KF).
+// Hitpattern is stored at TTTrack objects (DataFormats/L1TrackTrigger/interface/TTTrack.h)
+// It can be accessed via TTTrack: hitPattern()
 //
-// There are three classes declared in HitPatternHelper (hph) namesapce:
-// 1)SensorModule: This is used to store important information about the sensor modules. (e.g. r,z coordinates of the tracker modules)
-// 2)Setup: This is used to produce a collection of <SensorModule> needed by HitPatternHelper.
-// 3)HitPatternHelper: This function returns more specific information (e.g. module type, layer id,...) about each stub on the TTTrack objects.
+// There are two classes declared in HitPatternHelper (hph) namesapce:
+// 1)Setup: This is used to produce a layermap and a collection of <tt::SensorModule> needed by HitPatternHelper.
+// 2)HitPatternHelper: This function returns more specific information (e.g. module type, layer id,...) about each stub on the TTTrack objects.
 // This function needs three variables from TTTrack: hitPattern(),tanL() and z0().
-// It makes predictions in two different ways depending on which version of the Kalman filter is deployed:
+// It makes predictions in two different ways depending on which version of the KF is deployed:
 //
-// Old KF (L1Trigger/TrackFindingTMTT/plugins/TMTrackProducer.cc)
-// With this version of the KF, HitPatternHelper relys on a hard-coded layermap to deterimne layer id of each stub.
+// Old KF (L1Trigger/TrackFindingTMTT/plugins/TMTrackProducer.cc) is a CMSSW emulation of KF firmware that
+// ignores truncation effect and is not bit/clock cycle accurate.
+// With this version of the KF, HitPatternHelper relys on a hard-coded layermap to deterimne layer IDs of each stub.
 //
-// New KF (L1Trigger/TrackerTFP/plugins/ProducerKF.cc)
+// New KF (L1Trigger/TrackerTFP/plugins/ProducerKF.cc) is a new CMSSW emulation of KF firmware that
+// considers truncaton effect and is bit/clock cycle accurate.
 // With this version of the KF, HitPatternHelper makes predictions based on the spatial coordinates of tracks and detector modules.
 //
 //  Created by J.Li on 1/23/21.
@@ -57,12 +60,14 @@ namespace hph {
 
   private:
     edm::ParameterSet iConfig_;
-    const tt::Setup setupTT_;
-    std::vector<std::pair<int, bool>> layerIds_;
-    std::map<int, std::map<int, std::vector<int>>> layermap_;
-    int nEtaRegions_;    // # of eta regions
-    int nKalmanLayers_;  // # of maximum KF layers allowed
-  };
+    const tt::Setup setupTT_;  // Helper class to store TrackTrigger configuration
+    std::vector<std::pair<int, bool>>
+        layerIds_;  // layer IDs (1~6->L1~L6;11~15->D1~D5) and whether or not they are from tracker barrel
+                    // Only needed by Old KF
+    std::map<int, std::map<int, std::vector<int>>> layermap_;  // Hard-coded layermap in Old KF
+    int nEtaRegions_;                                          // # of eta regions
+    int nKalmanLayers_;                                        // # of maximum KF layers allowed
+  };                                                           // Only needed by Old KF
 
   //Class that returns decoded information from hitpattern
   class HitPatternHelper {
@@ -71,25 +76,31 @@ namespace hph {
     HitPatternHelper(const Setup* setup, int hitpattern, double cot, double z0);
     ~HitPatternHelper() {}
 
-    int etaSector() { return etaSector_; }        //Eta sectors defined in KF
-    int numExpLayer() { return numExpLayer_; }    //The number of layers KF expects
-    int numMissingPS() { return numMissingPS_; }  //The number of PS layers that are missing
-    int numMissing2S() { return numMissing2S_; }  //The number of 2S layers that are missing
-    int numPS() { return numPS_; }                //The number of PS layers are found in hitpattern
-    int num2S() { return num2S_; }                //The number of 2S layers are found in hitpattern
+    int etaSector() { return etaSector_; }      //Eta sectors defined in KF
+    int numExpLayer() { return numExpLayer_; }  //The number of layers KF expects
+    int numMissingPS() {
+      return numMissingPS_;
+    }  //The number of PS layers that are missing. It includes layers that are missing:
+       //1)before the innermost stub on the track,
+       //2)after the outermost stub on the track.
+    int numMissing2S() {
+      return numMissing2S_;
+    }  //The number of 2S layers that are missing. It includes the two types of layers mentioned above.
+    int numPS() { return numPS_; }  //The number of PS layers are found in hitpattern
+    int num2S() { return num2S_; }  //The number of 2S layers are found in hitpattern
     int numMissingInterior1() {
       return numMissingInterior1_;
     }  //The number of missing interior layers (using only hitpattern)
     int numMissingInterior2() {
       return numMissingInterior2_;
-    }  //The number of missing interior layers (using hitpattern and sensor modules)
+    }  //The number of missing interior layers (using hitpattern, layermap from Old KF and sensor modules)
     std::vector<int> binary() { return binary_; }  //11-bit hitmask needed by TrackQuality.cc (0~5->L1~L6;6~10->D1~D5)
     static auto smallerID(tt::SensorModule lhs, tt::SensorModule rhs) { return lhs.layerId() < rhs.layerId(); }
     static auto equalID(tt::SensorModule lhs, tt::SensorModule rhs) { return lhs.layerId() == rhs.layerId(); }
 
     int ReducedId(
-        int layerId);  //Converts layer id (1~6->L1~L6;11~15->D1~D5) to reduced layer id (0~5->L1~L6;6~10->D1~D5)
-    int findLayer(int layerId);  //Search for a layer id from sensor modules
+        int layerId);  //Converts layer ID (1~6->L1~L6;11~15->D1~D5) to reduced layer ID (0~5->L1~L6;6~10->D1~D5)
+    int findLayer(int layerId);  //Search for a layer ID from sensor modules
 
   private:
     int etaSector_;
@@ -110,7 +121,7 @@ namespace hph {
     bool hphDebug_;
     bool useNewKF_;
     float chosenRofZ_;
-    float deltaTanL_;
+    float deltaTanL_;  // Uncertainty added to tanL (cot) when layermap in new KF is determined
     std::vector<double> etaRegions_;
     int nKalmanLayers_;
     std::map<int, std::map<int, std::vector<int>>> layermap_;
