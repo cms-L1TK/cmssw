@@ -109,7 +109,7 @@ namespace trklet {
     void executeTED();
     void executeTRE();
     void executeTP();
-    /* void executeTPD(); */
+    void executeTPD();
     void executeTC();
     void executeTCD();
     void executePR();

@@ -19,6 +19,7 @@ namespace trklet {
   class AllStubsMemory;
   class AllInnerStubsMemory;
   class VMStubsTEMemory;
+  class StubPairsMemory;
 
   class TrackletProcessorDisplaced : public TrackletCalculatorDisplaced {
   public:
@@ -38,12 +39,23 @@ namespace trklet {
     int iTC_;
     int iAllStub_;
     unsigned int maxStep_;
+    int count_;
 
     /* VMStubsTEMemory* outervmstubs_; */
 
     int TCIndex_;
     int layer_;
     int disk_;
+
+    int layer1_;
+    int layer2_;
+    int layer3_;
+    int disk1_;
+    int disk2_;
+    int disk3_;
+
+    int secondphibits_;
+    int thirdphibits_;
 
     int iSeed_;
 
@@ -53,9 +65,8 @@ namespace trklet {
     int dproj_[N_DISK - 2];
     double rzmeanInv_[N_DISK - 2];
 
-    /* unsigned int iSector_; */
-    /* double phimin_, phimax_; */
-
+    unsigned int iSector_;
+    double phimin_, phimax_;
 
     /*                                 istub          imem          start imem    end imem */
     /* std::tuple<CircularBuffer<TEData>, unsigned int, unsigned int, unsigned int, unsigned int> tebuffer_; */
@@ -69,15 +80,20 @@ namespace trklet {
     std::vector<AllStubsMemory*> innerallstubs_;
     std::vector<AllStubsMemory*> middleallstubs_;
     std::vector<AllStubsMemory*> outerallstubs_;
-    std::vector<StubTripletsMemory*> stubtriplets_;
+    std::vector<StubPairsMemory*> stubpairs_;
+    /* std::vector<StubTripletsMemory*> stubtriplets_; */
     std::vector<VMStubsTEMemory*> innervmstubs_;
     std::vector<VMStubsTEMemory*> outervmstubs_;
 
     TrackletParametersMemory* trackletpars_;
+    StubTripletsMemory* stubtriplets_;
                                                          
     std::vector<std::vector<TrackletProjectionsMemory*> > trackletprojlayers_;
     std::vector<std::vector<TrackletProjectionsMemory*> > trackletprojdisks_;
 
+    std::map<std::string, std::vector<std::vector<std::string> > > tmpSPTable_;
+    std::map<std::string, std::vector<std::map<std::string, unsigned> > > spTable_;
+    std::vector<bool> table_;
 
   };
 

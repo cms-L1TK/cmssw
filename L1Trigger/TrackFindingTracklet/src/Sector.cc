@@ -369,11 +369,11 @@ void Sector::executeTP() {
   }
 }
 
-// void Sector::executeTPD() {
-//   for (auto& i : TPD_) {
-//     i->execute(isector_, phimin_, phimax_);
-//   }
-// }
+void Sector::executeTPD() {
+  for (auto& i : TPD_) {
+    i->execute(isector_, phimin_, phimax_);
+  }
+}
 
 void Sector::executeTC() {
   for (auto& i : TC_) {
