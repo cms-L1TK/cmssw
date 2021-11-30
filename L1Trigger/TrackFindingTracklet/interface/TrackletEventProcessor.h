@@ -55,6 +55,7 @@ namespace trklet {
     Timer TPTimer_;
     Timer TCTimer_;
     Timer TCDTimer_;
+    Timer TPDTimer_;
     Timer PRTimer_;
     Timer METimer_;
     Timer MCTimer_;

@@ -304,8 +304,12 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
        nThirdStubs += innervmstubs_.at(iThirdMem)->nVMStubs(), iThirdMem++
        );
 
+  assert(!innerallstubs_.empty());
+  assert(!middleallstubs_.empty());
+  assert(!outerallstubs_.empty());
   assert(!innervmstubs_.empty());
-  assert(!stubpairs_.empty());
+  assert(!outervmstubs_.empty());
+  assert(stubpairs_.empty());
 
   bool print = true;
   int hacksum = 0;
