@@ -18,7 +18,9 @@ namespace trackFindingTracklet {
         maxNumProjectionLayers_(iConfig.getParameter<int>("MaxNumProjectionLayers")),
         channelEncoding_(iConfig.getParameter<vector<int>>("IRChannelsIn")) {
     const ParameterSet& pSetSeedTypesSeedLayers = iConfig.getParameter<ParameterSet>("SeedTypesSeedLayersReduced");
-    const ParameterSet& pSetSeedTypesProjectionLayers = iConfig.getParameter<ParameterSet>("SeedTypesProjectionLayersReduced");
+    const ParameterSet& pSetSeedTypesProjectionLayers =
+        iConfig.getParameter<ParameterSet>("SeedTypesProjectionLayersReduced");
+
     seedTypesSeedLayers_.reserve(numSeedTypes_);
     seedTypesProjectionLayers_.reserve(numSeedTypes_);
     for (const string& s : seedTypeNames_) {
