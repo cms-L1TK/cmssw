@@ -12,13 +12,13 @@ namespace trackFindingTracklet {
       : setup_(setup),
         useDuplicateRemoval_(iConfig.getParameter<bool>("UseDuplicateRemoval")),
         boundaries_(iConfig.getParameter<vector<double>>("PtBoundaries")),
-        seedTypeNames_(iConfig.getParameter<vector<string>>("SeedTypes")),
+        seedTypeNames_(iConfig.getParameter<vector<string>>("SeedTypesReduced")),
         numSeedTypes_(seedTypeNames_.size()),
         numChannels_(useDuplicateRemoval_ ? 2 * boundaries_.size() : numSeedTypes_),
         maxNumProjectionLayers_(iConfig.getParameter<int>("MaxNumProjectionLayers")),
         channelEncoding_(iConfig.getParameter<vector<int>>("IRChannelsIn")) {
-    const ParameterSet& pSetSeedTypesSeedLayers = iConfig.getParameter<ParameterSet>("SeedTypesSeedLayers");
-    const ParameterSet& pSetSeedTypesProjectionLayers = iConfig.getParameter<ParameterSet>("SeedTypesProjectionLayers");
+    const ParameterSet& pSetSeedTypesSeedLayers = iConfig.getParameter<ParameterSet>("SeedTypesSeedLayersReduced");
+    const ParameterSet& pSetSeedTypesProjectionLayers = iConfig.getParameter<ParameterSet>("SeedTypesProjectionLayersReduced");
     seedTypesSeedLayers_.reserve(numSeedTypes_);
     seedTypesProjectionLayers_.reserve(numSeedTypes_);
     for (const string& s : seedTypeNames_) {
