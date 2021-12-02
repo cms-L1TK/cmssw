@@ -5,13 +5,13 @@
 #include "FWCore/Utilities/interface/mplVector.h"
 #include "L1Trigger/TrackTrigger/interface/SetupRcd.h"
 
-namespace trackFindingTracklet {
+namespace trklet {
 
   typedef edm::mpl::Vector<tt::SetupRcd> RcdsChannelAssignment;
 
   class ChannelAssignmentRcd
       : public edm::eventsetup::DependentRecordImplementation<ChannelAssignmentRcd, RcdsChannelAssignment> {};
 
-}  // namespace trackFindingTracklet
+}  // namespace trklet
 
 #endif

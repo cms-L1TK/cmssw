@@ -9,9 +9,9 @@
 
 #include <vector>
 
-namespace trackFindingTracklet {
+namespace trklet {
 
-  /*! \class  trackFindingTracklet::ChannelAssignment
+  /*! \class  trklet::ChannelAssignment
    *  \brief  Class to assign tracklet tracks ans stubs to output channel
    *          based on their Pt or seed type as well as DTC stubs to input channel
    *  \author Thomas Schuh
@@ -56,8 +56,8 @@ namespace trackFindingTracklet {
     std::vector<int> channelEncoding_;
   };
 
-}  // namespace trackFindingTracklet
+}  // namespace trklet
 
-EVENTSETUP_DATA_DEFAULT_RECORD(trackFindingTracklet::ChannelAssignment, trackFindingTracklet::ChannelAssignmentRcd);
+EVENTSETUP_DATA_DEFAULT_RECORD(trklet::ChannelAssignment, trklet::ChannelAssignmentRcd);
 
 #endif

@@ -11,9 +11,9 @@ using namespace std;
 using namespace edm;
 using namespace tt;
 
-namespace trackFindingTracklet {
+namespace trklet {
 
-  /*! \class  trackFindingTracklet::ProducerChannelAssignment
+  /*! \class  trklet::ProducerChannelAssignment
    *  \brief  Creates ChannelAssignment class that assigns tracklet tracks and stubs
    *          to output channel as well as DTC stubs to input channel
    *  \author Thomas Schuh
@@ -40,6 +40,6 @@ namespace trackFindingTracklet {
     return make_unique<ChannelAssignment>(*iConfig_, setup);
   }
 
-}  // namespace trackFindingTracklet
+}  // namespace trklet
 
-DEFINE_FWK_EVENTSETUP_MODULE(trackFindingTracklet::ProducerChannelAssignment);
+DEFINE_FWK_EVENTSETUP_MODULE(trklet::ProducerChannelAssignment);

@@ -1,12 +1,16 @@
 #include "L1Trigger/TrackFindingTracklet/interface/ChannelAssignment.h"
+#include "L1Trigger/TrackFindingTracklet/interface/Settings.h"
 
 #include <vector>
+#include <array>
+#include <set>
+#include <algorithm>
 
 using namespace std;
 using namespace edm;
 using namespace tt;
 
-namespace trackFindingTracklet {
+namespace trklet {
 
   ChannelAssignment::ChannelAssignment(const edm::ParameterSet& iConfig, const Setup* setup)
       : setup_(setup),
@@ -20,12 +24,80 @@ namespace trackFindingTracklet {
     const ParameterSet& pSetSeedTypesSeedLayers = iConfig.getParameter<ParameterSet>("SeedTypesSeedLayersReduced");
     const ParameterSet& pSetSeedTypesProjectionLayers =
         iConfig.getParameter<ParameterSet>("SeedTypesProjectionLayersReduced");
-
     seedTypesSeedLayers_.reserve(numSeedTypes_);
     seedTypesProjectionLayers_.reserve(numSeedTypes_);
     for (const string& s : seedTypeNames_) {
       seedTypesSeedLayers_.emplace_back(pSetSeedTypesSeedLayers.getParameter<vector<int>>(s));
       seedTypesProjectionLayers_.emplace_back(pSetSeedTypesProjectionLayers.getParameter<vector<int>>(s));
+    }
+    // consistency check
+    static constexpr int offsetBarrel = 1;
+    static constexpr int numBarrelLayer = 6;
+    static constexpr int offsetDisk = 11;
+    static constexpr int invalidSeedLayer = -1;
+    static constexpr int invalidLayerDisk = 0;
+    const Settings settings;
+    const auto& seedlayers = settings.seedlayers();
+    const auto& projlayers = settings.projlayers();
+    const auto& projdisks = settings.projdisks();
+    // convert Seetings layer ids into ChannelAssignment layer ids
+    vector<set<int>> allSeedingLayer(seedlayers.size());
+    vector<set<int>> allProjectionLayer(seedlayers.size());
+    for (int iSeed = 0; iSeed < (int)seedlayers.size(); iSeed++)
+      for (const auto& layer: seedlayers[iSeed])
+        if (layer != invalidSeedLayer)
+          allSeedingLayer[iSeed].insert(layer < numBarrelLayer ? layer + offsetBarrel : layer + offsetDisk - numBarrelLayer);
+    for (int iSeed = 0; iSeed < (int)projlayers.size(); iSeed++)
+      for (const auto& layer: projlayers[iSeed])
+        if (layer != invalidLayerDisk)
+          allProjectionLayer[iSeed].insert(layer);
+    for (int iSeed = 0; iSeed < (int)projdisks.size(); iSeed++)
+      for (const auto& disk: projdisks[iSeed])
+        if (disk != invalidLayerDisk)
+          allProjectionLayer[iSeed].insert(disk - offsetBarrel + offsetDisk);
+    // check if ChannelAssignment seedTypesSeedLayers_ and seedTypesProjectionLayers_ are subsets of Settings pendants
+    for (int iSubSeed = 0; iSubSeed < numSeedTypes_; iSubSeed++) {
+      const vector<int>& seedLayers = seedTypesSeedLayers_[iSubSeed];
+      bool subset(false);
+      for (int iAllSeed = 0; iAllSeed < (int)seedlayers.size(); iAllSeed++) {
+        // compare seed layer
+        const set<int>& asl = allSeedingLayer[iAllSeed];
+        set<int> sl(seedLayers.begin(), seedLayers.end());
+        set<int> intersect;
+        set_intersection(sl.begin(), sl.end(), asl.begin(), asl.end(), inserter(intersect, intersect.begin()));
+        if (intersect == sl) {
+          subset = true;
+          // compare projection layer
+          const vector<int>& projectionLayers = seedTypesProjectionLayers_[iSubSeed];
+          const set<int>& apl = allProjectionLayer[iAllSeed];
+          set<int> pl(projectionLayers.begin(), projectionLayers.end());
+          set<int> intersect;
+          set_intersection(pl.begin(), pl.end(), apl.begin(), apl.end(), inserter(intersect, intersect.begin()));
+          if (intersect == pl)
+            break;
+          set<int> difference;
+          set_difference(pl.begin(), pl.end(), intersect.begin(), intersect.end(), inserter(difference, difference.begin()));
+          cms::Exception exception("LogicError.");
+          exception << "ProjectionLayers ( ";
+          for (int layer : difference)
+            exception << layer << " ";
+          exception << ") are not supported with seed type ( ";
+          for (int layer : seedLayers)
+            exception << layer << " ";
+          exception << ")";
+          exception.addContext("trklet::ChannelAssignment::ChannelAssignment");
+          throw exception;
+        }
+      }
+      if (subset)
+        continue;
+      cms::Exception exception("LogicError.");
+      exception << "SeedLayers ( ";
+      for (int layer : seedLayers)
+        exception << layer << " ";
+      exception << ") are not supported";
+      exception.addContext("trklet::ChannelAssignment::ChannelAssignment");
+      throw exception;
     }
   }
 
@@ -39,7 +111,7 @@ namespace trackFindingTracklet {
         for (const auto& s : seedTypeNames_)
           exception << s << " ";
         exception << ").";
-        exception.addContext("trackFindingTracklet:ChannelAssignment:channelId");
+        exception.addContext("trklet:ChannelAssignment:channelId");
         throw exception;
       }
       channelId = ttTrackRef->phiSector() * numSeedTypes_ + seedType;
@@ -66,7 +138,7 @@ namespace trackFindingTracklet {
     const int seedType = ttTrackRef->trackSeedType();
     if (seedType < 0 || seedType >= numSeedTypes_) {
       cms::Exception exception("logic_error");
-      exception.addContext("trackFindingTracklet::ChannelAssignment::layerId");
+      exception.addContext("trklet::ChannelAssignment::layerId");
       exception << "TTTracks with with seed type " << seedType << " not supported.";
       throw exception;
     }
@@ -79,7 +151,7 @@ namespace trackFindingTracklet {
     if (pos == projectingLayers.end()) {
       const string& name = seedTypeNames_[seedType];
       cms::Exception exception("logic_error");
-      exception.addContext("trackFindingTracklet::ChannelAssignment::layerId");
+      exception.addContext("trklet::ChannelAssignment::layerId");
       exception << "TTStub from layer " << layer << " (barrel: 1-6; discs: 11-15) from seed type " << name
                 << " not supported.";
       throw exception;
@@ -88,4 +160,4 @@ namespace trackFindingTracklet {
     return true;
   }
 
-}  // namespace trackFindingTracklet
+}  // namespace trklet
