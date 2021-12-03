@@ -326,7 +326,9 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
     for (unsigned int i = 0; i < iInnerMem->nVMStubs(); i++) {
       const VMStubTE& firstvmstub = iInnerMem->getVMStubTE(i);
       if (settings_.debugTracklet()) {
-	edm::LogVerbatim("Tracklet") << "In " << getName() << " have first stub";
+	// edm::LogVerbatim("Tracklet") 
+	std::cout
+	  << "In " << getName() << " have first stub";
       }
 
       if ((layer1_ == 3 && layer2_ == 4) || (layer1_ == 5 && layer2_ == 6)) {
@@ -343,7 +345,9 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
         assert(last < 8);
 
         if (settings_.debugTracklet()) {
-	  edm::LogVerbatim("Tracklet") << "Will look in zbins " << start << " to " << last;
+	  // edm::LogVerbatim("Tracklet")
+	  std::cout
+	    << "Will look in zbins " << start << " to " << last;
         }
 
         for (int ibin = start; ibin <= last; ibin++) {
@@ -353,13 +357,14 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
 	    for (unsigned int j = 0; j < iOuterMem->nStubs(); j++) {
 	    
 	      if (settings_.debugTracklet()) {
-		edm::LogVerbatim("Tracklet") << "In " << getName() << " have second stub(1) " << ibin << " " << j;
+		// edm::LogVerbatim("Tracklet")
+		std::cout
+		  << "In " << getName() << " have second stub(1) " << ibin << " " << j;
 	      }
 
 	      if (countall >= settings_.maxStep("TE"))
 		break;
 	      countall++;
-	      // const Stub& secondallstub = middleallstubs_->getStub(j);
 	      const Stub* secondallstub = iOuterMem->getStub(j);
 
 	      int zbin = (secondallstub->z().value() & 7);
@@ -368,7 +373,9 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
 		zbin += 8;
 	      if (zbin < zbinfirst || zbin - zbinfirst > zdiffmax) {
 		if (settings_.debugTracklet()) {
-		  edm::LogVerbatim("Tracklet") << "Stubpair rejected because of wrong zbin";
+		  // edm::LogVerbatim("Tracklet")
+		  std::cout
+		    << "Stubpair rejected because of wrong zbin";
 		}
 		continue;
 	      }
@@ -381,25 +388,27 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
 
 	      // unsigned int index = (iphifirstbin.value() << secondphibits_) + iphisecondbin.value();
 	      
-	      // FPGAWord firstbend = firstvmstub.bend();
-	      // FPGAWord secondbend = secondallstub.bend();
+	      FPGAWord firstbend = firstvmstub.bend();
+	      FPGAWord secondbend = secondallstub->bend();
 
-	      // index = (index << firstbend.nbits()) + firstbend.value();
-	      // index = (index << secondbend.nbits()) + secondbend.value();
+	      unsigned int index = (index << firstbend.nbits()) + firstbend.value();
+	      index = (index << secondbend.nbits()) + secondbend.value();
 
-            // if ((settings_.enableTripletTables() && !settings_.writeTripletTables()) &&
-            //     (index >= table_.size() || table_.at(index).empty())) {
-            //   if (settings_.debugTracklet()) {
-	    // 	edm::LogVerbatim("Tracklet")
-	    // 	  << "Stub pair rejected because of stub pt cut bends : "
-	    // 	  << settings_.benddecode(firstvmstub.bend().value(), layer1_ - 1, firstvmstub.isPSmodule()) << " "
-	    // 	  << settings_.benddecode(secondvmstub.bend().value(), layer2_ - 1, secondvmstub.isPSmodule());
-            //   }
+            if ((settings_.enableTripletTables() && !settings_.writeTripletTables())
+		// && (index >= table_.size() || table_.at(index).empty())) 
+		){
+              if (settings_.debugTracklet()) {
+	    	// edm::LogVerbatim("Tracklet")
+		std::cout
+	    	  << "Stub pair rejected because of stub pt cut bends : "
+	    	  << settings_.benddecode(firstvmstub.bend().value(), layer1_ - 1, firstvmstub.isPSmodule()) << " "
+	    	  << settings_.benddecode(secondallstub->bend().value(), layer2_ - 1, secondallstub->isPSmodule());
+              }
 
-              //FIXME temporarily commented out until stub bend table fixed
-              //if (!settings_.writeTripletTables())
+              // FIXME temporarily commented out until stub bend table fixed
+              // if (!settings_.writeTripletTables())
               //  continue;
-            // }
+            }
 
             // if (settings_.debugTracklet())
 	    //   edm::LogVerbatim("Tracklet") << "Adding layer-layer pair in " << getName();
