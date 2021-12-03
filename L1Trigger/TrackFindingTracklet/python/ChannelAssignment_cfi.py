@@ -1,3 +1,4 @@
+# defines PSet to assign tracklet tracks and stubs to output channel based on their Pt or seed type as well as DTC stubs to input channel
 import FWCore.ParameterSet.Config as cms
 
 ChannelAssignment_params = cms.PSet (
