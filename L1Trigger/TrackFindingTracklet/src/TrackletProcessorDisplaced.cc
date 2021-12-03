@@ -527,16 +527,111 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
 
 	}
 
+      } else if (disk1_ == 1 && disk2_ == 2) {
+
+	if (settings_.debugTracklet())
+	  // edm::LogVerbatim("Tracklet")
+	  std::cout
+	    << getName() << " Disk-disk pair";
+
+        int lookupbits = firstvmstub.vmbits().value() & 511;
+        bool negdisk = firstvmstub.stub()->disk().value() < 0;
+        int rdiffmax = (lookupbits >> 6);
+        int newbin = (lookupbits & 63);
+        int bin = newbin / 8;
+
+        int rbinfirst = newbin & 7;
+
+        int start = (bin >> 1);
+        if (negdisk)
+          start += 4;
+        int last = start + (bin & 1);
+        assert(last < 8);
+
+	for (int ibin = start; ibin <= last; ibin++) {
+          for (auto& iOuterMem : middleallstubs_){
+            assert(iOuterMem->nStubs() == iOuterMem->nStubs());
+            for (unsigned int j = 0; j < iOuterMem->nStubs(); j++) {
+	      if (settings_.debugTracklet()) {
+		// edm::LogVerbatim("Tracklet")
+		std::cout
+		  << getName() << " looking for matching stub in " << iOuterMem->getName()
+		  << " in bin = " << ibin << " with " << iOuterMem->nStubs()
+		  << " stubs";
+	      }
+	      
+	      if (countall >= settings_.maxStep("TE"))
+		break;
+	      countall++;
+
+	      const Stub* secondallstub = iOuterMem->getStub(j);
+
+	      int rbin = (secondallstub->r().value() & 7);
+	      if (start != ibin)
+		rbin += 8;
+	      if (rbin < rbinfirst)
+		continue;
+	      if (rbin - rbinfirst > rdiffmax)
+		continue;
+
+	      // unsigned int irsecondbin = secondallstub.vmbits().value() >> 2;
+
+	      // FPGAWord iphifirstbin = firstvmstub.finephi();
+	      // FPGAWord iphisecondbin = secondvmstub.finephi();
+
+	      // unsigned int index = (irsecondbin << (secondphibits_ + firstphibits_)) +
+	      // 	(iphifirstbin.value() << secondphibits_) + iphisecondbin.value();
+
+	      FPGAWord firstbend = firstvmstub.bend();
+	      FPGAWord secondbend = secondallstub->bend();
+
+	      unsigned int index = (index << firstbend.nbits()) + firstbend.value();
+	      index = (index << secondbend.nbits()) + secondbend.value();
+
+	      if ((settings_.enableTripletTables() && !settings_.writeTripletTables()) 
+		  // && (index >= table_.size() || table_.at(index).empty())) 
+		  ) {
+		if (settings_.debugTracklet()) {
+		  // edm::LogVerbatim("Tracklet")
+		  std::cout
+                    << "Stub pair rejected because of stub pt cut bends : "
+                    << settings_.benddecode(firstvmstub.bend().value(), disk1_ + 5, firstvmstub.isPSmodule()) << " "
+                    << settings_.benddecode(secondallstub->bend().value(), disk2_ + 5, secondallstub->isPSmodule());
+		}
+		continue;
+	      }
+
+	      if (settings_.debugTracklet())
+		// edm::LogVerbatim("Tracklet")
+		std::cout
+		  << "Adding disk-disk pair in " << getName();
+
+	      // for (unsigned int isp = 0; isp < stubpairs_.size(); ++isp) {
+	      // 	if ((!settings_.enableTripletTables() || settings_.writeTripletTables()) ||
+	      // 	    (index < table_.size() && table_.at(index).count(isp))) {
+	      // 	  if (settings_.writeMonitorData("Seeds")) {
+	      // 	    ofstream fout("seeds.txt", ofstream::app);
+	      // 	    fout << __FILE__ << ":" << __LINE__ << " " << name_ << " " << iSeed_ << endl;
+	      // 	    fout.close();
+	      // 	  }
+	      // 	  stubpairs_.at(isp)->addStubPair(firstvmstub, secondvmstub, index, getName());
+	      // 	}
+	      // }
+
+	      countpass++;
+      
+	    }
+  
+	  }
+
+	}
+
       }
-
-
-
 
     }
 
   }
 
-
-
 }
+
 
