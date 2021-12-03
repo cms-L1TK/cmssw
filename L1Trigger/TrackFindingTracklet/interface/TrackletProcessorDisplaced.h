@@ -54,6 +54,7 @@ namespace trklet {
     int disk2_;
     int disk3_;
 
+    int firstphibits_;
     int secondphibits_;
     int thirdphibits_;
 
