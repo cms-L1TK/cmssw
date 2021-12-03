@@ -3,7 +3,7 @@ import FWCore.ParameterSet.Config as cms
 ChannelAssignment_params = cms.PSet (
 
   UseDuplicateRemoval = cms.bool   ( True ), # use tracklet seed type as channel id if False, binned track pt used if True
-  PtBoundaries        = cms.vdouble( 1.34 ), # pt Boundaries in GeV, last boundary is infinity
+  PtBoundaries        = cms.vdouble( 1.34 ), # positive pt Boundaries in GeV (symmetric negatives are assumed), last boundary is infinity, defining ot bins used by DR
 
   SeedTypesReduced = cms.vstring( "L1L2", "L2L3", "L3L4", "L5L6", "D1D2", "D3D4", "L1D1", "L2D1" ), # seed types used in reduced tracklet algorithm (position gives int value)
 

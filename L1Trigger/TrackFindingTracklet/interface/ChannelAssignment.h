@@ -12,7 +12,7 @@
 namespace trklet {
 
   /*! \class  trklet::ChannelAssignment
-   *  \brief  Class to assign tracklet tracks ans stubs to output channel
+   *  \brief  Class to assign tracklet tracks and stubs to output channel
    *          based on their Pt or seed type as well as DTC stubs to input channel
    *  \author Thomas Schuh
    *  \date   2020, Nov; updated 2021 Oct
@@ -22,11 +22,11 @@ namespace trklet {
     ChannelAssignment() {}
     ChannelAssignment(const edm::ParameterSet& iConfig, const tt::Setup* setup);
     ~ChannelAssignment() {}
-    // sets channelId of given TTTrackRef, return false if track outside pt range
+    // sets channelId of given TTTrackRef from TrackBuilder or PurgeDuplicate (if enabled), return false if track outside pt range
     bool channelId(const TTTrackRef& ttTrackRef, int& channelId);
     // number of used channels
     int numChannels() const { return numChannels_; }
-    // sets layerId of given TTStubRef and TTTrackRef, returns false if seeed stub
+    // sets layerId (0-7 in sequence the seed type projects to) of given TTStubRef and TTTrackRef, returns false if seeed stub
     bool layerId(const TTTrackRef& ttTrackRef, const TTStubRef& ttStubRef, int& layerId);
     // max number layers a sedd type may project to
     int maxNumProjectionLayers() const { return maxNumProjectionLayers_; }
