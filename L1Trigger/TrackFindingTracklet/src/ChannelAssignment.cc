@@ -134,10 +134,9 @@ namespace trklet {
     return true;
   }
 
-  // sets layerId of given TTStubRef and TTTrackRef, returns false if seeed stub
-  bool ChannelAssignment::layerId(const TTTrackRef& ttTrackRef, const TTStubRef& ttStubRef, int& layerId) {
+  // sets layerId of given TTStubRef and seedType, returns false if seeed stub
+  bool ChannelAssignment::layerId(int seedType, const TTStubRef& ttStubRef, int& layerId) {
     layerId = -1;
-    const int seedType = ttTrackRef->trackSeedType();
     if (seedType < 0 || seedType >= numSeedTypes_) {
       cms::Exception exception("logic_error");
       exception.addContext("trklet::ChannelAssignment::layerId");
