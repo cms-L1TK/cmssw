@@ -2,6 +2,9 @@
 #include "L1Trigger/TrackFindingTracklet/interface/Settings.h"
 
 #include <vector>
+#include <array>
+#include <set>
+#include <algorithm>
 
 using namespace std;
 using namespace edm;
@@ -13,13 +16,14 @@ namespace trklet {
       : setup_(setup),
         useDuplicateRemoval_(iConfig.getParameter<bool>("UseDuplicateRemoval")),
         boundaries_(iConfig.getParameter<vector<double>>("PtBoundaries")),
-        seedTypeNames_(iConfig.getParameter<vector<string>>("SeedTypes")),
+        seedTypeNames_(iConfig.getParameter<vector<string>>("SeedTypesReduced")),
         numSeedTypes_(seedTypeNames_.size()),
         numChannels_(useDuplicateRemoval_ ? 2 * boundaries_.size() : numSeedTypes_),
         maxNumProjectionLayers_(iConfig.getParameter<int>("MaxNumProjectionLayers")),
         channelEncoding_(iConfig.getParameter<vector<int>>("IRChannelsIn")) {
-    const ParameterSet& pSetSeedTypesSeedLayers = iConfig.getParameter<ParameterSet>("SeedTypesSeedLayers");
-    const ParameterSet& pSetSeedTypesProjectionLayers = iConfig.getParameter<ParameterSet>("SeedTypesProjectionLayers");
+    const ParameterSet& pSetSeedTypesSeedLayers = iConfig.getParameter<ParameterSet>("SeedTypesSeedLayersReduced");
+    const ParameterSet& pSetSeedTypesProjectionLayers =
+        iConfig.getParameter<ParameterSet>("SeedTypesProjectionLayersReduced");
     seedTypesSeedLayers_.reserve(numSeedTypes_);
     seedTypesProjectionLayers_.reserve(numSeedTypes_);
     for (const string& s : seedTypeNames_) {
@@ -100,35 +104,46 @@ namespace trklet {
   }
 
   // sets channelId of given TTTrackRef, return false if track outside pt range
-  bool ChannelAssignment::channelId(const TTTrackRef& ttTrackRef, int& channelId) const {
-    const int phiSector = ttTrackRef->phiSector();
-    bool valid(true);
-    channelId = -1;
+  bool ChannelAssignment::channelId(const TTTrackRef& ttTrackRef, int& channelId) {
     if (!useDuplicateRemoval_) {
       const int seedType = ttTrackRef->trackSeedType();
-      checkSeedType(seedType);
-      channelId = seedType;
-    } else {
-      const double rInv = ttTrackRef->rInv();
-      const double pt = 2. * setup_->invPtToDphi() / abs(rInv);
-      for (double boundary : boundaries_) {
-        if (pt < boundary)
-          break;
-        else
-          channelId++;
+      if (seedType >= numSeedTypes_) {
+        cms::Exception exception("logic_error");
+        exception << "TTTracks form seed type" << seedType << " not in supported list: (";
+        for (const auto& s : seedTypeNames_)
+          exception << s << " ";
+        exception << ").";
+        exception.addContext("trklet:ChannelAssignment:channelId");
+        throw exception;
       }
-      if (channelId == -1)
-        valid = false;
-      channelId = rInv < 0. ? channelId : numChannels_ - channelId - 1;
+      channelId = ttTrackRef->phiSector() * numSeedTypes_ + seedType;
+      return true;
     }
-    channelId += phiSector * numChannels_;
-    return valid;
+    const double pt = ttTrackRef->momentum().perp();
+    channelId = -1;
+    for (double boundary : boundaries_) {
+      if (pt < boundary)
+        break;
+      else
+        channelId++;
+    }
+    if (channelId == -1)
+      return false;
+    channelId = ttTrackRef->rInv() < 0. ? channelId : numChannels_ - channelId - 1;
+    channelId += ttTrackRef->phiSector() * numChannels_;
+    return true;
   }
 
-  // sets layerId of given TTStubRef and seedType, returns false if seeed stub
-  bool ChannelAssignment::layerId(int seedType, const TTStubRef& ttStubRef, int& layerId) const {
+  // sets layerId of given TTStubRef and TTTrackRef, returns false if seeed stub
+  bool ChannelAssignment::layerId(const TTTrackRef& ttTrackRef, const TTStubRef& ttStubRef, int& layerId) {
     layerId = -1;
-    checkSeedType(seedType);
+    const int seedType = ttTrackRef->trackSeedType();
+    if (seedType < 0 || seedType >= numSeedTypes_) {
+      cms::Exception exception("logic_error");
+      exception.addContext("trklet::ChannelAssignment::layerId");
+      exception << "TTTracks with with seed type " << seedType << " not supported.";
+      throw exception;
+    }
     const int layer = setup_->layerId(ttStubRef);
     const vector<int>& seedingLayers = seedTypesSeedLayers_[seedType];
     if (find(seedingLayers.begin(), seedingLayers.end(), layer) != seedingLayers.end())
@@ -138,7 +153,7 @@ namespace trklet {
     if (pos == projectingLayers.end()) {
       const string& name = seedTypeNames_[seedType];
       cms::Exception exception("logic_error");
-      exception.addContext("ChannelAssignment::ChannelAssignment::layerId");
+      exception.addContext("trklet::ChannelAssignment::layerId");
       exception << "TTStub from layer " << layer << " (barrel: 1-6; discs: 11-15) from seed type " << name
                 << " not supported.";
       throw exception;

@@ -6,7 +6,7 @@ ChannelAssignment_params = cms.PSet (
   UseDuplicateRemoval = cms.bool   ( True ), # use tracklet seed type as channel id if False, binned track pt used if True
   PtBoundaries        = cms.vdouble( 1.34 ), # pt Boundaries in GeV, last boundary is infinity
 
-  SeedTypes = cms.vstring( "L1L2", "L2L3", "L3L4", "L5L6", "D1D2", "D3D4", "L1D1", "L1D2" ), # seed types used in tracklet algorithm (position gives int value)
+  SeedTypes = cms.vstring( "L1L2", "L2L3", "L3L4", "L5L6", "D1D2", "D3D4", "L1D1", "L2D1" ), # seed types used in tracklet algorithm (position gives int value)
 
   MaxNumProjectionLayers    = cms.int32( 8 ), # max number layers a sedd type may project to
   SeedTypesSeedLayers       = cms.PSet (      # seeding layers of seed types using default layer id [barrel: 1-6, discs: 11-15]
