@@ -6,7 +6,6 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "DataFormats/L1TrackTrigger/interface/TTTypes.h"
 #include "L1Trigger/TrackTrigger/interface/Setup.h"
-#include "DataFormats/L1TrackTrigger/interface/TTTypes.h"
 
 #include <vector>
 
@@ -23,23 +22,18 @@ namespace trklet {
     ChannelAssignment() {}
     ChannelAssignment(const edm::ParameterSet& iConfig, const tt::Setup* setup);
     ~ChannelAssignment() {}
-    // sets channelId of given TTTrackRef, return false if track outside pt range
-    bool channelId(const TTTrackRef& ttTrackRef, int& channelId) const;
+    // sets channelId of given TTTrackRef from TrackBuilder or PurgeDuplicate (if enabled), return false if track outside pt range
+    bool channelId(const TTTrackRef& ttTrackRef, int& channelId);
     // number of used channels
     int numChannels() const { return numChannels_; }
-    // sets layerId of given TTStubRef and seedType, returns false if seeed stub
-    bool layerId(int seedType, const TTStubRef& ttStubRef, int& layerId) const;
-    // return tracklet layerId (barrel: [0-5], endcap: [6-10]) for given TTStubRef
-    int trackletLayerId(const TTStubRef& ttStubRef) const;
+    // sets layerId (0-7 in sequence the seed type projects to) of given TTStubRef and TTTrackRef, returns false if seeed stub
+    bool layerId(const TTTrackRef& ttTrackRef, const TTStubRef& ttStubRef, int& layerId);
     // max number layers a sedd type may project to
     int maxNumProjectionLayers() const { return maxNumProjectionLayers_; }
     // map of used DTC tfp channels in InputRouter
     std::vector<int> channelEncoding() const { return channelEncoding_; }
 
   private:
-    // checks is seedType is supported
-    void checkSeedType(int seedType) const;
-
     // helper class to store configurations
     const tt::Setup* setup_;
     // use tracklet seed type as channel id if False, binned track pt used if True
