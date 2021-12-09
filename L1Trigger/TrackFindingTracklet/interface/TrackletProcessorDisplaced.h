@@ -40,7 +40,7 @@ namespace trklet {
     int iAllStub_;
     unsigned int maxStep_;
     int count_;
-
+    unsigned int layerdisk_;
     /* VMStubsTEMemory* outervmstubs_; */
 
     int TCIndex_;
@@ -69,11 +69,17 @@ namespace trklet {
     unsigned int iSector_;
     double phimin_, phimax_;
 
+    int nbitszfinebintable_;
+    int nbitsrfinebintable_;
+
     /*                                 istub          imem          start imem    end imem */
     /* std::tuple<CircularBuffer<TEData>, unsigned int, unsigned int, unsigned int, unsigned int> tebuffer_; */
 
     /* std::vector<TrackletEngineUnit> teunits_; */
 
+    TrackletLUT innerTable_;         //projection to next layer/disk
+    TrackletLUT innerOverlapTable_;  //projection to disk from layer
+    TrackletLUT innerThirdTable_;    //projection to disk1 for extended - iseed=10
 
     std::vector<double> toR_;
     std::vector<double> toZ_;
