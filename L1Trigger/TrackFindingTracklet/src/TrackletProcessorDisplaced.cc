@@ -24,6 +24,9 @@ TrackletProcessorDisplaced::TrackletProcessorDisplaced(string name, Settings con
     innerOverlapTable_(settings),
     innerThirdTable_(settings) 
  {
+   middleallstubs_.clear();
+   outervmstubs_ = nullptr;
+
   // iAllStub_ = -1;
    layerdisk_ = initLayerDisk(4);
 
@@ -58,7 +61,6 @@ TrackletProcessorDisplaced::TrackletProcessorDisplaced(string name, Settings con
     trackletprojdisks_.push_back(tmp);
   }
 
-  // outervmstubs_ = nullptr; 
   // initLayerDisksandISeed(layerdisk1_, layerdisk2_, iSeed_);
 
   layer_ = 0;
@@ -306,7 +308,7 @@ void TrackletProcessorDisplaced::addInput(MemoryBase* memory, string input) {
   if (input == "secondvmstubin") {
     auto* tmp = dynamic_cast<VMStubsTEMemory*>(memory);
     assert(tmp != nullptr);
-    outervmstubs_.push_back(tmp);
+    outervmstubs_ = tmp;
     return;
   }
 
@@ -333,10 +335,6 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
        nInnerStubs += middleallstubs_.at(iInnerMem)->nStubs(), iInnerMem++
        );
 
-  // for (unsigned int iOuterMem = 0; iOuterMem < outervmstubs_.size();
-  //      nOuterStubs += outervmstubs_.at(iOuterMem)->nVMStubs(), iOuterMem++
-  //      );
-
   // for (unsigned int iThirdMem = 0; iThirdMem < innervmstubs_.size();
   //      nThirdStubs += innervmstubs_.at(iThirdMem)->nVMStubs(), iThirdMem++
   //      );
@@ -345,11 +343,14 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
   assert(!middleallstubs_.empty());
   assert(!outerallstubs_.empty());
   assert(!innervmstubs_.empty());
-  assert(!outervmstubs_.empty());
+  assert(outervmstubs_ != nullptr);
   assert(stubpairs_.empty());
 
 
-  std::cout << "CHECKING EXECUTE TPD MODULE" << std::endl;
+  std::cout << "\nRUNNING ON TPD::EXECUTE\n" << std::endl;
+
+  std::cout << "layer 1: " << layer1_ << " layer 2: " << layer2_ << " layer 3: " <<  layer3_ << std::endl;
+  std::cout << "disk 1: " << disk1_ << " disk 2: " << disk2_ << " disk 3: " <<  disk3_ << std::endl;
 
   for (auto& iInnerMem : middleallstubs_){
     assert(iInnerMem->nStubs() == iInnerMem->nStubs());
@@ -357,9 +358,9 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
       const Stub* firstallstub = iInnerMem->getStub(j);
 
       if (settings_.debugTracklet()) {
-        // edm::LogVerbatim("Tracklet")                                                                                 
+        // edm::LogVerbatim("Tracklet")                                                         
 	std::cout
-          << "In " << getName() << " have first stub";
+          << "In " << getName() << " have first stub\n";
       }
 
       int inner = 0;
@@ -418,6 +419,11 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
       FPGAWord finephi = firstallstub->iphivmFineBins(settings_.nphireg(inner, iSeed_), settings_.nfinephi(inner, iSeed_));
 
       if ((layer1_ == 3 && layer2_ == 4) || (layer1_ == 5 && layer2_ == 6)) {
+	
+        if (settings_.debugTracklet())
+	  // edm::LogVerbatim("Tracklet")
+	  std::cout
+	    << getName() << " Layer-layer pair";
 
 	int lookupbits = binlookup.value() & 1023;
         int zdiffmax = (lookupbits >> 7);
@@ -429,83 +435,241 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
         int start = (bin >> 1);
         int last = start + (bin & 1);
 
+	// std::cout << "start" << start << "last" << last << std::endl;
+
         assert(last < 8);
 
 	if (settings_.debugTracklet()) {
-          // edm::LogVerbatim("Tracklet")                                                                               
+          // edm::LogVerbatim("Tracklet")                                                       
 	  std::cout
             << "Will look in zbins " << start << " to " << last;
         }
 
 	for (int ibin = start; ibin <= last; ibin++) {
-	  for (auto& iOuterMem : outervmstubs_){
-	    assert(iOuterMem->nVMStubsBinned(ibin) == iOuterMem->nVMStubsBinned(ibin));
-	    for (unsigned int j = 0; j < iOuterMem->nVMStubsBinned(ibin); j++) {
+	  for (unsigned int j = 0; j < outervmstubs_->nVMStubsBinned(ibin); j++) {
+
+	    if (settings_.debugTracklet()) {
+	      // edm::LogVerbatim("Tracklet")
+	      std::cout
+		<< "In " << getName() << " have second stub(1) " << ibin << " " << j;
+	    }
+
+	    if (countall >= settings_.maxStep("TE"))
+	      break;
+	    countall++;
+	    const VMStubTE& secondvmstub = outervmstubs_->getVMStubTEBinned(ibin,j);
+
+	    int zbin = (secondvmstub.vmbits().value() & 7);
+	    if (start != ibin)
+	      zbin += 8;
+	    if (zbin < zbinfirst || zbin - zbinfirst > zdiffmax) {
 	      if (settings_.debugTracklet()) {
 		// edm::LogVerbatim("Tracklet")
 		std::cout
-		  << "In " << getName() << " have second stub(1) " << ibin << " " << j;
+		  << "Stubpair rejected because of wrong zbin";
 	      }
-
-	      if (countall >= settings_.maxStep("TE"))
-		break;
-	      countall++;
-	      const VMStubTE& secondvmstub = iOuterMem->getVMStubTEBinned(ibin,j);
-
-	      int zbin = (secondvmstub.vmbits().value() & 7);
-	      if (start != ibin)
-		zbin += 8;
-	      if (zbin < zbinfirst || zbin - zbinfirst > zdiffmax) {
-		if (settings_.debugTracklet()) {
-		  // edm::LogVerbatim("Tracklet")
-		  std::cout
-		    << "Stubpair rejected because of wrong zbin";
-		}
-		continue;
-	      }
-
-	      assert(firstphibits_ != -1);
-	      assert(secondphibits_ != -1);
-
-	      FPGAWord iphifirstbin = finephi;
-	      FPGAWord iphisecondbin = secondvmstub.finephi();
-
-	      unsigned int index = (iphifirstbin.value() << secondphibits_) + iphisecondbin.value();
-	      
-	      FPGAWord firstbend = firstallstub->bend();
-	      FPGAWord secondbend = secondvmstub.bend();
-
-	      index = (index << firstbend.nbits()) + firstbend.value();
-	      index = (index << secondbend.nbits()) + secondbend.value();
-
-	      if ((settings_.enableTripletTables() && !settings_.writeTripletTables())) { 
-		  // && (index >= table_.size() || table_.at(index).empty())) {
-		  if (settings_.debugTracklet()) {
-		  // edm::LogVerbatim("Tracklet")
-		    std::cout
-		      << "Stub pair rejected because of stub pt cut bends : "
-		      << settings_.benddecode(firstallstub->bend().value(), layer1_ - 1, firstallstub->isPSmodule()) << " "
-		      << settings_.benddecode(secondvmstub.bend().value(), layer2_ - 1, secondvmstub.isPSmodule());
-		  }
-
-		  //FIXME temporarily commented out until stub bend table fixed
-		  //if (!settings_.writeTripletTables())
-		  //  continue;
-	      }
-
-	      countpass++;
-		
+	      continue;
 	    }
 
+	    assert(firstphibits_ != -1);
+	    assert(secondphibits_ != -1);
+
+	    FPGAWord iphifirstbin = finephi;
+	    FPGAWord iphisecondbin = secondvmstub.finephi();
+
+	    unsigned int index = (iphifirstbin.value() << secondphibits_) + iphisecondbin.value();
+	      
+	    FPGAWord firstbend = firstallstub->bend();
+	    FPGAWord secondbend = secondvmstub.bend();
+
+	    index = (index << firstbend.nbits()) + firstbend.value();
+	    index = (index << secondbend.nbits()) + secondbend.value();
+
+	    if ((settings_.enableTripletTables() && !settings_.writeTripletTables())){  
+	      // && (index >= table_.size() || table_.at(index).empty())) {
+	      if (settings_.debugTracklet()) {
+		// edm::LogVerbatim("Tracklet")
+		std::cout
+		  << "Stub pair rejected because of stub pt cut bends : "
+		  << settings_.benddecode(firstallstub->bend().value(), layer1_ - 1, firstallstub->isPSmodule()) << " "
+		  << settings_.benddecode(secondvmstub.bend().value(), layer2_ - 1, secondvmstub.isPSmodule());
+	      }
+
+	      //FIXME temporarily commented out until stub bend table fixed
+	      //if (!settings_.writeTripletTables())
+	      //  continue;
+	    }
+
+	    countpass++;
+		
 	  }
 
 	}
 
-      }
+      } else if (layer1_ == 2 && layer2_ == 3) {
 
+        if (settings_.debugTracklet())
+	  // edm::LogVerbatim("Tracklet")
+	  std::cout
+	    << getName() << " Layer-layer pair";
+
+        int lookupbits = binlookup.value() & 1023;
+        int zdiffmax = (lookupbits >> 7);
+        int newbin = (lookupbits & 127);
+        int bin = newbin / 8;
+
+        int zbinfirst = newbin & 7;
+
+        int start = (bin >> 1);
+        int last = start + (bin & 1);
+
+        assert(last < 8);
+
+        if (settings_.debugTracklet()) {
+	  // edm::LogVerbatim("Tracklet")
+	  std::cout
+	    << "Will look in zbins " << start << " to " << last;
+        }
+
+	for (int ibin = start; ibin <= last; ibin++) {
+	  for (unsigned int j = 0; j < outervmstubs_->nVMStubsBinned(ibin); j++) {
+
+	    if (settings_.debugTracklet()) {
+	      // edm::LogVerbatim("Tracklet")
+	      std::cout
+		<< "In " << getName() << " have second stub(1) " << ibin << " " << j;
+	    }
+
+	    if (countall >= settings_.maxStep("TE"))
+	      break;
+	    countall++;
+	    const VMStubTE& secondvmstub = outervmstubs_->getVMStubTEBinned(ibin,j);
+
+	    int zbin = (secondvmstub.vmbits().value() & 7);
+	    if (start != ibin)
+	      zbin += 8;
+	    if (zbin < zbinfirst || zbin - zbinfirst > zdiffmax) {
+	      if (settings_.debugTracklet()) {
+		// edm::LogVerbatim("Tracklet")
+		std::cout
+		  << "Stubpair rejected because of wrong zbin";
+	      }
+	      continue;
+	    }
+
+	    assert(firstphibits_ != -1);
+	    assert(secondphibits_ != -1);
+
+	    FPGAWord iphifirstbin = finephi;
+	    FPGAWord iphisecondbin = secondvmstub.finephi();
+
+	    unsigned int index = (iphifirstbin.value() << secondphibits_) + iphisecondbin.value();
+	    
+	    FPGAWord firstbend = firstallstub->bend();
+	    FPGAWord secondbend = secondvmstub.bend();
+
+	    index = (index << firstbend.nbits()) + firstbend.value();
+	    index = (index << secondbend.nbits()) + secondbend.value();
+
+	    if ((settings_.enableTripletTables() && !settings_.writeTripletTables())) { 
+	      // && (index >= table_.size() || table_.at(index).empty())) {
+	      if (settings_.debugTracklet()) {
+		// edm::LogVerbatim("Tracklet")
+		std::cout
+		  << "Stub pair rejected because of stub pt cut bends : "
+		  << settings_.benddecode(firstallstub->bend().value(), layer1_ - 1, firstallstub->isPSmodule()) << " "
+		  << settings_.benddecode(secondvmstub.bend().value(), layer2_ - 1, secondvmstub.isPSmodule());
+		
+	      }
+	
+	      continue;
+	  
+	    }
+
+	  }
+      
+	}
+
+      } else if (disk1_ == 1 && disk2_ == 2) {
+        if (settings_.debugTracklet())
+	  // edm::LogVerbatim("Tracklet")
+	  std::cout
+	    << getName() << " Disk-disk pair";
+
+
+	int lookupbits = binlookup.value() & 511;
+        bool negdisk = firstallstub->disk().value() < 0;
+        int rdiffmax = (lookupbits >> 6);
+        int newbin = (lookupbits & 63);
+        int bin = newbin / 8;
+
+        int rbinfirst = newbin & 7;
+
+        int start = (bin >> 1);
+        if (negdisk)
+          start += 4;
+        int last = start + (bin & 1);
+        assert(last < 8);
+
+	for (int ibin = start; ibin <= last; ibin++) {
+          if (settings_.debugTracklet()) {
+	    std::cout
+	    // edm::LogVerbatim("Tracklet") 
+	      << getName() << " looking for matching stub in " << outervmstubs_->getName()
+	      << " in bin = " << ibin << " with " << outervmstubs_->nVMStubsBinned(ibin)
+	      << " stubs";
+          }
+          for (unsigned int j = 0; j < outervmstubs_->nVMStubsBinned(ibin); j++) {
+            if (countall >= settings_.maxStep("TE"))
+              break;
+            countall++;
+
+            const VMStubTE& secondvmstub = outervmstubs_->getVMStubTEBinned(ibin, j);
+
+            int rbin = (secondvmstub.vmbits().value() & 7);
+            if (start != ibin)
+              rbin += 8;
+            if (rbin < rbinfirst)
+              continue;
+            if (rbin - rbinfirst > rdiffmax)
+              continue;
+
+            unsigned int irsecondbin = secondvmstub.vmbits().value() >> 2;
+
+            FPGAWord iphifirstbin = finephi;
+            FPGAWord iphisecondbin = secondvmstub.finephi();
+
+            unsigned int index = (irsecondbin << (secondphibits_ + firstphibits_)) +
+	      (iphifirstbin.value() << secondphibits_) + iphisecondbin.value();
+	    
+            FPGAWord firstbend = firstallstub->bend();
+            FPGAWord secondbend = secondvmstub.bend();
+
+            index = (index << firstbend.nbits()) + firstbend.value();
+            index = (index << secondbend.nbits()) + secondbend.value();
+
+            if ((settings_.enableTripletTables() && !settings_.writeTripletTables())) { 
+		// && (index >= table_.size() || table_.at(index).empty())) {
+              if (settings_.debugTracklet()) {
+		// edm::LogVerbatim("Tracklet")
+		std::cout
+		  << "Stub pair rejected because of stub pt cut bends : "
+		  << settings_.benddecode(firstallstub->bend().value(), disk1_ + 5, firstallstub->isPSmodule()) << " "
+		  << settings_.benddecode(secondvmstub.bend().value(), disk2_ + 5, secondvmstub.isPSmodule());
+              }
+              continue;
+            }
+	    
+	  }
+
+	}
+	
+      }
+	  
     }
 
   }
 
 }
+
 

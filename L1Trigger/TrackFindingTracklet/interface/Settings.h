@@ -240,6 +240,7 @@ namespace trklet {
     bool doKF() const { return doKF_; }
     bool doMultipleMatches() const { return doMultipleMatches_; }
     bool fakefit() const { return fakefit_; }
+    void setFakefit(bool fakefit) { fakefit_ = fakefit; }
 
     // configurable
     unsigned int nHelixPar() const { return nHelixPar_; }
@@ -249,6 +250,8 @@ namespace trklet {
     void setExtended(bool extended) { extended_ = extended; }
     bool combined() const { return combined_; }
     void setCombined(bool combined) { combined_ = combined; }
+    bool reduced() const { return reduced_; }
+    void setReduced(bool reduced) { reduced_ = reduced; }
 
     double bfield() const { return bfield_; }
     void setBfield(double bfield) { bfield_ = bfield; }
@@ -607,10 +610,16 @@ namespace trklet {
                                                                   {{6, 6, 6, 6, 10, 10, 10, 10, 0, 0, 6, 0}},
                                                                   {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 6}}}};
 
+    /* std::array<std::array<unsigned int, N_SEED>, 3> lutwidthtabextended_{ */
+    /*     {{{11, 11, 21, 21, 21, 21, 11, 11, 0, 0, 21, 0}}, */
+    /*      {{6, 6, 6, 6, 10, 10, 10, 10, 0, 0, 6, 0}}, */
+    /*      {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 6}}}}; */
+
     std::array<std::array<unsigned int, N_SEED>, 3> lutwidthtabextended_{
-        {{{11, 11, 21, 21, 21, 21, 11, 11, 0, 0, 21, 0}},
-         {{6, 6, 6, 6, 10, 10, 10, 10, 0, 0, 6, 0}},
-         {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 6}}}};
+        {{{21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21}},
+         {{21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21}},
+         {{21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21}}}};
+
 
     //layers/disks used by each seed
     std::array<std::array<int, 3>, N_SEED> seedlayers_{{{{0, 1, -1}},   //L1L2
@@ -751,6 +760,7 @@ namespace trklet {
     unsigned int maxstepoffset_{0};
 
     //Number of processing steps for one event (108=18TM*240MHz/40MHz)
+    //IR should be set to 108 to match the FW for the summer chain, but ultimately should be at 156
     std::unordered_map<std::string, unsigned int> maxstep_{{"IR", 156},  //IR will run at a higher clock speed to handle
                                                                          //input links running at 25 Gbits/s
                                                            {"VMR", 108},
@@ -782,7 +792,7 @@ namespace trklet {
                                                             {"TC", false},
                                                             {"Pars", false},
                                                             {"TPars", false},
-                                                            {"TPD", false},
+                                                            {"TPD", true},
                                                             {"TrackletPars", false},
                                                             {"TED", false},
                                                             {"TP", false},
@@ -804,7 +814,7 @@ namespace trklet {
 
     // various printouts for debugging and warnings
     bool printDebugKF_{false};   // if true print lots of debugging statements related to the KF fit
-    bool debugTracklet_{false};  //Print detailed debug information about tracklet tracking
+    bool debugTracklet_{true};  //Print detailed debug information about tracklet tracking
     bool writetrace_{true};     //Print out details about parsing configuration files
 
     bool warnNoMem_{false};  //If true will print out warnings about missing projection memories
@@ -890,6 +900,7 @@ namespace trklet {
     unsigned int nHelixPar_{4};  // 4 or 5 param helix fit
     bool extended_{false};       // turn on displaced tracking
     bool combined_{false};       // use combined TP (TE+TC) and MP (PR+ME+MC) configuration
+    bool reduced_{false};        // use reduced (Summer Chain) config
 
     std::string skimfile_{""};  //if not empty events will be written out in ascii format to this file
 
