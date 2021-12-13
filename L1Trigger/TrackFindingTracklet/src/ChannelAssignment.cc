@@ -133,7 +133,7 @@ namespace trklet {
   }
 
   // sets layerId of given TTStubRef and seedType, returns false if seeed stub
-  bool ChannelAssignment::layerId(int seedType, const TTStubRef& ttStubRef, int& layerId) {
+  bool ChannelAssignment::layerId(int seedType, const TTStubRef& ttStubRef, int& layerId) const {
     layerId = -1;
     if (seedType < 0 || seedType >= numSeedTypes_) {
       cms::Exception exception("logic_error");
@@ -157,13 +157,6 @@ namespace trklet {
     }
     layerId = distance(projectingLayers.begin(), pos);
     return true;
-  }
-
-  // return tracklet layerId (barrel: [0-5], endcap: [6-10]) for given TTStubRef
-  int ChannelAssignment::trackletLayerId(const TTStubRef& ttStubRef) const {
-    static constexpr int offsetBarrel = 1;
-    static constexpr int offsetDisks = 5;
-    return setup_->layerId(ttStubRef) - (setup_->barrel(ttStubRef) ? offsetBarrel : offsetDisks);
   }
 
 }  // namespace trklet

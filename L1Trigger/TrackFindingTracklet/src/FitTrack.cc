@@ -1027,7 +1027,7 @@ void FitTrack::execute(ChannelAssignment* channelAssignment,
       }
     }
     // store bit and clock accurate TB output
-    if (settings_.emulateTB() && bestTracklet) {
+    if (settings_.storeTrackBuilderOutput() && bestTracklet) {
       // add gap if enough layer to form track
       static constexpr int limit = 4;
       if ((int)bestTracklet->getL1Stubs().size() < limit) {

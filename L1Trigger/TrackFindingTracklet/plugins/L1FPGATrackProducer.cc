@@ -231,6 +231,10 @@ L1FPGATrackProducer::L1FPGATrackProducer(edm::ParameterSet const& iConfig)
   }
 
   produces<std::vector<TTTrack<Ref_Phase2TrackerDigi_>>>("Level1TTTracks").setBranchAlias("Level1TTTracks");
+  // book ED output token for clock and bit accurate TrackBuilder tracks
+  edPutTokenTracks_ = produces<Streams>("Level1TTTracks");
+  // book ED output token for clock and bit accurate TrackBuilder stubs
+  edPutTokenStubs_ = produces<StreamsStub>("Level1TTTracks");
 
   asciiEventOutName_ = iConfig.getUntrackedParameter<string>("asciiFileName", "");
 
@@ -248,12 +252,9 @@ L1FPGATrackProducer::L1FPGATrackProducer(edm::ParameterSet const& iConfig)
     tableTREFile = iConfig.getParameter<edm::FileInPath>("tableTREFile");
   }
 
-  // book ED output token for clock and bit accurate tracks
-  edPutTokenTracks_ = produces<Streams>("Level1TTTracks");
-  // book ED output token for clock and bit accurate stubs
-  edPutTokenStubs_ = produces<StreamsStub>("Level1TTTracks");
-  // book ES product
+  // book ES product to assign tracks and stubs to InputRouter input channel and TrackBuilder output channel
   esGetTokenChannelAssignment_ = esConsumes<ChannelAssignment, ChannelAssignmentRcd, Transition::BeginRun>();
+  // book ES product for track trigger cinfiguration
   esGetToken_ = esConsumes<tt::Setup, tt::SetupRcd, edm::Transition::BeginRun>();
   // initial ES products
   channelAssignment_ = nullptr;
@@ -272,7 +273,7 @@ L1FPGATrackProducer::L1FPGATrackProducer(edm::ParameterSet const& iConfig)
   settings.setWiresFile(wiresFile.fullPath());
 
   settings.setFakefit(iConfig.getParameter<bool>("Fakefit"));
-  settings.setEmulateTB(iConfig.getParameter<bool>("EmulateTB"));
+  settings.setStoreTrackBuilderOutput(iConfig.getParameter<bool>("StoreTrackBuilderOutput"));
 
   if (extended_) {
     settings.setTableTEDFile(tableTEDFile.fullPath());
@@ -304,13 +305,13 @@ L1FPGATrackProducer::L1FPGATrackProducer(edm::ParameterSet const& iConfig)
   if (trackQuality_) {
     trackQualityModel_ = std::make_unique<TrackQuality>(iConfig.getParameter<edm::ParameterSet>("TrackQualityPSet"));
   }
-  if (settings.emulateTB() && (settings.doMultipleMatches() || settings.removalType() != "")) {
+  if (settings.storeTrackBuilderOutput() && (settings.doMultipleMatches() || settings.removalType() != "")) {
     cms::Exception exception("ConfigurationNotSupported.");
     exception.addContext("L1FPGATrackProducer::produce");
     if (settings.doMultipleMatches())
-      exception << "Emulation of TrackBuilder does not support doMultipleMatches.";
+      exception << "Stroing of TrackBuilder output does not support doMultipleMatches.";
     if (settings.removalType() != "")
-      exception << "Emulation of TrackBuilder does not support duplicate removal.";
+      exception << "Stroing of TrackBuilder output does not support duplicate removal.";
     throw exception;
   }
 }
