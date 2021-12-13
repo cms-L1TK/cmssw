@@ -44,15 +44,16 @@ namespace trklet {
     vector<set<int>> allSeedingLayer(seedlayers.size());
     vector<set<int>> allProjectionLayer(seedlayers.size());
     for (int iSeed = 0; iSeed < (int)seedlayers.size(); iSeed++)
-      for (const auto& layer: seedlayers[iSeed])
+      for (const auto& layer : seedlayers[iSeed])
         if (layer != invalidSeedLayer)
-          allSeedingLayer[iSeed].insert(layer < numBarrelLayer ? layer + offsetBarrel : layer + offsetDisk - numBarrelLayer);
+          allSeedingLayer[iSeed].insert(layer < numBarrelLayer ? layer + offsetBarrel
+                                                               : layer + offsetDisk - numBarrelLayer);
     for (int iSeed = 0; iSeed < (int)projlayers.size(); iSeed++)
-      for (const auto& layer: projlayers[iSeed])
+      for (const auto& layer : projlayers[iSeed])
         if (layer != invalidLayerDisk)
           allProjectionLayer[iSeed].insert(layer);
     for (int iSeed = 0; iSeed < (int)projdisks.size(); iSeed++)
-      for (const auto& disk: projdisks[iSeed])
+      for (const auto& disk : projdisks[iSeed])
         if (disk != invalidLayerDisk)
           allProjectionLayer[iSeed].insert(disk - offsetBarrel + offsetDisk);
     // check if ChannelAssignment seedTypesSeedLayers_ and seedTypesProjectionLayers_ are subsets of Settings pendants
@@ -76,7 +77,8 @@ namespace trklet {
           if (intersect == pl)
             break;
           set<int> difference;
-          set_difference(pl.begin(), pl.end(), intersect.begin(), intersect.end(), inserter(difference, difference.begin()));
+          set_difference(
+              pl.begin(), pl.end(), intersect.begin(), intersect.end(), inserter(difference, difference.begin()));
           cms::Exception exception("LogicError.");
           exception << "ProjectionLayers ( ";
           for (int layer : difference)
