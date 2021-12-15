@@ -416,7 +416,9 @@ void Sector::executeMP() {
 // If using Hybrid, then PurgeDuplicates runs both duplicate removal & KF steps.
 // (unless duplicate removal disabled, in which case FitTrack runs KF).
 
-void Sector::executeFT(const ChannelAssignment* channelAssignment, tt::Streams& streamsTrack, tt::StreamsStub& streamsStub) {
+void Sector::executeFT(const ChannelAssignment* channelAssignment,
+                       tt::Streams& streamsTrack,
+                       tt::StreamsStub& streamsStub) {
   int channelTrack(0);
   const int offsetTrack = isector_ * trackBuilderChannel->numChannels();
   for (auto& i : FT_) {
