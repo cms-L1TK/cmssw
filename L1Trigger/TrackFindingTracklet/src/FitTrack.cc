@@ -869,7 +869,7 @@ std::vector<Tracklet*> FitTrack::orderedMatches(vector<FullMatchMemory*>& fullma
   return tmp;
 }
 
-void FitTrack::execute(ChannelAssignment* channelAssignment,
+void FitTrack::execute(const ChannelAssignment* channelAssignment,
                        deque<tt::Frame>& streamTrack,
                        vector<deque<tt::FrameStub>>& streamsStub,
                        unsigned int iSector) {

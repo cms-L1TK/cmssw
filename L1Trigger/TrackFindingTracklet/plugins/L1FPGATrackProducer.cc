@@ -165,9 +165,6 @@ private:
   // settings containing various constants for the tracklet processing
   trklet::Settings settings;
 
-  // event processor for the tracklet track finding
-  trklet::TrackletEventProcessor eventProcessor;
-
   unsigned int nHelixPar_;
   bool extended_;
   bool reduced_;
@@ -197,7 +194,7 @@ private:
   // ChannelAssignment token
   ESGetToken<ChannelAssignment, ChannelAssignmentRcd> esGetTokenChannelAssignment_;
   // helper class to assign tracks to channel
-  ChannelAssignment* channelAssignment_;
+  const ChannelAssignment* channelAssignment_;
 
   // helper class to store DTC configuration
   tt::Setup setup_;
@@ -340,15 +337,16 @@ void L1FPGATrackProducer::beginRun(const edm::Run& run, const edm::EventSetup& i
   settings.setBfield(mMagneticFieldStrength);
 
   setup_ = iSetup.getData(esGetToken_);
-  channelAssignment_ = const_cast<ChannelAssignment*>(&iSetup.getData(esGetTokenChannelAssignment_));
-
-  // initialize the tracklet event processing (this sets all the processing & memory modules, wiring, etc)
-  eventProcessor.init(settings, channelAssignment_);
+  channelAssignment_ = &iSetup.getData(esGetTokenChannelAssignment_);
 }
 
 //////////
 // PRODUCE
 void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
+  // event processor for the tracklet track finding
+  trklet::TrackletEventProcessor eventProcessor;
+  // initialize the tracklet event processing (this sets all the processing & memory modules, wiring, etc)
+  eventProcessor.init(settings, channelAssignment_);
   typedef std::map<trklet::L1TStub,
                    edm::Ref<edmNew::DetSetVector<TTStub<Ref_Phase2TrackerDigi_>>, TTStub<Ref_Phase2TrackerDigi_>>,
                    L1TStubCompare>

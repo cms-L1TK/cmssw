@@ -26,7 +26,7 @@ namespace trklet {
 
     ~TrackletEventProcessor();
 
-    void init(Settings const& theSettings, ChannelAssignment* channelAssignment);
+    void init(Settings const& theSettings, const ChannelAssignment* channelAssignment);
 
     void event(SLHCEvent& ev);
 
@@ -40,7 +40,7 @@ namespace trklet {
     void configure(std::istream& inwire, std::istream& inmem, std::istream& inproc);
 
     const Settings* settings_{nullptr};
-    ChannelAssignment* channelAssignment_{nullptr};
+    const ChannelAssignment* channelAssignment_{nullptr};
 
     std::unique_ptr<Globals> globals_;
 

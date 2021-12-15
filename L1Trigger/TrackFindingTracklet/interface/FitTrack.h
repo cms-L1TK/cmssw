@@ -40,7 +40,7 @@ namespace trklet {
 
     std::vector<Tracklet*> orderedMatches(std::vector<FullMatchMemory*>& fullmatch);
 
-    void execute(ChannelAssignment* channelAssignment,
+    void execute(const ChannelAssignment* channelAssignment,
                  std::deque<tt::Frame>& streamTrack,
                  std::vector<std::deque<tt::FrameStub>>& streamsStub,
                  unsigned int iSector);
