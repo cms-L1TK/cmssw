@@ -323,26 +323,29 @@ void PurgeDuplicate::execute(std::vector<Track>& outputtracks_, unsigned int iSe
 
     // Make the final track objects, fit with KF, and send to output
     for (unsigned int itrk = 0; itrk < numStublists; itrk++) {
-      Tracklet* tracklet = inputtracklets_[itrk];
-      std::vector<const Stub*> trackstublist = inputstublists_[itrk];
+      bool duplicateTrack = trackInfo[itrk].second;
+      if (not duplicateTrack) {
+        Tracklet* tracklet = inputtracklets_[itrk];
+        std::vector<const Stub*> trackstublist = inputstublists_[itrk];
 
-      HybridFit hybridFitter(iSector, settings_, globals_);
-      hybridFitter.Fit(tracklet, trackstublist);
+        HybridFit hybridFitter(iSector, settings_, globals_);
+        hybridFitter.Fit(tracklet, trackstublist);
 
-      // If the track was accepted (and thus fit), add to output
-      if (tracklet->fit()) {
-        // Add track to output if it wasn't merged into another
-        Track* outtrack = tracklet->getTrack();
-        outtrack->setSector(iSector);
-        if (trackInfo[itrk].second == true)
-          outtrack->setDuplicate(true);
-        else
-          outputtracklets_[trackInfo[itrk].first]->addTrack(tracklet);
+        // If the track was accepted (and thus fit), add to output
+        if (tracklet->fit()) {
+          // Add track to output if it wasn't merged into another
+          Track* outtrack = tracklet->getTrack();
+          outtrack->setSector(iSector);
+          if (trackInfo[itrk].second == true)
+            outtrack->setDuplicate(true);
+          else
+            outputtracklets_[trackInfo[itrk].first]->addTrack(tracklet);
 
-        // Add all tracks to standalone root file output
-        outtrack->setStubIDpremerge(inputstubidslists_[itrk]);
-        outtrack->setStubIDprefit(mergedstubidslists_[itrk]);
-        outputtracks_.push_back(*outtrack);
+          // Add all tracks to standalone root file output
+          outtrack->setStubIDpremerge(inputstubidslists_[itrk]);
+          outtrack->setStubIDprefit(mergedstubidslists_[itrk]);
+          outputtracks_.push_back(*outtrack);
+        }
       }
     }
   }
