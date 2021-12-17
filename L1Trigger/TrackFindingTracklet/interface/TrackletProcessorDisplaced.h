@@ -6,6 +6,8 @@
 #include "L1Trigger/TrackFindingTracklet/interface/TrackletLUT.h"
 #include "L1Trigger/TrackFindingTracklet/interface/CircularBuffer.h"
 #include "L1Trigger/TrackFindingTracklet/interface/TrackletEngineUnit.h"
+#include "L1Trigger/TrackFindingTracklet/interface/TrackletParametersMemory.h"
+#include "L1Trigger/TrackFindingTracklet/interface/TrackletProjectionsMemory.h"
 
 #include <vector>
 #include <tuple>
@@ -34,6 +36,9 @@ namespace trklet {
     void addInput(MemoryBase* memory, std::string input) override;
 
     void execute(unsigned int iSector, double phimin, double phimax);
+
+    /* void addDiskProj(Tracklet* tracklet, int disk); */
+    /* bool addLayerProj(Tracklet* tracklet, int layer); */
 
   private:
     int iTC_;

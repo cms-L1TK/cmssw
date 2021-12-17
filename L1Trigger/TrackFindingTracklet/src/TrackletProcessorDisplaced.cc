@@ -4,6 +4,7 @@
 #include "L1Trigger/TrackFindingTracklet/interface/AllStubsMemory.h"
 #include "L1Trigger/TrackFindingTracklet/interface/AllInnerStubsMemory.h"
 #include "L1Trigger/TrackFindingTracklet/interface/StubPairsMemory.h"
+#include "L1Trigger/TrackFindingTracklet/interface/Tracklet.h"
 #include "L1Trigger/TrackFindingTracklet/interface/Util.h"
 #include "L1Trigger/TrackFindingTracklet/interface/IMATH_TrackletCalculator.h"
 
@@ -129,87 +130,88 @@ TrackletProcessorDisplaced::TrackletProcessorDisplaced(string name, Settings con
 
   assert((layer_ != 0) || (disk_ != 0));
 
-  toR_.clear();
-  toZ_.clear();
+  // toR_.clear();
+  // toZ_.clear();
 
-  if (iSeed_ == 8 || iSeed_ == 9) {
-    if (layer_ == 3) {
-      rzmeanInv_[0] = 1.0 / settings_.rmean(2 - 1);
-      rzmeanInv_[1] = 1.0 / settings_.rmean(3 - 1);
-      rzmeanInv_[2] = 1.0 / settings_.rmean(4 - 1);
+  // if (iSeed_ == 8 || iSeed_ == 9) {
+  //   if (layer_ == 3) {
+  //     rzmeanInv_[0] = 1.0 / settings_.rmean(2 - 1);
+  //     rzmeanInv_[1] = 1.0 / settings_.rmean(3 - 1);
+  //     rzmeanInv_[2] = 1.0 / settings_.rmean(4 - 1);
 
-      rproj_[0] = settings_.rmean(0);
-      rproj_[1] = settings_.rmean(4);
-      rproj_[2] = settings_.rmean(5);
-      lproj_[0] = 1;
-      lproj_[1] = 5;
-      lproj_[2] = 6;
+  //     rproj_[0] = settings_.rmean(0);
+  //     rproj_[1] = settings_.rmean(4);
+  //     rproj_[2] = settings_.rmean(5);
+  //     lproj_[0] = 1;
+  //     lproj_[1] = 5;
+  //     lproj_[2] = 6;
 
-      dproj_[0] = 1;
-      dproj_[1] = 2;
-      dproj_[2] = 0;
-      toZ_.push_back(settings_.zmean(0));
-      toZ_.push_back(settings_.zmean(1));
-    }
-    if (layer_ == 5) {
-      rzmeanInv_[0] = 1.0 / settings_.rmean(4 - 1);
-      rzmeanInv_[1] = 1.0 / settings_.rmean(5 - 1);
-      rzmeanInv_[2] = 1.0 / settings_.rmean(6 - 1);
+  //     dproj_[0] = 1;
+  //     dproj_[1] = 2;
+  //     dproj_[2] = 0;
+  //     toZ_.push_back(settings_.zmean(0));
+  //     toZ_.push_back(settings_.zmean(1));
+  //   }
+  //   if (layer_ == 5) {
+  //     rzmeanInv_[0] = 1.0 / settings_.rmean(4 - 1);
+  //     rzmeanInv_[1] = 1.0 / settings_.rmean(5 - 1);
+  //     rzmeanInv_[2] = 1.0 / settings_.rmean(6 - 1);
 
-      rproj_[0] = settings_.rmean(0);
-      rproj_[1] = settings_.rmean(1);
-      rproj_[2] = settings_.rmean(2);
-      lproj_[0] = 1;
-      lproj_[1] = 2;
-      lproj_[2] = 3;
+  //     rproj_[0] = settings_.rmean(0);
+  //     rproj_[1] = settings_.rmean(1);
+  //     rproj_[2] = settings_.rmean(2);
+  //     lproj_[0] = 1;
+  //     lproj_[1] = 2;
+  //     lproj_[2] = 3;
 
-      dproj_[0] = 0;
-      dproj_[1] = 0;
-      dproj_[2] = 0;
-    }
-    for (unsigned int i = 0; i < N_LAYER - 3; ++i)
-      toR_.push_back(rproj_[i]);
-  }
+  //     dproj_[0] = 0;
+  //     dproj_[1] = 0;
+  //     dproj_[2] = 0;
+  //   }
+  //   for (unsigned int i = 0; i < N_LAYER - 3; ++i)
+  //     toR_.push_back(rproj_[i]);
+  // }
 
-  if (iSeed_ == 10 || iSeed_ == 11) {
-    if (layer_ == 2) {
-      rzmeanInv_[0] = 1.0 / settings_.rmean(2 - 1);
-      rzmeanInv_[1] = 1.0 / settings_.rmean(3 - 1);
-      rzmeanInv_[2] = 1.0 / settings_.zmean(1 - 1);
+  // if (iSeed_ == 10 || iSeed_ == 11) {
+  //   if (layer_ == 2) {
+  //     rzmeanInv_[0] = 1.0 / settings_.rmean(2 - 1);
+  //     rzmeanInv_[1] = 1.0 / settings_.rmean(3 - 1);
+  //     rzmeanInv_[2] = 1.0 / settings_.zmean(1 - 1);
 
-      rproj_[0] = settings_.rmean(0);
-      lproj_[0] = 1;
-      lproj_[1] = -1;
-      lproj_[2] = -1;
+  //     rproj_[0] = settings_.rmean(0);
+  //     lproj_[0] = 1;
+  //     lproj_[1] = -1;
+  //     lproj_[2] = -1;
 
-      zproj_[0] = settings_.zmean(1);
-      zproj_[1] = settings_.zmean(2);
-      zproj_[2] = settings_.zmean(3);
-      dproj_[0] = 2;
-      dproj_[1] = 3;
-      dproj_[2] = 4;
-    }
-    if (disk_ == 1) {
-      rzmeanInv_[0] = 1.0 / settings_.rmean(2 - 1);
-      rzmeanInv_[1] = 1.0 / settings_.zmean(1 - 1);
-      rzmeanInv_[2] = 1.0 / settings_.zmean(2 - 1);
+  //     zproj_[0] = settings_.zmean(1);
+  //     zproj_[1] = settings_.zmean(2);
+  //     zproj_[2] = settings_.zmean(3);
+  //     dproj_[0] = 2;
+  //     dproj_[1] = 3;
+  //     dproj_[2] = 4;
+  //   }
+  //   if (disk_ == 1) {
+  //     rzmeanInv_[0] = 1.0 / settings_.rmean(2 - 1);
+  //     rzmeanInv_[1] = 1.0 / settings_.zmean(1 - 1);
+  //     rzmeanInv_[2] = 1.0 / settings_.zmean(2 - 1);
 
-      rproj_[0] = settings_.rmean(0);
-      lproj_[0] = 1;
-      lproj_[1] = -1;
-      lproj_[2] = -1;
+  //     rproj_[0] = settings_.rmean(0);
+  //     lproj_[0] = 1;
+  //     lproj_[1] = -1;
+  //     lproj_[2] = -1;
 
-      zproj_[0] = settings_.zmean(2);
-      zproj_[1] = settings_.zmean(3);
-      zproj_[2] = settings_.zmean(4);
-      dproj_[0] = 3;
-      dproj_[1] = 4;
-      dproj_[2] = 5;
-    }
-    toR_.push_back(settings_.rmean(0));
-    for (unsigned int i = 0; i < N_DISK - 2; ++i)
-      toZ_.push_back(zproj_[i]);
-  }
+  //     zproj_[0] = settings_.zmean(2);
+  //     zproj_[1] = settings_.zmean(3);
+  //     zproj_[2] = settings_.zmean(4);
+  //     dproj_[0] = 3;
+  //     dproj_[1] = 4;
+  //     dproj_[2] = 5;
+  //   }
+  //   toR_.push_back(settings_.rmean(0));
+  //   for (unsigned int i = 0; i < N_DISK - 2; ++i)
+  //     toZ_.push_back(zproj_[i]);
+  // }
+
  }
 
 void TrackletProcessorDisplaced::addOutputProjection(TrackletProjectionsMemory*& outputProj, MemoryBase* memory) {
@@ -562,6 +564,50 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
 
 		    countpass_++;
 
+		    const Stub* innerFPGAStub = firstallstub;
+		    const Stub* middleFPGAStub = secondvmstub.stub();
+		    const Stub* outerFPGAStub = thirdvmstub.stub();
+
+		    const L1TStub* innerStub = innerFPGAStub->l1tstub();
+		    const L1TStub* middleStub = middleFPGAStub->l1tstub();
+		    const L1TStub* outerStub = outerFPGAStub->l1tstub();
+
+
+		    if (settings_.debugTracklet())
+		      // edm::LogVerbatim("Tracklet") 
+		      std::cout
+		    	<< "TrackletCalculatorDisplaced execute " << getName() << "[" << iSector_ << "]";
+
+		    if (innerFPGAStub->layerdisk() < N_LAYER && middleFPGAStub->layerdisk() < N_LAYER && outerFPGAStub->layerdisk() < N_LAYER) {
+		      //barrel+barrel seeding
+		      bool accept = LLLSeeding(innerFPGAStub, innerStub, middleFPGAStub, middleStub, outerFPGAStub, outerStub);
+		      if (accept)
+		    	countsel++;
+		    } else if (innerFPGAStub->layerdisk() >= N_LAYER && middleFPGAStub->layerdisk() >= N_LAYER &&
+		    	       outerFPGAStub->layerdisk() >= N_LAYER) {
+		      throw cms::Exception("LogicError") << __FILE__ << " " << __LINE__ << " Invalid seeding!";
+		    } else {
+		      //layer+disk seeding
+		      if (innerFPGAStub->layerdisk() < N_LAYER && middleFPGAStub->layerdisk() >= N_LAYER &&
+		    	  outerFPGAStub->layerdisk() >= N_LAYER) {  //D1D2L2
+		    	bool accept = DDLSeeding(innerFPGAStub, innerStub, middleFPGAStub, middleStub, outerFPGAStub, outerStub);
+		    	if (accept)
+		    	  countsel++;
+		      } else if (innerFPGAStub->layerdisk() >= N_LAYER && middleFPGAStub->layerdisk() < N_LAYER &&
+		    		 outerFPGAStub->layerdisk() < N_LAYER) {  //L2L3D1
+		    	bool accept = LLDSeeding(innerFPGAStub, innerStub, middleFPGAStub, middleStub, outerFPGAStub, outerStub);
+		    	if (accept)
+		    	  countsel++;
+		      } else {
+		    	throw cms::Exception("LogicError") << __FILE__ << " " << __LINE__ << " Invalid seeding!";
+		      }
+		    }
+
+		    if (settings_.debugTracklet())
+		      // edm::LogVerbatim("Tracklet")
+		      std::cout
+		    	<< "TrackletCalculatorDisplaced execute done";
+
 		  }
 		  
 		}
@@ -705,6 +751,50 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
 
 		    countpass_++;
 	
+		    // const Stub* innerFPGAStub = firstallstub;
+		    // const Stub* middleFPGAStub = secondvmstub.stub();
+		    // const Stub* outerFPGAStub = thirdvmstub.stub();
+
+		    // const L1TStub* innerStub = innerFPGAStub->l1tstub();
+		    // const L1TStub* middleStub = middleFPGAStub->l1tstub();
+		    // const L1TStub* outerStub = outerFPGAStub->l1tstub();
+
+
+		    // if (settings_.debugTracklet())
+		    //   // edm::LogVerbatim("Tracklet") 
+		    //   std::cout
+		    // 	<< "TrackletCalculatorDisplaced execute " << getName() << "[" << iSector_ << "]";
+
+		    // if (innerFPGAStub->layerdisk() < N_LAYER && middleFPGAStub->layerdisk() < N_LAYER && outerFPGAStub->layerdisk() < N_LAYER) {
+		    //   //barrel+barrel seeding
+		    //   bool accept = LLLSeeding(innerFPGAStub, innerStub, middleFPGAStub, middleStub, outerFPGAStub, outerStub);
+		    //   if (accept)
+		    // 	countsel++;
+		    // } else if (innerFPGAStub->layerdisk() >= N_LAYER && middleFPGAStub->layerdisk() >= N_LAYER &&
+		    // 	       outerFPGAStub->layerdisk() >= N_LAYER) {
+		    //   throw cms::Exception("LogicError") << __FILE__ << " " << __LINE__ << " Invalid seeding!";
+		    // } else {
+		    //   //layer+disk seeding
+		    //   if (innerFPGAStub->layerdisk() < N_LAYER && middleFPGAStub->layerdisk() >= N_LAYER &&
+		    // 	  outerFPGAStub->layerdisk() >= N_LAYER) {  //D1D2L2
+		    // 	bool accept = DDLSeeding(innerFPGAStub, innerStub, middleFPGAStub, middleStub, outerFPGAStub, outerStub);
+		    // 	if (accept)
+		    // 	  countsel++;
+		    //   } else if (innerFPGAStub->layerdisk() >= N_LAYER && middleFPGAStub->layerdisk() < N_LAYER &&
+		    // 		 outerFPGAStub->layerdisk() < N_LAYER) {  //L2L3D1
+		    // 	bool accept = LLDSeeding(innerFPGAStub, innerStub, middleFPGAStub, middleStub, outerFPGAStub, outerStub);
+		    // 	if (accept)
+		    // 	  countsel++;
+		    //   } else {
+		    // 	throw cms::Exception("LogicError") << __FILE__ << " " << __LINE__ << " Invalid seeding!";
+		    //   }
+		    // }
+
+		    // if (settings_.debugTracklet())
+		    //   // edm::LogVerbatim("Tracklet")
+		    //   std::cout
+		    // 	<< "TrackletCalculatorDisplaced execute done";
+
 
 		  }
 
@@ -836,6 +926,51 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
 
 		    countpass_++;
 
+		    
+		    // const Stub* innerFPGAStub = firstallstub;
+		    // const Stub* middleFPGAStub = secondvmstub.stub();
+		    // const Stub* outerFPGAStub = thirdvmstub.stub();
+
+		    // const L1TStub* innerStub = innerFPGAStub->l1tstub();
+		    // const L1TStub* middleStub = middleFPGAStub->l1tstub();
+		    // const L1TStub* outerStub = outerFPGAStub->l1tstub();
+
+
+		    // if (settings_.debugTracklet())
+		    //   // edm::LogVerbatim("Tracklet") 
+		    //   std::cout
+		    // 	<< "TrackletCalculatorDisplaced execute " << getName() << "[" << iSector_ << "]";
+
+		    // if (innerFPGAStub->layerdisk() < N_LAYER && middleFPGAStub->layerdisk() < N_LAYER && outerFPGAStub->layerdisk() < N_LAYER) {
+		    //   //barrel+barrel seeding
+		    //   bool accept = LLLSeeding(innerFPGAStub, innerStub, middleFPGAStub, middleStub, outerFPGAStub, outerStub);
+		    //   if (accept)
+		    // 	countsel++;
+		    // } else if (innerFPGAStub->layerdisk() >= N_LAYER && middleFPGAStub->layerdisk() >= N_LAYER &&
+		    // 	       outerFPGAStub->layerdisk() >= N_LAYER) {
+		    //   throw cms::Exception("LogicError") << __FILE__ << " " << __LINE__ << " Invalid seeding!";
+		    // } else {
+		    //   //layer+disk seeding
+		    //   if (innerFPGAStub->layerdisk() < N_LAYER && middleFPGAStub->layerdisk() >= N_LAYER &&
+		    // 	  outerFPGAStub->layerdisk() >= N_LAYER) {  //D1D2L2
+		    // 	bool accept = DDLSeeding(innerFPGAStub, innerStub, middleFPGAStub, middleStub, outerFPGAStub, outerStub);
+		    // 	if (accept)
+		    // 	  countsel++;
+		    //   } else if (innerFPGAStub->layerdisk() >= N_LAYER && middleFPGAStub->layerdisk() < N_LAYER &&
+		    // 		 outerFPGAStub->layerdisk() < N_LAYER) {  //L2L3D1
+		    // 	bool accept = LLDSeeding(innerFPGAStub, innerStub, middleFPGAStub, middleStub, outerFPGAStub, outerStub);
+		    // 	if (accept)
+		    // 	  countsel++;
+		    //   } else {
+		    // 	throw cms::Exception("LogicError") << __FILE__ << " " << __LINE__ << " Invalid seeding!";
+		    //   }
+		    // }
+
+		    // if (settings_.debugTracklet())
+		    //   // edm::LogVerbatim("Tracklet")
+		    //   std::cout
+		    // 	<< "TrackletCalculatorDisplaced execute done";
+
 
 		  }
 
@@ -856,330 +991,4 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
   }
 
 }
-
-
-
-
-
- //  bool print = true;
-//   int hacksum = 0;
-
-//   if (print) {
-//     edm::LogVerbatim("Tracklet") << "In TrackletProcessorDisplaced::execute : " << getName() << " " << nThirdStubs << ":";
-//     std::cout << "In TrackletProcessorDisplaced::execute : " << getName() << " " << nThirdStubs << ":";
-//     for (unsigned int i = 0; i < innervmstubs_.size(); ++i) {
-//       edm::LogVerbatim("Tracklet") << innervmstubs_.at(i)->getName() << " " << innervmstubs_.at(i)->nVMStubs();
-//       std::cout << innervmstubs_.at(i)->getName() << " " << innervmstubs_.at(i)->nVMStubs();
-//     }
-
-//     int s = 0;
-//     std::string oss = "";
-//     for (unsigned int i = 0; i < stubpairs_.size(); ++i) {
-//       oss += std::to_string(stubpairs_.at(i)->nStubPairs());
-//       oss += " ";
-//       s += stubpairs_.at(i)->nStubPairs();
-//     }
-//     hacksum += nThirdStubs * s;
-//     edm::LogVerbatim("Tracklet") << oss;
-//     for (unsigned int i = 0; i < stubpairs_.size(); ++i) {
-//       edm::LogVerbatim("Tracklet") << "                                          " << stubpairs_.at(i)->getName();
-//       std::cout<< "                                          " << stubpairs_.at(i)->getName();
-//     }
-//   }
-
-//   tmpSPTable_.clear();
-
-//   for (unsigned int i = 0; i < stubpairs_.size(); ++i) {
-//     for (unsigned int j = 0; j < stubpairs_.at(i)->nStubPairs(); ++j) {
-//       if (print)
-// 	edm::LogVerbatim("Tracklet") << "     *****    " << stubpairs_.at(i)->getName() << " "
-//                                      << stubpairs_.at(i)->nStubPairs();
-
-//       auto firstvmstub = stubpairs_.at(i)->getVMStub1(j);
-//       auto secondvmstub = stubpairs_.at(i)->getVMStub2(j);
-
-//       if ((layer2_ == 4 && layer3_ == 2) || (layer2_ == 6 && layer3_ == 4)) {
-//         constexpr unsigned int vmbitshift = 10;
-//         int lookupbits = (int)((firstvmstub.vmbits().value() >> vmbitshift) & 1023);  //1023=2^vmbitshift-1
-//         int newbin = (lookupbits & 127);
-//         int bin = newbin / 8;
-
-//         int start = (bin >> 1);
-//         int last = start + (bin & 1);
-
-// 	for (int ibin = start; ibin <= last; ibin++) {
-//           for (unsigned int k = 0; k < innervmstubs_.size(); k++) {
-//             string vmsteSuffix = innervmstubs_.at(k)->getLastPartOfName();
-//             vmsteSuffix = vmsteSuffix.substr(0, vmsteSuffix.find_last_of('n'));
-//             if (stubpairs_.at(i)->getLastPartOfName() != vmsteSuffix)
-//               continue;
-//             for (unsigned int l = 0; l < innervmstubs_.at(k)->nVMStubsBinned(ibin); l++) {
-//               if (settings_.debugTracklet()) {
-// 		edm::LogVerbatim("Tracklet") << "In " << getName() << " have third stub";
-//               }
-
-//               if (countall >= settings_.maxStep("TRE"))
-//                 break;
-//               countall++;
-
-//               const VMStubTE &thirdvmstub = innervmstubs_.at(k)->getVMStubTEBinned(ibin, l);
-
-//               assert(secondphibits_ != -1);
-//               assert(thirdphibits_ != -1);
-
-//               unsigned int nvmsecond = settings_.nallstubs(layer2_ - 1) * settings_.nvmte(1, iSeed_);
-//               unsigned int nvmbitssecond = nbits(nvmsecond);
-
-//               FPGAWord iphisecondbin = secondvmstub.stub()->iphivmFineBins(nvmbitssecond, secondphibits_);
-
-//               //currently not using same number of bits as in the TED
-//               //assert(iphisecondbin==(int)secondvmstub.finephi());
-//               FPGAWord iphithirdbin = thirdvmstub.finephi();
-
-//               unsigned int index = (iphisecondbin.value() << thirdphibits_) + iphithirdbin.value();
-
-//               FPGAWord secondbend = secondvmstub.bend();
-//               FPGAWord thirdbend = thirdvmstub.bend();
-
-//               index = (index << secondbend.nbits()) + secondbend.value();
-//               index = (index << thirdbend.nbits()) + thirdbend.value();
-
-
-// 	      if ((settings_.enableTripletTables() && !settings_.writeTripletTables()) &&
-//                   (index >= table_.size() || !table_[index])) {
-//                 if (settings_.debugTracklet()) {
-// 		  edm::LogVerbatim("Tracklet")
-// 		    << "Stub pair rejected because of stub pt cut bends : "
-// 		    << settings_.benddecode(secondvmstub.bend().value(), layer2_ - 1, secondvmstub.isPSmodule())
-// 		    << " " << settings_.benddecode(thirdvmstub.bend().value(), layer3_ - 1, thirdvmstub.isPSmodule());
-//                 }
-
-// 	      }
-// 	      if (settings_.writeTripletTables()) {
-//                 if (index >= table_.size())
-//                   table_.resize(index + 1, false);
-//                 table_[index] = true;
-
-//                 const unsigned spIndex = stubpairs_.at(i)->getIndex(j);
-//                 const string &tedName = stubpairs_.at(i)->getTEDName(j);
-//                 if (!tmpSPTable_.count(tedName))
-//                   tmpSPTable_[tedName];
-//                 if (spIndex >= tmpSPTable_.at(tedName).size())
-//                   tmpSPTable_.at(tedName).resize(spIndex + 1);
-//                 tmpSPTable_.at(tedName).at(spIndex).push_back(stubpairs_.at(i)->getName());
-//               }
-
-//               if (settings_.debugTracklet())
-// 		edm::LogVerbatim("Tracklet") << "Adding layer-layer pair in " << getName();
-//               if (settings_.writeMonitorData("Seeds")) {
-//                 ofstream fout("seeds.txt", ofstream::app);
-//                 fout << __FILE__ << ":" << __LINE__ << " " << name_ << " " << iSeed_ << endl;
-//                 fout.close();
-//               }
-//               stubtriplets_->addStubs(thirdvmstub.stub(),
-//                                       (stubpairs_.at(i))->getVMStub1(j).stub(),
-//                                       (stubpairs_.at(i))->getVMStub2(j).stub());
-
-//               countpass++;
-//             }
-//           }
-//         }
-
-//       }
-
-
-//       else if (disk2_ == 2 && layer3_ == 2) {
-//         int lookupbits = (int)((firstvmstub.vmbits().value() >> 10) & 1023);
-//         int newbin = (lookupbits & 127);
-//         int bin = newbin / 8;
-
-//         int start = (bin >> 1);
-//         int last = start + (bin & 1);
-
-//         if (firstvmstub.stub()->disk().value() < 0) {  //TODO - negative disk should come from memory
-//           start = settings_.NLONGVMBINS() - last - 1;
-//           last = settings_.NLONGVMBINS() - start - 1;
-//         }
-
-//         for (int ibin = start; ibin <= last; ibin++) {
-//           for (unsigned int k = 0; k < innervmstubs_.size(); k++) {
-//             string vmsteSuffix = innervmstubs_.at(k)->getLastPartOfName();
-//             vmsteSuffix = vmsteSuffix.substr(0, vmsteSuffix.find_last_of('n'));
-//             if (stubpairs_.at(i)->getLastPartOfName() != vmsteSuffix)
-//               continue;
-
-//             for (unsigned int l = 0; l < innervmstubs_.at(k)->nVMStubsBinned(ibin); l++) {
-//               if (countall >= settings_.maxStep("TRE"))
-//                 break;
-//               countall++;
-
-//               const VMStubTE &thirdvmstub = innervmstubs_.at(k)->getVMStubTEBinned(ibin, l);
-
-//               assert(secondphibits_ != -1);
-//               assert(thirdphibits_ != -1);
-
-//               FPGAWord iphisecondbin = secondvmstub.finephi();
-//               FPGAWord iphithirdbin = thirdvmstub.finephi();
-
-//               unsigned int index = (iphisecondbin.value() << thirdphibits_) + iphithirdbin.value();
-
-//               FPGAWord secondbend = secondvmstub.bend();
-//               FPGAWord thirdbend = thirdvmstub.bend();
-
-//               index = (index << secondbend.nbits()) + secondbend.value();
-//               index = (index << thirdbend.nbits()) + thirdbend.value();
-
-
-// 	      if ((settings_.enableTripletTables() && !settings_.writeTripletTables()) &&
-//                   (index >= table_.size() || !table_[index])) {
-//                 if (settings_.debugTracklet()) {
-// 		  edm::LogVerbatim("Tracklet")
-// 		    << "Stub triplet rejected because of stub pt cut bends : "
-// 		    << settings_.benddecode(secondvmstub.bend().value(), disk2_ + 5, secondvmstub.isPSmodule()) << " "
-// 		    << settings_.benddecode(thirdvmstub.bend().value(), layer3_ - 1, thirdvmstub.isPSmodule());
-//                 }
-//                 continue;
-//               }
-//               if (settings_.writeTripletTables()) {
-//                 if (index >= table_.size())
-//                   table_.resize(index + 1, false);
-//                 table_[index] = true;
-
-//                 const unsigned spIndex = stubpairs_.at(i)->getIndex(j);
-//                 const string &tedName = stubpairs_.at(i)->getTEDName(j);
-//                 if (!tmpSPTable_.count(tedName))
-//                   tmpSPTable_[tedName];
-//                 if (spIndex >= tmpSPTable_.at(tedName).size())
-//                   tmpSPTable_.at(tedName).resize(spIndex + 1);
-//                 tmpSPTable_.at(tedName).at(spIndex).push_back(stubpairs_.at(i)->getName());
-//               }
-
-//               if (settings_.debugTracklet())
-// 		edm::LogVerbatim("Tracklet") << "Adding layer-disk pair in " << getName();
-//               if (settings_.writeMonitorData("Seeds")) {
-//                 ofstream fout("seeds.txt", ofstream::app);
-//                 fout << __FILE__ << ":" << __LINE__ << " " << name_ << " " << iSeed_ << endl;
-//                 fout.close();
-//               }
-//               stubtriplets_->addStubs(thirdvmstub.stub(),
-//                                       (stubpairs_.at(i))->getVMStub1(j).stub(),
-//                                       (stubpairs_.at(i))->getVMStub2(j).stub());
-//               countpass++;
-//             }
-//           }
-//         }
-//       }
-
-//       else if (layer2_ == 3 && disk3_ == 1) {
-//         int lookupbits = (int)((firstvmstub.vmbits().value() >> 10) & 1023);
-
-//         int newbin = (lookupbits & 127);
-//         int bin = newbin / 8;
-
-//         int start = (bin >> 1);
-//         int last = start + (bin & 1);
-
-//         for (int ibin = start; ibin <= last; ibin++) {
-//           for (unsigned int k = 0; k < innervmstubs_.size(); k++) {
-//             string vmsteSuffix = innervmstubs_.at(k)->getLastPartOfName();
-//             vmsteSuffix = vmsteSuffix.substr(0, vmsteSuffix.find_last_of('n'));
-//             if (stubpairs_.at(i)->getLastPartOfName() != vmsteSuffix)
-//               continue;
-//             for (unsigned int l = 0; l < innervmstubs_.at(k)->nVMStubsBinned(ibin); l++) {
-//               if (countall >= settings_.maxStep("TRE"))
-//                 break;
-//               countall++;
-
-//               const VMStubTE &thirdvmstub = innervmstubs_.at(k)->getVMStubTEBinned(ibin, l);
-
-//               assert(secondphibits_ != -1);
-//               assert(thirdphibits_ != -1);
-
-//               unsigned int nvmsecond;
-
-//               nvmsecond = settings_.nallstubs(layer2_ - 1) * settings_.nvmte(1, iSeed_);
-//               unsigned int nvmbitssecond = nbits(nvmsecond);
-
-//               FPGAWord iphisecondbin = secondvmstub.stub()->iphivmFineBins(nvmbitssecond, secondphibits_);
-
-//               //currentlty not using same number of bits as in the TED
-//               //assert(iphisecondbin==(int)secondvmstub.finephi());
-//               FPGAWord iphithirdbin = thirdvmstub.finephi();
-
-//               unsigned int index = (iphisecondbin.value() << thirdphibits_) + iphithirdbin.value();
-
-//               FPGAWord secondbend = secondvmstub.bend();
-//               FPGAWord thirdbend = thirdvmstub.bend();
-
-//               index = (index << secondbend.nbits()) + secondbend.value();
-//               index = (index << thirdbend.nbits()) + thirdbend.value();
-
-// 	      if ((settings_.enableTripletTables() && !settings_.writeTripletTables()) &&
-//                   (index >= table_.size() || !table_[index])) {
-//                 if (settings_.debugTracklet()) {
-// 		  edm::LogVerbatim("Tracklet")
-// 		    << "Stub pair rejected because of stub pt cut bends : "
-// 		    << settings_.benddecode(secondvmstub.bend().value(), layer2_ - 1, secondvmstub.isPSmodule())
-// 		    << " " << settings_.benddecode(thirdvmstub.bend().value(), disk3_ + 5, thirdvmstub.isPSmodule());
-//                 }
-//                 continue;
-//               }
-//               if (settings_.writeTripletTables()) {
-//                 if (index >= table_.size())
-//                   table_.resize(index + 1, false);
-//                 table_[index] = true;
-
-//                 const unsigned spIndex = stubpairs_.at(i)->getIndex(j);
-//                 const string &tedName = stubpairs_.at(i)->getTEDName(j);
-//                 if (!tmpSPTable_.count(tedName))
-//                   tmpSPTable_[tedName];
-//                 if (spIndex >= tmpSPTable_.at(tedName).size())
-//                   tmpSPTable_.at(tedName).resize(spIndex + 1);
-//                 tmpSPTable_.at(tedName).at(spIndex).push_back(stubpairs_.at(i)->getName());
-//               }
-
-//               if (settings_.debugTracklet())
-// 		edm::LogVerbatim("Tracklet") << "Adding layer-disk pair in " << getName();
-//               if (settings_.writeMonitorData("Seeds")) {
-//                 ofstream fout("seeds.txt", ofstream::app);
-//                 fout << __FILE__ << ":" << __LINE__ << " " << name_ << " " << iSeed_ << endl;
-//                 fout.close();
-//               }
-//               stubtriplets_->addStubs(thirdvmstub.stub(),
-//                                       (stubpairs_.at(i))->getVMStub1(j).stub(),
-//                                       (stubpairs_.at(i))->getVMStub2(j).stub());
-//               countpass++;
-//             }
-//           }
-//         }
-//       }
-
-//     }
-//   }
-
-//   for (const auto &tedName : tmpSPTable_) {
-//     for (unsigned spIndex = 0; spIndex < tedName.second.size(); spIndex++) {
-//       if (tedName.second.at(spIndex).empty())
-//         continue;
-//       vector<string> entry(tedName.second.at(spIndex));
-//       sort(entry.begin(), entry.end());
-//       entry.erase(unique(entry.begin(), entry.end()), entry.end());
-//       const string &spName = entry.at(0);
-
-//       if (!spTable_.count(tedName.first))
-//         spTable_[tedName.first];
-//       if (spIndex >= spTable_.at(tedName.first).size())
-//         spTable_.at(tedName.first).resize(spIndex + 1);
-//       if (!spTable_.at(tedName.first).at(spIndex).count(spName))
-//         spTable_.at(tedName.first).at(spIndex)[spName] = 0;
-//       spTable_.at(tedName.first).at(spIndex)[spName]++;
-//     }
-//   }
-
-//   if (settings_.writeMonitorData("TPD")) {
-//     globals_->ofstream("trackletprocessordisplaced.txt") << getName() << " " << countall << " " << countpass << endl;
-//   }
-
-
-// }
 
