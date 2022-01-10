@@ -48,10 +48,6 @@ namespace trklet {
     unsigned int layerdisk_;
     /* VMStubsTEMemory* outervmstubs_; */
 
-    int TCIndex_;
-    int layer_;
-    int disk_;
-
     int layer1_;
     int layer2_;
     int layer3_;
@@ -62,17 +58,6 @@ namespace trklet {
     int firstphibits_;
     int secondphibits_;
     int thirdphibits_;
-
-    int iSeed_;
-
-    double rproj_[N_LAYER - 2];
-    int lproj_[N_LAYER - 2];
-    double zproj_[N_DISK - 2];
-    int dproj_[N_DISK - 2];
-    double rzmeanInv_[N_DISK - 2];
-
-    unsigned int iSector_;
-    double phimin_, phimax_;
 
     int nbitszfinebintable_;
     int nbitsrfinebintable_;
@@ -86,24 +71,14 @@ namespace trklet {
     TrackletLUT innerOverlapTable_;  //projection to disk from layer
     TrackletLUT innerThirdTable_;    //projection to disk1 for extended - iseed=10
 
-    std::vector<double> toR_;
-    std::vector<double> toZ_;
-
-    std::vector<AllStubsMemory*> innerallstubs_;
-    std::vector<AllStubsMemory*> middleallstubs_;
-    std::vector<AllStubsMemory*> outerallstubs_;
     std::vector<StubPairsMemory*> stubpairs_;
     /* std::vector<StubTripletsMemory*> stubtriplets_; */
     std::vector<VMStubsTEMemory*> innervmstubs_;
     /* std::vector<VMStubsTEMemory*> outervmstubs_; */
     VMStubsTEMemory* outervmstubs_;
 
-    TrackletParametersMemory* trackletpars_;
     StubTripletsMemory* stubtriplets_;
                                                          
-    std::vector<std::vector<TrackletProjectionsMemory*> > trackletprojlayers_;
-    std::vector<std::vector<TrackletProjectionsMemory*> > trackletprojdisks_;
-
     std::map<std::string, std::vector<std::vector<std::string> > > tmpSPTable_;
     std::map<std::string, std::vector<std::map<std::string, unsigned> > > spTable_;
     std::vector<bool> table_;
