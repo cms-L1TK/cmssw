@@ -415,7 +415,7 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
       if (lutval == -1)
 	continue;
       if (settings_.extended() &&
-	  (iSeed_ == Seed::L3L4 || iSeed_ == Seed::L5L6 || iSeed_ == Seed::D1D2 || iSeed_ == Seed::L2L3D1)) {
+	  (iSeed_ == Seed::L2L3L4 || iSeed_ == Seed::L4L5L6 || iSeed_ == Seed::D1D2 || iSeed_ == Seed::L2L3D1)) {
 	int lutval2 = innerThirdTable_.lookup((indexz << nbitsrfinebintable_) + indexr);
 	if (lutval2 != -1)
 	  lutval += (lutval2 << 10);
@@ -517,11 +517,11 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
 	    if ((layer2_ == 4 && layer3_ == 2) || (layer2_ == 6 && layer3_ == 4)) {
 	      std::cout << "Entering third stub layer loop" <<  std::endl;
 
-	      // constexpr unsigned int vmbitshift = 10;
-	      // int lookupbits_ = (int)((binlookup.value() >> vmbitshift) & 1023); 
- //1023=2^vmbitshift-1
+	      constexpr unsigned int vmbitshift = 10;
+	      int lookupbits_ = (int)((binlookup.value() >> vmbitshift) & 1023); 
+ // 1023=2^vmbitshift-1
 
-	      int lookupbits_ = binlookup.value() & 1023;
+	      // int lookupbits_ = binlookup.value() & 1023;
 	      int newbin_ = (lookupbits_ & 127);
 	      int bin_ = newbin_ / 8;
 
