@@ -74,8 +74,7 @@ namespace trklet {
     std::vector<StubPairsMemory*> stubpairs_;
     /* std::vector<StubTripletsMemory*> stubtriplets_; */
     std::vector<VMStubsTEMemory*> innervmstubs_;
-    /* std::vector<VMStubsTEMemory*> outervmstubs_; */
-    VMStubsTEMemory* outervmstubs_;
+    std::vector<VMStubsTEMemory*> outervmstubs_;
 
     StubTripletsMemory* stubtriplets_;
                                                          
