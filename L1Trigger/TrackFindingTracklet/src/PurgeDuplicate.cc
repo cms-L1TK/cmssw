@@ -324,22 +324,22 @@ void PurgeDuplicate::execute(std::vector<Track>& outputtracks_, unsigned int iSe
     // Make the final track objects, fit with KF, and send to output
     for (unsigned int itrk = 0; itrk < numStublists; itrk++) {
       bool duplicateTrack = trackInfo[itrk].second;
-      if (not duplicateTrack) {
+      if (not duplicateTrack) { // Don't waste CPU by calling KF for duplicates
+
         Tracklet* tracklet = inputtracklets_[itrk];
         std::vector<const Stub*> trackstublist = inputstublists_[itrk];
 
+        // Run KF track fit 
         HybridFit hybridFitter(iSector, settings_, globals_);
         hybridFitter.Fit(tracklet, trackstublist);
 
         // If the track was accepted (and thus fit), add to output
         if (tracklet->fit()) {
-          // Add track to output if it wasn't merged into another
+          // Add fitted Track to output (later converted to TTTrack)
           Track* outtrack = tracklet->getTrack();
           outtrack->setSector(iSector);
-          if (trackInfo[itrk].second == true)
-            outtrack->setDuplicate(true);
-          else
-            outputtracklets_[trackInfo[itrk].first]->addTrack(tracklet);
+          // Also store fitted track as more detailed Tracklet object.
+          outputtracklets_[trackInfo[itrk].first]->addTrack(tracklet);
 
           // Add all tracks to standalone root file output
           outtrack->setStubIDpremerge(inputstubidslists_[itrk]);
