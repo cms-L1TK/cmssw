@@ -11,6 +11,7 @@
 #include "DataFormats/Common/interface/Handle.h"
 
 #include "L1Trigger/TrackTrigger/interface/Setup.h"
+#include "L1Trigger/TrackFindingTracklet/interface/ChannelAssignment.h"
 
 #include <string>
 #include <vector>
@@ -26,7 +27,7 @@ using namespace tt;
 namespace trklet {
 
   /*! \class  trklet::ProducerIRin
-   *  \brief  Transforms TTTDCinto f/w comparable format for summer chain configuratiotn
+   *  \brief  Extracts and rearranges StreamsStub from TTDTC
    *  \author Thomas Schuh
    *  \date   2021, Oct
    */
@@ -45,14 +46,14 @@ namespace trklet {
     EDPutTokenT<StreamsStub> edPutTokenStubs_;
     // Setup token
     ESGetToken<Setup, SetupRcd> esGetTokenSetup_;
+    // ChannelAssignment token
+    ESGetToken<ChannelAssignment, ChannelAssignmentRcd> esGetTokenChannelAssignment_;
     // configuration
     ParameterSet iConfig_;
     // helper class to store configurations
     const Setup* setup_;
-    // reduce l1 tracking to summer chain configuration
-    bool summerChain_;
-    // map of used tfp channels in summer chain config
-    vector<int> channelEncoding_;
+    // helper class to assign stubs to channel
+    const ChannelAssignment* channelAssignment_;
   };
 
   ProducerIRin::ProducerIRin(const ParameterSet& iConfig) : iConfig_(iConfig) {
@@ -65,6 +66,7 @@ namespace trklet {
     esGetTokenSetup_ = esConsumes<Setup, SetupRcd, Transition::BeginRun>();
     // initial ES products
     setup_ = nullptr;
+    channelAssignment_ = nullptr;
   }
 
   void ProducerIRin::beginRun(const Run& iRun, const EventSetup& iSetup) {
@@ -75,10 +77,7 @@ namespace trklet {
     // check process history if desired
     if (iConfig_.getParameter<bool>("CheckHistory"))
       setup_->checkHistory(iRun.processHistory());
-    // reduce l1 tracking to summer chain configuration
-    summerChain_ = iConfig_.getParameter<bool>("SummerChain");
-    // map of used tfp channels in summer chain config
-    channelEncoding_ = iConfig_.getParameter<vector<int>>("SummerChainChannels");
+    channelAssignment_ = &iSetup.getData(esGetTokenChannelAssignment_);
   }
 
   void ProducerIRin::produce(Event& iEvent, const EventSetup& iSetup) {
@@ -88,11 +87,11 @@ namespace trklet {
     if (setup_->configurationSupported()) {
       Handle<TTDTC> handleTTDTC;
       iEvent.getByToken<TTDTC>(edGetTokenTTDTC_, handleTTDTC);
-      const int numChannel =
-          summerChain_ ? channelEncoding_.size() : handleTTDTC->tfpRegions().size() * handleTTDTC->tfpChannels().size();
+      const vector<int>& channelEncoding = channelAssignment_->channelEncoding();
+      const int numChannel = setup_->numRegions() * channelEncoding.size();
       streamStubs.reserve(numChannel);
       for (int tfpRegion : handleTTDTC->tfpRegions())
-        for (int tfpChannel : summerChain_ ? channelEncoding_ : handleTTDTC->tfpChannels())
+        for (int tfpChannel : channelEncoding)
           streamStubs.emplace_back(handleTTDTC->stream(tfpRegion, tfpChannel));
     }
     // store products
