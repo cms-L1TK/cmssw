@@ -30,7 +30,8 @@ using namespace tt;
 namespace trklet {
 
   /*! \class  trklet::ProducerTBout
-   *  \brief  Transforms TTTracks, Streams Tracklet pattern reco. into StreamsTrack
+   *  \brief  Transforms TTTracks and Streams from Tracklet pattern reco. into StreamsTrack
+   *          by adding to the digitised track stream a reference to the corresponding TTTrack
    *          stores truncated StreamsTrack and StreamsStub into seperate branch
    *  \author Thomas Schuh
    *  \date   2021, Oct
