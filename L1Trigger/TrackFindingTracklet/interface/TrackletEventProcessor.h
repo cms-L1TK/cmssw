@@ -3,7 +3,10 @@
 #define L1Trigger_TrackFindingTracklet_interface_TrackletEventProcessor_h
 
 #include "L1Trigger/TrackFindingTracklet/interface/Timer.h"
+<<<<<<< HEAD
 #include "DataFormats/L1TrackTrigger/interface/TTTypes.h"
+=======
+>>>>>>> Remove code for old calculation of stream data - keeping the debug print out in this commit
 
 #include <map>
 #include <memory>
@@ -31,9 +34,13 @@ namespace trklet {
 
     ~TrackletEventProcessor();
 
+<<<<<<< HEAD
     void init(Settings const& theSettings,
               const ChannelAssignment* channelAssignment,
               const tt::Setup* setup = nullptr);
+=======
+    void init(Settings const& theSettings);
+>>>>>>> Remove code for old calculation of stream data - keeping the debug print out in this commit
 
     void event(SLHCEvent& ev,
 	       std::vector<std::vector<std::string>>& tracksStream,
@@ -42,8 +49,6 @@ namespace trklet {
     void printSummary();
 
     const std::vector<Track>& tracks() const { return tracks_; }
-
-    void produce(tt::Streams& streamsTrack, tt::StreamsStub& streamsStub);
 
   private:
     void configure(std::istream& inwire, std::istream& inmem, std::istream& inproc);

@@ -5,11 +5,9 @@
 #include "L1Trigger/TrackFindingTracklet/interface/TrackletParametersMemory.h"
 #include "L1Trigger/TrackFindingTracklet/interface/FullMatchMemory.h"
 #include "L1Trigger/TrackFindingTracklet/interface/TrackFitMemory.h"
-#include "L1Trigger/TrackFindingTracklet/interface/ChannelAssignment.h"
 #include "L1Trigger/TrackFindingTracklet/interface/StubStreamData.h"
 
 #include <vector>
-#include <deque>
 
 namespace trklet {
 
@@ -40,10 +38,14 @@ namespace trklet {
 
     std::vector<Tracklet*> orderedMatches(std::vector<FullMatchMemory*>& fullmatch);
 
+<<<<<<< HEAD
     void execute(const ChannelAssignment* channelAssignment,
                  std::deque<tt::Frame>& streamTrack,
                  std::vector<std::deque<tt::FrameStub>>& streamsStub,
 		 std::vector<std::string>& trackStream,
+=======
+    void execute(std::vector<std::string>& trackStream,
+>>>>>>> Remove code for old calculation of stream data - keeping the debug print out in this commit
 		 std::vector<std::vector<StubStreamData>>& stubStream,
                  unsigned int iSector);
 

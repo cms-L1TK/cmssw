@@ -26,6 +26,7 @@
 #include "../interface/SLHCEvent.h"
 #include "../interface/Track.h"
 #include "../interface/Settings.h"
+#include "../interface/StubStreamData.h"
 #include "../interface/TrackletEventProcessor.h"
 
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
@@ -208,7 +209,10 @@ int main(const int argc, const char **argv) {
     edm::LogVerbatim("Tracklet") << "Process event: " << eventnum << " with " << ev.nstubs() << " stubs and "
                                  << ev.nsimtracks() << " simtracks";
 
-    eventProcessor.event(ev);
+    std::vector<std::vector<std::string>> tracksStream(N_SECTOR*8);
+    std::vector<std::vector<StubStreamData>> stubsStream(N_SECTOR*8*8);
+
+    eventProcessor.event(ev, tracksStream, stubsStream);
 
     const std::vector<Track> &tracks = eventProcessor.tracks();
 

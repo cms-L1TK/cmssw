@@ -417,9 +417,18 @@ void Sector::executeMP() {
 // If using Hybrid, then PurgeDuplicates runs both duplicate removal & KF steps.
 // (unless duplicate removal disabled, in which case FitTrack runs KF).
 
+<<<<<<< HEAD
 void Sector::executeFT(vector<vector<string>>& tracksStream, vector<vector<StubStreamData>>& stubsStream) {
   int numChannels = tracksStream.size() / N_SECTOR;
   int maxNumProjectionLayers = stubsStream.size()/tracksStream.size();
+=======
+
+void Sector::executeFT(vector<vector<string>>& tracksStream, vector<vector<StubStreamData>>& stubsStream) {
+
+  int numChannels = tracksStream.size() / N_SECTOR;
+  int maxNumProjectionLayers = stubsStream.size()/tracksStream.size();
+
+>>>>>>> Remove code for old calculation of stream data - keeping the debug print out in this commit
   const int offsetTrack = isector_ * numChannels;
   int channelTrack(0);
 
@@ -429,13 +438,14 @@ void Sector::executeFT(vector<vector<string>>& tracksStream, vector<vector<StubS
     i->execute(trackStreamTmp, stubStreamTmp, isector_);
     if (!settings_.emulateTB())
       continue;
+<<<<<<< HEAD
     const int offsetStub = (offsetTrack + channelTrack) * maxNumProjectionsLayers;
+=======
+    const int offsetStub = (offsetTrack + channelTrack) * maxNumProjectionLayers;
+>>>>>>> Remove code for old calculation of stream data - keeping the debug print out in this commit
     tracksStream[offsetTrack + channelTrack] = trackStreamTmp;
     channelTrack++;
     int channelStub(0);
-    for (deque<tt::FrameStub>& stream : streamsStubTmp)
-      streamsStub[offsetStub + channelStub++] = tt::StreamStub(stream.begin(), stream.end());
-    channelStub = 0;
     for (auto& stream : stubStreamTmp)
       stubsStream[offsetStub + channelStub++] = stream;
   }

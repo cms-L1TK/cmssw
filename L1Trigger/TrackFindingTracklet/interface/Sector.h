@@ -4,7 +4,6 @@
 
 #include "L1Trigger/TrackFindingTracklet/interface/L1TStub.h"
 #include "L1Trigger/TrackFindingTracklet/interface/SLHCEvent.h"
-#include "L1Trigger/TrackFindingTracklet/interface/ChannelAssignment.h"
 #include "L1Trigger/TrackFindingTracklet/interface/StubStreamData.h"
 
 #include <string>
@@ -116,8 +115,13 @@ namespace trklet {
     void executeME();
     void executeMC();
     void executeMP();
+<<<<<<< HEAD
     void executeFT(std::vector<std::vector<std::string> >& tracksStream,
 		   std::vector<std::vector<StubStreamData>>& stubsStream);
+=======
+    void executeFT(std::vector<std::vector<std::string>>& tracksStream,
+                   std::vector<std::vector<StubStreamData>>& stubsStream);
+>>>>>>> Remove code for old calculation of stream data - keeping the debug print out in this commit
     void executePD(std::vector<Track>& tracks);
 
     std::vector<Tracklet*> getAllTracklets() const;

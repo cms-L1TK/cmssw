@@ -29,6 +29,7 @@
 #include "DataFormats/SiPixelDetId/interface/PXBDetId.h"
 #include "DataFormats/SiPixelDetId/interface/PXFDetId.h"
 #include "DataFormats/Common/interface/DetSetVector.h"
+#include "DataFormats/L1TrackTrigger/interface/TTBV.h"
 //
 #include "L1Trigger/TrackFindingTracklet/interface/SLHCEvent.h"
 #include "L1Trigger/TrackFindingTracklet/interface/L1TStub.h"
@@ -354,7 +355,11 @@ void L1FPGATrackProducer::beginRun(const edm::Run& run, const edm::EventSetup& i
   }
   channelAssignment_ = &iSetup.getData(esGetTokenChannelAssignment_);
   // initialize the tracklet event processing (this sets all the processing & memory modules, wiring, etc)
+<<<<<<< HEAD
   eventProcessor.init(settings_, channelAssignment_, setup_);
+=======
+  eventProcessor.init(settings);
+>>>>>>> Remove code for old calculation of stream data - keeping the debug print out in this commit
 }
 
 //////////
@@ -593,8 +598,7 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
                    ttPos.z(),
                    stubbend,
                    stub.first->innerClusterPosition(),
-                   assocTPs,
-                   stub.first);
+                   assocTPs);
 
         const trklet::L1TStub& lastStub = ev.lastStub();
         stubMap[lastStub] = stub.first;
@@ -705,11 +709,19 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
   Streams streamsTrack(numStreamsTrack);
   StreamsStub streamsStub(numStreamsStub);
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> Remove code for old calculation of stream data - keeping the debug print out in this commit
   const unsigned int maxproj = channelAssignment_->maxNumProjectionLayers();
   for(unsigned int itrack=0; itrack<numStreamsTrack; itrack++) {
     for(unsigned int itk=0; itk<tracksStream[itrack].size(); itk++) {
-      cout << "tracksStream : "<<tracksStream[itrack][itk] << endl;
-      streamsTrackNew[itrack].emplace_back(tracksStream[itrack][itk]);
+      std::string bits = tracksStream[itrack][itk];
+      if (bits != "0") {
+	int iseed = itrack%channelAssignment_->numChannels();
+	bits="1" + TTBV(iseed, settings.nbitsseed()).str()+bits;
+      }
+      streamsTrack[itrack].emplace_back(bits);
     }
     unsigned int nstub=stubsStream[itrack*maxproj].size();
     for(unsigned int istub=0; istub<nstub; istub++ ) {
@@ -717,38 +729,37 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
       for(unsigned int iproj=0; iproj<maxproj; iproj++) {
 	const StubStreamData stubdata = stubsStream[itrack*maxproj+iproj][istub];
 	const L1TStub& stub = stubdata.stub();
-	cout << "stub.z iseed : "<<stub.z()<<" "<<stubdata.iSeed()<<endl;
 	if (stubdata.iSeed()!=-1) {
 	  const TTStubRef ttStubRef = stubMap[stub];
 	  int layerId(-1);
 	  if (!channelAssignment_->layerId(stubdata.iSeed(), ttStubRef, layerId))
 	    continue;
 	  hitMap.set(layerId);
-	  streamsStubNew[itrack*maxproj+layerId].emplace_back(ttStubRef,stubdata.residuals());
+	  streamsStub[itrack*maxproj+layerId].emplace_back(ttStubRef,stubdata.residuals());
 	}
       }
       for (int layer : hitMap.ids(false)) {
-	streamsStubNew[itrack*maxproj+layer].emplace_back(tt::FrameStub());
+	streamsStub[itrack*maxproj+layer].emplace_back(tt::FrameStub());
       }
     }    
   }
   
   static ofstream out("streamdata.txt");
   
-  out << "# trackstreams : "<<streamsTrackNew.size()<<endl;
-  for(unsigned int i=0; i<streamsTrackNew.size(); i++) {
-    out << "# tracks : " << streamsTrackNew[i].size()<<endl; 
-    for(unsigned int j=0;j<streamsTrackNew[i].size(); j++) {
-      out << "Track : " << streamsTrackNew[i][j] << endl;
+  out << "# trackstreams : "<<streamsTrack.size()<<endl;
+  for(unsigned int i=0; i<streamsTrack.size(); i++) {
+    out << "# tracks : " << streamsTrack[i].size()<<endl; 
+    for(unsigned int j=0;j<streamsTrack[i].size(); j++) {
+      out << "Track : " << streamsTrack[i][j] << endl;
     }
   }
   
 
-  out << "# stub streams : "<<streamsStubNew.size()<<endl;
-  for(unsigned int i=0; i<streamsStubNew.size(); i++) {
-    out << "# stubs : " << streamsStubNew[i].size()<<endl; 
-    for(unsigned int j=0;j<streamsStubNew[i].size(); j++) {
-      out << "Stub : " << streamsStubNew[i][j].second << endl;
+  out << "# stub streams : "<<streamsStub.size()<<endl;
+  for(unsigned int i=0; i<streamsStub.size(); i++) {
+    out << "# stubs : " << streamsStub[i].size()<<endl; 
+    for(unsigned int j=0;j<streamsStub[i].size(); j++) {
+      out << "Stub : " << streamsStub[i][j].second << endl;
     }
   }
 
