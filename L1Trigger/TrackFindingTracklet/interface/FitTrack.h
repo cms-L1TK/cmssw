@@ -6,6 +6,7 @@
 #include "L1Trigger/TrackFindingTracklet/interface/FullMatchMemory.h"
 #include "L1Trigger/TrackFindingTracklet/interface/TrackFitMemory.h"
 #include "L1Trigger/TrackFindingTracklet/interface/ChannelAssignment.h"
+#include "L1Trigger/TrackFindingTracklet/interface/StubStreamData.h"
 
 #include <vector>
 #include <deque>
@@ -15,7 +16,6 @@ namespace trklet {
   class Settings;
   class Globals;
   class Stub;
-  class L1TStub;
 
   class FitTrack : public ProcessBase {
   public:
@@ -43,6 +43,8 @@ namespace trklet {
     void execute(const ChannelAssignment* channelAssignment,
                  std::deque<tt::Frame>& streamTrack,
                  std::vector<std::deque<tt::FrameStub>>& streamsStub,
+		 std::vector<std::string>& trackStream,
+		 std::vector<std::vector<StubStreamData>>& stubStream,
                  unsigned int iSector);
 
   private:

@@ -4,6 +4,7 @@
 #include "L1Trigger/TrackFindingTracklet/interface/HybridFit.h"
 #include "L1Trigger/TrackFindingTracklet/interface/Tracklet.h"
 #include "L1Trigger/TrackFindingTracklet/interface/Stub.h"
+#include "L1Trigger/TrackFindingTracklet/interface/StubStreamData.h"
 
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 #include "FWCore/Utilities/interface/Exception.h"
@@ -876,6 +877,8 @@ std::vector<Tracklet*> FitTrack::orderedMatches(vector<FullMatchMemory*>& fullma
 void FitTrack::execute(const ChannelAssignment* channelAssignment,
                        deque<tt::Frame>& streamTrack,
                        vector<deque<tt::FrameStub>>& streamsStub,
+		       vector<string>& trackStream,
+		       vector<vector<StubStreamData>>& stubStream,
                        unsigned int iSector) {
   // merge
   const std::vector<Tracklet*>& matches1 = orderedMatches(fullmatch1_);
@@ -1034,13 +1037,18 @@ void FitTrack::execute(const ChannelAssignment* channelAssignment,
         trackfit_->addTrack(bestTracklet);
       }
     }
+
     // store bit and clock accurate TB output
     if (settings_.storeTrackBuilderOutput() && bestTracklet) {
       // add gap if enough layer to form track
       if (!bestTracklet->fit()) {
         streamTrack.emplace_back(tt::Frame());
+	static const string invalid = "0";
+	trackStream.emplace_back(invalid);
         for (auto& stream : streamsStub)
           stream.emplace_back(tt::FrameStub());
+        for (auto& stream : stubStream)
+          stream.emplace_back(StubStreamData());
         continue;
       }
       // convert Track word
@@ -1052,9 +1060,11 @@ void FitTrack::execute(const ChannelAssignment* channelAssignment,
       const string z0 = bestTracklet->fpgaz0().str();
       const string t = bestTracklet->fpgat().str();
       streamTrack.emplace_back(valid + seed + rinv + phi0 + z0 + t);
+      trackStream.emplace_back(valid + seed + rinv + phi0 + z0 + t);
       // hitMap used to remember whcih layer had no stub to fill them with gaps
       TTBV hitMap(0, streamsStub.size());
       // convert and fill stubs on this track into streamsStub
+      cout << "Here010" << endl;
       for (const auto& stub : bestTracklet->getL1Stubs()) {
         // get TTStubRef of this stub
         const TTStubRef& ttStubRef = stub->ttStubRef();
@@ -1082,6 +1092,48 @@ void FitTrack::execute(const ChannelAssignment* channelAssignment,
       for (int layer : hitMap.ids(false)) {
         streamsStub[layer].emplace_back(tt::FrameStub());
       }
+
+      unsigned int ihit(0);
+      //TTBV hitMap2(0, channelAssignment->maxNumProjectionLayers());
+      cout << "Here020" << endl;
+      //for (const auto& stub : bestTracklet->getL1Stubs()) {
+      for(unsigned int ilayer = 0 ; ilayer < N_LAYER + N_DISK ; ilayer++){
+        // get TTStubRef of this stub
+        //const TTStubRef& ttStubRef = stub->ttStubRef();
+        // get layerId and skip over seeding layer
+        //int layerId(-1);
+        //if (!channelAssignment->layerId(seedType, ttStubRef, layerId))
+        //  continue;
+        // mark layerId
+        //hitMap2.set(layerId);
+        // tracklet layerId
+        //const int trackletLayerId = channelAssignment->trackletLayerId(ttStubRef);
+        // get stub Residual
+	if (!bestTracklet->match(ilayer))
+	  continue;
+        const Residual& resid = bestTracklet->resid(ilayer);
+        // create bit accurate 64 bit word
+        const string& r = resid.stubptr()->r().str();
+        const string& phi = resid.fpgaphiresid().str();
+        const string& rz = resid.fpgarzresid().str();
+	const L1TStub* stub = resid.stubptr()->l1tstub();
+        // store TTStubRef and bit accurate 64 bit word in clock accurate output
+	cout << "ihit size : "<<ihit<<" "<<stubStream.size()<<endl;
+	cout << "seed stub.z stub "<<seedType<<" "<<stub->z()<<" "<<stub<<endl;
+        if (seedType==0) {
+	  assert(fabs(stub->z())<250.0);
+	}
+	stubStream[ihit++].emplace_back(StubStreamData(seedType,*stub,valid + r + phi + rz));
+      }
+
+      cout << "Here999" << endl;
+
+      // fill all layer with no stubs with gaps
+      while (ihit<stubStream.size()) {
+        stubStream[ihit++].emplace_back(StubStreamData());
+      }
+
+
     }
 
   } while (bestTracklet != nullptr && countAll < settings_.maxStep("TB"));

@@ -7,7 +7,7 @@
 #include "L1Trigger/TrackFindingTracklet/interface/Track.h"
 #include "L1Trigger/TrackFindingTracklet/interface/TrackletConfigBuilder.h"
 #include "L1Trigger/TrackFindingTracklet/interface/IMATH_TrackletCalculator.h"
-#include "L1Trigger/TrackFindingTracklet/interface/ChannelAssignment.h"
+#include "L1Trigger/TrackFindingTracklet/interface/StubStreamData.h"
 
 #include "DataFormats/Math/interface/deltaPhi.h"
 
@@ -26,16 +26,8 @@ TrackletEventProcessor::~TrackletEventProcessor() {
 }
 
 void TrackletEventProcessor::init(Settings const& theSettings,
-                                  const ChannelAssignment* channelAssignment,
                                   const tt::Setup* setup) {
   settings_ = &theSettings;
-  channelAssignment_ = channelAssignment;
-  // number of track channel
-  const int numStreamsTrack = N_SECTOR * channelAssignment_->numChannelsTrack();
-  // number of stub channel
-  const int numStreamsStub = N_SECTOR * channelAssignment_->numChannelsStub();
-  streamsTrack_ = tt::Streams(numStreamsTrack);
-  streamsStub_ = tt::StreamsStub(numStreamsStub);
 
   globals_ = make_unique<Globals>(*settings_);
 
@@ -183,7 +175,9 @@ void TrackletEventProcessor::configure(istream& inwire, istream& inmem, istream&
   }
 }
 
-void TrackletEventProcessor::event(SLHCEvent& ev) {
+void TrackletEventProcessor::event(SLHCEvent& ev,
+				   vector<vector<string>>& tracksStream,
+				   vector<vector<StubStreamData>>& stubsStream) {
   globals_->event() = &ev;
 
   tracks_.clear();
@@ -376,7 +370,7 @@ void TrackletEventProcessor::event(SLHCEvent& ev) {
 
     // fit track
     FTTimer_.start();
-    sector_->executeFT(channelAssignment_, streamsTrack_, streamsStub_);
+    sector_->executeFT(tracksStream, stubsStream);
     if ((settings_->writeMem() || settings_->writeMonitorData("IFit")) && k == settings_->writememsect()) {
       sector_->writeTF(first);
     }
@@ -453,9 +447,4 @@ void TrackletEventProcessor::printSummary() {
                                << "PurgeDuplicate        " << setw(10) << PDTimer_.ntimes() << setw(20)
                                << setprecision(3) << PDTimer_.avgtime() * 1000.0 << setw(20) << setprecision(3)
                                << PDTimer_.tottime();
-}
-
-void TrackletEventProcessor::produce(tt::Streams& streamsTrack, tt::StreamsStub& streamsStub) {
-  swap(streamsTrack, streamsTrack_);
-  swap(streamsStub, streamsStub_);
 }

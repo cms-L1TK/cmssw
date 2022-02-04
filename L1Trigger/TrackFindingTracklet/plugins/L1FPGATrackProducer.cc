@@ -87,6 +87,7 @@
 #include "L1Trigger/TrackFindingTracklet/interface/Tracklet.h"
 #include "L1Trigger/TrackFindingTracklet/interface/Residual.h"
 #include "L1Trigger/TrackFindingTracklet/interface/Stub.h"
+#include "L1Trigger/TrackFindingTracklet/interface/StubStreamData.h"
 
 ////////////////
 // PHYSICS TOOLS
@@ -610,8 +611,20 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
 
   const std::vector<trklet::Track>& tracks = eventProcessor.tracks();
 
+
+  // number of track channel
+  const unsigned int numStreamsTrack = N_SECTOR * channelAssignment_->numChannelsTrack();
+  // TO DO: UNDERSTAND WHICH LINE IS CORRECT.
+  // number of stub channel (Thomas)
+  //const unsigned int numStreamsStub = N_SECTOR * channelAssignment_->numChannelsStub();
+  // number of stub channel (Anders)
+  const unsigned int numStreamsStub = numStreamsTrack * channelAssignment_->maxNumProjectionLayers();
+
+  vector<vector<string>> tracksStream(numStreamsTrack);
+  vector<vector<StubStreamData>> stubsStream(numStreamsStub);
+
   // this performs the actual tracklet event processing
-  eventProcessor.event(ev);
+  eventProcessor.event(ev, tracksStream, stubsStream);
 
   int ntracks = 0;
 
@@ -689,13 +702,58 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
   iEvent.put(std::move(L1TkTracksForOutput), "Level1TTTracks");
 
   // produce clock and bit output tracks and stubs
-  // number of track channel
-  const int numStreamsTrack = N_SECTOR * channelAssignment_->numChannelsTrack();
-  // number of stub channel
-  const int numStreamsStub = N_SECTOR * channelAssignment_->numChannelsStub();
   Streams streamsTrack(numStreamsTrack);
   StreamsStub streamsStub(numStreamsStub);
-  eventProcessor.produce(streamsTrack, streamsStub);
+
+  const unsigned int maxproj = channelAssignment_->maxNumProjectionLayers();
+  for(unsigned int itrack=0; itrack<numStreamsTrack; itrack++) {
+    for(unsigned int itk=0; itk<tracksStream[itrack].size(); itk++) {
+      cout << "tracksStream : "<<tracksStream[itrack][itk] << endl;
+      streamsTrackNew[itrack].emplace_back(tracksStream[itrack][itk]);
+    }
+    unsigned int nstub=stubsStream[itrack*maxproj].size();
+    for(unsigned int istub=0; istub<nstub; istub++ ) {
+      TTBV hitMap(0, maxproj);
+      for(unsigned int iproj=0; iproj<maxproj; iproj++) {
+	const StubStreamData stubdata = stubsStream[itrack*maxproj+iproj][istub];
+	const L1TStub& stub = stubdata.stub();
+	cout << "stub.z iseed : "<<stub.z()<<" "<<stubdata.iSeed()<<endl;
+	if (stubdata.iSeed()!=-1) {
+	  const TTStubRef ttStubRef = stubMap[stub];
+	  int layerId(-1);
+	  if (!channelAssignment_->layerId(stubdata.iSeed(), ttStubRef, layerId))
+	    continue;
+	  hitMap.set(layerId);
+	  streamsStubNew[itrack*maxproj+layerId].emplace_back(ttStubRef,stubdata.residuals());
+	}
+      }
+      for (int layer : hitMap.ids(false)) {
+	streamsStubNew[itrack*maxproj+layer].emplace_back(tt::FrameStub());
+      }
+    }    
+  }
+  
+  static ofstream out("streamdata.txt");
+  
+  out << "# trackstreams : "<<streamsTrackNew.size()<<endl;
+  for(unsigned int i=0; i<streamsTrackNew.size(); i++) {
+    out << "# tracks : " << streamsTrackNew[i].size()<<endl; 
+    for(unsigned int j=0;j<streamsTrackNew[i].size(); j++) {
+      out << "Track : " << streamsTrackNew[i][j] << endl;
+    }
+  }
+  
+
+  out << "# stub streams : "<<streamsStubNew.size()<<endl;
+  for(unsigned int i=0; i<streamsStubNew.size(); i++) {
+    out << "# stubs : " << streamsStubNew[i].size()<<endl; 
+    for(unsigned int j=0;j<streamsStubNew[i].size(); j++) {
+      out << "Stub : " << streamsStubNew[i][j].second << endl;
+    }
+  }
+
+  
+
   iEvent.emplace(edPutTokenTracks_, move(streamsTrack));
   iEvent.emplace(edPutTokenStubs_, move(streamsStub));
 
