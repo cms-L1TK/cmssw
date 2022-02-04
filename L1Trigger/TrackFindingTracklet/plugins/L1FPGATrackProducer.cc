@@ -744,27 +744,6 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
     }    
   }
   
-  static ofstream out("streamdata.txt");
-  
-  out << "# trackstreams : "<<streamsTrack.size()<<endl;
-  for(unsigned int i=0; i<streamsTrack.size(); i++) {
-    out << "# tracks : " << streamsTrack[i].size()<<endl; 
-    for(unsigned int j=0;j<streamsTrack[i].size(); j++) {
-      out << "Track : " << streamsTrack[i][j] << endl;
-    }
-  }
-  
-
-  out << "# stub streams : "<<streamsStub.size()<<endl;
-  for(unsigned int i=0; i<streamsStub.size(); i++) {
-    out << "# stubs : " << streamsStub[i].size()<<endl; 
-    for(unsigned int j=0;j<streamsStub[i].size(); j++) {
-      out << "Stub : " << streamsStub[i][j].second << endl;
-    }
-  }
-
-  
-
   iEvent.emplace(edPutTokenTracks_, move(streamsTrack));
   iEvent.emplace(edPutTokenStubs_, move(streamsStub));
 
