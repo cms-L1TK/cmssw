@@ -869,6 +869,11 @@ std::vector<Tracklet*> FitTrack::orderedMatches(vector<FullMatchMemory*>& fullma
   return tmp;
 }
 
+// Adds the fitted track to the output memories to be used by pure Tracklet algo.
+// (Also used by Hybrid algo with non-exact Old KF emulation)
+// Also create output streams, that bypass these memories, (so can include gaps in time), 
+// to be used by Hybrid case with exact New KF emulation.
+
 void FitTrack::execute(const ChannelAssignment* channelAssignment,
                        deque<tt::Frame>& streamTrack,
                        vector<deque<tt::FrameStub>>& streamsStub,
