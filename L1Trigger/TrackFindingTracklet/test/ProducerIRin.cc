@@ -28,7 +28,7 @@ namespace trklet {
 
   /*! \class  trklet::ProducerIRin
    *  \brief  Extracts and rearranges StreamsStub from TTDTC
-   *          Rearrangement may be configured to connect a reduced tracking chain to the correct L1 track board input channels
+   *          Rearrangement may be configured to connect a reduced tracking chain to the correct L1 track board input channels.
    *  \author Thomas Schuh
    *  \date   2021, Oct
    */
