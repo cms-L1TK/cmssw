@@ -31,8 +31,10 @@ namespace trklet {
 
   /*! \class  trklet::ProducerTBout
    *  \brief  Transforms TTTracks and Streams from Tracklet pattern reco. into StreamsTrack
-   *          by adding to the digitised track stream a reference to the corresponding TTTrack
-   *          stores truncated StreamsTrack and StreamsStub into seperate branch
+   *          by adding to the digitised track stream a reference to the corresponding TTTrack.
+   *          (Could not be done in previous L1TrackFPGAProducer, as single EDProducer can't
+   *          produce output containing both an EDProduct and refs to that product).
+   *          Writes Tracks & stubs rejected/kept after truncation to separate StreamsTrack & StreamsStub branches.
    *  \author Thomas Schuh
    *  \date   2021, Oct
    */
