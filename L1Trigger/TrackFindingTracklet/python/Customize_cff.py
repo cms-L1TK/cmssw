@@ -1,8 +1,10 @@
 import FWCore.ParameterSet.Config as cms
 
+# configures track finding s/w to use KF emulator instead of KF simulator
 def newKFConfig(process):
   process.TTTracksFromTrackletEmulation.Fakefit = True
 
+# configures track finding s/w to behave as track finding f/w
 def fwConfig(process):
   newKFConfig(process)
   process.TrackTriggerSetup.Firmware.FreqBE = 240
@@ -11,6 +13,7 @@ def fwConfig(process):
   process.TTTracksFromTrackletEmulation.EmulateTB = True
   process.ChannelAssignment.UseDuplicateRemoval = False
 
+# configures track finding s/w to behave as a subchain of processing steps
 def reducedConfig(process):
   fwConfig(process)
   process.TrackTriggerSetup.KalmanFilter.NumWorker = 1

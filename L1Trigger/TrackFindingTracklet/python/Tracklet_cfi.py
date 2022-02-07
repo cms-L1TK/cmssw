@@ -24,8 +24,8 @@ TTTracksFromTrackletEmulation = cms.EDProducer("L1FPGATrackProducer",
                                                TrackQualityPSet = cms.PSet(TrackQualityParams),
                                                Fakefit = cms.bool(False), # True causes Tracklet reco to output TTTracks before DR & KF
                                                StoreTrackBuilderOutput = cms.bool(False), # if True EDProducts for TrackBuilder tracks and stubs will be filled
-                                               RemovalType = cms.string("merge"),
-                                               DoMultipleMatches = cms.bool(True)
+                                               RemovalType = cms.string("merge"), # Duplicate track removal
+                                               DoMultipleMatches = cms.bool(True) # Allow tracklet tracks multiple stubs per layer
     )
 
 TTTracksFromExtendedTrackletEmulation = TTTracksFromTrackletEmulation.clone(

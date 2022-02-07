@@ -48,7 +48,7 @@ namespace trklet {
     int numSeedTypes_;
     // number of used channels
     int numChannels_;
-    // max number layers a sedd type may project to
+    // max number layers a seed type may project to
     int maxNumProjectionLayers_;
     // seeding layers of seed types using default layer id [barrel: 1-6, discs: 11-15]
     std::vector<std::vector<int>> seedTypesSeedLayers_;
