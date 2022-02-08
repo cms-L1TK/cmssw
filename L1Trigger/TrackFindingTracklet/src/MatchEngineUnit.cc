@@ -12,8 +12,9 @@ MatchEngineUnit::MatchEngineUnit(const Settings& settings, bool barrel, unsigned
   imeu_ = -1;
   barrel_ = barrel;
   layerdisk_ = layerdisk;
-  good__ = false;
-  good___ = false;
+  goodpair_ = false;
+  goodpair__ = false;
+  havepair_ = false;
 }
 
 void MatchEngineUnit::setAlmostFull() {
@@ -34,7 +35,9 @@ void MatchEngineUnit::init(VMStubsMEMemory* vmstubsmemory,
                            bool usesecondMinus,
                            bool usesecondPlus,
                            bool isPSseed,
-                           Tracklet* proj) {
+                           Tracklet* proj,
+                           bool,
+			   int imeu) {
   vmstubsmemory_ = vmstubsmemory;
   idle_ = false;
   nrzbins_ = nrzbins;
@@ -63,12 +66,22 @@ void MatchEngineUnit::init(VMStubsMEMemory* vmstubsmemory,
   isPSseed_ = isPSseed;
   proj_ = proj;
 
-  good__ = false;
+  //Even when you init a new projection you need to process the pipeline
+  //This should be fixed to be done more cleanly - but require synchronizaton
+  //with the HLS code
 
+  goodpair__ = goodpair_;
+  tmppair__ =  tmppair_;
+
+  havepair_ = false;
+  goodpair_ = false;
 }
 
 
-void MatchEngineUnit::step() {
+
+  goodpair__ = goodpair_;
+  tmppair__ =  tmppair_;
+
 
   good__ = !idle() && !almostfullsave_;
 
@@ -92,9 +105,9 @@ void MatchEngineUnit::step() {
 
   vmstub__ = vmstubsmemory_->getVMStubMEBin(slot, istub_);
 
-  isPSseed__ = isPSseed_;
-  projrinv__ = projrinv_;
-  proj__ = proj_;
+  bool isPSmodule = vmstub__.isPSmodule();
+  int stubfinerz = vmstub__.finerz().value();
+  int stubfinephi = vmstub__.finephi().value();
 
   istub_++;
   if (istub_ >= vmstubsmemory_->nStubsBin(slot)) {
@@ -111,28 +124,29 @@ void MatchEngineUnit::step() {
 
 void MatchEngineUnit::processPipeline() {
 
-  if (good___) {
-  
-    bool isPSmodule = vmstub___.isPSmodule();
-    int stubfinerz = vmstub___.finerz().value();
-    int stubfinephi = vmstub___.finephi().value();
-    
-    int deltaphi = stubfinephi - projfinephi___;
+  unsigned int index = (diskps << (4 + 5)) + (projrinv_ << nbits) + vmstub__.bend().value();
 
     constexpr int idphicut = 3;
 
     bool dphicut = (abs(deltaphi) < idphicut);
 
-    int nbits = isPSmodule ? N_BENDBITS_PS : N_BENDBITS_2S;
+  // Detailed printout for comparison with HLS code
+  if (print)
+    edm::LogVerbatim("Tracklet") << "MEU TrkId stubindex : " << 128 * proj_->TCIndex() + proj_->trackletIndex() << " "
+                                 << vmstub__.stubindex().value() << "   "
+                                 << ((pass && dphicut) && luttable_.lookup(index)) << " index=" << index
+                                 << " projrinv bend : " << projrinv_ << " " << vmstub__.bend().value()
+                                 << "  shift_ isPSseed_ :" << shift_ << " " << isPSseed_ << " slot=" << slot;
 
     int diskps = (!barrel_) && isPSmodule;
 
     //here we always use the larger number of bits for the bend
     unsigned int index = (diskps << (N_BENDBITS_2S + NRINVBITS)) + (projrinv___ << nbits) + vmstub___.bend().value();
 
-    //Check if stub z position consistent
-    int idrz = stubfinerz - projfinerz___;
-    bool pass;
+  if (havepair_) {
+    std::pair<Tracklet*, const Stub*> tmppair(proj_, vmstub__.stub());
+    tmppair_ = tmppair;
+  }
 
     if (barrel_) {
       if (isPSseed___) {
@@ -163,14 +177,14 @@ void MatchEngineUnit::processPipeline() {
  
   }
 
-  proj___ = proj__;
-  projfinephi___ = projfinephi__;
-  projfinerz___ = projfinerz__;
-  projrinv___ = projrinv__;
-  isPSseed___ = isPSseed__;
-  good___ =  good__;
-  vmstub___ = vmstub__;
+}
 
+
+void MatchEngineUnit::processPipeline() {
+
+  if (goodpair__) {
+    candmatches_.store(tmppair__);
+  }
 
 }
 
