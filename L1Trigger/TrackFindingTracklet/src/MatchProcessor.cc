@@ -285,6 +285,7 @@ void MatchProcessor::execute(unsigned int iSector, double phimin) {
       } else {
         matchengines_[iME].step(print);
       }
+      matchengines_[iME].processPipeline();
     }
 
     //Step 1

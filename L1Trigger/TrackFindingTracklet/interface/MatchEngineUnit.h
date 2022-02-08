@@ -65,6 +65,8 @@ namespace trklet {
 
     void step(bool print);
 
+    void processPipeline();
+
   private:
     VMStubsMEMemory* vmstubsmemory_;
 
@@ -96,9 +98,13 @@ namespace trklet {
     const TrackletLUT& luttable_;
 
     //Pipeline variables
-    std::pair<Tracklet*, const Stub*> tmppair_;
+    std::pair<Tracklet*, const Stub*> tmppair_, tmppair__;
     bool goodpair_;
+    bool goodpair__;
     bool havepair_;
+
+    VMStubME vmstub__, vmstub___;
+
 
     //save the candidate matches
     CircularBuffer<std::pair<Tracklet*, const Stub*>> candmatches_;
