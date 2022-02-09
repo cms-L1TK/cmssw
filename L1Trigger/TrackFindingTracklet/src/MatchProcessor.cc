@@ -435,7 +435,7 @@ void MatchProcessor::execute(unsigned int iSector, double phimin) {
   }
 }
 
-bool MatchProcessor::matchCalculator(Tracklet* tracklet, const Stub* fpgastub, bool print, unsigned int istep) {
+bool MatchProcessor::matchCalculator(Tracklet* tracklet, const Stub* fpgastub, bool, unsigned int ) {
   const L1TStub* stub = fpgastub->l1tstub();
 
   if (layerdisk_ < N_LAYER) {
