@@ -110,7 +110,12 @@ namespace trklet {
     bool havepair_;
 
     VMStubME vmstub__, vmstub___;
-
+    bool isPSseed__, isPSseed___;
+    bool good__, good___;
+    int projfinerz__, projfinerz___;
+    int projfinephi__, projfinephi___;
+    int projrinv__, projrinv___;
+    Tracklet *proj__, *proj___;
 
     //save the candidate matches
     CircularBuffer<std::pair<Tracklet*, const Stub*>> candmatches_;
