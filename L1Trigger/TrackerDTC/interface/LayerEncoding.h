@@ -29,7 +29,7 @@ namespace trackerDTC {
   private:
     // helper class to store configurations
     const tt::Setup* setup_;
-    // No. of DTCs per phi nonant
+    // No. of DTCs per detector phi nonant
     int numDTCsPerRegion_;
     // outer index = dtc id in region, inner index = encoded layerId, inner value = decoded layerId
     std::vector<std::vector<int>> encodingsLayerId_;
