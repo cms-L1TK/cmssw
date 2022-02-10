@@ -121,7 +121,9 @@ void MatchEngineUnit::processPipeline() {
     
     int deltaphi = stubfinephi - projfinephi___;
 
-    bool dphicut = (abs(deltaphi) < 3);
+    constexpr int idphicut = 3;
+
+    bool dphicut = (abs(deltaphi) < idphicut);
 
     int nbits = isPSmodule ? N_BENDBITS_PS : N_BENDBITS_2S;
 
@@ -136,15 +138,19 @@ void MatchEngineUnit::processPipeline() {
 
     if (barrel_) {
       if (isPSseed___) {
-	pass = idrz >= -1 && idrz <= 1;
+	constexpr int drzcut = 1;
+	pass = std::abs(idrz) <= drzcut;
       } else {
-	pass = idrz >= -5 && idrz <= 5;
+	constexpr int drzcut = 5;
+	pass = std::abs(idrz) <= drzcut;
       }
     } else {
       if (isPSmodule) {
-	pass = idrz >= -1 && idrz <= 1;
+	constexpr int drzcut = 1;
+	pass = std::abs(idrz) <= drzcut;
       } else {
-	pass = idrz >= -3 && idrz <= 3;
+	constexpr int drzcut = 3;
+	pass = std::abs(idrz) <= drzcut;
       }
     }
 
