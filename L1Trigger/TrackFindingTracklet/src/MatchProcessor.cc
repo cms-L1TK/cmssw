@@ -82,7 +82,8 @@ MatchProcessor::MatchProcessor(string name, Settings const& settings, Globals* g
 
   nMatchEngines_ = 4;
   for (unsigned int iME = 0; iME < nMatchEngines_; iME++) {
-    MatchEngineUnit tmpME(barrel_, layerdisk_, luttable_);
+    MatchEngineUnit tmpME(settings_, barrel_, layerdisk_, luttable_);
+    tmpME.setimeu(iME);
     matchengines_.push_back(tmpME);
   }
 }
@@ -277,13 +278,11 @@ void MatchProcessor::execute(unsigned int iSector, double phimin) {
                                 tmpProj.use(1, 0),
                                 tmpProj.use(1, 1),
                                 tmpProj.isPSseed(),
-                                tmpProj.proj(),
-                                print,
-				iME);
+                                tmpProj.proj());
 	meactive = true;
         addedProjection = true;
       } else {
-        matchengines_[iME].step(print);
+        matchengines_[iME].step();
       }
       matchengines_[iME].processPipeline();
     }

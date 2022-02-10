@@ -18,7 +18,7 @@ namespace trklet {
 
   class MatchEngineUnit {
   public:
-    MatchEngineUnit(bool barrel, unsigned int layerdisk, const TrackletLUT& luttable);
+    MatchEngineUnit(const Settings& settings, bool barrel, unsigned int layerdisk, const TrackletLUT& luttable);
 
     ~MatchEngineUnit() = default;
 
@@ -35,9 +35,7 @@ namespace trklet {
               bool usesecondMinus,
               bool usesecondPlus,
               bool isPSseed,
-              Tracklet* proj,
-              bool print,
-	      int imeu);
+              Tracklet* proj);
 
     bool empty() const { return candmatches_.empty(); }
 
@@ -47,34 +45,40 @@ namespace trklet {
 
     std::pair<Tracklet*, const Stub*> peek() const { return candmatches_.peek(); }
 
-    Tracklet* currentProj() const { return proj_; }
-
     bool idle() const { return idle_; }
 
-    bool active() const { return !idle_ || goodpair_ || !empty(); }
-
-    //needed for consistency with HLS FW version ("_" vs "__" indicating different pipelining stages)
-    bool have_() const { return havepair_; }
+    bool active() const { return !idle_ || good__ || good___ || !empty(); }
 
     void setAlmostFull();
+
+    void setimeu(int imeu) {
+      imeu_ =  imeu;
+    }
+
+    void setprint(bool print) {
+      print_ =  print;
+    }
 
     void reset();
 
     unsigned int rptr() const { return candmatches_.rptr(); }
     unsigned int wptr() const { return candmatches_.wptr(); }
 
-    void step(bool print);
+    void step();
 
     void processPipeline();
 
   private:
+
+    //Provide access to constants
+    const Settings& settings_;
+
     VMStubsMEMemory* vmstubsmemory_;
 
     unsigned int nrzbins_;
     unsigned int rzbin_;
     unsigned int phibin_;
     int shift_;
-    int imeu_;
 
     unsigned int istub_;
     unsigned int iuse_;
@@ -97,12 +101,6 @@ namespace trklet {
     //LUT for bend consistency with rinv
     const TrackletLUT& luttable_;
 
-    //Pipeline variables
-    std::pair<Tracklet*, const Stub*> tmppair_, tmppair__;
-    bool goodpair_;
-    bool goodpair__;
-    bool havepair_;
-
     VMStubME vmstub__, vmstub___;
     bool isPSseed__, isPSseed___;
     bool good__, good___;
@@ -113,6 +111,12 @@ namespace trklet {
 
     //save the candidate matches
     CircularBuffer<std::pair<Tracklet*, const Stub*>> candmatches_;
+
+    //debugging help
+    int imeu_;
+    bool print_;
+    
+
   };
 
 };  // namespace trklet
