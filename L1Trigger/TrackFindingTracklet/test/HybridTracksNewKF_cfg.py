@@ -1,4 +1,7 @@
 ################################################################################################
+# This script runs DTC + prompt tracklet + KF interface + new KF emulator with analyzer for each step
+# allowing to identify problems quickly during developement.
+# This script is a specialized and light-weight version of L1TrackNtupleMaker_cfg.py
 # To run execute do
 # cmsRun L1Trigger/TrackFindingTracklet/test/HybridTracksNewKF_cfg.py
 # where the arguments take default values if you don't specify them. You can change defaults below.
