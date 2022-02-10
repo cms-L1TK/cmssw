@@ -68,8 +68,6 @@ namespace trklet {
 
     void processPipeline();
 
-    void processPipeline();
-
   private:
 
     //Provide access to constants
@@ -102,12 +100,6 @@ namespace trklet {
 
     //LUT for bend consistency with rinv
     const TrackletLUT& luttable_;
-
-    //Pipeline variables
-    std::pair<Tracklet*, const Stub*> tmppair_, tmppair__;
-    bool goodpair_;
-    bool goodpair__;
-    bool havepair_;
 
     VMStubME vmstub__, vmstub___;
     bool isPSseed__, isPSseed___;
