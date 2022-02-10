@@ -23,6 +23,8 @@ namespace trackerDTC {
     ~LayerEncoding() {}
     // decode layer id for given sensor module
     int decode(tt::SensorModule* sm) const;
+    // get encoded layers for given output channel from DTCs in nonant
+    const std::vector<int>& layers(int channel) const {return encodingsLayerId_[channel];}
 
   private:
     // helper class to store configurations
