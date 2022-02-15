@@ -30,6 +30,6 @@ ChannelAssignment_params = cms.PSet (
     L2D1 = cms.vint32(  1, 12, 13, 14 )
   ),
 
-  IRChannelsIn = cms.vint32( range(0, 48) ) # map of used DTC tfp channels in InputRouter
+  IRChannelsIn = cms.vint32( range(0, 48) ) # vector of DTC id indexed by connected IR module id (from order in processingmodules.dat)
 
 )
