@@ -39,12 +39,3 @@ TTTracksFromExtendedTrackletEmulation = TTTracksFromTrackletEmulation.clone(
                                                TrackQuality = cms.bool(False),
                                                TrackQualityPSet = cms.PSet(TrackQualityParams)
     )
-# The included files correspond to the reduced "Summer Chain" configuration
-# These files can be modified to emulate any other reduced configuration
-TTTracksFromReducedTrackletEmulation = TTTracksFromTrackletEmulation.clone(
-                                               Reduced = cms.bool(True),
-                                               # specifying where the reduced configuration files are
-                                               memoryModulesFile = cms.FileInPath('L1Trigger/TrackFindingTracklet/data/reduced_memorymodules.dat'),
-                                               processingModulesFile = cms.FileInPath('L1Trigger/TrackFindingTracklet/data/reduced_processingmodules.dat'),
-                                               wiresFile = cms.FileInPath('L1Trigger/TrackFindingTracklet/data/reduced_wires.dat'),
-    )

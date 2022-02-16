@@ -23,6 +23,7 @@ def reducedConfig(process):
   process.ChannelAssignment.MaxNumProjectionLayers = 4
   # this are tt::Setup::dtcId in order as in process.TTTracksFromTrackletEmulation.processingModulesFile translated by 
   # reverssing naming logic described in L1FPGATrackProducer
+  # TO DO: Eliminate cfg param IRChannelsIn by taking this info from Tracklet wiring map.
   process.ChannelAssignment.IRChannelsIn = cms.vint32( 0, 1, 25, 2, 26, 4, 28, 5, 29, 6, 30, 7, 31, 8, 32, 9, 33 )
   process.TTTracksFromTrackletEmulation.Reduced = True
   process.TTTracksFromTrackletEmulation.memoryModulesFile = 'L1Trigger/TrackFindingTracklet/data/reduced_memorymodules.dat'

@@ -34,13 +34,13 @@ newKFConfig( process )
 #--- Load code that analyzes hybrid emulation 
 process.load( 'L1Trigger.TrackFindingTracklet.Analyzer_cff' )
 # load code that fits hybrid tracks
-process.load( 'L1Trigger.TrackFindingTracklet.ProducerKF_cff' )
+process.load( 'L1Trigger.TrackFindingTracklet.Producer_cff' )
 
 # load and configure TrackTriggerAssociation
 process.load( 'SimTracker.TrackTriggerAssociation.TrackTriggerAssociator_cff' )
 process.TTTrackAssociatorFromPixelDigis.TTTracks = cms.VInputTag( cms.InputTag(
-  process.TrackFindingTrackletProducerKF_params.LabelTT.value(),
-  process.TrackFindingTrackletProducerKF_params.BranchAcceptedTracks.value()
+  process.TrackFindingTrackletProducer_params.LabelTT.value(),
+  process.TrackFindingTrackletProducer_params.BranchAcceptedTracks.value()
 ) )
 
 # build schedule

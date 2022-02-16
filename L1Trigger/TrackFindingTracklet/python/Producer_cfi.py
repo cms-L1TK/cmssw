@@ -1,6 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 
-TrackFindingTrackletProducerKF_params = cms.PSet (
+TrackFindingTrackletProducer_params = cms.PSet (
 
   InputTag             = cms.InputTag( "TTTracksFromTrackletEmulation", "Level1TTTracks"), #
   InputTagDTC          = cms.InputTag( "TrackerDTCProducer", "StubAccepted"),              #
