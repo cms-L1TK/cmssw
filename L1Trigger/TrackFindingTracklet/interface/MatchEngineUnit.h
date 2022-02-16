@@ -1,3 +1,12 @@
+/****************************************************************
+ * MatchEngineUnit (MEU) is a single instance of the MatchEngine
+ * section of the MatchProcessor (MP)
+ * 
+ * Manual pipelining is implemented to properly emulate the HLS
+ * implementation (required to meet II=1)
+ * 
+ * A total of `nMatchEngines_` MEUs are used in the MP
+ ****************************************************************/  
 #ifndef L1Trigger_TrackFindingTracklet_interface_MatchEngineUnit_h
 #define L1Trigger_TrackFindingTracklet_interface_MatchEngineUnit_h
 
@@ -101,6 +110,9 @@ namespace trklet {
     //LUT for bend consistency with rinv
     const TrackletLUT& luttable_;
 
+    //Various manually pipelined variables
+    //Each _ represents a layer of pipelining
+    //e.g., good__ is set and one iteration later good___ is updated
     VMStubME vmstub__, vmstub___;
     bool isPSseed__, isPSseed___;
     bool good__, good___;
