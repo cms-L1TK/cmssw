@@ -780,6 +780,9 @@ namespace trklet {
                                                            {"TC", 108},
                                                            {"PR", 108},
                                                            {"ME", 108},
+                                                           //NOTE: The MC is set to 108, but `mergedepth`
+                                                           //removes 3 iterations to emulate the delay
+                                                           //due to the HLS priority encoder
                                                            {"MC", 108},
                                                            {"TB", 108},
                                                            {"MP", 108},
