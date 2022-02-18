@@ -117,16 +117,16 @@ TrackletProcessorDisplaced::TrackletProcessorDisplaced(string name, Settings con
   }
   assert(iSeed_ != 0);
 
-  firstphibits_ = settings_.nfinephi(0, iSeed_);
+  // firstphibits_ = settings_.nfinephi(0, iSeed_);
 
-  if ((layer2_ == 4 && layer3_ == 2) || (layer2_ == 6 && layer3_ == 4)) {
-    secondphibits_ = settings_.nfinephi(1, iSeed_);
-    thirdphibits_ = settings_.nfinephi(2, iSeed_);
-  }
-  if ((layer2_ == 3 && disk3_ == 1) || (disk2_ == 2 && layer3_ == 2)) {
-    secondphibits_ = settings_.nfinephi(1, iSeed_);
-    thirdphibits_ = settings_.nfinephi(2, iSeed_);
-  }
+  // if ((layer2_ == 4 && layer3_ == 2) || (layer2_ == 6 && layer3_ == 4)) {
+  //   secondphibits_ = settings_.nfinephi(1, iSeed_);
+  //   thirdphibits_ = settings_.nfinephi(2, iSeed_);
+  // }
+  // if ((layer2_ == 3 && disk3_ == 1) || (disk2_ == 2 && layer3_ == 2)) {
+  //   secondphibits_ = settings_.nfinephi(1, iSeed_);
+  //   thirdphibits_ = settings_.nfinephi(2, iSeed_);
+  // }
 
 
   TCIndex_ = (iSeed_ << 4) + iTC;
@@ -384,9 +384,9 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
 		  << "In " << getName() << " have second stub(1) " << ibin << " " << j << std::endl;
 	      }
 
-	      if (countall >= settings_.maxStep("TE"))
-		break;
-	      countall++;
+	      // if (countall >= settings_.maxStep("TE"))
+	      // 	break;
+	      // countall++;
 	      const VMStubTE& secondvmstub = outervmstubs_.at(m)->getVMStubTEBinned(ibin,j);
 
 	    
@@ -402,8 +402,8 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
 		continue;
 	      }
 
-	      assert(firstphibits_ != -1);
-	      assert(secondphibits_ != -1);
+	      // assert(firstphibits_ != -1);
+	      // assert(secondphibits_ != -1);
 
 	      // FPGAWord iphifirstbin = finephi;
 	      // FPGAWord iphisecondbin = secondvmstub.finephi();
@@ -470,8 +470,8 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
 			  << "In " << getName() << " have third stub\n";
 		      }
 
-		      if (countall_ >= settings_.maxStep("TRE"))
-			break;
+		      // if (countall_ >= settings_.maxStep("TRE"))
+		      // 	break;
 		      countall_++;
 
 
@@ -479,7 +479,7 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
 		    
 		      // std::cout << thirdnewvmstub.stub()->strbare() <<std::endl;
 
-		      assert(thirdphibits_ != -1);
+		      // assert(thirdphibits_ != -1);
 
 		      // unsigned int nvmsecond = settings_.nallstubs(layer2_ - 1) * settings_.nvmte(1, iSeed_);
 		      // unsigned int nvmbitssecond = nbits(nvmsecond);
@@ -496,7 +496,6 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
 
 		      // index_ = (index_ << secondbend.nbits()) + secondbend.value();
 		      // index_ = (index_ << thirdbend.nbits()) + thirdbend.value();
-
 		      
 		      countpass_++;
 
@@ -594,8 +593,8 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
 		  << "In " << getName() << " have second stub(1) " << ibin << " " << j;
 	      }
 
-	      if (countall >= settings_.maxStep("TE"))
-		break;
+	      // if (countall >= settings_.maxStep("TE"))
+	      // 	break;
 	      countall++;
 	      const VMStubTE& secondvmstub = outervmstubs_.at(m)->getVMStubTEBinned(ibin,j);
 
@@ -611,8 +610,8 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
 		continue;
 	      }
 
-	      assert(firstphibits_ != -1);
-	      assert(secondphibits_ != -1);
+	      // assert(firstphibits_ != -1);
+	      // assert(secondphibits_ != -1);
 
 	      // FPGAWord iphifirstbin = finephi;
 	      // FPGAWord iphisecondbin = secondvmstub.finephi();
@@ -664,14 +663,14 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
 			  << "In " << getName() << " have third stub";
 		      }
 
-		      if (countall_ >= settings_.maxStep("TRE"))
-			break;
+		      // if (countall_ >= settings_.maxStep("TRE"))
+		      // 	break;
 		      countall_++;
 
 
 		      const VMStubTE &thirdvmstub = innervmstubs_.at(k)->getVMStubTEBinned(ibin_, l);
 		    
-		      assert(thirdphibits_ != -1);
+		      // assert(thirdphibits_ != -1);
 
 	    
 		      // unsigned int nvmsecond = settings_.nallstubs(layer2_ - 1) * settings_.nvmte(1, iSeed_);
@@ -784,8 +783,8 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
 	    for (unsigned int j = 0; j < outervmstubs_.at(m)->nVMStubsBinned(ibin); j++) {
 
 
-	      if (countall >= settings_.maxStep("TE"))
-		break;
+	      // if (countall >= settings_.maxStep("TE"))
+	      // 	break;
 	      countall++;
 
 	      const VMStubTE& secondvmstub = outervmstubs_.at(m)->getVMStubTEBinned(ibin, j);
@@ -855,13 +854,13 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
 	      		  << "In " << getName() << " have third stub";
 	      	      }
 
-	      	      if (countall_ >= settings_.maxStep("TRE"))
-	      		break;
+	      	      // if (countall_ >= settings_.maxStep("TRE"))
+	      	      // 	break;
 	      	      countall_++;
 
 	      	      const VMStubTE &thirdvmstub = innervmstubs_.at(k)->getVMStubTEBinned(ibin_, l);
 		    
-	      	      assert(thirdphibits_ != -1);
+	      	      // assert(thirdphibits_ != -1);
 
 	      	      // FPGAWord iphithirdbin = thirdvmstub.finephi();
 
@@ -900,7 +899,8 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
 	      		std::cout
 	      		  << "TrackletCalculatorDisplaced execute " << getName() << "[" << iSector_ << "]";
 
-
+		      // std::cout.flush();
+ 
 	      // 	      // if (innerFPGAStub->layerdisk() < N_LAYER && middleFPGAStub->layerdisk() >= N_LAYER && outerFPGAStub->layerdisk() >= N_LAYER) {  //D1D2L2
 	      // 	      // 	bool accept = DDLSeeding(innerFPGAStub, innerStub, middleFPGAStub, middleStub, outerFPGAStub, outerStub);
 	      // 	      // 	if (accept)
@@ -909,9 +909,11 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
               //         //   throw cms::Exception("LogicError") << __FILE__ << " " << __LINE__ << " Invalid seeding!";
 	      // 	      // }
 
-	      	      bool accept = DDLSeeding(innerFPGAStub, innerStub, middleFPGAStub, middleStub, outerFPGAStub, outerStub);
-	      	      if (accept)
-	      		countsel++;
+		      // bool accept = DDLSeeding(innerFPGAStub, innerStub, middleFPGAStub, middleStub, outerFPGAStub, outerStub);
+		      bool accept = DDLSeeding(outerFPGAStub, outerStub, innerFPGAStub, innerStub, middleFPGAStub, middleStub);
+
+		      if (accept)
+			countsel++; 
 
 
 	      	      if (settings_.debugTracklet())
