@@ -428,6 +428,10 @@ namespace trklet {
       return bendcut;
     }
 
+    // DTC in given ATCA crate slot.
+    std::string slotToDTCname(unsigned int slot) const {return slotToDTCname_.at(slot);}
+
+    // Tracker layers read by given DTC.
     const std::vector<int>& dtcLayers(const std::string& dtcName) const {
       auto iter = dtclayers_.find(dtcName);
       assert(iter != dtclayers_.end());
@@ -496,6 +500,8 @@ namespace trklet {
         {{{2, 2, 2, 2, 2, 2, 1, 1, 2, 2, 3, 2}},  // (3 = #stubs/triplet, only row 1+2 used for tracklet)
          {{3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2, 2}},
          {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1}}}};
+
+    std::vector<std::string> slotToDTCname_{"PS10G_1","PS10G_2","PS10G_3","PS10G_4","PS_1","PS_2","2S_1","2S_2","2S_3","2S_4","2S_5","2S_6"};
 
     std::map<std::string, std::vector<int> > dtclayers_{{"PS10G_1", {0, 6, 8, 10}},
                                                         {"PS10G_2", {0, 7, 9}},
