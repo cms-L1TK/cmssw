@@ -272,12 +272,12 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
   std::cout << "layer 1: " << layer1_ << " layer 2: " << layer2_ << " layer 3: " <<  layer3_ << std::endl;
   std::cout << "disk 1: " << disk1_ << " disk 2: " << disk2_ << " disk 3: " <<  disk3_ << std::endl;
 
-  if ((layer1_ == 3 && layer2_ == 4) || (layer1_ == 5 && layer2_ == 6)) 
-    std::cout << "Found L3L4 or L5L6" << std::endl;
-  else if (layer1_ == 2 && layer2_ == 3)
-    std::cout << "Found L2L3" << std::endl;
-  else if (disk1_ == 1 && disk2_ == 2)
-    std::cout << "Found D1D2" << std::endl;
+  // if ((layer1_ == 3 && layer2_ == 4) || (layer1_ == 5 && layer2_ == 6)) 
+  //   std::cout << "Found L3L4 or L5L6" << std::endl;
+  // else if (layer1_ == 2 && layer2_ == 3)
+  //   std::cout << "Found L2L3" << std::endl;
+  // else if (disk1_ == 1 && disk2_ == 2)
+  //   std::cout << "Found D1D2" << std::endl;
 
   for (auto& iInnerMem : middleallstubs_){
     assert(iInnerMem->nStubs() == iInnerMem->nStubs());
@@ -532,7 +532,9 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
 			//barrel+barrel seeding
 		      
 			// bool accept = true;
-			bool accept = LLLSeeding(innerFPGAStub, innerStub, middleFPGAStub, middleStub, outerFPGAStub, outerStub);
+			// bool accept = LLLSeeding(innerFPGAStub, innerStub, middleFPGAStub, middleStub, outerFPGAStub, outerStub);
+			bool accept = LLLSeeding(outerFPGAStub, outerStub, innerFPGAStub, innerStub, middleFPGAStub, middleStub);
+
 			if (accept)
 			  countsel++;
 		      } else if (innerFPGAStub->layerdisk() >= N_LAYER && middleFPGAStub->layerdisk() >= N_LAYER && outerFPGAStub->layerdisk() >= N_LAYER) {
