@@ -180,9 +180,6 @@ namespace trklet {
     //FitTrack module name
     std::string FTName(unsigned int l1, unsigned int l2, unsigned int l3) const;
 
-    //TrackletCalculator name
-    std::string TCNAme(unsigned int iseed, unsigned int iTC) const;
-
     //
     // This group of methods are used to print out the configuration as a file
     //

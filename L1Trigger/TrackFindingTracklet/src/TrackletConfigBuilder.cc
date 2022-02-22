@@ -452,10 +452,6 @@ std::string TrackletConfigBuilder::STName(unsigned int l1,
          iRegStr(ireg3, iseed) + "_" + numStr(count);
 }
 
-std::string TrackletConfigBuilder::TCNAme(unsigned int iseed, unsigned int iTC) const {
-  return "TC_" + iSeedStr(iseed) + iTCStr(iTC);
-}
-
 void TrackletConfigBuilder::writeSPMemories(std::ostream& os, std::ostream& memories, std::ostream& modules) {
   if (combinedmodules_)
     return;
@@ -479,7 +475,7 @@ void TrackletConfigBuilder::writeSPMemories(std::ostream& os, std::ostream& memo
 
         os << SPName(l1, TE1 / NVMTE_[iSeed].first, TE1, l2, TE2 / NVMTE_[iSeed].second, TE2, iSeed) << " input=> "
            << TEName(l1, TE1 / NVMTE_[iSeed].first, TE1, l2, TE2 / NVMTE_[iSeed].second, TE2, iSeed)
-           << ".stubpairout output=> " << TCNAme(iSeed, iTC) << ".stubpairin" << std::endl;
+           << ".stubpairout output=> " << TCName(iSeed, iTC) << ".stubpairin" << std::endl;
       }
     }
   }
