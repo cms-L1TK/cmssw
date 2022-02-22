@@ -1061,6 +1061,7 @@ void TrackletConfigBuilder::writeCTMemories(std::ostream& os, std::ostream& memo
 
 void TrackletConfigBuilder::writeILMemories(std::ostream& os, std::ostream& memories, std::ostream& modules) {
   //FIXME these should not be hardcoded - but for now wanted to avoid reading file
+  //Possible solution  https://github.com/tomalin/cmssw/blob/ian_TxtFiles/TrackFindingTrackletHLS/src/TxtFileWriter.cc#L28
   constexpr unsigned int nSize = 52;
   string dtcname[nSize];
   unsigned int layerdisk[nSize];
