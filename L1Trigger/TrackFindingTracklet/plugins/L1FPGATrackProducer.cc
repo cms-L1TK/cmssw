@@ -231,10 +231,6 @@ L1FPGATrackProducer::L1FPGATrackProducer(edm::ParameterSet const& iConfig)
   }
 
   produces<std::vector<TTTrack<Ref_Phase2TrackerDigi_>>>("Level1TTTracks").setBranchAlias("Level1TTTracks");
-  // book ED output token for clock and bit accurate TrackBuilder tracks
-  edPutTokenTracks_ = produces<Streams>("Level1TTTracks");
-  // book ED output token for clock and bit accurate TrackBuilder stubs
-  edPutTokenStubs_ = produces<StreamsStub>("Level1TTTracks");
 
   asciiEventOutName_ = iConfig.getUntrackedParameter<string>("asciiFileName", "");
 
