@@ -501,6 +501,8 @@ namespace trklet {
          {{3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2, 2}},
          {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1}}}};
 
+    // FIX: There should be 3 PS10G slots & 3 PS (5G) ones.
+    // (Will change output files used by HLS).
     std::vector<std::string> slotToDTCname_{"PS10G_1","PS10G_2","PS10G_3","PS10G_4","PS_1","PS_2","2S_1","2S_2","2S_3","2S_4","2S_5","2S_6"};
 
     std::map<std::string, std::vector<int> > dtclayers_{{"PS10G_1", {0, 6, 8, 10}},
