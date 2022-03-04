@@ -6,14 +6,19 @@
 #include <fstream>
 #include <cstdlib>
 #include <cassert>
+#include <mutex>
 
 #include "L1Trigger/TrackFindingTracklet/interface/TrackletConfigBuilder.h"
 #include "L1Trigger/TrackFindingTracklet/interface/Settings.h"
+#ifdef CMSSW_GIT_HASH
+#include "L1Trigger/TrackFindingTracklet/interface/Util.h"
+#include "L1Trigger/TrackTrigger/interface/Setup.h"
+#endif
 
 using namespace std;
 using namespace trklet;
 
-TrackletConfigBuilder::TrackletConfigBuilder(const Settings& settings) : settings_(settings) {
+TrackletConfigBuilder::TrackletConfigBuilder(const Settings& settings, const tt::Setup* setup) : settings_(settings) {
   NSector_ = N_SECTOR;
   rcrit_ = settings.rcrit();
 
@@ -53,7 +58,114 @@ TrackletConfigBuilder::TrackletConfigBuilder(const Settings& settings) : setting
   buildTC();
 
   buildProjections();
+
+  setDTCphirange(setup);
+
+  if (settings_.writeConfig()) {
+    static std::once_flag runOnce; // Only one thread should call this.
+    std::call_once(runOnce, &TrackletConfigBuilder::writeDTCphirange, this);
+  }
 }
+
+//--- Calculate phi range of modules read by each DTC.
+
+#ifdef CMSSW_GIT_HASH
+
+void TrackletConfigBuilder::setDTCphirange(const tt::Setup* setup) { 
+
+  list<DTCinfo> vecDTCinfo_unsorted;
+
+  // Loop over DTCs in this tracker nonant.
+  unsigned int numDTCsPerSector = setup->numDTCsPerRegion();
+  for (unsigned int dtcId = 0; dtcId < numDTCsPerSector; dtcId++) {
+    typedef std::pair<float,float> PhiRange;
+    std::map<int, PhiRange> dtcPhiRange;
+
+    // Loop over all tracker nonants, taking worst case not all identical.
+    for (unsigned int iSector = 0; iSector < N_SECTOR; iSector++) {
+      unsigned int dtcId_regI = iSector * numDTCsPerSector + dtcId;
+      const std::vector<tt::SensorModule*>& dtcModules = setup->dtcModules(dtcId_regI);
+      for (const tt::SensorModule* sm : dtcModules) {
+        // Convert layer number to Hybrid convention.
+        int layer = sm->layerId(); // Barrel = 1-6, Endcap = 11-15;
+        if (sm->barrel()) {
+          layer--; // Barrel 0-5
+        } else {
+          const int endcapOffsetHybrid = 5;
+          layer -= endcapOffsetHybrid; // Layer 6-19
+        }
+        // Inner radius of module.
+        float r = sm->r() - 0.5 * sm->numColumns()*sm->pitchCol()*fabs(sm->sinTilt());
+        // phi with respect to tracker nonant centre.
+        float phiMin = sm->phi() - 0.5*sm->numRows()*sm->pitchRow() / r;
+        float phiMax = sm->phi() + 0.5*sm->numRows()*sm->pitchRow() / r;
+        // Hybrid measures phi w.r.t. lower edge of tracker nonant.
+        const float phiOffsetHybrid = M_PI/N_SECTOR;
+        phiMin += phiOffsetHybrid;
+        phiMax += phiOffsetHybrid;
+        if (dtcPhiRange.find(layer) == dtcPhiRange.end()) {
+          dtcPhiRange[layer] = {phiMin, phiMax};
+        } else {
+          dtcPhiRange.at(layer).first  = std::min(phiMin, dtcPhiRange.at(layer).first);
+          dtcPhiRange.at(layer).second = std::max(phiMax, dtcPhiRange.at(layer).second);
+        }
+      }
+    }
+    for (const auto& p : dtcPhiRange) {
+      const unsigned int numSlots = setup->numATCASlots();
+      std::string dtcName = settings_.slotToDTCname(dtcId%numSlots);
+      if (dtcId >= numSlots) dtcName = "neg" + dtcName;
+      DTCinfo info;
+      info.name = dtcName;
+      info.layer = p.first;
+      info.phimin = p.second.first;
+      info.phimax = p.second.second;
+      vecDTCinfo_unsorted.push_back(info);
+    }
+  }
+
+  // Put DTCinfo vector in traditional order (PS first). (Needed?)
+  for (const DTCinfo& info : vecDTCinfo_unsorted) {
+    string dtcname = info.name;
+    if (dtcname.find("PS") != std::string::npos) {
+      vecDTCinfo_.push_back(info);
+    }
+  }
+  for (const DTCinfo& info : vecDTCinfo_unsorted) {
+    string dtcname = info.name;
+    if (dtcname.find("PS") == std::string::npos) {
+      vecDTCinfo_.push_back(info);
+    }
+  }
+}
+
+//--- Write DTC phi ranges to file to support stand-alone emulation.
+//--- (Only needed to support stand-alone emulation)
+
+void TrackletConfigBuilder::writeDTCphirange() const {
+  bool first = true;
+  for (const DTCinfo& info : vecDTCinfo_) {
+    string dirName = settings_.tablePath();
+    string fileName = dirName + "../dtcphirange.dat";
+    std::ofstream out;
+    openfile(out, first, dirName, fileName, __FILE__, __LINE__);
+    if (first) {
+      out<<"// phi ranges of modules read by each DTC"<<endl;
+      out<<"// (Used by stand-alone emulation)"<<endl;
+    }
+    out<<"vecDTCinfo_.push_back( {"""<<info.name<<""", "<<info.layer<<", "<<info.phimin<<", "<<info.phimax<<"} );"<<endl;
+    out.close();
+    first = false;
+  }
+}
+
+#else
+
+void TrackletConfigBuilder::setDTCphirange(const tt::Setup* setup) {
+#include "L1Trigger/TrackFindingTracklet/data/dtcphirange.txt"
+}
+
+#endif
 
 std::pair<unsigned int, unsigned int> TrackletConfigBuilder::seedLayers(unsigned int iSeed) {
   return std::pair<unsigned int, unsigned int>(settings_.seedlayers(0, iSeed), settings_.seedlayers(1, iSeed));
@@ -1056,261 +1168,48 @@ void TrackletConfigBuilder::writeCTMemories(std::ostream& os, std::ostream& memo
 }
 
 void TrackletConfigBuilder::writeILMemories(std::ostream& os, std::ostream& memories, std::ostream& modules) {
-  //FIXME these should not be hardcoded - but for now wanted to avoid reading file
-  //Possible solution  https://github.com/tomalin/cmssw/blob/ian_TxtFiles/TrackFindingTrackletHLS/src/TxtFileWriter.cc#L28
-  constexpr unsigned int nSize = 52;
-  string dtcname[nSize];
-  unsigned int layerdisk[nSize];
-  double phimin[nSize];
-  double phimax[nSize];
-
-  dtcname[0] = "PS10G_1";
-  layerdisk[0] = 0;
-  phimin[0] = 0.304273;
-  phimax[0] = 0.742925;
-  dtcname[1] = "PS10G_1";
-  layerdisk[1] = 6;
-  phimin[1] = -0.185672;
-  phimax[1] = 0.883803;
-  dtcname[2] = "PS10G_1";
-  layerdisk[2] = 8;
-  phimin[2] = -0.132414;
-  phimax[2] = 0.830545;
-  dtcname[3] = "PS10G_1";
-  layerdisk[3] = 10;
-  phimin[3] = -0.132414;
-  phimax[3] = 0.830545;
-  dtcname[4] = "PS10G_2";
-  layerdisk[4] = 0;
-  phimin[4] = -0.0133719;
-  phimax[4] = 0.715599;
-  dtcname[5] = "PS10G_2";
-  layerdisk[5] = 7;
-  phimin[5] = -0.110089;
-  phimax[5] = 0.808221;
-  dtcname[6] = "PS10G_2";
-  layerdisk[6] = 9;
-  phimin[6] = -0.132414;
-  phimax[6] = 0.830545;
-  dtcname[7] = "PS10G_3";
-  layerdisk[7] = 1;
-  phimin[7] = -0.11381;
-  phimax[7] = 0.822812;
-  dtcname[8] = "PS10G_3";
-  layerdisk[8] = 7;
-  phimin[8] = -0.185672;
-  phimax[8] = 0.883803;
-  dtcname[9] = "PS10G_4";
-  layerdisk[9] = 6;
-  phimin[9] = -0.0823971;
-  phimax[9] = 0.780529;
-  dtcname[10] = "PS10G_4";
-  layerdisk[10] = 8;
-  phimin[10] = -0.0963091;
-  phimax[10] = 0.794441;
-  dtcname[11] = "PS10G_4";
-  layerdisk[11] = 10;
-  phimin[11] = -0.0963091;
-  phimax[11] = 0.794441;
-  dtcname[12] = "PS_1";
-  layerdisk[12] = 2;
-  phimin[12] = 0.0827748;
-  phimax[12] = 0.615357;
-  dtcname[13] = "PS_1";
-  layerdisk[13] = 7;
-  phimin[13] = -0.0823971;
-  phimax[13] = 0.780529;
-  dtcname[14] = "PS_2";
-  layerdisk[14] = 2;
-  phimin[14] = -0.0917521;
-  phimax[14] = 0.614191;
-  dtcname[15] = "PS_2";
-  layerdisk[15] = 9;
-  phimin[15] = -0.0963091;
-  phimax[15] = 0.794441;
-  dtcname[16] = "negPS10G_1";
-  layerdisk[16] = 0;
-  phimin[16] = -0.023281;
-  phimax[16] = 0.372347;
-  dtcname[17] = "negPS10G_1";
-  layerdisk[17] = 6;
-  phimin[17] = -0.185672;
-  phimax[17] = 0.883803;
-  dtcname[18] = "negPS10G_1";
-  layerdisk[18] = 8;
-  phimin[18] = -0.132414;
-  phimax[18] = 0.830545;
-  dtcname[19] = "negPS10G_1";
-  layerdisk[19] = 10;
-  phimin[19] = -0.132414;
-  phimax[19] = 0.830545;
-  dtcname[20] = "negPS10G_2";
-  layerdisk[20] = 0;
-  phimin[20] = -0.0133719;
-  phimax[20] = 0.715599;
-  dtcname[21] = "negPS10G_2";
-  layerdisk[21] = 7;
-  phimin[21] = -0.110089;
-  phimax[21] = 0.808221;
-  dtcname[22] = "negPS10G_2";
-  layerdisk[22] = 9;
-  phimin[22] = -0.132414;
-  phimax[22] = 0.830545;
-  dtcname[23] = "negPS10G_3";
-  layerdisk[23] = 1;
-  phimin[23] = -0.115834;
-  phimax[23] = 0.813823;
-  dtcname[24] = "negPS10G_3";
-  layerdisk[24] = 7;
-  phimin[24] = -0.185672;
-  phimax[24] = 0.883803;
-  dtcname[25] = "negPS10G_4";
-  layerdisk[25] = 6;
-  phimin[25] = -0.0823971;
-  phimax[25] = 0.780529;
-  dtcname[26] = "negPS10G_4";
-  layerdisk[26] = 8;
-  phimin[26] = -0.0963091;
-  phimax[26] = 0.794441;
-  dtcname[27] = "negPS10G_4";
-  layerdisk[27] = 10;
-  phimin[27] = -0.0963091;
-  phimax[27] = 0.794441;
-  dtcname[28] = "negPS_1";
-  layerdisk[28] = 2;
-  phimin[28] = -0.0961318;
-  phimax[28] = 0.445198;
-  dtcname[29] = "negPS_1";
-  layerdisk[29] = 7;
-  phimin[29] = -0.0823971;
-  phimax[29] = 0.780529;
-  dtcname[30] = "negPS_2";
-  layerdisk[30] = 2;
-  phimin[30] = -0.0917521;
-  phimax[30] = 0.614191;
-  dtcname[31] = "negPS_2";
-  layerdisk[31] = 9;
-  phimin[31] = -0.0963091;
-  phimax[31] = 0.794441;
-  dtcname[32] = "2S_1";
-  layerdisk[32] = 3;
-  phimin[32] = -0.0246209;
-  phimax[32] = 0.763311;
-  dtcname[33] = "2S_1";
-  layerdisk[33] = 4;
-  phimin[33] = 0.261875;
-  phimax[33] = 0.403311;
-  dtcname[34] = "2S_2";
-  layerdisk[34] = 4;
-  phimin[34] = -0.0542445;
-  phimax[34] = 0.715509;
-  dtcname[35] = "2S_3";
-  layerdisk[35] = 5;
-  phimin[35] = 0.0410126;
-  phimax[35] = 0.730605;
-  dtcname[36] = "2S_4";
-  layerdisk[36] = 5;
-  phimin[36] = -0.0428961;
-  phimax[36] = 0.693862;
-  dtcname[37] = "2S_4";
-  layerdisk[37] = 8;
-  phimin[37] = -0.0676705;
-  phimax[37] = 0.765802;
-  dtcname[38] = "2S_5";
-  layerdisk[38] = 6;
-  phimin[38] = -0.0648206;
-  phimax[38] = 0.762952;
-  dtcname[39] = "2S_5";
-  layerdisk[39] = 9;
-  phimin[39] = -0.0676705;
-  phimax[39] = 0.765802;
-  dtcname[40] = "2S_6";
-  layerdisk[40] = 7;
-  phimin[40] = -0.0648206;
-  phimax[40] = 0.762952;
-  dtcname[41] = "2S_6";
-  layerdisk[41] = 10;
-  phimin[41] = -0.0676705;
-  phimax[41] = 0.765802;
-  dtcname[42] = "neg2S_1";
-  layerdisk[42] = 3;
-  phimin[42] = -0.0246209;
-  phimax[42] = 0.763311;
-  dtcname[43] = "neg2S_1";
-  layerdisk[43] = 4;
-  phimin[43] = 0.261875;
-  phimax[43] = 0.403311;
-  dtcname[44] = "neg2S_2";
-  layerdisk[44] = 4;
-  phimin[44] = -0.0542445;
-  phimax[44] = 0.715509;
-  dtcname[45] = "neg2S_3";
-  layerdisk[45] = 5;
-  phimin[45] = 0.0410126;
-  phimax[45] = 0.730605;
-  dtcname[46] = "neg2S_4";
-  layerdisk[46] = 5;
-  phimin[46] = -0.0428961;
-  phimax[46] = 0.693862;
-  dtcname[47] = "neg2S_4";
-  layerdisk[47] = 8;
-  phimin[47] = -0.06767;
-  phimax[47] = 0.765802;
-  dtcname[48] = "neg2S_5";
-  layerdisk[48] = 6;
-  phimin[48] = -0.0648201;
-  phimax[48] = 0.762952;
-  dtcname[49] = "neg2S_5";
-  layerdisk[49] = 9;
-  phimin[49] = -0.06767;
-  phimax[49] = 0.765802;
-  dtcname[50] = "neg2S_6";
-  layerdisk[50] = 7;
-  phimin[50] = -0.0648201;
-  phimax[50] = 0.762952;
-  dtcname[51] = "neg2S_6";
-  layerdisk[51] = 10;
-  phimin[51] = -0.06767;
-  phimax[51] = 0.765802;
 
   double dphi = 0.5 * dphisectorHG_ - M_PI / NSector_;
 
   string olddtc = "";
-  for (unsigned int i = 0; i < nSize; i++) {
-    if (olddtc != dtcname[i]) {
-      modules << "InputRouter: IR_" << dtcname[i] << "_A" << std::endl;
-      modules << "InputRouter: IR_" << dtcname[i] << "_B" << std::endl;
-      memories << "DTCLink: DL_" << dtcname[i] << "_A [36]" << std::endl;
-      memories << "DTCLink: DL_" << dtcname[i] << "_B [36]" << std::endl;
-      os << "DL_" << dtcname[i] << "_A"
-         << " input=> output=> IR_" << dtcname[i] << "_A.stubin" << std::endl;
-      os << "DL_" << dtcname[i] << "_B"
-         << " input=> output=> IR_" << dtcname[i] << "_B.stubin" << std::endl;
+  for (const DTCinfo& info : vecDTCinfo_) {
+    string dtcname = info.name;
+    if (olddtc != dtcname) {
+      modules << "InputRouter: IR_" << dtcname << "_A" << std::endl;
+      modules << "InputRouter: IR_" << dtcname << "_B" << std::endl;
+      memories << "DTCLink: DL_" << dtcname << "_A [36]" << std::endl;
+      memories << "DTCLink: DL_" << dtcname << "_B [36]" << std::endl;
+      os << "DL_" << dtcname << "_A"
+         << " input=> output=> IR_" << dtcname << "_A.stubin" << std::endl;
+      os << "DL_" << dtcname << "_B"
+         << " input=> output=> IR_" << dtcname << "_B.stubin" << std::endl;
     }
-    olddtc = dtcname[i];
+    olddtc = dtcname;
   }
 
-  for (unsigned int i = 0; i < nSize; i++) {
-    double phimintmp = phimin[i] + dphi;
-    double phimaxtmp = phimax[i] + dphi;
+  for (const DTCinfo& info : vecDTCinfo_) {
+    string dtcname = info.name;
+    int layerdisk = info.layer;
+    double phimintmp = info.phimin + dphi;
+    double phimaxtmp = info.phimax + dphi;
 
-    for (unsigned int iReg = 0; iReg < NRegions_[layerdisk[i]]; iReg++) {
-      if (allStubs_[layerdisk[i]][iReg].first > phimaxtmp && allStubs_[layerdisk[i]][iReg].second < phimintmp)
+    for (unsigned int iReg = 0; iReg < NRegions_[layerdisk]; iReg++) {
+      if (allStubs_[layerdisk][iReg].first > phimaxtmp && allStubs_[layerdisk][iReg].second < phimintmp)
         continue;
 
-      if (allStubs_[layerdisk[i]][iReg].second < phimaxtmp) {
-        memories << "InputLink: IL_" << LayerName(layerdisk[i]) << "PHI" << iTCStr(iReg) << "_" << dtcname[i] << "_A"
+      if (allStubs_[layerdisk][iReg].second < phimaxtmp) {
+        memories << "InputLink: IL_" << LayerName(layerdisk) << "PHI" << iTCStr(iReg) << "_" << dtcname << "_A"
                  << " [36]" << std::endl;
-        os << "IL_" << LayerName(layerdisk[i]) << "PHI" << iTCStr(iReg) << "_" << dtcname[i] << "_A"
-           << " input=> IR_" << dtcname[i] << "_A.stubout output=> VMR_" << LayerName(layerdisk[i]) << "PHI"
+        os << "IL_" << LayerName(layerdisk) << "PHI" << iTCStr(iReg) << "_" << dtcname << "_A"
+           << " input=> IR_" << dtcname << "_A.stubout output=> VMR_" << LayerName(layerdisk) << "PHI"
            << iTCStr(iReg) << ".stubin" << std::endl;
       }
 
-      if (allStubs_[layerdisk[i]][iReg].first > phimintmp) {
-        memories << "InputLink: IL_" << LayerName(layerdisk[i]) << "PHI" << iTCStr(iReg) << "_" << dtcname[i] << "_B"
+      if (allStubs_[layerdisk][iReg].first > phimintmp) {
+        memories << "InputLink: IL_" << LayerName(layerdisk) << "PHI" << iTCStr(iReg) << "_" << dtcname << "_B"
                  << " [36]" << std::endl;
-        os << "IL_" << LayerName(layerdisk[i]) << "PHI" << iTCStr(iReg) << "_" << dtcname[i] << "_B"
-           << " input=> IR_" << dtcname[i] << "_B.stubout output=> VMR_" << LayerName(layerdisk[i]) << "PHI"
+        os << "IL_" << LayerName(layerdisk) << "PHI" << iTCStr(iReg) << "_" << dtcname << "_B"
+           << " input=> IR_" << dtcname << "_B.stubout output=> VMR_" << LayerName(layerdisk) << "PHI"
            << iTCStr(iReg) << ".stubin" << std::endl;
       }
     }
