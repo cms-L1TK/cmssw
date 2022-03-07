@@ -100,7 +100,7 @@ void TrackletConfigBuilder::setDTCphirange(const tt::Setup* setup) {
         float phiMin = sm->phi() - 0.5*sm->numRows()*sm->pitchRow() / r;
         float phiMax = sm->phi() + 0.5*sm->numRows()*sm->pitchRow() / r;
         // Hybrid measures phi w.r.t. lower edge of tracker nonant.
-        const float phiOffsetHybrid = M_PI/N_SECTOR;
+        const float phiOffsetHybrid = 0.5 * dphisectorHG_;
         phiMin += phiOffsetHybrid;
         phiMax += phiOffsetHybrid;
         if (dtcPhiRange.find(layer) == dtcPhiRange.end()) {
@@ -1214,20 +1214,18 @@ void TrackletConfigBuilder::writeILMemories(std::ostream& os, std::ostream& memo
     olddtc = dtcname;
   }
 
-  const double dphi = 0.5 * dphisectorHG_ - M_PI / NSector_;
-
   for (const DTCinfo& info : vecDTCinfo_) {
     string dtcname = info.name;
     int layerdisk = info.layer;
-    double phimintmp = info.phimin + dphi; // Phi range of each DTC.
-    double phimaxtmp = info.phimax + dphi;
+    double phiminDTC = info.phimin; // Phi range of each DTC.
+    double phimaxDTC = info.phimax;
 
     for (unsigned int iReg = 0; iReg < NRegions_[layerdisk]; iReg++) {
-      if (allStubs_[layerdisk][iReg].first > phimaxtmp && allStubs_[layerdisk][iReg].second < phimintmp)
+      if (allStubs_[layerdisk][iReg].first > phimaxDTC && allStubs_[layerdisk][iReg].second < phiminDTC)
         continue;
 
       // Phi region range must be entirely contained in this DTC to keep this connection.
-      if (allStubs_[layerdisk][iReg].second < phimaxtmp) {
+      if (allStubs_[layerdisk][iReg].second < phimaxDTC) {
         memories << "InputLink: IL_" << LayerName(layerdisk) << "PHI" << iTCStr(iReg) << "_" << dtcname << "_A"
                  << " [36]" << std::endl;
         os << "IL_" << LayerName(layerdisk) << "PHI" << iTCStr(iReg) << "_" << dtcname << "_A"
@@ -1235,7 +1233,7 @@ void TrackletConfigBuilder::writeILMemories(std::ostream& os, std::ostream& memo
            << iTCStr(iReg) << ".stubin" << std::endl;
       }
 
-      if (allStubs_[layerdisk][iReg].first > phimintmp) {
+      if (allStubs_[layerdisk][iReg].first > phiminDTC) {
         memories << "InputLink: IL_" << LayerName(layerdisk) << "PHI" << iTCStr(iReg) << "_" << dtcname << "_B"
                  << " [36]" << std::endl;
         os << "IL_" << LayerName(layerdisk) << "PHI" << iTCStr(iReg) << "_" << dtcname << "_B"
