@@ -129,7 +129,7 @@ namespace trklet {
                        unsigned int ivm2,
                        unsigned int iseed) const;
 
-    //StubPaur displaced name
+    //StubPair displaced name
     std::string SPDName(unsigned int l1,
                         unsigned int ireg1,
                         unsigned int ivm1,

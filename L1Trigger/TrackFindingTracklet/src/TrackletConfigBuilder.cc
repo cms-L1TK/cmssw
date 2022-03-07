@@ -167,9 +167,13 @@ void TrackletConfigBuilder::setDTCphirange(const tt::Setup* setup) {
 
 #endif
 
+//--- Helper fcn. to get the layers/disks for a seed
+
 std::pair<unsigned int, unsigned int> TrackletConfigBuilder::seedLayers(unsigned int iSeed) {
   return std::pair<unsigned int, unsigned int>(settings_.seedlayers(0, iSeed), settings_.seedlayers(1, iSeed));
 }
+
+//--- Method to initialize the regions and VM in each layer
 
 void TrackletConfigBuilder::initGeom() {
   for (unsigned int ilayer = 0; ilayer < N_LAYER + N_DISK; ilayer++) {
@@ -177,6 +181,7 @@ void TrackletConfigBuilder::initGeom() {
     for (unsigned int iReg = 0; iReg < NRegions_[ilayer]; iReg++) {
       std::vector<std::pair<unsigned int, unsigned int> > emptyVec;
       projections_[ilayer].push_back(emptyVec);
+      // FIX: sector doesn't have hourglass shape
       double phimin = dphi * iReg;
       double phimax = phimin + dphi;
       std::pair<double, double> tmp(phimin, phimax);
@@ -212,6 +217,8 @@ void TrackletConfigBuilder::initGeom() {
   }
 }
 
+//--- Helper fcn to get the radii of the two layers in a seed
+
 std::pair<double, double> TrackletConfigBuilder::seedRadii(unsigned int iseed) {
   std::pair<unsigned int, unsigned int> seedlayers = seedLayers(iseed);
 
@@ -224,7 +231,7 @@ std::pair<double, double> TrackletConfigBuilder::seedRadii(unsigned int iseed) {
     r1 = rmean_[l1];
     r2 = rmean_[l2];
   } else if (iseed < 6) {   //disk seeding
-    r1 = rmean_[0] + 40.0;  //Somwwhat of a hack - but allows finding all the regions
+    r1 = rmean_[0] + 40.0;  //FIX: Somewhat of a hack - but allows finding all the regions
     //when projecting to L1
     r2 = r1 * zmean_[l2 - 6] / zmean_[l1 - 6];
   } else {  //overlap seeding
@@ -234,6 +241,8 @@ std::pair<double, double> TrackletConfigBuilder::seedRadii(unsigned int iseed) {
 
   return std::pair<double, double>(r1, r2);
 }
+
+//--- Helper function to determine if a pair of VM memories form valid TE
 
 bool TrackletConfigBuilder::validTEPair(unsigned int iseed, unsigned int iTE1, unsigned int iTE2) {
   double rinvmin = 999.9;
@@ -262,18 +271,23 @@ bool TrackletConfigBuilder::validTEPair(unsigned int iseed, unsigned int iTE1, u
   return true;
 }
 
+//--- Builds the list of TE for each seeding combination
+
 void TrackletConfigBuilder::buildTE() {
   for (unsigned int iseed = 0; iseed < N_SEED_PROMPT; iseed++) {
     for (unsigned int i1 = 0; i1 < VMStubsTE_[iseed].first.size(); i1++) {
       for (unsigned int i2 = 0; i2 < VMStubsTE_[iseed].second.size(); i2++) {
         if (validTEPair(iseed, i1, i2)) {
           std::pair<unsigned int, unsigned int> tmp(i1, i2);
+          // Contains pairs of indices of all valid VM pairs in seeding layers
           TE_[iseed].push_back(tmp);
         }
       }
     }
   }
 }
+
+//--- Builds the lists of TC for each seeding combination
 
 void TrackletConfigBuilder::buildTC() {
   for (unsigned int iSeed = 0; iSeed < N_SEED_PROMPT; iSeed++) {
@@ -298,6 +312,8 @@ void TrackletConfigBuilder::buildTC() {
     }
   }
 }
+
+//--- Helper fcn to return the phi range of a projection of a tracklet from a TC
 
 std::pair<double, double> TrackletConfigBuilder::seedPhiRange(double rproj, unsigned int iSeed, unsigned int iTC) {
   std::vector<std::vector<unsigned int> >& TCs = TC_[iSeed];
@@ -324,6 +340,8 @@ std::pair<double, double> TrackletConfigBuilder::seedPhiRange(double rproj, unsi
   }
   return std::pair<double, double>(phimin, phimax);
 }
+
+//--- Finds the projections needed for each seeding combination
 
 void TrackletConfigBuilder::buildProjections() {
   set<string> emptyProjStandard = {
@@ -384,6 +402,9 @@ void TrackletConfigBuilder::buildProjections() {
   }
 }
 
+//--- Helper function to calculate the phi position of a seed at radius r that is formed
+//--- by two stubs at (r1,phi1) and (r2, phi2)
+
 double TrackletConfigBuilder::phi(double r1, double phi1, double r2, double phi2, double r) {
   double rhoinv = rinv(r1, phi1, r2, phi2);
   if (fabs(rhoinv) > rinvmax_) {
@@ -391,6 +412,8 @@ double TrackletConfigBuilder::phi(double r1, double phi1, double r2, double phi2
   }
   return phi1 + asin(0.5 * r * rhoinv) - asin(0.5 * r1 * rhoinv);
 }
+
+//--- Helper function to calculate rinv for two stubs at (r1,phi1) and (r2,phi2)
 
 double TrackletConfigBuilder::rinv(double r1, double phi1, double r2, double phi2) {
   double deltaphi = phi1 - phi2;
@@ -1169,12 +1192,16 @@ void TrackletConfigBuilder::writeCTMemories(std::ostream& os, std::ostream& memo
 
 void TrackletConfigBuilder::writeILMemories(std::ostream& os, std::ostream& memories, std::ostream& modules) {
 
-  double dphi = 0.5 * dphisectorHG_ - M_PI / NSector_;
+  // Each Input Router ("IL") reads stubs from one DTC (e.g. "PS10G_1") 
+  // & sends them to 4-8 InputLink memories (labelled PHIA-PHIH), each corresponding to small phi
+  // region of a nonant, for each tracklet layer (L1-L6 or D1-D5) that the DTC reads.
+  // The InputLink memories have names such as IL_L1PHIC_PS10G_1 to reflect this.
 
   string olddtc = "";
   for (const DTCinfo& info : vecDTCinfo_) {
     string dtcname = info.name;
     if (olddtc != dtcname) {
+      // Write one entry per DTC, with each DTC connected to one IR.
       modules << "InputRouter: IR_" << dtcname << "_A" << std::endl;
       modules << "InputRouter: IR_" << dtcname << "_B" << std::endl;
       memories << "DTCLink: DL_" << dtcname << "_A [36]" << std::endl;
@@ -1187,16 +1214,19 @@ void TrackletConfigBuilder::writeILMemories(std::ostream& os, std::ostream& memo
     olddtc = dtcname;
   }
 
+  const double dphi = 0.5 * dphisectorHG_ - M_PI / NSector_;
+
   for (const DTCinfo& info : vecDTCinfo_) {
     string dtcname = info.name;
     int layerdisk = info.layer;
-    double phimintmp = info.phimin + dphi;
+    double phimintmp = info.phimin + dphi; // Phi range of each DTC.
     double phimaxtmp = info.phimax + dphi;
 
     for (unsigned int iReg = 0; iReg < NRegions_[layerdisk]; iReg++) {
       if (allStubs_[layerdisk][iReg].first > phimaxtmp && allStubs_[layerdisk][iReg].second < phimintmp)
         continue;
 
+      // Phi region range must be entirely contained in this DTC to keep this connection.
       if (allStubs_[layerdisk][iReg].second < phimaxtmp) {
         memories << "InputLink: IL_" << LayerName(layerdisk) << "PHI" << iTCStr(iReg) << "_" << dtcname << "_A"
                  << " [36]" << std::endl;
@@ -1215,6 +1245,8 @@ void TrackletConfigBuilder::writeILMemories(std::ostream& os, std::ostream& memo
     }
   }
 }
+
+//--- Fill streams used to write wiring map to file
 
 void TrackletConfigBuilder::writeAll(std::ostream& wires, std::ostream& memories, std::ostream& modules) {
   writeILMemories(wires, memories, modules);
