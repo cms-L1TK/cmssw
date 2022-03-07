@@ -287,6 +287,7 @@ namespace trklet {
     void setNbitsseed(unsigned int nbitsseed) { nbitsseed_ = nbitsseed; }
     void setNbitsseedextended(unsigned int nbitsseed) { nbitsseedextended_ = nbitsseed; }
 
+    // Phi width of nonant including overlaps (at widest point).
     double dphisectorHG() const {
       //These values are used in the DTC emulation code.
       double rsectmin = 21.8;
