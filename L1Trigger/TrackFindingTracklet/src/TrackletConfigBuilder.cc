@@ -1217,11 +1217,33 @@ void TrackletConfigBuilder::writeILMemories(std::ostream& os, std::ostream& memo
   for (const DTCinfo& info : vecDTCinfo_) {
     string dtcname = info.name;
     int layerdisk = info.layer;
-    double phiminDTC = info.phimin; // Phi range of each DTC.
-    double phimaxDTC = info.phimax;
 
     for (unsigned int iReg = 0; iReg < NRegions_[layerdisk]; iReg++) {
-      if (allStubs_[layerdisk][iReg].first > phimaxDTC && allStubs_[layerdisk][iReg].second < phiminDTC)
+//--- Ian Tomalin's proposed bug fix
+      double phiminDTC_A = info.phimin - M_PI/N_SECTOR; // Phi range of each DTC.
+      double phimaxDTC_A = info.phimax - M_PI/N_SECTOR;
+      double phiminDTC_B = info.phimin + M_PI/N_SECTOR; // Phi range of each DTC.
+      double phimaxDTC_B = info.phimax + M_PI/N_SECTOR;
+      if (allStubs_[layerdisk][iReg].second > phiminDTC_A && allStubs_[layerdisk][iReg].first < phimaxDTC_A) {
+        memories << "InputLink: IL_" << LayerName(layerdisk) << "PHI" << iTCStr(iReg) << "_" << dtcname << "_A"
+                 << " [36]" << std::endl;
+        os << "IL_" << LayerName(layerdisk) << "PHI" << iTCStr(iReg) << "_" << dtcname << "_A"
+           << " input=> IR_" << dtcname << "_A.stubout output=> VMR_" << LayerName(layerdisk) << "PHI"
+           << iTCStr(iReg) << ".stubin" << std::endl;
+      }
+      if (allStubs_[layerdisk][iReg].second > phiminDTC_B && allStubs_[layerdisk][iReg].first < phimaxDTC_B) {
+        memories << "InputLink: IL_" << LayerName(layerdisk) << "PHI" << iTCStr(iReg) << "_" << dtcname << "_B"
+                 << " [36]" << std::endl;
+        os << "IL_" << LayerName(layerdisk) << "PHI" << iTCStr(iReg) << "_" << dtcname << "_B"
+           << " input=> IR_" << dtcname << "_B.stubout output=> VMR_" << LayerName(layerdisk) << "PHI"
+           << iTCStr(iReg) << ".stubin" << std::endl;
+      }
+//--- Original (buggy) code
+/*
+      double phiminDTC = info.phimin; // Phi range of each DTC.
+      double phimaxDTC = info.phimax;
+
+      if (allStubs_[layerdisk][iReg].first > phimaxDTC && allStubs_[layerdisk][iReg].second < phiminDTC) 
         continue;
 
       // Phi region range must be entirely contained in this DTC to keep this connection.
@@ -1240,6 +1262,7 @@ void TrackletConfigBuilder::writeILMemories(std::ostream& os, std::ostream& memo
            << " input=> IR_" << dtcname << "_B.stubout output=> VMR_" << LayerName(layerdisk) << "PHI"
            << iTCStr(iReg) << ".stubin" << std::endl;
       }
+*/
     }
   }
 }
