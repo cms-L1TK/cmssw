@@ -489,6 +489,12 @@ std::string TrackletConfigBuilder::PRName(unsigned int ilayer, unsigned int ireg
 }
 
 void TrackletConfigBuilder::writeProjectionMemories(std::ostream& os, std::ostream& memories, std::ostream&) {
+
+  // Each TC (e.g. TC_L1L2D) writes a projection memory (TPROJ) for each layer the seed projects to,
+  // with name indicating the TC and which layer & phi region it projects to (e.g. TPROJ_L1L2D_L3PHIA).
+  //
+  // Each PR (e.g. PR_L3PHIA) reads all TPROJ memories for the given layer & phi region.
+
   for (unsigned int ilayer = 0; ilayer < N_LAYER + N_DISK; ilayer++) {
     for (unsigned int ireg = 0; ireg < projections_[ilayer].size(); ireg++) {
       for (unsigned int imem = 0; imem < projections_[ilayer][ireg].size(); imem++) {
@@ -588,6 +594,13 @@ std::string TrackletConfigBuilder::STName(unsigned int l1,
 }
 
 void TrackletConfigBuilder::writeSPMemories(std::ostream& os, std::ostream& memories, std::ostream& modules) {
+
+  // Each TE reads one VM in two seed layers, finds stub pairs & writes to a StubPair ("SP") memory.
+  //
+  // Each TC reads several StubPair (SP) memories, each containing a pair of VMs of two seeding layers.
+  // Several TC are created for each layer pair, and the SP distributed between them.
+  // If TC name is TC_L1L2C, "C" indicates this is the 3rd TC in L1L2.
+
   if (combinedmodules_)
     return;
 
@@ -617,6 +630,10 @@ void TrackletConfigBuilder::writeSPMemories(std::ostream& os, std::ostream& memo
 }
 
 void TrackletConfigBuilder::writeSPDMemories(std::ostream& wires, std::ostream& memories, std::ostream& modules) {
+
+  // Similar to writeSPMemories, but for displaced (=extended) tracking,
+  // with seeds based on triplets of layers.
+
   if (!extended_)
     return;
 
@@ -753,6 +770,11 @@ void TrackletConfigBuilder::writeSPDMemories(std::ostream& wires, std::ostream& 
 }
 
 void TrackletConfigBuilder::writeAPMemories(std::ostream& os, std::ostream& memories, std::ostream& modules) {
+
+  // The AllProjection memories (e.g. AP_L2PHIA) contain the intercept point of the projection to
+  // a layer. Each is written by one PR module of similar name (e.g. PR_L2PHIA), and read by
+  // a MC (e.g. MC_L2PHIA).
+
   if (combinedmodules_)
     return;
 
@@ -769,6 +791,13 @@ void TrackletConfigBuilder::writeAPMemories(std::ostream& os, std::ostream& memo
 }
 
 void TrackletConfigBuilder::writeCMMemories(std::ostream& os, std::ostream& memories, std::ostream& modules) {
+
+  // The CandidateMatch memory (e.g. CM_L1PHIA1) are each written by ME module of similar name
+  // (e.g. ME_L1PHIA1) and contain indices of matching (tracklet projections,stubs) in the specified 
+  // VM region.
+  // All CM memories in a given phi region (e.g. L1PHIA) are read by a MC module (e.g. MC_L1PHIA) that 
+  // does more precise matching.
+
   if (combinedmodules_)
     return;
 
@@ -787,6 +816,13 @@ void TrackletConfigBuilder::writeCMMemories(std::ostream& os, std::ostream& memo
 }
 
 void TrackletConfigBuilder::writeVMPROJMemories(std::ostream& os, std::ostream& memories, std::ostream&) {
+
+  // The VMPROJ memories (e.g. VMPROJ_L2PHIA1) written by a PR module each correspond to projections to 
+  // a single VM region in a layer. Each is filled by the PR using all projections (TPROJ) to this VM 
+  // from different seeding layers.
+  //
+  // Each VMPROJ memory is read by a ME module, which matches the projection to stubs.
+
   if (combinedmodules_)
     return;
 
@@ -804,6 +840,13 @@ void TrackletConfigBuilder::writeVMPROJMemories(std::ostream& os, std::ostream& 
 }
 
 void TrackletConfigBuilder::writeFMMemories(std::ostream& os, std::ostream& memories, std::ostream& modules) {
+
+  // All FullMatch (e.g. FM_L2L3_L1PHIA) memories corresponding to a matches between stubs & tracklets
+  // in a given region (e.g. L1PHIA) from all seeding layers, are written by a MC module (e.g. MC_L1PHIA).
+  //
+  // All FullMatch memories corresponding to a given seed pair are read by the TrackBuilder (e.g. FT_L1L2),
+  // which checks if the track has stubs in enough layers.
+
   if (combinedmodules_) {
     for (unsigned int ilayer = 0; ilayer < N_LAYER + N_DISK; ilayer++) {
       for (unsigned int iReg = 0; iReg < NRegions_[ilayer]; iReg++) {
@@ -838,6 +881,14 @@ void TrackletConfigBuilder::writeFMMemories(std::ostream& os, std::ostream& memo
 }
 
 void TrackletConfigBuilder::writeASMemories(std::ostream& os, std::ostream& memories, std::ostream& modules) {
+
+  // Each VMR writes AllStub memories (AS) for a single phi region (e.g. PHIC),
+  // merging data from all DTCs related to this phi region. It does so by merging data from
+  // the IL memories written by all IRs for this phi region. The wiring map lists all 
+  // IL memories that feed (">") into a single VMR ("VMR_L1PHIC") that writes to the
+  // an AS memory ("AS_L1PHIC").
+  // Multiple copies of each AS memory exist where several modules in chain want to read it.
+
   if (combinedmodules_) {
     //First write AS memories used by MatchProcessor
     for (unsigned int ilayer = 0; ilayer < N_LAYER + N_DISK; ilayer++) {
@@ -969,7 +1020,9 @@ void TrackletConfigBuilder::writeASMemories(std::ostream& os, std::ostream& memo
         }
       }
     }
+
   } else {
+
     //First write AS memories used by MatchCalculator
     for (unsigned int ilayer = 0; ilayer < N_LAYER + N_DISK; ilayer++) {
       for (unsigned int iReg = 0; iReg < NRegions_[ilayer]; iReg++) {
@@ -1000,10 +1053,11 @@ void TrackletConfigBuilder::writeASMemories(std::ostream& os, std::ostream& memo
 
           for (unsigned int iTC = 0; iTC < TC_[iSeed].size(); iTC++) {
             bool used = false;
+            // Each TC processes data from several TEs.
             for (unsigned int iTE = 0; iTE < TC_[iSeed][iTC].size(); iTE++) {
               unsigned int theTE = TC_[iSeed][iTC][iTE];
 
-              unsigned int TE1 = TE_[iSeed][theTE].first;
+              unsigned int TE1 = TE_[iSeed][theTE].first; // VM in inner/outer layer of this TE.
               unsigned int TE2 = TE_[iSeed][theTE].second;
 
               if (l1 == ilayer && iReg == TE1 / NVMTE_[iSeed].first)
@@ -1013,7 +1067,7 @@ void TrackletConfigBuilder::writeASMemories(std::ostream& os, std::ostream& memo
             }
 
             if (used) {
-              nmem++;
+              nmem++; // Another copy of memory
               memories << "AllStubs: AS_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << "n" << nmem << " [42]"
                        << std::endl;
               os << "AS_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << "n" << nmem << " input=> VMR_"
@@ -1033,6 +1087,13 @@ void TrackletConfigBuilder::writeASMemories(std::ostream& os, std::ostream& memo
 }
 
 void TrackletConfigBuilder::writeVMSMemories(std::ostream& os, std::ostream& memories, std::ostream&) {
+
+  // Each VMR writes to Virtual Module memories ("VMS") to be used later by the ME or TE etc.
+  // Memory VMSTE_L1PHIC9-12 is the memory for small phi region C in L1 for the TE module.
+  // Numbers 9-12 correspond to the 4 VMs in this phi region. 
+  //
+  // Each TE reads one VMS memory in each seeding layer.
+
   if (combinedmodules_) {
     //First write VMS memories used by MatchProcessor
     for (unsigned int ilayer = 0; ilayer < N_LAYER + N_DISK; ilayer++) {
@@ -1073,7 +1134,9 @@ void TrackletConfigBuilder::writeVMSMemories(std::ostream& os, std::ostream& mem
         }
       }
     }
+
   } else {
+
     //First write VMS memories used by MatchEngine
     for (unsigned int ilayer = 0; ilayer < N_LAYER + N_DISK; ilayer++) {
       for (unsigned int iVMME = 0; iVMME < NVMME_[ilayer] * NRegions_[ilayer]; iVMME++) {
@@ -1087,7 +1150,8 @@ void TrackletConfigBuilder::writeVMSMemories(std::ostream& os, std::ostream& mem
       }
     }
 
-    //Next write VMS memories used by TrackletEngine
+    // Next write VMS memories used by TrackletEngine
+    // Each TE processes one VM region in inner + outer seeding layers, and needs its own copy of input memories.
     for (unsigned int iSeed = 0; iSeed < N_SEED_PROMPT; iSeed++) {
       for (unsigned int innerouterseed = 0; innerouterseed < 2; innerouterseed++) {
         //FIXME - code could be cleaner
@@ -1097,11 +1161,11 @@ void TrackletConfigBuilder::writeVMSMemories(std::ostream& os, std::ostream& mem
         unsigned int NVMTE1 = NVMTE_[iSeed].first;
         unsigned int NVMTE2 = NVMTE_[iSeed].second;
 
-        unsigned int ilayer = seedLayers(iSeed).first;
-        unsigned int NVMTE = NVMTE_[iSeed].first;
+        unsigned int ilayer = l1;
+        unsigned int NVMTE = NVMTE1;
         if (innerouterseed == 1) {
-          ilayer = seedLayers(iSeed).second;
-          NVMTE = NVMTE_[iSeed].second;
+          ilayer = l2;
+          NVMTE = NVMTE2;
         }
 
         for (unsigned int iVMTE = 0; iVMTE < NVMTE * NRegions_[ilayer]; iVMTE++) {
@@ -1114,7 +1178,7 @@ void TrackletConfigBuilder::writeVMSMemories(std::ostream& os, std::ostream& mem
           }
 
           for (unsigned int iTE = 0; iTE < TE_[iSeed].size(); iTE++) {
-            unsigned int TE1 = TE_[iSeed][iTE].first;
+            unsigned int TE1 = TE_[iSeed][iTE].first; // VM region in inner/outer layer of this TE
             unsigned int TE2 = TE_[iSeed][iTE].second;
 
             bool used = false;
@@ -1131,7 +1195,7 @@ void TrackletConfigBuilder::writeVMSMemories(std::ostream& os, std::ostream& mem
             if (innerouterseed == 1)
               inorout = "O";
 
-            nmem++;
+            nmem++; // Add another copy of memory.
             memories << "VMStubsTE: VMSTE_" << LayerName(ilayer) << "PHI" << iRegStr(iReg, iSeed) << iVMTE + 1 << "n"
                      << nmem << " [18]" << std::endl;
             os << "VMSTE_" << LayerName(ilayer) << "PHI" << iRegStr(iReg, iSeed) << iVMTE + 1 << "n" << nmem
@@ -1152,6 +1216,10 @@ void TrackletConfigBuilder::writeVMSMemories(std::ostream& os, std::ostream& mem
 }
 
 void TrackletConfigBuilder::writeTPARMemories(std::ostream& os, std::ostream& memories, std::ostream& modules) {
+
+  // Each TC module (e.g. TC_L1L2A) stores helix params in a single TPAR memory of similar name 
+  // (e.g. TPAR_L1L2A). The TPAR is subsequently read by the TrackBuilder (FT).
+
   if (combinedmodules_) {
     for (unsigned int iSeed = 0; iSeed < N_SEED_PROMPT; iSeed++) {
       for (unsigned int iTP = 0; iTP < TC_[iSeed].size(); iTP++) {
@@ -1192,10 +1260,10 @@ void TrackletConfigBuilder::writeCTMemories(std::ostream& os, std::ostream& memo
 
 void TrackletConfigBuilder::writeILMemories(std::ostream& os, std::ostream& memories, std::ostream& modules) {
 
-  // Each Input Router ("IL") reads stubs from one DTC (e.g. "PS10G_1") 
-  // & sends them to 4-8 InputLink memories (labelled PHIA-PHIH), each corresponding to small phi
-  // region of a nonant, for each tracklet layer (L1-L6 or D1-D5) that the DTC reads.
-  // The InputLink memories have names such as IL_L1PHIC_PS10G_1 to reflect this.
+  // Each Input Router (IR) reads stubs from one DTC (e.g. PS10G_1) & sends them
+  // to 4-8 InputLink (IL) memories (labelled PHIA-PHIH), each corresponding to a small
+  // phi region of a nonant, for each tracklet layer (L1-L6 or D1-D5) that the DTC
+  // reads. The InputLink memories have names such as IL_L1PHIC_PS10G_1 to reflect this.
 
   string olddtc = "";
   for (const DTCinfo& info : vecDTCinfo_) {

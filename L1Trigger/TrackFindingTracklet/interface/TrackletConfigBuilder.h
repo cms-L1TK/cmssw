@@ -258,10 +258,10 @@ namespace trklet {
     std::pair<std::vector<std::pair<double, double> >, std::vector<std::pair<double, double> > >
         VMStubsTE_[N_SEED_PROMPT];
 
-    //List of the TEs and the VM bins for each TE
+    // VM bin in inner/outer seeding layer of each TE.
     std::vector<std::pair<unsigned int, unsigned int> > TE_[N_SEED_PROMPT];
 
-    //The TCs for each seeding combination
+    //The ID of all TE that send data to TCs for each seeding combination
     std::vector<std::vector<unsigned int> > TC_[N_SEED_PROMPT];
 
     //The projections to each layer/disk from a seed and TC
