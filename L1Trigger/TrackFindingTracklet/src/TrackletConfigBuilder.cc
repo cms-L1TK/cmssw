@@ -4,6 +4,7 @@
 #include <cmath>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <cstdlib>
 #include <cassert>
 #include <mutex>
@@ -150,10 +151,10 @@ void TrackletConfigBuilder::writeDTCphirange() const {
     std::ofstream out;
     openfile(out, first, dirName, fileName, __FILE__, __LINE__);
     if (first) {
-      out<<"// phi ranges of modules read by each DTC"<<endl;
+      out<<"// layer & phi ranges of modules read by each DTC"<<endl;
       out<<"// (Used by stand-alone emulation)"<<endl;
     }
-    out<<"vecDTCinfo_.push_back( {"""<<info.name<<""", "<<info.layer<<", "<<info.phimin<<", "<<info.phimax<<"} );"<<endl;
+    out<<info.name<<" "<<info.layer<<" "<<info.phimin<<" "<<info.phimax<<endl;
     out.close();
     first = false;
   }
@@ -161,8 +162,24 @@ void TrackletConfigBuilder::writeDTCphirange() const {
 
 #else
 
+//--- Set DTC phi ranges from .txt file (stand-alone operation only)
+
 void TrackletConfigBuilder::setDTCphirange(const tt::Setup* setup) {
-#include "L1Trigger/TrackFindingTracklet/data/dtcphirange.txt"
+  // This file previously written by writeDTCphirange().
+  const string fname="../data/dtcphirange.txt";
+  if (vecDTCinfo_.empty()) { // Only run once per thread.
+    std::ifstream str_dtc;
+    str_dtc.open(fname);
+    assert(str_dtc.good());
+    string line;
+    while (ifstream, getline(line)) {
+      std::istringstream iss(line);
+      DTCinfo info;
+      iss >> info.name >> info.layer >> info.phimin >> info.phimax;
+      vecDTCinfo_.push_back(info);
+    } 
+    str_dtc.close();
+  }
 }
 
 #endif

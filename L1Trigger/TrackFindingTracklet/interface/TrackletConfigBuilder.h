@@ -85,7 +85,7 @@ namespace trklet {
     // Write DTC phi ranges to dtcphirange.txt for stand-alone emulation.
     void writeDTCphirange() const;
 #else
-    // Set phi ranges after reading them from dtcphirange.txt
+    // Set phi ranges after reading them from dtcphirange.txt (stand-alone emulation)
     void setDTCphirange(const tt::Setup* setup = nullptr);
 #endif
 
