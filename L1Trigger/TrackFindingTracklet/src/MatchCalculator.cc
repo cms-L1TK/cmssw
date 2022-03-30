@@ -15,6 +15,7 @@
 
 #include <filesystem>
 #include <algorithm>
+#include <bitset>
 
 using namespace std;
 using namespace trklet;
@@ -26,7 +27,11 @@ MatchCalculator::MatchCalculator(string name, Settings const& settings, Globals*
       rphicutPStable_(settings),
       rphicut2Stable_(settings),
       rcutPStable_(settings),
-      rcut2Stable_(settings) {
+      rcut2Stable_(settings),
+      alphainner_(settings),
+      alphaouter_(settings),
+      rSSinner_(settings),
+      rSSouter_(settings) {
   phiregion_ = name[8] - 'A';
   layerdisk_ = initLayerDisk(3);
 
@@ -61,6 +66,10 @@ MatchCalculator::MatchCalculator(string name, Settings const& settings, Globals*
     rphicut2Stable_.initmatchcut(layerdisk_, TrackletLUT::MatchType::disk2Sphi, region);
     rcutPStable_.initmatchcut(layerdisk_, TrackletLUT::MatchType::diskPSr, region);
     rcut2Stable_.initmatchcut(layerdisk_, TrackletLUT::MatchType::disk2Sr, region);
+    alphainner_.initmatchcut(layerdisk_, TrackletLUT::MatchType::alphainner, region);
+    alphaouter_.initmatchcut(layerdisk_, TrackletLUT::MatchType::alphaouter, region);
+    rSSinner_.initmatchcut(layerdisk_, TrackletLUT::MatchType::rSSinner, region);
+    rSSouter_.initmatchcut(layerdisk_, TrackletLUT::MatchType::rSSouter, region);
   }
 
   for (unsigned int i = 0; i < N_DSS_MOD * 2; i++) {
@@ -270,6 +279,7 @@ void MatchCalculator::execute(unsigned int iSector, double phioffset) {
       //Perform integer calculations here
 
       const Projection& proj = tracklet->proj(layerdisk_);
+      string disks[] = { "", "D1", "D2", "D3", "D4", "D5" };
 
       int iz = fpgastub->z().value();
       int iphi = proj.fpgaphiproj().value();
@@ -291,6 +301,7 @@ void MatchCalculator::execute(unsigned int iSector, double phioffset) {
       int ideltaphi = fpgastub->phi().value() * settings_.kphi() / settings_.kphi() - iphi;
 
       int irstub = fpgastub->r().value();
+      std::cout << "irstub=" << irstub << std::endl;
       int ialphafact = 0;
       if (!stub->isPSmodule()) {
         assert(irstub < (int)N_DSS_MOD * 2);
@@ -302,6 +313,7 @@ void MatchCalculator::execute(unsigned int iSector, double phioffset) {
           irstub = settings_.rDSSouter(irstub) / settings_.kr();
         }
       }
+      std::cout << "irstub (lookup)=" << irstub << std::endl;
 
       //TODO stub and projection r should not use different # bits...
       int ideltar = (irstub >> 1) - ir;
@@ -310,6 +322,9 @@ void MatchCalculator::execute(unsigned int iSector, double phioffset) {
         int ialpha = fpgastub->alpha().value();
         int iphialphacor = ((ideltar * ialpha * ialphafact) >> settings_.alphashift());
         ideltaphi += iphialphacor;
+        std::cout << "ialpha=" << ialpha << std::endl;
+        std::cout << "ialphafact=" << ialphafact << std::endl;
+        std::cout << "iphialphacor=" << iphialphacor << std::endl;
       }
 
       //Perform floating point calculations here
@@ -403,6 +418,9 @@ void MatchCalculator::execute(unsigned int iSector, double phioffset) {
 
       if (imatch) {
         countsel++;
+        std::cout << "imatch match disk: " << imatch << " " << match << " " << std::abs(ideltaphi)
+                  << " " << drphicut / (settings_.kphi() * stub->r()) << " " << std::abs(ideltar)
+                  << " " << drcut / settings_.krprojshiftdisk() << " r = " << stub->r() << std::endl;
 
         if (settings_.debugTracklet()) {
           edm::LogVerbatim("Tracklet") << "MatchCalculator found match in disk " << getName();
@@ -420,6 +438,51 @@ void MatchCalculator::execute(unsigned int iSector, double phioffset) {
 
         if (settings_.debugTracklet()) {
           edm::LogVerbatim("Tracklet") << "Accepted full match in disk " << getName() << " " << tracklet;
+        }
+        string stubid = mergedMatches[j].second->stubindex().str();  // stub ID
+        int stubindex = 0;
+        for(unsigned int i = 0; i < stubid.length(); i++) {
+          if(stubid[i] == '1')
+            stubindex += pow(2, i);
+        }
+        if(name_ == "MC_D5PHIC") {
+        int projindex = mergedMatches[j].first.second;               // Allproj index
+        std::cout << std::hex << "stub=" << trklet::hexFormat(fpgastub->str()) << std::endl;
+        std::cout << std::hex << "proj=" << trklet::hexFormat(tracklet->trackletprojstrD(disk)) << std::endl;
+	std::cout << name_ << std::endl;
+	std::cout << "layerdisk_=" << layerdisk_ << std::endl;
+        std::cout << std::dec << "disk=" << abs(disk) << "\t" << disks[abs(disk)] << std::endl;
+        std::cout << std::dec << "stubid=" << stubindex << "\t" << std::bitset<15>(stubindex) << std::endl;
+        std::cout << std::dec << "projindex=" << projindex << "\t" << std::bitset<15>(projindex) << std::endl;
+        std::cout << "cmatch=" << std::bitset<7>(projindex) << "|" << stub->isPSmodule() << "|" << std::bitset<7>(stubindex) << "\t" << trklet::hexFormat(projindex + (stub->isPSmodule() ? "1" : "0") + stubid) << std::endl;
+        std::cout << "j=" << j << std::endl;
+        std::cout << "iz=" << iz << "\t" << std::bitset<7>(iz) << std::endl;
+        std::cout << "iz bits=" << fpgastub->z().nbits() << std::endl;
+        std::cout << "iphi=" << iphi - iphicorr << std::endl;
+        std::cout << "iphicorr=" << iphicorr << std::endl;
+        std::cout << "iphi=" << iphi << std::endl;
+        std::cout << "ir=" << ir << std::endl;
+        std::cout << "isPSStub=" << stub->isPSmodule() << std::endl;
+        std::cout << "ircorr=" << ircorr << std::endl;
+        std::cout << "ideltaphi=" << ideltaphi << std::endl;
+        std::cout << "irstub=" << irstub << std::endl;
+        std::cout << "ideltar=" << ideltar << std::endl;
+        std::cout << std::hex << "idrphicut=" << idrphicut << std::endl;
+        std::cout << std::hex << "idrcut=" << idrcut << std::endl;
+        std::cout << std::dec << "imatch match disk: " << imatch << " " << match << " " << std::abs(ideltaphi)
+                  << " " << drphicut / (settings_.kphi() * stub->r()) << " " << std::abs(ideltar)
+                  << " " << drcut / settings_.krprojshiftdisk() << " r = " << stub->r() << std::endl;
+        std::cout << "phiproj=" << phiproj << std::endl;
+        std::cout << "rproj=" << rproj << std::endl;
+        std::cout << "deltar=" << deltar << std::endl;
+        std::cout << "dr=" << dr << std::endl;
+        std::cout << "dphi=" << dphi << std::endl;
+        std::cout << "dphiapprox=" << dphiapprox << std::endl;
+        std::cout << "drapprox=" << drapprox << std::endl;
+        std::cout << "drphi=" << drphi << std::endl;
+        std::cout << "drphiapprox=" << drphiapprox << std::endl;
+        std::cout << "drphicut=" << drphicut << std::endl;
+        std::cout << "drcut=" << drcut << std::endl;
         }
 
         fullMatches_[seedindex]->addMatch(tracklet, mergedMatches[j].second);
@@ -477,6 +540,23 @@ std::vector<std::pair<std::pair<Tracklet*, int>, const Stub*> > MatchCalculator:
     }
     if (bestIndex != -1) {
       tmp.push_back(candmatch[bestIndex]->getMatch(indexArray[bestIndex]));
+      /*
+      int stub(0);
+      string stubidx = candmatch[bestIndex]->getMatch(indexArray[bestIndex]).second->stubindex().str();
+      for(int icmatch = 0; icmatch < 7; icmatch++)
+        if(stubidx[icmatch] == '1') stub += pow(2, icmatch);
+      int projindex = candmatch[bestIndex]->getMatch(indexArray[bestIndex]).first.second;
+      FPGAWord tmp;
+      if (projindex >= (1 << 7)) {
+        projindex = (1 << 7) - 1;
+      }
+      tmp.set(projindex, 7, true, __LINE__, __FILE__);
+      std::cout << "Found cmatch " << 
+                   tmp.str() << "|" <<
+                   candmatch[bestIndex]->getMatch(indexArray[bestIndex]).second->stubindex().str() << "\t" <<
+                   "projid=" << candmatch[bestIndex]->getMatch(indexArray[bestIndex]).first.second << "\t" <<
+                   "stubid=" << stub << std::endl;
+      */
       indexArray[bestIndex]++;
     }
   } while (bestIndex != -1);

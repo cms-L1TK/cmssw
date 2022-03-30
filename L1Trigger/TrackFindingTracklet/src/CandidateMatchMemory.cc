@@ -42,13 +42,14 @@ void CandidateMatchMemory::writeCM(bool first, unsigned int iSector) {
 
   for (unsigned int j = 0; j < matches_.size(); j++) {
     string stubid = matches_[j].second->stubindex().str();  // stub ID
+    bool isPS = matches_[j].second->isPSmodule();  // stub ID
     int projindex = matches_[j].first.second;               // Allproj index
     FPGAWord tmp;
     if (projindex >= (1 << 7)) {
       projindex = (1 << 7) - 1;
     }
     tmp.set(projindex, 7, true, __LINE__, __FILE__);
-    out_ << hexstr(j) << " " << tmp.str() << "|" << stubid << " " << trklet::hexFormat(tmp.str() + stubid) << endl;
+    out_ << hexstr(j) << " " << tmp.str() << "|" << isPS << "|" << stubid << " " << trklet::hexFormat(tmp.str() + (isPS ? "1" : "0") + stubid) << endl;
   }
   out_.close();
 

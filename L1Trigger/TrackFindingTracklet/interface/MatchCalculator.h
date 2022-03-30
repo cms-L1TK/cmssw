@@ -49,6 +49,10 @@ namespace trklet {
     TrackletLUT rphicut2Stable_;
     TrackletLUT rcutPStable_;
     TrackletLUT rcut2Stable_;
+    TrackletLUT alphainner_;
+    TrackletLUT alphaouter_;
+    TrackletLUT rSSinner_;
+    TrackletLUT rSSouter_;
 
     int ialphafactinner_[N_DSS_MOD * 2];
     int ialphafactouter_[N_DSS_MOD * 2];
@@ -58,6 +62,7 @@ namespace trklet {
 
     std::vector<CandidateMatchMemory*> matches_;
     std::vector<FullMatchMemory*> fullMatches_;
+    std::vector<CandidateMatchMemory*> candmatch_;
   };
 
 };  // namespace trklet
