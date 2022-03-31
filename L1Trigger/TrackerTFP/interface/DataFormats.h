@@ -100,8 +100,13 @@ namespace trackerTFP {
     int toSigned(int i) const { return i - std::pow(2, width_) / 2; }
     // converts twos complement integer value to binary integer value
     int toUnsigned(int i) const { return i + std::pow(2, width_) / 2; }
+    // converts floating point value to binary integer value
+    int toUnsigned(double d) const { return this->integer(d) + std::pow(2, width_) / 2; }
     // returns false if data format would oferflow for this double value
-    bool inRange(double d) const { return d >= -range_ / 2. && d < range_ / 2.; }
+    bool inRange(double d, bool digi = false) const {
+      const double range = digi ? base_ * pow(2, width_) : range_;
+      return d >= -range / 2. && d < range / 2.;
+    }
     // returns false if data format would oferflow for this int value
     bool inRange(int i) const { return inRange(floating(i)); }
     // true if twos'complement or false if binary representation is chosen
@@ -149,6 +154,8 @@ namespace trackerTFP {
   template <>
   Format<Variable::phi, Process::zht>::Format(const edm::ParameterSet& iConfig, const tt::Setup* setup);
   template <>
+  Format<Variable::phi, Process::kfin>::Format(const edm::ParameterSet& iConfig, const tt::Setup* setup);
+  template <>
   Format<Variable::phi, Process::kf>::Format(const edm::ParameterSet& iConfig, const tt::Setup* setup);
   template <>
   Format<Variable::phi, Process::gp>::Format(const edm::ParameterSet& iConfig, const tt::Setup* setup);
@@ -160,6 +167,8 @@ namespace trackerTFP {
   Format<Variable::z, Process::gp>::Format(const edm::ParameterSet& iConfig, const tt::Setup* setup);
   template <>
   Format<Variable::z, Process::zht>::Format(const edm::ParameterSet& iConfig, const tt::Setup* setup);
+  template <>
+  Format<Variable::z, Process::kfin>::Format(const edm::ParameterSet& iConfig, const tt::Setup* setup);
   template <>
   Format<Variable::z, Process::kf>::Format(const edm::ParameterSet& iConfig, const tt::Setup* setup);
   template <>
@@ -226,7 +235,7 @@ namespace trackerTFP {
           Process::ht,
           Process::mht,
           Process::zht,
-          Process::zht,
+          Process::kfin,
           Process::kf,
           Process::x}},  // Variable::phi
         {{Process::x,
@@ -236,7 +245,7 @@ namespace trackerTFP {
           Process::gp,
           Process::gp,
           Process::zht,
-          Process::zht,
+          Process::kfin,
           Process::kf,
           Process::x}},  // Variable::z
         {{Process::x,

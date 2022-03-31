@@ -121,8 +121,8 @@ namespace trklet {
   }
 
   void ProducerTBout::produce(Event& iEvent, const EventSetup& iSetup) {
-    const int numStreamsTracks = setup_->numRegions() * channelAssignment_->numChannels();
-    const int numStreamsStubs = numStreamsTracks * channelAssignment_->maxNumProjectionLayers();
+    const int numStreamsTracks = setup_->numRegions() * channelAssignment_->numChannelsTrack();
+    const int numStreamsStubs = setup_->numRegions() * channelAssignment_->numChannelsStub();
     // empty KFin products
     StreamsStub streamAcceptedStubs(numStreamsStubs);
     StreamsTrack streamAcceptedTracks(numStreamsTracks);
@@ -145,7 +145,8 @@ namespace trklet {
       iEvent.getByToken<Streams>(edGetTokenTracks_, handleTracks);
       channelId = 0;
       for (const Stream& streamTrack : *handleTracks) {
-        const int nTracks = accumulate(streamTrack.begin(), streamTrack.end(), 0, [](int& sum, const Frame& f){ return sum += f.any() ? 1 : 0; });
+        const int nTracks = accumulate(
+            streamTrack.begin(), streamTrack.end(), 0, [](int& sum, const Frame& f) { return sum += f.any() ? 1 : 0; });
         StreamTrack& accepted = streamAcceptedTracks[channelId];
         StreamTrack& lost = streamLostTracks[channelId];
         auto limit = streamTrack.end();
@@ -157,9 +158,10 @@ namespace trklet {
         const deque<TTTrackRef>& ttTracks = ttTrackRefs[channelId++];
         if ((int)ttTracks.size() != nTracks) {
           cms::Exception exception("LogicError.");
-          const int region = channelId / channelAssignment_->numChannels();
-          const int channel = channelId % channelAssignment_->numChannels();
-          exception << "Region " << region << " output channel " << channel << " has " << nTracks << " tracks found in f/w but created " << ttTracks.size() << " TTTracks.";
+          const int region = channelId / channelAssignment_->numChannelsTrack();
+          const int channel = channelId % channelAssignment_->numChannelsTrack();
+          exception << "Region " << region << " output channel " << channel << " has " << nTracks
+                    << " tracks found in f/w but created " << ttTracks.size() << " TTTracks.";
           exception.addContext("trklet::ProducerTBout::produce");
           throw exception;
         }

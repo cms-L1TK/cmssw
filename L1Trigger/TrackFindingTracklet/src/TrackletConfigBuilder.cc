@@ -583,8 +583,12 @@ std::string TrackletConfigBuilder::TCDName(unsigned int l1, unsigned int l2, uns
   return "TCD_" + LayerName(l1) + LayerName(l2) + LayerName(l3) + iTCStr(itc);
 }
 
-std::string TrackletConfigBuilder::TPROJName(
-    unsigned int l1, unsigned int l2, unsigned int l3, unsigned int itc, unsigned int projlayer, unsigned int projreg) const {
+std::string TrackletConfigBuilder::TPROJName(unsigned int l1,
+                                             unsigned int l2,
+                                             unsigned int l3,
+                                             unsigned int itc,
+                                             unsigned int projlayer,
+                                             unsigned int projreg) const {
   return "TPROJ_" + LayerName(l1) + LayerName(l2) + LayerName(l3) + iTCStr(itc) + "_" + LayerName(projlayer) + "PHI" +
          iTCStr(projreg);
 }
@@ -593,8 +597,12 @@ std::string TrackletConfigBuilder::FTName(unsigned int l1, unsigned int l2, unsi
   return "FT_" + LayerName(l1) + LayerName(l2) + LayerName(l3);
 }
 
-std::string TrackletConfigBuilder::TREName(
-    unsigned int l1, unsigned int ireg1, unsigned int l2, unsigned int ireg2, unsigned int iseed, unsigned int count) const {
+std::string TrackletConfigBuilder::TREName(unsigned int l1,
+                                           unsigned int ireg1,
+                                           unsigned int l2,
+                                           unsigned int ireg2,
+                                           unsigned int iseed,
+                                           unsigned int count) const {
   return "TRE_" + LayerName(l1) + iRegStr(ireg1, iseed) + LayerName(l2) + iRegStr(ireg2, iseed) + "_" + numStr(count);
 }
 

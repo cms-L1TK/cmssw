@@ -201,7 +201,7 @@ private:
   const ChannelAssignment* channelAssignment_;
 
   // helper class to store DTC configuration
-  tt::Setup setup_;
+  const Setup* setup_;
   // helper class to store configuration needed by HitPatternHelper
   const hph::Setup* setupHPH_;
 
@@ -262,6 +262,7 @@ L1FPGATrackProducer::L1FPGATrackProducer(edm::ParameterSet const& iConfig)
   esGetTokenHPH_ = esConsumes<hph::Setup, hph::SetupRcd, edm::Transition::BeginRun>();
   // initial ES products
   channelAssignment_ = nullptr;
+  setup_ = nullptr;
 
   // --------------------------------------------------------------------------------
   // set options in Settings based on inputs from configuration files
@@ -345,7 +346,7 @@ void L1FPGATrackProducer::beginRun(const edm::Run& run, const edm::EventSetup& i
   double mMagneticFieldStrength = theMagneticField->inTesla(GlobalPoint(0, 0, 0)).z();
   settings_.setBfield(mMagneticFieldStrength);
 
-  setup_ = iSetup.getData(esGetToken_);
+  setup_ = &iSetup.getData(esGetToken_);
   setupHPH_ = &iSetup.getData(esGetTokenHPH_);
   if (trackQuality_) {
     trackQualityModel_->setHPHSetup(setupHPH_);
@@ -462,8 +463,9 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
       // Get the DTC name form the channel
       unsigned int atcaSlot = channel % 12;
       string dtcname = settings_.slotToDTCname(atcaSlot);
-      if (channel % 24 >= 12) dtcname = "neg" + dtcname;
-      dtcname += (channel < 24) ? "_A" : "_B"; // which detector region
+      if (channel % 24 >= 12)
+        dtcname = "neg" + dtcname;
+      dtcname += (channel < 24) ? "_A" : "_B";  // which detector region
 
       // Get the stubs from the DTC
       const tt::StreamStub& streamFromDTC{handleDTC->stream(region, channel)};
@@ -476,7 +478,7 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
           continue;
         }
 
-        const GlobalPoint& ttPos = setup_.stubPos(stub.first);
+        const GlobalPoint& ttPos = setup_->stubPos(stub.first);
 
         //Get the 2 bits for the layercode
         string layerword = stub.second.to_string().substr(61, 2);
@@ -578,7 +580,7 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
                    region,
                    layerdisk,
                    stubwordhex,
-                   setup_.psModule(setup_.dtcId(region, channel)),
+                   setup_->psModule(setup_->dtcId(region, channel)),
                    isFlipped,
                    ttPos.x(),
                    ttPos.y(),
@@ -683,9 +685,9 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
 
   // produce clock and bit output tracks and stubs
   // number of track channel
-  const int numStreamsTrack = N_SECTOR * channelAssignment_->numChannels();
+  const int numStreamsTrack = N_SECTOR * channelAssignment_->numChannelsTrack();
   // number of stub channel
-  const int numStreamsStub = numStreamsTrack * channelAssignment_->maxNumProjectionLayers();
+  const int numStreamsStub = N_SECTOR * channelAssignment_->numChannelsStub();
   Streams streamsTrack(numStreamsTrack);
   StreamsStub streamsStub(numStreamsStub);
   eventProcessor.produce(streamsTrack, streamsStub);
