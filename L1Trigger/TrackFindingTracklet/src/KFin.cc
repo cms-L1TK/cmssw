@@ -200,7 +200,7 @@ namespace trklet {
         baseLr_ * pow(2, dataFormats_->width(Variable::r, Process::zht) - setup_->widthAddrBRAM18());
     static const double basePhi = baseLinv2R_ * baseLr_;
     static const double baseInvR =
-        pow(2., ceil(log2(baseLr_ / setup_->innerRadius())) - setup_->widthDSPbu()) / baseLr_;
+        pow(2., ceil(log2(baseLr_ / setup_->innerRadiusTB())) - setup_->widthDSPbu()) / baseLr_;
     static const double maxCot = sinh(setup_->maxEta()) + setup_->beamWindowZ() / setup_->chosenRofZ();
     static constexpr int usedMSBCotLutaddr = 3;
     static const double baseCotLut = pow(2., ceil(log2(maxCot)) - setup_->widthAddrBRAM18() + usedMSBCotLutaddr);
@@ -329,10 +329,11 @@ namespace trklet {
         const double pitch = ps ? setup_->pitchPS() : setup_->pitch2S();
         const double pitchOverR = digi(pitch / (digi(stub->r_, baseR) + dataFormats_->chosenRofPhi()), basePhi);
         const double r = digi(stub->r_, baseRinvR) + dataFormats_->chosenRofPhi();
-        const double dZ =
-            digi(track.zT_ + stub->z_ - digi(setup_->chosenRofZ(), baseLr_) * track.cot_, baseLcot_ * baseLr_);
-        const double cot = digi(
-            abs(dZ * digi(1. / r, baseInvR) + track.cot_ + digi(setup_->sectorCot(sectorEta), baseHcot_)), baseCotLut);
+        const double sumdz = digis(track.zT_ + stub->z_, baseLcot_ * baseLr_ / 4.);
+        const double dZ = digi(sumdz - digi(setup_->chosenRofZ(), baseLr_) * track.cot_, baseLcot_ * baseLr_);
+        const double sumcot =
+            digis(track.cot_ + digi(setup_->sectorCot(sectorEta), baseHcot_), baseLcot_ * baseLr_ * baseInvR / 4.);
+        const double cot = digi(abs(dZ * digi(1. / r, baseInvR) + sumcot), baseCotLut);
         double lengthZ = length;
         if (!barrel)
           lengthZ = length * cot;

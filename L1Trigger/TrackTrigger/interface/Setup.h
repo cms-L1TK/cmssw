@@ -297,6 +297,8 @@ namespace tt {
     double hybridRangePhi() const { return hybridRangePhi_; }
     // range of stub r in cm
     double hybridRangeR() const { return hybridRangesR_[SensorModule::DiskPS]; }
+    // smallest stub radius after TrackBuilder in cm
+    double innerRadiusTB() const { return innerRadiusTB_; }
 
     // Parameter specifying TTStub algorithm
 
@@ -641,6 +643,8 @@ namespace tt {
     std::vector<edm::ParameterSet> hybridDisk2SRsSet_;
     // range of stub phi in rad
     double hybridRangePhi_;
+    // smallest stub radius after TrackBuilder in cm
+    double innerRadiusTB_;
 
     // Parameter specifying TrackingParticle used for Efficiency measurements
     edm::ParameterSet pSetTP_;

@@ -83,6 +83,7 @@ namespace tt {
         hybridLayerRs_(pSetHybrid_.getParameter<vector<double>>("LayerRs")),
         hybridDiskZs_(pSetHybrid_.getParameter<vector<double>>("DiskZs")),
         hybridDisk2SRsSet_(pSetHybrid_.getParameter<vector<ParameterSet>>("Disk2SRsSet")),
+        innerRadiusTB_(pSetHybrid_.getParameter<double>("InnerRadiusTB")),
         // Parameter specifying TrackingParticle used for Efficiency measurements
         pSetTP_(iConfig.getParameter<ParameterSet>("TrackingParticle")),
         tpMinPt_(pSetTP_.getParameter<double>("MinPt")),
