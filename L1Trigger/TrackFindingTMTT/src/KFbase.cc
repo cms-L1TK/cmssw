@@ -622,7 +622,7 @@ namespace tmtt {
 
         if (nHelixPar_ == 5) {
           float d0 = vecX[D0];
-          correction[0] += (1. / 6.) * pow(d0/stub->r(), 3); // Division by r hard in FPGA? 
+          correction[0] += (1. / 6.) * pow(d0 / stub->r(), 3);  // Division by r hard in FPGA?
         }
       }
 

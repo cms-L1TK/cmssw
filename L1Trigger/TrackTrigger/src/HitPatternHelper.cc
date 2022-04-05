@@ -85,8 +85,6 @@ namespace hph {
           (z0_ - sm.z() + sm.r() * (cot_ + deltaTanL_ / 2)) / (sm.cosTilt() - sm.sinTilt() * (cot_ + deltaTanL_ / 2));
       double d_m =
           (z0_ - sm.z() + sm.r() * (cot_ - deltaTanL_ / 2)) / (sm.cosTilt() - sm.sinTilt() * (cot_ - deltaTanL_ / 2));
-      //      if (!(abs(d_p) < sm.numColumns() * sm.pitchCol() / 2. && abs(d_m) < sm.numColumns() * sm.pitchCol() / 2.))
-      //        sm.setMaybe();
       if (useNewKF_ &&
           (abs(d_p) < sm.numColumns() * sm.pitchCol() / 2. || abs(d_m) < sm.numColumns() * sm.pitchCol() / 2.)) {
         layers_.push_back(sm);
@@ -114,14 +112,15 @@ namespace hph {
       }
       if (!lay_i) {
         bool realhit = false;
-        if (!layermap_[kf_eta_reg][i].size()) continue;
+        if (layermap_[kf_eta_reg][i].empty())
+          continue;
         for (int j : layermap_[kf_eta_reg][i]) {
           int k = findLayer(j);
           if (k > 0)
             realhit = true;
         }
         if (realhit)
-          numMissingInterior2_++; //This variable doesn't make sense for new KF because it uses the layermap from Old KF
+          numMissingInterior2_++;  //This variable doesn't make sense for new KF because it uses the layermap from Old KF
       }
     }
 
@@ -182,7 +181,7 @@ namespace hph {
           edm::LogVerbatim("TrackTriggerHPH") << "Looking at KF layer " << i;
         }
 
-        if (!layermap_[kf_eta_reg][i].size()) {
+        if (layermap_[kf_eta_reg][i].empty()) {
           if (hphDebug_) {
             edm::LogVerbatim("TrackTriggerHPH") << "KF does not expect this layer";
           }
