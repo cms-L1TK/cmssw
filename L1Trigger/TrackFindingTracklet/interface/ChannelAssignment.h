@@ -46,6 +46,8 @@ namespace trklet {
     int layerId(int seedType, int channel) const { return seedTypesProjectionLayers_.at(seedType).at(channel); }
     //
     int channelId(int seedType, int layerId) const;
+    // max number of seeding layers
+    int numSeedingLayers() const { return numSeedingLayers_; }
 
   private:
     // helper class to store configurations
@@ -70,6 +72,8 @@ namespace trklet {
     std::vector<int> channelEncoding_;
     // accumulated number of projections layer from seed 0 to vector index
     std::vector<int> offsetsStubs_;
+    // max number of seeding layers
+    int numSeedingLayers_;
   };
 
 }  // namespace trklet

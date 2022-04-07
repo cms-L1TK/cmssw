@@ -108,6 +108,8 @@ namespace trklet {
       exception.addContext("trklet::ChannelAssignment::ChannelAssignment");
       throw exception;
     }
+    auto bigger = [](const vector<int>& lhs, const vector<int>& rhs) { return lhs.size() < rhs.size(); };
+    numSeedingLayers_ = max_element(seedTypesSeedLayers_.begin(), seedTypesSeedLayers_.end(), bigger)->size();
   }
 
   // sets channelId of given TTTrackRef, return false if track outside pt range

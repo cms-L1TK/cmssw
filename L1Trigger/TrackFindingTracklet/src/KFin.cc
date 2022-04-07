@@ -57,16 +57,10 @@ namespace trklet {
 
   // read in and organize input tracks and stubs
   void KFin::consume(const StreamsTrack& streamsTrack, const StreamsStub& streamsStub) {
-    static constexpr int widthPhi = 12;
-    static constexpr int widthZ = 9;
-    static constexpr int widthR = 7;
-    static constexpr int numSeedingLayer = 2;
-    static constexpr int offsetBarrel = 1;
-    static constexpr int offsetDisk = 11;
-    static constexpr int widthCot = 14;
     static const double maxCot = sinh(setup_->maxEta()) + setup_->beamWindowZ() / setup_->chosenRofZ();
-    static const int unusedMSBcot = floor(log2(baseUcot_ * pow(2, widthCot) / (2. * maxCot)));
-    static const double baseCot = baseUcot_ * pow(2, widthCot - unusedMSBcot - 1 - setup_->widthAddrBRAM18());
+    static const int unusedMSBcot = floor(log2(baseUcot_ * pow(2, setup_->tbWidthCot()) / (2. * maxCot)));
+    static const double baseCot =
+        baseUcot_ * pow(2, setup_->tbWidthCot() - unusedMSBcot - 1 - setup_->widthAddrBRAM18());
     const int offsetTrack = region_ * channelAssignment_->numChannelsTrack();
     // count tracks and stubs to reserve container
     int nTracks(0);
@@ -85,7 +79,7 @@ namespace trklet {
             nStubs++;
       }
     }
-    stubs_.reserve(nStubs + nTracks * numSeedingLayer);
+    stubs_.reserve(nStubs + nTracks * channelAssignment_->numSeedingLayers());
     tracks_.reserve(nTracks);
     // store tracks and stubs
     for (int channel = 0; channel < channelAssignment_->numChannelsTrack(); channel++) {
@@ -117,7 +111,7 @@ namespace trklet {
         }
         // convert stubs
         vector<Stub*> stubs;
-        stubs.reserve(channelAssignment_->numProjectionLayers(channel) + numSeedingLayer);
+        stubs.reserve(channelAssignment_->numProjectionLayers(channel) + channelAssignment_->numSeedingLayers());
         for (int layer = 0; layer < channelAssignment_->numProjectionLayers(channel); layer++) {
           const FrameStub& frameStub = streamsStub[offsetStub + layer][frame];
           const TTStubRef& ttStubRef = frameStub.first;
@@ -130,12 +124,12 @@ namespace trklet {
           const double basePhi = barrel ? settings_->kphi1() : settings_->kphi(layerIdTracklet);
           const double baseZ = settings_->kz(layerIdTracklet);
           const double baseRZ = barrel ? baseZ : baseUr_;
-          const int widthRZ = barrel ? widthZ : widthR;
+          const int widthRZ = barrel ? setup_->tbWidthZ() : setup_->tbWidthR();
           TTBV hw(frameStub.second);
           const TTBV hwRZ(hw, widthRZ, 0, true);
           hw >>= widthRZ;
-          const TTBV hwPhi(hw, widthPhi, 0, true);
-          hw >>= widthPhi;
+          const TTBV hwPhi(hw, setup_->tbWidthPhi(), 0, true);
+          hw >>= setup_->tbWidthPhi();
           const double r = digi(setup_->stubR(hw, ttStubRef) - dataFormats_->chosenRofPhi(), baseUr_);
           double phi = hwPhi.val(basePhi);
           if (basePhi > baseUphi_)
@@ -161,9 +155,10 @@ namespace trklet {
           const bool barrel = setup_->barrel(ttStubRef);
           double r;
           if (barrel)
-            r = digi(setup_->hybridLayerR(layerId - offsetBarrel) - dataFormats_->chosenRofPhi(), baseUr_);
+            r = digi(setup_->hybridLayerR(layerId - setup_->offsetLayerId()) - dataFormats_->chosenRofPhi(), baseUr_);
           else {
-            r = (z0 + digi(setup_->hybridDiskZ(layerId - offsetDisk), baseUzT_)) *
+            r = (z0 +
+                 digi(setup_->hybridDiskZ(layerId - setup_->offsetLayerId() - setup_->offsetLayerDisks()), baseUzT_)) *
                 digi(1. / digi(abs(cot), baseCot), baseInvCot_);
             r = digi(r - digi(dataFormats_->chosenRofPhi(), baseUr_), baseUr_);
           }
@@ -171,7 +166,7 @@ namespace trklet {
           static constexpr double z = 0.;
           double rz = r;
           if (barrel)
-            rz = abs(digi(digi(setup_->hybridLayerR(layerId - offsetBarrel), baseUr_) * cot + z0, baseUz_));
+            rz = abs(digi(digi(setup_->hybridLayerR(layerId - setup_->offsetLayerId()), baseUr_) * cot + z0, baseUz_));
           const int indexLayerId = setup_->indexLayerId(ttStubRef);
           const double limit = barrel
                                    ? digi(setup_->tiltedLayerLimitZ(indexLayerId), baseUz_)
@@ -200,7 +195,7 @@ namespace trklet {
         baseLr_ * pow(2, dataFormats_->width(Variable::r, Process::zht) - setup_->widthAddrBRAM18());
     static const double basePhi = baseLinv2R_ * baseLr_;
     static const double baseInvR =
-        pow(2., ceil(log2(baseLr_ / setup_->innerRadiusTB())) - setup_->widthDSPbu()) / baseLr_;
+        pow(2., ceil(log2(baseLr_ / setup_->tbInnerRadius())) - setup_->widthDSPbu()) / baseLr_;
     static const double maxCot = sinh(setup_->maxEta()) + setup_->beamWindowZ() / setup_->chosenRofZ();
     static constexpr int usedMSBCotLutaddr = 3;
     static const double baseCotLut = pow(2., ceil(log2(maxCot)) - setup_->widthAddrBRAM18() + usedMSBCotLutaddr);
@@ -228,8 +223,8 @@ namespace trklet {
         track.valid_ = false;
         continue;
       }
-      track.cot_ = digis(track.cot_ - digi(setup_->sectorCot(sectorEta), baseHcot_), baseHcot_);
-      track.zT_ = digis(track.zT_ - digi(setup_->chosenRofZ() * setup_->sectorCot(sectorEta), baseHzT_), baseHzT_);
+      track.cot_ = track.cot_ - digi(setup_->sectorCot(sectorEta), baseHcot_);
+      track.zT_ = track.zT_ - digi(setup_->chosenRofZ() * setup_->sectorCot(sectorEta), baseHzT_);
       track.sector_ = sectorPhi * setup_->numSectorsEta() + sectorEta;
     }
     // base transform into TMTT format
@@ -259,11 +254,11 @@ namespace trklet {
         continue;
       // adjust stub residuals by track parameter shifts
       for (Stub* stub : track.stubs_) {
-        const double dphi = digi(digis(dphiT + stub->r_ * dinv2R, baseHinv2R_ * baseHr_ / 4.), baseHphi_);
+        const double dphi = digi(dphiT + stub->r_ * dinv2R, baseHphi_);
         const double r = stub->r_ + digi(dataFormats_->chosenRofPhi() - setup_->chosenRofZ(), baseHr_);
-        const double dz = digi(digis(dzT + r * dcot, baseHr_ * baseHcot_ / 4.), baseHz_);
-        stub->phi_ = digi(digis(stub->phi_ + dphi, baseHphi_), baseLphi_);
-        stub->z_ = digi(digis(stub->z_ + dz, baseHz_), baseLz_);
+        const double dz = digi(dzT + r * dcot, baseHz_);
+        stub->phi_ = digi(stub->phi_ + dphi, baseLphi_);
+        stub->z_ = digi(stub->z_ + dz, baseLz_);
         // range checks
         if (!dataFormats_->format(Variable::phi, Process::kfin).inRange(stub->phi_))
           stub->valid_ = false;
@@ -329,10 +324,9 @@ namespace trklet {
         const double pitch = ps ? setup_->pitchPS() : setup_->pitch2S();
         const double pitchOverR = digi(pitch / (digi(stub->r_, baseR) + dataFormats_->chosenRofPhi()), basePhi);
         const double r = digi(stub->r_, baseRinvR) + dataFormats_->chosenRofPhi();
-        const double sumdz = digis(track.zT_ + stub->z_, baseLcot_ * baseLr_ / 4.);
+        const double sumdz = track.zT_ + stub->z_;
         const double dZ = digi(sumdz - digi(setup_->chosenRofZ(), baseLr_) * track.cot_, baseLcot_ * baseLr_);
-        const double sumcot =
-            digis(track.cot_ + digi(setup_->sectorCot(sectorEta), baseHcot_), baseLcot_ * baseLr_ * baseInvR / 4.);
+        const double sumcot = track.cot_ + digi(setup_->sectorCot(sectorEta), baseHcot_);
         const double cot = digi(abs(dZ * digi(1. / r, baseInvR) + sumcot), baseCotLut);
         double lengthZ = length;
         if (!barrel)
@@ -346,7 +340,7 @@ namespace trklet {
         lengthR = digi(lengthR, baseLr_);
         const double scat = digi(setup_->scattering(), baseLr_);
         stub->dZ_ = lengthZ + baseLz_;
-        stub->dPhi_ = digis((scat + lengthR) * inv2R + pitchOverR, basePhi / 4.);
+        stub->dPhi_ = (scat + lengthR) * inv2R + pitchOverR;
         stub->dPhi_ = digi(stub->dPhi_, baseLphi_) + baseLphi_;
       }
     }
@@ -415,6 +409,7 @@ namespace trklet {
     }
   }
 
+  // basetransformation of val from baseLow into baseHigh using widthMultiplier bit multiplication
   double KFin::redigi(double val, double baseLow, double baseHigh, int widthMultiplier) const {
     const double base = pow(2, 1 - widthMultiplier);
     const double transform = digi(baseLow / baseHigh, base);

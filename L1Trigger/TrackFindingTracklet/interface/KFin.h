@@ -36,8 +36,10 @@ namespace trklet {
                  tt::StreamsTrack& lostTracks);
 
   private:
-    double digi(double val, double base) const { return (floor(val / base) + .5) * base; }
-    double digis(double val, double base) const { return (floor(val / base + .5) + .5) * base; }
+    // truncates double precision of val into base precision
+    double digi(double val, double base) const { return (floor(val / base + 1.e-12) + .5) * base; }
+    //double digis(double val, double base) const { return (floor(val / base + .5) + .5) * base; }
+    // basetransformation of val from baseLow into baseHigh using widthMultiplier bit multiplication
     double redigi(double val, double baseLow, double baseHigh, int widthMultiplier) const;
     struct Stub {
       Stub(const TTStubRef& ttStubRef, int layer, double r, double phi, double z, bool psTilt)
@@ -93,7 +95,7 @@ namespace trklet {
     const ChannelAssignment* channelAssignment_;
     // provides tracklet constants
     const Settings* settings_;
-    // processing region (0 - 8)
+    // processing region (0 - 8) aka processing phi nonant
     const int region_;
     // storage of input tracks
     std::vector<Track> tracks_;
