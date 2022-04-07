@@ -93,7 +93,7 @@ namespace trackerTFP {
     // converts int to double
     double floating(int i) const { return (i + .5) * base_; }
     // converts double to int
-    int integer(double d) const { return std::floor(d / base_); }
+    int integer(double d) const { return std::floor(d / base_ + 1.e-12); }
     // converts double to int and back to double
     double digi(double d) const { return floating(integer(d)); }
     // converts binary integer value to twos complement integer value
@@ -236,7 +236,7 @@ namespace trackerTFP {
           Process::mht,
           Process::zht,
           Process::kfin,
-          Process::kf,
+          Process::kfin,
           Process::x}},  // Variable::phi
         {{Process::x,
           Process::dtc,
@@ -246,7 +246,7 @@ namespace trackerTFP {
           Process::gp,
           Process::zht,
           Process::kfin,
-          Process::kf,
+          Process::kfin,
           Process::x}},  // Variable::z
         {{Process::x,
           Process::ht,
@@ -573,11 +573,11 @@ namespace trackerTFP {
     // stub flavour
     Process p() const { return p_; }
     // acess to frame
-    const tt::FrameStub& frame() const { return frame_; }
+    tt::FrameStub frame() const { return frame_; }
     // access to TTStubRef
-    const TTStubRef& ttStubRef() const { return frame_.first; }
+    TTStubRef ttStubRef() const { return frame_.first; }
     // access to bitvector
-    const tt::Frame& bv() const { return frame_.second; }
+    tt::Frame bv() const { return frame_.second; }
     // id of collection this stub belongs to
     int trackId() const { return trackId_; }
 
@@ -587,7 +587,7 @@ namespace trackerTFP {
     // precision of given variable
     double base(Variable v) const { return dataFormats_->base(v, p_); }
     // format of given variable
-    const DataFormat& format(Variable v) const { return dataFormats_->format(v, p_); }
+    DataFormat format(Variable v) const { return dataFormats_->format(v, p_); }
     // all dataformats
     const DataFormats* dataFormats_;
     // stub flavour
@@ -862,13 +862,13 @@ namespace trackerTFP {
     // track flavour
     Process p() const { return p_; }
     // acces to frame
-    const tt::FrameTrack& frame() const { return frame_; }
+    tt::FrameTrack frame() const { return frame_; }
     // access to TTTrackRef
-    const TTTrackRef& ttTrackRef() const { return frame_.first; }
+    TTTrackRef ttTrackRef() const { return frame_.first; }
     // access to bitvector
-    const tt::Frame& bv() const { return frame_.second; }
+    tt::Frame bv() const { return frame_.second; }
     // access to ntuple of variables this track is assemled of
-    const std::tuple<Ts...>& data() const { return data_; }
+    std::tuple<Ts...> data() const { return data_; }
 
   protected:
     //number of bits uesd of given variable
@@ -878,9 +878,9 @@ namespace trackerTFP {
     // access to run-time constants
     const tt::Setup* setup() const { return dataFormats_->setup(); }
     // format of given variable
-    const DataFormat& format(Variable v) const { return dataFormats_->format(v, p_); }
+    DataFormat format(Variable v) const { return dataFormats_->format(v, p_); }
     // format of given variable and process
-    const DataFormat& format(Variable v, Process p) const { return dataFormats_->format(v, p); }
+    DataFormat format(Variable v, Process p) const { return dataFormats_->format(v, p); }
     // all data formats
     const DataFormats* dataFormats_;
     // track flavour
@@ -935,7 +935,7 @@ namespace trackerTFP {
     // selection of ttStubRefs for given hit ids on given layers
     std::vector<TTStubRef> ttStubRefs(const TTBV& hitPattern, const std::vector<int>& layerMap) const;
     // stubs organized in layer
-    const std::vector<std::vector<StubKFin*>>& stubs() const { return stubs_; }
+    std::vector<std::vector<StubKFin*>> stubs() const { return stubs_; }
     // global cotTheta
     double cotGlobal() const { return cot() + setup()->sectorCot(sectorEta()); }
 

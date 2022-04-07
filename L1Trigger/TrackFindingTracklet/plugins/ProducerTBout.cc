@@ -161,7 +161,7 @@ namespace trklet {
           const int region = channelId / channelAssignment_->numChannelsTrack();
           const int channel = channelId % channelAssignment_->numChannelsTrack();
           exception << "Region " << region << " output channel " << channel << " has " << nTracks
-                    << " tracks found in f/w but created " << ttTracks.size() << " TTTracks.";
+                    << " tracks found but created " << ttTracks.size() << " TTTracks.";
           exception.addContext("trklet::ProducerTBout::produce");
           throw exception;
         }

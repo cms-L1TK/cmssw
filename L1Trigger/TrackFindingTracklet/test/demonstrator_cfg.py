@@ -33,6 +33,7 @@ process.tt = cms.Sequence (  process.TrackerDTCProducer
                            + process.TrackFindingTrackletProducerIRin
                            + process.TrackFindingTrackletProducerTBout
                            + process.TrackFindingTrackletProducerKFin
+                           + process.TrackFindingTrackletProducerKF
                           )
 process.demo = cms.Path( process.tt + process.TrackerTFPDemonstrator )
 process.schedule = cms.Schedule( process.demo )

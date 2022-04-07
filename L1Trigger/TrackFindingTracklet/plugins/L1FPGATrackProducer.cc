@@ -419,37 +419,39 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
     int ntps = 1;  //count from 1 ; 0 will mean invalid
 
     int this_tp = 0;
-    for (const auto& iterTP : *TrackingParticleHandle) {
-      edm::Ptr<TrackingParticle> tp_ptr(TrackingParticleHandle, this_tp);
-      this_tp++;
+    if (readMoreMcTruth_) {
+      for (const auto& iterTP : *TrackingParticleHandle) {
+        edm::Ptr<TrackingParticle> tp_ptr(TrackingParticleHandle, this_tp);
+        this_tp++;
 
-      // only keep TPs producing a cluster
-      if (MCTruthTTClusterHandle->findTTClusterRefs(tp_ptr).empty())
-        continue;
+        // only keep TPs producing a cluster
+        if (MCTruthTTClusterHandle->findTTClusterRefs(tp_ptr).empty())
+          continue;
 
-      if (iterTP.g4Tracks().empty()) {
-        continue;
-      }
+        if (iterTP.g4Tracks().empty()) {
+          continue;
+        }
 
-      int sim_eventid = iterTP.g4Tracks().at(0).eventId().event();
-      int sim_type = iterTP.pdgId();
-      float sim_pt = iterTP.pt();
-      float sim_eta = iterTP.eta();
-      float sim_phi = iterTP.phi();
+        int sim_eventid = iterTP.g4Tracks().at(0).eventId().event();
+        int sim_type = iterTP.pdgId();
+        float sim_pt = iterTP.pt();
+        float sim_eta = iterTP.eta();
+        float sim_phi = iterTP.phi();
 
-      float vx = iterTP.vertex().x();
-      float vy = iterTP.vertex().y();
-      float vz = iterTP.vertex().z();
+        float vx = iterTP.vertex().x();
+        float vy = iterTP.vertex().y();
+        float vz = iterTP.vertex().z();
 
-      if (sim_pt < 1.0 || std::abs(vz) > 100.0 || hypot(vx, vy) > 50.0)
-        continue;
+        if (sim_pt < 1.0 || std::abs(vz) > 100.0 || hypot(vx, vy) > 50.0)
+          continue;
 
-      ev.addL1SimTrack(sim_eventid, ntps, sim_type, sim_pt, sim_eta, sim_phi, vx, vy, vz);
+        ev.addL1SimTrack(sim_eventid, ntps, sim_type, sim_pt, sim_eta, sim_phi, vx, vy, vz);
 
-      translateTP[tp_ptr] = ntps;
-      ntps++;
+        translateTP[tp_ptr] = ntps;
+        ntps++;
 
-    }  //end loop over TPs
+      }  //end loop over TPs
+    }
 
   }  // end if (readMoreMcTruth_)
 
@@ -555,18 +557,20 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
           const TTClusterRef& ttClusterRef = stub.first->clusterRef(iClus);
 
           // Now identify all TP's contributing to either cluster in stub.
-          vector<edm::Ptr<TrackingParticle>> vecTpPtr = MCTruthTTClusterHandle->findTrackingParticlePtrs(ttClusterRef);
+          if (readMoreMcTruth_) {
+            vector<edm::Ptr<TrackingParticle>> vecTpPtr = MCTruthTTClusterHandle->findTrackingParticlePtrs(ttClusterRef);
 
-          for (const edm::Ptr<TrackingParticle>& tpPtr : vecTpPtr) {
-            if (translateTP.find(tpPtr) != translateTP.end()) {
-              if (iClus == 0) {
-                assocTPs.push_back(translateTP.at(tpPtr));
+            for (const edm::Ptr<TrackingParticle>& tpPtr : vecTpPtr) {
+              if (translateTP.find(tpPtr) != translateTP.end()) {
+                if (iClus == 0) {
+                  assocTPs.push_back(translateTP.at(tpPtr));
+                } else {
+                  assocTPs.push_back(-translateTP.at(tpPtr));
+                }
+                // N.B. Since not all tracking particles are stored in InputData::vTPs_, sometimes no match will be found.
               } else {
-                assocTPs.push_back(-translateTP.at(tpPtr));
+                assocTPs.push_back(0);
               }
-              // N.B. Since not all tracking particles are stored in InputData::vTPs_, sometimes no match will be found.
-            } else {
-              assocTPs.push_back(0);
             }
           }
         }

@@ -43,6 +43,7 @@ TrackTrigger_params = cms.PSet (
     MinPtStub    = cms.double(  2.0  ),                        # cut on stub pt in GeV, also defines region overlap shape
     MinPtCand    = cms.double(  1.34 ),                        # cut on candidate pt in GeV
     MaxEta       = cms.double(  2.5  ),                        # cut on stub eta
+    #MaxEta       = cms.double(  2.4  ),                        # cut on stub eta
     ChosenRofPhi = cms.double( 55.   ),                        # critical radius defining region overlap shape in cm
     NumLayers    = cms.int32 (  4    ),                        # max number of detector layer connected to one DTC
     NumRingsPS   = cms.vint32 ( 11, 11, 8, 8, 8 ),             # number of outer PS rings for disk 1, 2, 3, 4, 5
@@ -163,7 +164,8 @@ TrackTrigger_params = cms.PSet (
     ChosenRofZ    = cms.double(  50. ), # critical radius defining r-z sector shape in cm
     RangeChiZ     = cms.double( 160. ), # range of stub z residual w.r.t. sector center which needs to be covered
     DepthMemory   = cms.int32 (  64  ), # fifo depth in stub router firmware
-    BoundariesEta = cms.vdouble( -2.50, -2.08, -1.68, -1.26, -0.90, -0.62, -0.41, -0.20, 0.0, 0.20, 0.41, 0.62, 0.90, 1.26, 1.68, 2.08, 2.50 ) # defining r-z sector shape
+    #BoundariesEta = cms.vdouble( -2.40, -2.08, -1.68, -1.26, -0.90, -0.62, -0.41, -0.20, 0.0, 0.20, 0.41, 0.62, 0.90, 1.26, 1.68, 2.08, 2.40 ) # defining r-z sector shape
+    BoundariesEta = cms.vdouble( -2.50, -2.23, -1.88, -1.36, -0.90, -0.62, -0.41, -0.20, 0.0, 0.20, 0.41, 0.62, 0.90, 1.36, 1.88, 2.23, 2.50 ) # defining r-z sector shape
   ),
 
   # Parmeter specifying HoughTransform

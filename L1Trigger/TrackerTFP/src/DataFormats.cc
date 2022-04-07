@@ -878,7 +878,7 @@ namespace trackerTFP {
   template <>
   Format<Variable::dPhi, Process::kfin>::Format(const edm::ParameterSet& iConfig, const Setup* setup)
       : DataFormat(false) {
-    const Format<Variable::phi, Process::mht> phi(iConfig, setup);
+    const Format<Variable::phi, Process::kfin> phi(iConfig, setup);
     range_ = setup->maxdPhi();
     base_ = phi.base();
     width_ = ceil(log2(range_ / base_));
@@ -887,7 +887,7 @@ namespace trackerTFP {
   template <>
   Format<Variable::dZ, Process::kfin>::Format(const edm::ParameterSet& iConfig, const Setup* setup)
       : DataFormat(false) {
-    const Format<Variable::z, Process::zht> z(iConfig, setup);
+    const Format<Variable::z, Process::kfin> z(iConfig, setup);
     range_ = setup->maxdZ();
     base_ = z.base();
     width_ = ceil(log2(range_ / base_));
