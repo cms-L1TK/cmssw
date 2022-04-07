@@ -26,7 +26,7 @@ namespace trklet {
 
   /*! \class  trklet::ProducerKFout
    *  \brief  Converts KF output into TFP output
-   *  \author Thomas Schuh
+   *  \author Christopher Brown
    *  \date   2021, Aug
    */
   class ProducerKFout : public stream::EDProducer<> {
@@ -156,7 +156,7 @@ namespace trklet {
         TrackKFOutSAPtrCollections temp_collection;
         for (int iLink = 0; iLink < setup_->tfpNumChannel(); iLink++) {
           TrackKFOutSAPtrCollection temp;
-          for (int iTrack = 0; iTrack < setup_->numFramesIO() * ((double)TTBV::S_ / setup_->tttrackBits()); iTrack++)
+          for (int iTrack = 0; iTrack < setup_->numFramesIO(); iTrack++)
             temp.emplace_back(std::make_shared<TrackKFOut>());
           temp_collection.push_back(temp);
         }
@@ -168,7 +168,7 @@ namespace trklet {
         TrackKFOutSAPtrCollections temp_collection;
         for (int iLink = 0; iLink < numWorkers_; iLink++) {
           TrackKFOutSAPtrCollection temp;
-          for (int iTrack = 0; iTrack < setup_->numFramesIO() * ((double)TTBV::S_ / setup_->tttrackBits()); iTrack++)
+          for (int iTrack = 0; iTrack < setup_->numFramesIO(); iTrack++)
             temp.emplace_back(std::make_shared<TrackKFOut>());
           temp_collection.push_back(temp);
         }
