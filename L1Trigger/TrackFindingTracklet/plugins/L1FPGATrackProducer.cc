@@ -558,7 +558,8 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
 
           // Now identify all TP's contributing to either cluster in stub.
           if (readMoreMcTruth_) {
-            vector<edm::Ptr<TrackingParticle>> vecTpPtr = MCTruthTTClusterHandle->findTrackingParticlePtrs(ttClusterRef);
+            vector<edm::Ptr<TrackingParticle>> vecTpPtr =
+                MCTruthTTClusterHandle->findTrackingParticlePtrs(ttClusterRef);
 
             for (const edm::Ptr<TrackingParticle>& tpPtr : vecTpPtr) {
               if (translateTP.find(tpPtr) != translateTP.end()) {

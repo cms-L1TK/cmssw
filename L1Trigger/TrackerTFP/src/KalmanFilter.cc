@@ -62,8 +62,7 @@ namespace trackerTFP {
         C11_(&kalmanFilterFormats_->format(VariableKF::C11)),
         C22_(&kalmanFilterFormats_->format(VariableKF::C22)),
         C23_(&kalmanFilterFormats_->format(VariableKF::C23)),
-        C33_(&kalmanFilterFormats_->format(VariableKF::C33))
-  {
+        C33_(&kalmanFilterFormats_->format(VariableKF::C33)) {
     C00_->updateRangeActual(pow(dataFormats_->base(Variable::inv2R, Process::kfin), 2));
     C11_->updateRangeActual(pow(dataFormats_->base(Variable::phiT, Process::kfin), 2));
     C22_->updateRangeActual(pow(dataFormats_->base(Variable::cot, Process::kfin), 2));

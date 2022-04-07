@@ -25,7 +25,9 @@ TrackletEventProcessor::~TrackletEventProcessor() {
   }
 }
 
-void TrackletEventProcessor::init(Settings const& theSettings, const ChannelAssignment* channelAssignment, const tt::Setup* setup) {
+void TrackletEventProcessor::init(Settings const& theSettings,
+                                  const ChannelAssignment* channelAssignment,
+                                  const tt::Setup* setup) {
   settings_ = &theSettings;
   channelAssignment_ = channelAssignment;
   // number of track channel

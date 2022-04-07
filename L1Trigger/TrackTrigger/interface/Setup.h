@@ -351,7 +351,7 @@ namespace tt {
     // number of regions a reconstructable particles may cross
     int numOverlappingRegions() const { return numOverlappingRegions_; }
     // number of Tracker boards per ATCA crate.
-    int numATCASlots() const { return numATCASlots_;}
+    int numATCASlots() const { return numATCASlots_; }
     // number of DTC boards used to readout a detector region, likely constructed to be an integerer multiple of NumSlots_
     int numDTCsPerRegion() const { return numDTCsPerRegion_; }
     // max number of sensor modules connected to one DTC board
