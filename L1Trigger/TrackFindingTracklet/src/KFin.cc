@@ -134,7 +134,7 @@ namespace trklet {
           double phi = hwPhi.val(basePhi);
           if (basePhi > baseUphi_)
             phi += baseUphi_ / 2.;
-          const double z = digi(hwRZ.val(baseRZ) * (barrel ? 1. : abs(cot)), baseUz_);
+          const double z = digi(hwRZ.val(baseRZ) * (barrel ? 1. : -cot), baseUz_);
           // determine module type
           double rz = r + digi(dataFormats_->chosenRofPhi(), baseUr_);
           if (barrel)
