@@ -5,7 +5,6 @@
 import FWCore.ParameterSet.Config as cms
 import FWCore.Utilities.FileUtils as FileUtils
 import os
-import FWCore.ParameterSet.VarParsing as VarParsing ##parsing argument  
 process = cms.Process("L1TrackNtuple")
 
 ############################################################
@@ -13,16 +12,12 @@ process = cms.Process("L1TrackNtuple")
 ############################################################
 
 GEOMETRY = "D76"
-
-options = VarParsing.VarParsing ('analysis')                                                                            # get and parse the command line arguments
-options.parseArguments() 
-
 # Set L1 tracking algorithm:
 # 'HYBRID' (baseline, 4par fit) or 'HYBRID_DISPLACED' (extended, 5par fit).
 # 'HYBRID_NEWKF' (baseline, 4par fit, with bit-accurate KF emulation),
 # 'HYBRID_REDUCED' to use the "Summer Chain" configuration with reduced inputs.
 # (Or legacy algos 'TMTT' or 'TRACKLET').
-L1TRKALGO = 'HYBRID_DISPLACED'
+L1TRKALGO = 'HYBRID'
 
 WRITE_DATA = False
 
@@ -60,7 +55,7 @@ process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:phase2_realistic', '')
 # input and output
 ############################################################
 
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(options.maxEvents))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(10))
 
 #--- To use MCsamples scripts, defining functions get*data*() for easy MC access,
 #--- follow instructions in https://github.com/cms-L1TK/MCsamples
@@ -69,17 +64,7 @@ process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(options.maxEv
 #from MCsamples.Scripts.getCMSlocaldata_cfi import *
 
 if GEOMETRY == "D49":
-  inputMC = ["/store/relval/CMSSW_11_3_0_pre6/RelValDisplacedMuPt2To100Dxy100/GEN-SIM-DIGI-RAW/113X_mcRun4_realistic_v6_2026D49noPU-v1/00000/0203c9f6-76c3-4ab1-bb66-fd0a2a164906.root"]
-#  "/store/relval/CMSSW_11_3_0_pre6/RelValDisplacedMuPt2To100Dxy100/GEN-SIM-DIGI-RAW/113X_mcRun4_realistic_v6_2026D49noPU-v1/00000/032ae701-c3fe-40c5-b827-ff4443ec4e8c.root",
-#  "/store/relval/CMSSW_11_3_0_pre6/RelValDisplacedMuPt2To100Dxy100/GEN-SIM-DIGI-RAW/113X_mcRun4_realistic_v6_2026D49noPU-v1/00000/078d458c-8b89-4054-9af4-40cca40e73b5.root",
-#  "/store/relval/CMSSW_11_3_0_pre6/RelValDisplacedMuPt2To100Dxy100/GEN-SIM-DIGI-RAW/113X_mcRun4_realistic_v6_2026D49noPU-v1/00000/0872d9f5-4cae-4e43-be04-12b64929b1fc.root",
-#  "/store/relval/CMSSW_11_3_0_pre6/RelValDisplacedMuPt2To100Dxy100/GEN-SIM-DIGI-RAW/113X_mcRun4_realistic_v6_2026D49noPU-v1/00000/0976f5f1-d5c8-47bf-91a3-137721a9c048.root",
-#  "/store/relval/CMSSW_11_3_0_pre6/RelValDisplacedMuPt2To100Dxy100/GEN-SIM-DIGI-RAW/113X_mcRun4_realistic_v6_2026D49noPU-v1/00000/0f5c3da8-1bce-46f9-b286-488e11d27914.root",
-#  "/store/relval/CMSSW_11_3_0_pre6/RelValDisplacedMuPt2To100Dxy100/GEN-SIM-DIGI-RAW/113X_mcRun4_realistic_v6_2026D49noPU-v1/00000/114f2976-26f5-40e5-8772-a23438dd8c04.root",
-#  "/store/relval/CMSSW_11_3_0_pre6/RelValDisplacedMuPt2To100Dxy100/GEN-SIM-DIGI-RAW/113X_mcRun4_realistic_v6_2026D49noPU-v1/00000/11f0f85d-4073-4211-874a-4083b1feac1a.root",
-#  "/store/relval/CMSSW_11_3_0_pre6/RelValDisplacedMuPt2To100Dxy100/GEN-SIM-DIGI-RAW/113X_mcRun4_realistic_v6_2026D49noPU-v1/00000/133d0761-24c2-433a-8c79-4a0418e1a3ea.root",
-#  "/store/relval/CMSSW_11_3_0_pre6/RelValDisplacedMuPt2To100Dxy100/GEN-SIM-DIGI-RAW/113X_mcRun4_realistic_v6_2026D49noPU-v1/00000/1408932b-9b3e-4cfc-b4c6-e73f75f1a22b.root"]
-
+  inputMC = ["/store/relval/CMSSW_11_3_0_pre3/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU_113X_mcRun4_realistic_v3_2026D49PU200_rsb-v1/00000/00260a30-734a-4a3a-a4b0-f836ce5502c6.root"]
 
 elif GEOMETRY == "D76":
   # Read data from card files (defines getCMSdataFromCards()):
@@ -101,11 +86,11 @@ else:
 
   print("this is not a valid geometry!!!")
 
-process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring(options.inputFiles))
+process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring(*inputMC))
 # Use skipEvents to select particular single events for test vectors
 #process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring(*inputMC), skipEvents = cms.untracked.uint32(11))
 
-process.TFileService = cms.Service("TFileService", fileName = cms.string(options.outputFile), closeFileFast = cms.untracked.bool(True))
+process.TFileService = cms.Service("TFileService", fileName = cms.string('TTbar_PU200_'+GEOMETRY+'.root'), closeFileFast = cms.untracked.bool(True))
 process.Timing = cms.Service("Timing", summaryOnly = cms.untracked.bool(True))
 
 
@@ -264,9 +249,8 @@ process.L1TrackNtuple = cms.EDAnalyzer('L1TrackNtupleMaker',
                                        TrackingParticleInputTag = cms.InputTag("mix", "MergedTrackTruth"),
                                        TrackingVertexInputTag = cms.InputTag("mix", "MergedTrackTruth"),
                                        # tracking in jets (--> requires AK4 genjet collection present!)
-                                       TrackingInJets = cms.bool(True),
-                                       GenJetInputTag = cms.InputTag("ak4GenJets", ""),
-                                       GenTracking = cms.bool(True),                                                                          GenParticleTag = cms.InputTag("genParticles"),
+                                       TrackingInJets = cms.bool(False),
+                                       GenJetInputTag = cms.InputTag("ak4GenJets", "")
                                        )
 
 process.ana = cms.Path(process.L1TrackNtuple)
@@ -295,7 +279,7 @@ if (WRITE_DATA):
       splitLevel = cms.untracked.int32(0),
       eventAutoFlushCompressedSize = cms.untracked.int32(5242880),
       outputCommands = process.RAWSIMEventContent.outputCommands,
-      fileName = cms.untracked.string('test_dataset.root'), ## ADAPT IT ##
+      fileName = cms.untracked.string('output_dataset.root'), ## ADAPT IT ##
       dataset = cms.untracked.PSet(
           filterName = cms.untracked.string(''),
           dataTier = cms.untracked.string('GEN-SIM')

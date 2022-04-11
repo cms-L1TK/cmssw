@@ -895,7 +895,7 @@ namespace trklet {
     bool exactderivatives_{false};
     bool exactderivativesforfloating_{true};  //only for the floating point
     bool useapprox_{true};          //use approximate postion based on integer representation for floating point
-    bool usephicritapprox_{true};  //use floating point approximate version of phicrit cut if true
+    bool usephicritapprox_{false};  //use floating point approximate version of phicrit cut if true
 
     // Duplicate Removal
     // "merge" (hybrid dup removal)
