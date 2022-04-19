@@ -122,8 +122,7 @@ namespace trklet {
           const bool barrel = setup_->barrel(ttStubRef);
           const int layerIdTracklet = channelAssignment_->trackletLayerId(ttStubRef);
           const double basePhi = barrel ? settings_->kphi1() : settings_->kphi(layerIdTracklet);
-          const double baseZ = settings_->kz(layerIdTracklet);
-          const double baseRZ = barrel ? baseZ : baseUr_;
+          const double baseRZ = barrel ? settings_->kz(layerIdTracklet) : settings_->kz();
           const int widthRZ = barrel ? setup_->tbWidthZ() : setup_->tbWidthR();
           TTBV hw(frameStub.second);
           const TTBV hwRZ(hw, widthRZ, 0, true);
