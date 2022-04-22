@@ -26,6 +26,7 @@ namespace trklet {
 
   /*! \class  trklet::AnalyzerDemonstrator
    *  \brief  Class to demontrate correctness of track trigger emulators
+   *          by comparing FW with SW
    *  \author Thomas Schuh
    *  \date   2022, March
    */

@@ -1,3 +1,4 @@
+# configuration of internal KF variable bases which can be shifted by powers of 2 w.r.t. KF output track parameter
 import FWCore.ParameterSet.Config as cms
 
 TrackTriggerKalmanFilterFormats_params = cms.PSet (

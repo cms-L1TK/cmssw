@@ -16,6 +16,7 @@
 #include "L1Trigger/TrackFindingTracklet/interface/ChannelAssignment.h"
 #include "L1Trigger/TrackFindingTracklet/interface/Settings.h"
 #include "L1Trigger/TrackFindingTracklet/interface/KFin.h"
+#include "SimTracker/TrackTriggerAssociation/interface/TTTypes.h"
 
 #include <string>
 #include <vector>
@@ -68,7 +69,7 @@ namespace trklet {
     ParameterSet iConfig_;
     // helper class to store configurations
     const Setup* setup_;
-    // helper class to extract structured data from TTDTC::Frames
+    // helper class to extract structured data from tt::Frames
     const DataFormats* dataFormats_;
     // helper class to encode layer
     const LayerEncoding* layerEncoding_;

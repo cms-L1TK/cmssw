@@ -34,7 +34,7 @@ namespace trklet {
     baseUr_ = settings_->kr();
     baseUphi_ = settings_->kphi1();
     baseUz_ = settings_->kz();
-    // low precise bases KF is using
+    // low precision bases KF is using
     baseLinv2R_ = dataFormats->base(Variable::inv2R, Process::kfin);
     baseLphiT_ = dataFormats->base(Variable::phiT, Process::kfin);
     baseLcot_ = dataFormats->base(Variable::cot, Process::kfin);

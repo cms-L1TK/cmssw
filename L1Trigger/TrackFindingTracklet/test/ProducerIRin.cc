@@ -54,9 +54,7 @@ namespace trklet {
     const Setup* setup_;
     // helper class to assign stubs to channel
     const ChannelAssignment* channelAssignment_;
-    // reduce l1 tracking to summer chain configuration
-    bool summerChain_;
-    // map of used tfp channels in summer chain config
+    // map of used tfp channels
     vector<int> channelEncoding_;
   };
 
@@ -82,7 +80,7 @@ namespace trklet {
     if (iConfig_.getParameter<bool>("CheckHistory"))
       setup_->checkHistory(iRun.processHistory());
     channelAssignment_ = const_cast<ChannelAssignment*>(&iSetup.getData(esGetTokenChannelAssignment_));
-    // map of used tfp channels in summer chain config
+    // map of used tfp channels
     channelEncoding_ = channelAssignment_->channelEncoding();
   }
 
@@ -93,11 +91,10 @@ namespace trklet {
     if (setup_->configurationSupported()) {
       Handle<TTDTC> handleTTDTC;
       iEvent.getByToken<TTDTC>(edGetTokenTTDTC_, handleTTDTC);
-      const int numChannel =
-          summerChain_ ? channelEncoding_.size() : handleTTDTC->tfpRegions().size() * handleTTDTC->tfpChannels().size();
+      const int numChannel = channelEncoding_.size();
       streamStubs.reserve(numChannel);
       for (int tfpRegion : handleTTDTC->tfpRegions())
-        for (int tfpChannel : summerChain_ ? channelEncoding_ : handleTTDTC->tfpChannels())
+        for (int tfpChannel : channelEncoding_)
           streamStubs.emplace_back(handleTTDTC->stream(tfpRegion, tfpChannel));
     }
     // store products

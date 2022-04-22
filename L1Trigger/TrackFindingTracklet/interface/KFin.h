@@ -6,6 +6,7 @@
 #include "L1Trigger/TrackerTFP/interface/LayerEncoding.h"
 #include "L1Trigger/TrackFindingTracklet/interface/ChannelAssignment.h"
 #include "L1Trigger/TrackFindingTracklet/interface/Settings.h"
+#include "SimTracker/TrackTriggerAssociation/interface/TTTypes.h"
 
 #include <vector>
 
@@ -36,9 +37,8 @@ namespace trklet {
                  tt::StreamsTrack& lostTracks);
 
   private:
-    // truncates double precision of val into base precision
+    // truncates double precision of val into base precision, +1.e-12 restores robustness of addition of 2 digitised values
     double digi(double val, double base) const { return (floor(val / base + 1.e-12) + .5) * base; }
-    //double digis(double val, double base) const { return (floor(val / base + .5) + .5) * base; }
     // basetransformation of val from baseLow into baseHigh using widthMultiplier bit multiplication
     double redigi(double val, double baseLow, double baseHigh, int widthMultiplier) const;
     struct Stub {
