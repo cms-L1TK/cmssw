@@ -58,9 +58,9 @@ namespace trklet {
   // read in and organize input tracks and stubs
   void KFin::consume(const StreamsTrack& streamsTrack, const StreamsStub& streamsStub) {
     static const double maxCot = sinh(setup_->maxEta()) + setup_->beamWindowZ() / setup_->chosenRofZ();
-    static const int unusedMSBcot = floor(log2(baseUcot_ * pow(2, setup_->tbWidthCot()) / (2. * maxCot)));
+    static const int unusedMSBcot = floor(log2(baseUcot_ * pow(2, settings_->nbitst()) / (2. * maxCot)));
     static const double baseCot =
-        baseUcot_ * pow(2, setup_->tbWidthCot() - unusedMSBcot - 1 - setup_->widthAddrBRAM18());
+        baseUcot_ * pow(2, settings_->nbitst() - unusedMSBcot - 1 - setup_->widthAddrBRAM18());
     const int offsetTrack = region_ * channelAssignment_->numChannelsTrack();
     // count tracks and stubs to reserve container
     int nTracks(0);
@@ -123,28 +123,30 @@ namespace trklet {
           const int layerIdTracklet = channelAssignment_->trackletLayerId(ttStubRef);
           const double basePhi = barrel ? settings_->kphi1() : settings_->kphi(layerIdTracklet);
           const double baseRZ = barrel ? settings_->kz(layerIdTracklet) : settings_->kz();
-          const int widthRZ = barrel ? setup_->tbWidthZ() : setup_->tbWidthR();
+          const int widthRZ = barrel ? settings_->zresidbits() : settings_->rresidbits();
           TTBV hw(frameStub.second);
           const TTBV hwRZ(hw, widthRZ, 0, true);
           hw >>= widthRZ;
-          const TTBV hwPhi(hw, setup_->tbWidthPhi(), 0, true);
-          hw >>= setup_->tbWidthPhi();
+          const TTBV hwPhi(hw, settings_->phiresidbits(), 0, true);
+          hw >>= settings_->phiresidbits();
           const double r = digi(setup_->stubR(hw, ttStubRef) - dataFormats_->chosenRofPhi(), baseUr_);
           double phi = hwPhi.val(basePhi);
           if (basePhi > baseUphi_)
             phi += baseUphi_ / 2.;
           const double z = digi(hwRZ.val(baseRZ) * (barrel ? 1. : -cot), baseUz_);
           // determine module type
-          double rz = r + digi(dataFormats_->chosenRofPhi(), baseUr_);
-          if (barrel)
-            rz = rz * cot + z0 + z;
-          const int indexLayerId = setup_->indexLayerId(ttStubRef);
-          const double limit = barrel ? setup_->tiltedLayerLimitZ(indexLayerId) : setup_->psDiskLimitR(indexLayerId);
-          const bool psTilt = barrel ? (abs(rz) < limit) : setup_->psModule(ttStubRef);
+          bool psTilt;
+          if (barrel) {
+            const double posZ = (r + digi(dataFormats_->chosenRofPhi(), baseUr_)) * cot + z0 + z;
+            const int indexLayerId = setup_->indexLayerId(ttStubRef);
+            const double limit = setup_->tiltedLayerLimitZ(indexLayerId);
+            psTilt = abs(posZ) < limit;
+          } else
+            psTilt = setup_->psModule(ttStubRef);
           stubs_.emplace_back(ttStubRef, layerId, r, phi, z, psTilt);
           stubs.push_back(&stubs_.back());
         }
-        // create fake seed stubs
+        // create fake seed stubs, since TrackBuilder doesn't output these stubs, required by the KF.
         for (int layerId : channelAssignment_->seedingLayers(channel)) {
           const vector<TTStubRef>& ttStubRefs = ttTrackRef->getStubRefs();
           auto sameLayer = [this, layerId](const TTStubRef& ttStubRef) {
@@ -163,14 +165,16 @@ namespace trklet {
           }
           static constexpr double phi = 0.;
           static constexpr double z = 0.;
-          double rz = r;
-          if (barrel)
-            rz = abs(digi(digi(setup_->hybridLayerR(layerId - setup_->offsetLayerId()), baseUr_) * cot + z0, baseUz_));
-          const int indexLayerId = setup_->indexLayerId(ttStubRef);
-          const double limit = barrel
-                                   ? digi(setup_->tiltedLayerLimitZ(indexLayerId), baseUz_)
-                                   : digi(setup_->psDiskLimitR(indexLayerId) - dataFormats_->chosenRofPhi(), baseUr_);
-          const bool psTilt = barrel ? rz < limit : true;
+          // determine module type
+          bool psTilt;
+          if (barrel) {
+            const double posZ =
+                digi(digi(setup_->hybridLayerR(layerId - setup_->offsetLayerId()), baseUr_) * cot + z0, baseUz_);
+            const int indexLayerId = setup_->indexLayerId(ttStubRef);
+            const double limit = digi(setup_->tiltedLayerLimitZ(indexLayerId), baseUz_);
+            psTilt = abs(posZ) < limit;
+          } else
+            psTilt = true;
           stubs_.emplace_back(ttStubRef, layerId, r, phi, z, psTilt);
           stubs.push_back(&stubs_.back());
         }

@@ -299,14 +299,6 @@ namespace tt {
     double hybridRangeR() const { return hybridRangesR_[SensorModule::DiskPS]; }
     // smallest stub radius after TrackBuilder in cm
     double tbInnerRadius() const { return tbInnerRadius_; }
-    // number of bits used at TrackBuilder output to represent stub phi residual
-    int tbWidthPhi() const { return tbWidthPhi_; }
-    // number of bits used at TrackBuilder output to represent stub r/z residual
-    int tbWidthZ() const { return tbWidthZ_; }
-    // number of bits used at TrackBuilder output to represent stub radius
-    int tbWidthR() const { return tbWidthR_; }
-    // number of bits used at TrackBuilder output to represent track cot(Theta)
-    int tbWidthCot() const { return tbWidthCot_; }
 
     // Parameter specifying TTStub algorithm
 
@@ -653,14 +645,6 @@ namespace tt {
     double hybridRangePhi_;
     // smallest stub radius after TrackBuilder in cm
     double tbInnerRadius_;
-    // number of bits used at TrackBuilder output to represent stub phi residual
-    int tbWidthPhi_;
-    // number of bits used at TrackBuilder output to represent stub r/z residual
-    int tbWidthZ_;
-    // number of bits used at TrackBuilder output to represent stub radius
-    int tbWidthR_;
-    // number of bits used at TrackBuilder output to represent track cot(Theta)
-    int tbWidthCot_;
 
     // Parameter specifying TrackingParticle used for Efficiency measurements
     edm::ParameterSet pSetTP_;

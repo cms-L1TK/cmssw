@@ -47,11 +47,17 @@ namespace trklet {
       bool valid_;
       TTStubRef ttStubRef_;
       int layer_;
+      // radius w.r.t. chosenRofPhi in cm
       double r_;
+      // phi residual in rad
       double phi_;
+      // z residual in cm
       double z_;
+      // phi uncertainty in rad
       double dPhi_;
+      // z uncertainty in cm
       double dZ_;
+      // true if barrel tilted module or encap PS module
       bool psTilt_;
     };
     struct Track {
