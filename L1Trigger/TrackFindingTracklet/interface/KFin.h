@@ -91,6 +91,8 @@ namespace trklet {
 
     // true if truncation is enbaled
     bool enableTruncation_;
+    // stub residuals are recalculated from seed parameter and TTStub position
+    bool useTTStubResiduals_;
     // provides run-time constants
     const tt::Setup* setup_;
     // provides dataformats

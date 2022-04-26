@@ -19,6 +19,7 @@ namespace trklet {
              const Settings* settings,
              int region)
       : enableTruncation_(iConfig.getParameter<bool>("EnableTruncation")),
+        useTTStubResiduals_(iConfig.getParameter<bool>("UseTTStubResiduals")),
         setup_(setup),
         dataFormats_(dataFormats),
         layerEncoding_(layerEncoding),
@@ -143,7 +144,13 @@ namespace trklet {
             psTilt = abs(posZ) < limit;
           } else
             psTilt = setup_->psModule(ttStubRef);
-          stubs_.emplace_back(ttStubRef, layerId, r, phi, z, psTilt);
+          const GlobalPoint gp = setup_->stubPos(ttStubRef);
+          const double ttR = r;
+          const double ttZ = gp.z() - (z0 + (ttR + dataFormats_->chosenRofPhi()) * cot);
+          if (useTTStubResiduals_)
+            stubs_.emplace_back(ttStubRef, layerId, ttR, phi, ttZ, psTilt);
+          else
+            stubs_.emplace_back(ttStubRef, layerId, r, phi, z, psTilt);
           stubs.push_back(&stubs_.back());
         }
         // create fake seed stubs, since TrackBuilder doesn't output these stubs, required by the KF.
@@ -175,7 +182,13 @@ namespace trklet {
             psTilt = abs(posZ) < limit;
           } else
             psTilt = true;
-          stubs_.emplace_back(ttStubRef, layerId, r, phi, z, psTilt);
+          const GlobalPoint gp = setup_->stubPos(ttStubRef);
+          const double ttR = gp.perp() - dataFormats_->chosenRofPhi();
+          const double ttZ = gp.z() - (z0 + (ttR + dataFormats_->chosenRofPhi()) * cot);
+          if (useTTStubResiduals_)
+            stubs_.emplace_back(ttStubRef, layerId, ttR, phi, ttZ, psTilt);
+          else
+            stubs_.emplace_back(ttStubRef, layerId, r, phi, z, psTilt);
           stubs.push_back(&stubs_.back());
         }
         const bool valid = frame < setup_->numFrames() ? true : enableTruncation_;

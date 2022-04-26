@@ -77,8 +77,6 @@ namespace trklet {
     const ChannelAssignment* channelAssignment_;
     // helper class to store tracklet configurations
     Settings settings_;
-    //
-    bool enableTruncation_;
   };
 
   ProducerKFin::ProducerKFin(const ParameterSet& iConfig) : iConfig_(iConfig) {
@@ -105,8 +103,6 @@ namespace trklet {
     layerEncoding_ = nullptr;
     channelAssignment_ = nullptr;
     settings_ = Settings();
-    //
-    enableTruncation_ = iConfig.getParameter<bool>("EnableTruncation");
   }
 
   void ProducerKFin::beginRun(const Run& iRun, const EventSetup& iSetup) {
