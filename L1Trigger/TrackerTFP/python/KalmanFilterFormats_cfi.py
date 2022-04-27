@@ -1,4 +1,7 @@
 # configuration of internal KF variable bases which can be shifted by powers of 2 w.r.t. KF output track parameter
+# TrackerTFPProducer_params.PrintKFDebug printouts unused MSB for each variable, so that one could consider decreasing the basseshift by that amount
+# numerical instabillity (negative C00, C11, C22, C33) requires smaller baseshifts of related variables (rx, Sxx, Kxx, Rxx, invRxx)
+# if a variable overflows an Exception will be thrown and the corresponding baseshift needs to be increased.
 import FWCore.ParameterSet.Config as cms
 
 TrackTriggerKalmanFilterFormats_params = cms.PSet (

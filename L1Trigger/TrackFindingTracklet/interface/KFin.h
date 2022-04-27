@@ -111,7 +111,7 @@ namespace trklet {
     std::vector<Stub> stubs_;
     // h/w liked organized pointer to input tracks
     std::vector<std::vector<Track*>> input_;
-    // unified tracklet bases
+    // unified tracklet digitisation granularity
     double baseUinv2R_;
     double baseUphiT_;
     double baseUcot_;
@@ -119,7 +119,7 @@ namespace trklet {
     double baseUr_;
     double baseUphi_;
     double baseUz_;
-    // low precise bases KF is using
+    // KF input format digitisation granularity (identical to TMTT)
     double baseLinv2R_;
     double baseLphiT_;
     double baseLcot_;
@@ -127,7 +127,7 @@ namespace trklet {
     double baseLr_;
     double baseLphi_;
     double baseLz_;
-    // higher precision bases used to transform unified to low bases
+    // Finer granularity (by powers of 2) than the TMTT one. Used to transform from Tracklet to TMTT base.
     double baseHinv2R_;
     double baseHphiT_;
     double baseHcot_;
@@ -135,7 +135,7 @@ namespace trklet {
     double baseHr_;
     double baseHphi_;
     double baseHz_;
-    // base used for inverted cot(theta)
+    // digitisation granularity used for inverted cot(theta)
     double baseInvCot_;
   };
 

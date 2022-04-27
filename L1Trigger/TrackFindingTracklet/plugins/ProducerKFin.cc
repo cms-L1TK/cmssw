@@ -136,7 +136,7 @@ namespace trklet {
       iEvent.getByToken<StreamsTrack>(edGetTokenTracks_, handleTracks);
       const StreamsTrack& tracks = *handleTracks;
       for (int region = 0; region < setup_->numRegions(); region++) {
-        // object to fit tracks in a processing region
+        // object to reformat tracks from tracklet fromat to TMTT format in a processing region
         KFin kfin(iConfig_, setup_, dataFormats_, layerEncoding_, channelAssignment_, &settings_, region);
         // read in and organize input tracks and stubs
         kfin.consume(tracks, stubs);

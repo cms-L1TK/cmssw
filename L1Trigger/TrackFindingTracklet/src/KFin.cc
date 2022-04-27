@@ -27,7 +27,7 @@ namespace trklet {
         settings_(settings),
         region_(region),
         input_(channelAssignment_->numChannelsTrack()) {
-    // unified tracklet bases
+    // unified tracklet digitisation granularity
     baseUinv2R_ = .5 * settings_->kphi1() / settings_->kr() * pow(2, settings_->rinv_shift());
     baseUphiT_ = settings_->kphi1() * pow(2, settings_->phi0_shift());
     baseUcot_ = settings_->kz() / settings_->kr() * pow(2, settings_->t_shift());
@@ -35,7 +35,7 @@ namespace trklet {
     baseUr_ = settings_->kr();
     baseUphi_ = settings_->kphi1();
     baseUz_ = settings_->kz();
-    // low precision bases KF is using
+    // KF input format digitisation granularity (identical to TMTT)
     baseLinv2R_ = dataFormats->base(Variable::inv2R, Process::kfin);
     baseLphiT_ = dataFormats->base(Variable::phiT, Process::kfin);
     baseLcot_ = dataFormats->base(Variable::cot, Process::kfin);
@@ -43,7 +43,7 @@ namespace trklet {
     baseLr_ = dataFormats->base(Variable::r, Process::kfin);
     baseLphi_ = dataFormats->base(Variable::phi, Process::kfin);
     baseLz_ = dataFormats->base(Variable::z, Process::kfin);
-    // higher precision bases used to transform unified to low bases
+    // Finer granularity (by powers of 2) than the TMTT one. Used to transform from Tracklet to TMTT base.
     baseHinv2R_ = baseLinv2R_ * pow(2, floor(log2(baseUinv2R_ / baseLinv2R_)));
     baseHphiT_ = baseLphiT_ * pow(2, floor(log2(baseUphiT_ / baseLphiT_)));
     baseHcot_ = baseLcot_ * pow(2, floor(log2(baseUcot_ / baseLcot_)));
@@ -51,7 +51,7 @@ namespace trklet {
     baseHr_ = baseLr_ * pow(2, floor(log2(baseUr_ / baseLr_)));
     baseHphi_ = baseLphi_ * pow(2, floor(log2(baseUphi_ / baseLphi_)));
     baseHz_ = baseLz_ * pow(2, floor(log2(baseUz_ / baseLz_)));
-    // calculate base used for inverted cot(theta)
+    // calculate digitisation granularity used for inverted cot(theta)
     const int baseShiftInvCot = ceil(log2(setup_->outerRadius() / setup_->hybridRangeR())) - setup_->widthDSPbu();
     baseInvCot_ = pow(2, baseShiftInvCot);
   }
