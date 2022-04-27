@@ -59,7 +59,7 @@ namespace trklet {
     ParameterSet iConfig_;
     // helper class to store configurations
     const Setup* setup_;
-    // helper class to extract structured data from TTDTC::Frames
+    // helper class to extract structured data from tt::Frames
     const DataFormats* dataFormats_;
     // Bins for dPhi/dZ use to create weight LUT
     vector<double> dPhiBins_;
@@ -100,7 +100,7 @@ namespace trklet {
     // check process history if desired
     if (iConfig_.getParameter<bool>("CheckHistory"))
       setup_->checkHistory(iRun.processHistory());
-    // helper class to extract structured data from TTDTC::Frames
+    // helper class to extract structured data from tt::Frames
     dataFormats_ = &iSetup.getData(esGetTokenDataFormats_);
 
     // Calculate 1/dz**2 and 1/dphi**2 bins for v0 and v1 weightings

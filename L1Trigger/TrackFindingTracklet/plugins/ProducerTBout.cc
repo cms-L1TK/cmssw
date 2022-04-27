@@ -70,7 +70,7 @@ namespace trklet {
     ParameterSet iConfig_;
     // helper class to store configurations
     const Setup* setup_;
-    // helper class to extract structured data from TTDTC::Frames
+    // helper class to extract structured data from tt::Frames
     const DataFormats* dataFormats_;
     // helper class to assign tracks to channel
     ChannelAssignment* channelAssignment_;
@@ -114,7 +114,7 @@ namespace trklet {
     // check process history if desired
     if (iConfig_.getParameter<bool>("CheckHistory"))
       setup_->checkHistory(iRun.processHistory());
-    // helper class to extract structured data from TTDTC::Frames
+    // helper class to extract structured data from tt::Frames
     dataFormats_ = &iSetup.getData(esGetTokenDataFormats_);
     // helper class to assign tracks to channel
     channelAssignment_ = const_cast<ChannelAssignment*>(&iSetup.getData(esGetTokenChannelAssignment_));
