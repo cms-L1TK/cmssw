@@ -115,6 +115,8 @@ namespace tt {
         halfLength_(pSetFW_.getParameter<double>("HalfLength")),
         tiltApproxSlope_(pSetFW_.getParameter<double>("TiltApproxSlope")),
         tiltApproxIntercept_(pSetFW_.getParameter<double>("TiltApproxIntercept")),
+        tiltApproxSlopeNew_(pSetFW_.getParameter<double>("TiltApproxSlopeNew")),
+        tiltApproxInterceptNew_(pSetFW_.getParameter<double>("TiltApproxInterceptNew")),
         mindPhi_(pSetFW_.getParameter<double>("MindPhi")),
         maxdPhi_(pSetFW_.getParameter<double>("MaxdPhi")),
         mindZ_(pSetFW_.getParameter<double>("MindZ")),

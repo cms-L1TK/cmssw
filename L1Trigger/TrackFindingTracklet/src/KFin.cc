@@ -20,6 +20,7 @@ namespace trklet {
              int region)
       : enableTruncation_(iConfig.getParameter<bool>("EnableTruncation")),
         useTTStubResiduals_(iConfig.getParameter<bool>("UseTTStubResiduals")),
+        useTTStubUncertainties_(iConfig.getParameter<bool>("UseTTStubUncertainties")),
         setup_(setup),
         dataFormats_(dataFormats),
         layerEncoding_(layerEncoding),
@@ -348,7 +349,7 @@ namespace trklet {
         if (!barrel)
           lengthZ = length * cot;
         else if (tilt)
-          lengthZ = length * abs(setup_->tiltApproxSlope() * cot + setup_->tiltApproxIntercept());
+          lengthZ = length * abs(setup_->tiltApproxSlopeNew() * cot + setup_->tiltApproxInterceptNew());
         double lengthR = 0.;
         lengthR = lengthZ / cot;
         if (barrel && !tilt)
@@ -358,6 +359,10 @@ namespace trklet {
         stub->dZ_ = lengthZ + baseLz_;
         stub->dPhi_ = (scat + lengthR) * inv2R + pitchOverR;
         stub->dPhi_ = digi(stub->dPhi_, baseLphi_) + baseLphi_;
+        if (useTTStubUncertainties_) {
+          stub->dPhi_ = setup_->dPhi(stub->ttStubRef_, track.inv2R_);
+          stub->dZ_ = setup_->dZ(stub->ttStubRef_, track.cot_ + setup_->sectorCot(sectorEta));
+        }
       }
     }
     // fill products StreamsStub& accpetedStubs, StreamsTrack& acceptedTracks, StreamsStub& lostStubs, StreamsTrack& lostTracks
