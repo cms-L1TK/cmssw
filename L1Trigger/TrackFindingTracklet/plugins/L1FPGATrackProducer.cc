@@ -312,12 +312,12 @@ L1FPGATrackProducer::L1FPGATrackProducer(edm::ParameterSet const& iConfig)
   if (trackQuality_) {
     trackQualityModel_ = std::make_unique<TrackQuality>(iConfig.getParameter<edm::ParameterSet>("TrackQualityPSet"));
   }
-  if (settings_.storeTrackBuilderOutput() && (settings_.doMultipleMatches() || settings_.removalType() != "")) {
+  if (settings_.storeTrackBuilderOutput() && (settings_.doMultipleMatches() || !settings_.removalType().empty())) {
     cms::Exception exception("ConfigurationNotSupported.");
     exception.addContext("L1FPGATrackProducer::produce");
     if (settings_.doMultipleMatches())
       exception << "Storing of TrackBuilder output does not support doMultipleMatches.";
-    if (settings_.removalType() != "")
+    if (!settings_.removalType().empty())
       exception << "Storing of TrackBuilder output does not support duplicate removal.";
     throw exception;
   }

@@ -38,7 +38,7 @@ namespace trackerTFP {
   private:
     void beginRun(const Run&, const EventSetup&) override;
     void produce(Event&, const EventSetup&) override;
-    void endStream() {
+    void endStream() override {
       if (printDebug_)
         kalmanFilterFormats_->endJob();
     }

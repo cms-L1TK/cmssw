@@ -44,8 +44,8 @@ namespace trklet {
     ~ProducerTBout() override {}
 
   private:
-    virtual void beginRun(const Run&, const EventSetup&) override;
-    virtual void produce(Event&, const EventSetup&) override;
+    void beginRun(const Run&, const EventSetup&) override;
+    void produce(Event&, const EventSetup&) override;
     virtual void endJob() {}
 
     // ED input token of TTTracks
