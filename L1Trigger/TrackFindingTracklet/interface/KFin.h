@@ -53,9 +53,9 @@ namespace trklet {
       double phi_;
       // z residual in cm
       double z_;
-      // phi uncertainty in rad
+      // phi uncertainty * sqrt(12) + additional terms in rad
       double dPhi_;
-      // z uncertainty in cm
+      // z uncertainty * sqrt(12) + additional terms in cm
       double dZ_;
       // true if barrel tilted module or encap PS module
       bool psTilt_;
