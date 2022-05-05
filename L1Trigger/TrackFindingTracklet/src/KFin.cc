@@ -20,7 +20,6 @@ namespace trklet {
              int region)
       : enableTruncation_(iConfig.getParameter<bool>("EnableTruncation")),
         useTTStubResiduals_(iConfig.getParameter<bool>("UseTTStubResiduals")),
-        useTTStubUncertainties_(iConfig.getParameter<bool>("UseTTStubUncertainties")),
         setup_(setup),
         dataFormats_(dataFormats),
         layerEncoding_(layerEncoding),
@@ -337,7 +336,7 @@ namespace trklet {
         const bool barrel = setup_->barrel(stub->ttStubRef_);
         const bool ps = barrel ? setup_->psModule(stub->ttStubRef_) : stub->psTilt_;
         const bool tilt = barrel ? (ps && !stub->psTilt_) : false;
-        const double length = ps ? setup_->lengthPS() : setup_->length2S();
+        const double length = digi(ps ? setup_->lengthPS() : setup_->length2S(), baseLr_);
         const double pitch = ps ? setup_->pitchPS() : setup_->pitch2S();
         const double pitchOverR = digi(pitch / (digi(stub->r_, baseR) + dataFormats_->chosenRofPhi()), basePhi);
         const double r = digi(stub->r_, baseRinvR) + dataFormats_->chosenRofPhi();
@@ -346,23 +345,18 @@ namespace trklet {
         const double sumcot = track.cot_ + digi(setup_->sectorCot(sectorEta), baseHcot_);
         const double cot = digi(abs(dZ * digi(1. / r, baseInvR) + sumcot), baseCotLut);
         double lengthZ = length;
-        if (!barrel)
-          lengthZ = length * cot;
-        else if (tilt)
-          lengthZ = length * abs(setup_->tiltApproxSlopeNew() * cot + setup_->tiltApproxInterceptNew());
         double lengthR = 0.;
-        lengthR = lengthZ / cot;
-        if (barrel && !tilt)
-          lengthR = 0.;
-        lengthR = digi(lengthR, baseLr_);
+        if (!barrel) {
+          lengthZ = length * cot;
+          lengthR = length;
+        } else if (tilt) {
+          lengthZ = length * abs(setup_->tiltApproxSlope() * cot + setup_->tiltApproxIntercept());
+          lengthR = digi(setup_->tiltUncertaintyR(), baseLr_);
+        }
         const double scat = digi(setup_->scattering(), baseLr_);
         stub->dZ_ = lengthZ + baseLz_;
         stub->dPhi_ = (scat + lengthR) * inv2R + pitchOverR;
         stub->dPhi_ = digi(stub->dPhi_, baseLphi_) + baseLphi_;
-        if (useTTStubUncertainties_) {
-          stub->dPhi_ = setup_->dPhi(stub->ttStubRef_, track.inv2R_);
-          stub->dZ_ = setup_->dZ(stub->ttStubRef_, track.cot_ + setup_->sectorCot(sectorEta));
-        }
       }
     }
     // fill products StreamsStub& accpetedStubs, StreamsTrack& acceptedTracks, StreamsStub& lostStubs, StreamsTrack& lostTracks

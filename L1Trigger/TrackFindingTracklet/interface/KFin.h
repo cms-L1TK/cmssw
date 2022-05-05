@@ -93,8 +93,6 @@ namespace trklet {
     bool enableTruncation_;
     // stub residuals are recalculated from seed parameter and TTStub position
     bool useTTStubResiduals_;
-    //use double precision stub uncertanties instead of f/w equivalent but also miss some terms
-    bool useTTStubUncertainties_;
     // provides run-time constants
     const tt::Setup* setup_;
     // provides dataformats

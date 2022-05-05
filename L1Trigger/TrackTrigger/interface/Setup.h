@@ -244,14 +244,12 @@ namespace tt {
     double halfLength() const { return halfLength_; }
     // max strip/pixel length of outer tracker sensors in cm
     double maxLength() const { return maxLength_; }
-    // In tilted barrel, grad*|z|/r+int approximates |cos(theta) - tiltAngle|/sin(theta)|
+    // In tilted barrel, grad*|z|/r + int approximates |cosTilt| + |sinTilt * cotTheta|
     double tiltApproxSlope() const { return tiltApproxSlope_; }
-    // In tilted barrel, grad*|z|/r+int approximates |cos(theta) - tiltAngle|/sin(theta)|
+    // In tilted barrel, grad*|z|/r + int approximates |cosTilt| + |sinTilt * cotTheta|
     double tiltApproxIntercept() const { return tiltApproxIntercept_; }
-    //
-    double tiltApproxSlopeNew() const { return tiltApproxSlopeNew_; }
-    //
-    double tiltApproxInterceptNew() const { return tiltApproxInterceptNew_; }
+    // In tilted barrel, constant assumed stub radial uncertainty * sqrt(12) in cm
+    double tiltUncertaintyR() const { return tiltUncertaintyR_; }
     // scattering term used to add stub phi uncertainty depending on assumed track inv2R
     double scattering() const { return scattering_; }
 
@@ -725,10 +723,8 @@ namespace tt {
     double tiltApproxSlope_;
     // approximated tilt correction parameter used to project r to z uncertainty
     double tiltApproxIntercept_;
-    //
-    double tiltApproxSlopeNew_;
-    //
-    double tiltApproxInterceptNew_;
+    // In tilted barrel, constant assumed stub radial uncertainty * sqrt(12) in cm
+    double tiltUncertaintyR_;
     // minimum representable stub phi uncertainty
     double mindPhi_;
     // maximum representable stub phi uncertainty
