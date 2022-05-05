@@ -202,7 +202,7 @@ TrackTrigger_params = cms.PSet (
     NumWorker   = cms.int32 ( 2   ), # number of kf worker
     RangeFactor = cms.double( 2.0 ), # search window of each track parameter in initial uncertainties
     MinLayers   = cms.int32 ( 4   ), # required number of stub layers to form a track
-    MaxLayers   = cms.int32 ( 4   )  # maximum number of  layers added to a track
+    MaxLayers   = cms.int32 ( 7   )  # maximum number of  layers added to a track
   ),
 
   # Parmeter specifying KalmanFilter Output Formatter
