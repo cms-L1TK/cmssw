@@ -144,12 +144,12 @@ namespace trklet {
             psTilt = abs(posZ) < limit;
           } else
             psTilt = setup_->psModule(ttStubRef);
-          const GlobalPoint gp = setup_->stubPos(ttStubRef);
-          const double ttR = r;
-          const double ttZ = gp.z() - (z0 + (ttR + dataFormats_->chosenRofPhi()) * cot);
-          if (useTTStubResiduals_)
+          if (useTTStubResiduals_) {
+            const GlobalPoint gp = setup_->stubPos(ttStubRef);
+            const double ttR = r;
+            const double ttZ = gp.z() - (z0 + (ttR + dataFormats_->chosenRofPhi()) * cot);
             stubs_.emplace_back(ttStubRef, layerId, ttR, phi, ttZ, psTilt);
-          else
+          } else
             stubs_.emplace_back(ttStubRef, layerId, r, phi, z, psTilt);
           stubs.push_back(&stubs_.back());
         }
@@ -336,7 +336,7 @@ namespace trklet {
         const bool barrel = setup_->barrel(stub->ttStubRef_);
         const bool ps = barrel ? setup_->psModule(stub->ttStubRef_) : stub->psTilt_;
         const bool tilt = barrel ? (ps && !stub->psTilt_) : false;
-        const double length = digi(ps ? setup_->lengthPS() : setup_->length2S(), baseLr_);
+        const double length = ps ? setup_->lengthPS() : setup_->length2S();
         const double pitch = ps ? setup_->pitchPS() : setup_->pitch2S();
         const double pitchOverR = digi(pitch / (digi(stub->r_, baseR) + dataFormats_->chosenRofPhi()), basePhi);
         const double r = digi(stub->r_, baseRinvR) + dataFormats_->chosenRofPhi();
@@ -351,11 +351,11 @@ namespace trklet {
           lengthR = length;
         } else if (tilt) {
           lengthZ = length * abs(setup_->tiltApproxSlope() * cot + setup_->tiltApproxIntercept());
-          lengthR = digi(setup_->tiltUncertaintyR(), baseLr_);
+          lengthR = setup_->tiltUncertaintyR();
         }
         const double scat = digi(setup_->scattering(), baseLr_);
         stub->dZ_ = lengthZ + baseLz_;
-        stub->dPhi_ = (scat + lengthR) * inv2R + pitchOverR;
+        stub->dPhi_ = (scat + digi(lengthR, baseLr_)) * inv2R + pitchOverR;
         stub->dPhi_ = digi(stub->dPhi_, baseLphi_) + baseLphi_;
       }
     }
