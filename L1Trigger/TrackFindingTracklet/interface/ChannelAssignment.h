@@ -28,6 +28,8 @@ namespace trklet {
     int numChannelsTrack() const { return numChannelsTrack_; }
     // number of used channels for stubs
     int numChannelsStub() const { return numChannelsStub_; }
+    // number of used seed types in tracklet algorithm
+    int numSeedTypes() const { return numSeedTypes_; }
     // sets layerId (0-7 in sequence the seed type projects to) of given TTStubRef and seedType, returns false if seeed stub
     bool layerId(int seedType, const TTStubRef& ttStubRef, int& layerId) const;
     // return tracklet layerId (barrel: [0-5], endcap: [6-10]) for given TTStubRef
