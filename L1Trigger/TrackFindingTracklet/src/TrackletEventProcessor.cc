@@ -25,15 +25,9 @@ TrackletEventProcessor::~TrackletEventProcessor() {
   }
 }
 
-<<<<<<< HEAD
 void TrackletEventProcessor::init(Settings const& theSettings,
                                   const tt::Setup* setup) {
   settings_ = &theSettings;
-
-=======
-void TrackletEventProcessor::init(Settings const& theSettings) {
-  settings_ = &theSettings;
->>>>>>> Remove code for old calculation of stream data - keeping the debug print out in this commit
   globals_ = make_unique<Globals>(*settings_);
 
   //Verify consistency
@@ -451,7 +445,3 @@ void TrackletEventProcessor::printSummary() {
                                << setprecision(3) << PDTimer_.avgtime() * 1000.0 << setw(20) << setprecision(3)
                                << PDTimer_.tottime();
 }
-<<<<<<< HEAD
-=======
-
->>>>>>> Remove code for old calculation of stream data - keeping the debug print out in this commit

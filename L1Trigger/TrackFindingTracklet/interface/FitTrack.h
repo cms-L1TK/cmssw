@@ -38,15 +38,8 @@ namespace trklet {
 
     std::vector<Tracklet*> orderedMatches(std::vector<FullMatchMemory*>& fullmatch);
 
-<<<<<<< HEAD
-    void execute(const ChannelAssignment* channelAssignment,
-                 std::deque<tt::Frame>& streamTrack,
-                 std::vector<std::deque<tt::FrameStub>>& streamsStub,
-		 std::vector<std::string>& trackStream,
-=======
     void execute(std::vector<std::string>& trackStream,
->>>>>>> Remove code for old calculation of stream data - keeping the debug print out in this commit
-		 std::vector<std::vector<StubStreamData>>& stubStream,
+                 std::vector<std::vector<StubStreamData>>& stubStream,
                  unsigned int iSector);
 
   private:

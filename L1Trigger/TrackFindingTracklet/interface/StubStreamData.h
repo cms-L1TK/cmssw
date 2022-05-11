@@ -5,6 +5,8 @@
 
 #include <string>
 
+// Used to generate bit-accurate stub stream from TrackBuilder output
+
 namespace trklet {
 
   class L1TStub;
@@ -18,8 +20,9 @@ namespace trklet {
 
     ~StubStreamData() = default;
 
-    int iSeed() const {return iSeed_;}
+    int iSeed() const {return iSeed_;} // Seed type
     const L1TStub& stub() const {return stub_;}
+    // String containing valid bit + r coordinate + phi residual + r or z residual.
     const std::string& residuals() const {return residuals_;}
 
   private:
