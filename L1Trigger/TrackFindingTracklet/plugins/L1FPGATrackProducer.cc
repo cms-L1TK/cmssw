@@ -714,23 +714,23 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
   for(unsigned int chanTrk=0; chanTrk<numStreamsTrack; chanTrk++) {
     for(unsigned int itk=0; itk<tracksStream[chanTrk].size(); itk++) {
       std::string bitsTrk = tracksStream[chanTrk][itk];
+      int iSeed = chanTrk%channelAssignment_->numChannelsTrack(); // seed type
       // TO DO: CHECK -- THESE LINES NO LONGER NEEDED AS FITTRACK ADDS VALID+SEED TO trackStream.
       //if (bitsTrk != "0") 
-      //  int iseed = chanTrk%channelAssignment_->numChannelsTrack();
-      //  bitsTrk="1" + TTBV(iseed, settings_.nbitsseed()).str()+bitsTrk;
+      //  bitsTrk="1" + TTBV(iSeed, settings_.nbitsseed()).str()+bitsTrk;
       //}
       streamsTrack[chanTrk].emplace_back(bitsTrk);
-    }
-    const unsigned int chanStubOffsetIn = chanTrk*maxNumProjectionLayers;
-    const unsigned int chanStubOffsetOut = channelAssignment_->offsetStub(chanTrk);
-    unsigned int nstub=stubsStream[chanStubOffsetIn].size();
-    // Remove padding from stub stream.
-    for(unsigned int istub=0; istub<nstub; istub++ ) {
-      TTBV hitMap(0, maxNumProjectionLayers);
+
+      const unsigned int chanStubOffsetIn = chanTrk*maxNumProjectionLayers;
+      const unsigned int chanStubOffsetOut = channelAssignment_->offsetStub(chanTrk);
+      const unsigned int numProjLayers = channelAssignment_->numProjectionLayers(iSeed);
+      TTBV hitMap(0, numProjLayers);
+      // remove padding from stub stream
       for(unsigned int iproj=0; iproj<maxNumProjectionLayers; iproj++) {
-        const StubStreamData stubdata = stubsStream[chanStubOffsetIn+iproj][istub];
+        // FW current has one (perhaps invalid) stub per layer per track.
+        const StubStreamData& stubdata = stubsStream[chanStubOffsetIn+iproj][itk];
         const L1TStub& stub = stubdata.stub();
-        if (stubdata.iSeed()!=-1) {
+        if (stubdata.iSeed()!=-1) { // valid stub
           const TTStubRef ttStubRef = stubMap[stub];
           int layerId(-1);
           if (!channelAssignment_->layerId(stubdata.iSeed(), ttStubRef, layerId)) continue;
@@ -738,7 +738,7 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
           streamsStub[chanStubOffsetOut+layerId].emplace_back(ttStubRef,stubdata.residuals());
         }
       }
-      for (int layerId : hitMap.ids(false)) {
+      for (int layerId : hitMap.ids(false)) { // invalid stubs
         streamsStub[chanStubOffsetOut+layerId].emplace_back(tt::FrameStub());
       }
     }    
