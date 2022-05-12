@@ -717,10 +717,6 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
     for(unsigned int itk=0; itk<streamsTrackRaw[chanTrk].size(); itk++) {
       std::string bitsTrk = streamsTrackRaw[chanTrk][itk];
       int iSeed = chanTrk%channelAssignment_->numChannelsTrack(); // seed type
-      // TO DO: CHECK -- THESE LINES NO LONGER NEEDED AS FITTRACK ADDS VALID+SEED TO trackStream.
-      //if (bitsTrk != "0") 
-      //  bitsTrk="1" + TTBV(iSeed, settings_.nbitsseed()).str()+bitsTrk;
-      //}
       streamsTrack[chanTrk].emplace_back(bitsTrk);
 
       const unsigned int chanStubOffsetIn = chanTrk*maxNumProjectionLayers;

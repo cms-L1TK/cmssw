@@ -1066,8 +1066,6 @@ void FitTrack::execute(vector<string>& streamTrackRaw,
           const string& rz = resid.fpgarzresid().str();
           const L1TStub* stub = resid.stubptr()->l1tstub();
           static constexpr int widthDisk2Sidentifier = 8;
-          // TO DO: Check if this correctly translates Thomas's code for endcap 2S r coordinate
-          //if (channelAssignment->type(ttStubRef) == tt::SensorModule::Disk2S)
           bool disk2S = (stub->disk() != 0) && (stub->isPSmodule() == 0);
           if (disk2S) r = string(widthDisk2Sidentifier, '0') + r;
           // store seed, L1TStub, and bit accurate 64 bit word in clock accurate output
