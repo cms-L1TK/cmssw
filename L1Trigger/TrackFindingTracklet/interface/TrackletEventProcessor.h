@@ -30,12 +30,11 @@ namespace trklet {
 
     ~TrackletEventProcessor();
 
-    void init(Settings const& theSettings,
-              const tt::Setup* setup = nullptr);
+    void init(Settings const& theSettings, const tt::Setup* setup = nullptr);
 
     void event(SLHCEvent& ev,
-	       std::vector<std::vector<std::string>>& streamsTrackRaw,
-	       std::vector<std::vector<StubStreamData>>& streamsStubRaw);
+               std::vector<std::vector<std::string>>& streamsTrackRaw,
+               std::vector<std::vector<StubStreamData>>& streamsStubRaw);
 
     void printSummary();
 

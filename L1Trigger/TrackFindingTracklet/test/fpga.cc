@@ -209,8 +209,8 @@ int main(const int argc, const char **argv) {
     edm::LogVerbatim("Tracklet") << "Process event: " << eventnum << " with " << ev.nstubs() << " stubs and "
                                  << ev.nsimtracks() << " simtracks";
 
-    std::vector<std::vector<std::string>> tracksStream(N_SECTOR*8);
-    std::vector<std::vector<StubStreamData>> stubsStream(N_SECTOR*8*8);
+    std::vector<std::vector<std::string>> tracksStream(N_SECTOR * 8);
+    std::vector<std::vector<StubStreamData>> stubsStream(N_SECTOR * 8 * 8);
 
     eventProcessor.event(ev, tracksStream, stubsStream);
 

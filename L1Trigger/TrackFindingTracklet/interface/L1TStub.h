@@ -131,7 +131,6 @@ namespace trklet {
 
     unsigned int isPSmodule_;
     unsigned int isFlipped_;
-
   };
 };  // namespace trklet
 #endif

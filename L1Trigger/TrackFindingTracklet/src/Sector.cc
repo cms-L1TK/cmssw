@@ -419,7 +419,7 @@ void Sector::executeMP() {
 
 void Sector::executeFT(vector<vector<string>>& streamsTrackRaw, vector<vector<StubStreamData>>& streamsStubRaw) {
   const int numChannels = streamsTrackRaw.size() / N_SECTOR;
-  const int maxNumProjectionLayers = streamsStubRaw.size()/streamsTrackRaw.size();
+  const int maxNumProjectionLayers = streamsStubRaw.size() / streamsTrackRaw.size();
   const int offsetTrack = isector_ * numChannels;
   int channelTrack(0);
 

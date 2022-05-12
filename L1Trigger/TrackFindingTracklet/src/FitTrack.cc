@@ -1056,7 +1056,7 @@ void FitTrack::execute(vector<string>& streamTrackRaw,
       streamTrackRaw.emplace_back(valid + seed + rinv + phi0 + z0 + t);
 
       unsigned int ihit(0);
-      for(unsigned int ilayer = 0 ; ilayer < N_LAYER + N_DISK ; ilayer++){
+      for (unsigned int ilayer = 0; ilayer < N_LAYER + N_DISK; ilayer++) {
         if (bestTracklet->match(ilayer)) {
           const Residual& resid = bestTracklet->resid(ilayer);
           // create bit accurate 64 bit word
@@ -1067,13 +1067,14 @@ void FitTrack::execute(vector<string>& streamTrackRaw,
           const L1TStub* stub = resid.stubptr()->l1tstub();
           static constexpr int widthDisk2Sidentifier = 8;
           bool disk2S = (stub->disk() != 0) && (stub->isPSmodule() == 0);
-          if (disk2S) r = string(widthDisk2Sidentifier, '0') + r;
+          if (disk2S)
+            r = string(widthDisk2Sidentifier, '0') + r;
           // store seed, L1TStub, and bit accurate 64 bit word in clock accurate output
-          streamsStubRaw[ihit++].emplace_back(StubStreamData(seedType,*stub,valid + r + phi + rz));
+          streamsStubRaw[ihit++].emplace_back(StubStreamData(seedType, *stub, valid + r + phi + rz));
         }
       }
       // fill all layer with no stubs with gaps
-      while (ihit<streamsStubRaw.size()) {
+      while (ihit < streamsStubRaw.size()) {
         streamsStubRaw[ihit++].emplace_back(StubStreamData());
       }
     }

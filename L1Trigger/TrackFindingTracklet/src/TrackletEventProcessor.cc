@@ -25,8 +25,7 @@ TrackletEventProcessor::~TrackletEventProcessor() {
   }
 }
 
-void TrackletEventProcessor::init(Settings const& theSettings,
-                                  const tt::Setup* setup) {
+void TrackletEventProcessor::init(Settings const& theSettings, const tt::Setup* setup) {
   settings_ = &theSettings;
   globals_ = make_unique<Globals>(*settings_);
 
@@ -175,8 +174,8 @@ void TrackletEventProcessor::configure(istream& inwire, istream& inmem, istream&
 }
 
 void TrackletEventProcessor::event(SLHCEvent& ev,
-				   vector<vector<string>>& streamsTrackRaw,
-				   vector<vector<StubStreamData>>& streamsStubRaw) {
+                                   vector<vector<string>>& streamsTrackRaw,
+                                   vector<vector<StubStreamData>>& streamsStubRaw) {
   globals_->event() = &ev;
 
   tracks_.clear();
