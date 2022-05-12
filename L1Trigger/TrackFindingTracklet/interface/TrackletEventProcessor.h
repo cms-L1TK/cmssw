@@ -34,8 +34,8 @@ namespace trklet {
               const tt::Setup* setup = nullptr);
 
     void event(SLHCEvent& ev,
-	       std::vector<std::vector<std::string>>& tracksStream,
-	       std::vector<std::vector<StubStreamData>>& stubsStream);
+	       std::vector<std::vector<std::string>>& streamsTrackRaw,
+	       std::vector<std::vector<StubStreamData>>& streamsStubRaw);
 
     void printSummary();
 

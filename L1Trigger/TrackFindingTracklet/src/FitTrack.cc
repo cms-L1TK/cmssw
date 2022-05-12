@@ -874,8 +874,8 @@ std::vector<Tracklet*> FitTrack::orderedMatches(vector<FullMatchMemory*>& fullma
 // Also create output streams, that bypass these memories, (so can include gaps in time),
 // to be used by Hybrid case with exact New KF emulation.
 
-void FitTrack::execute(vector<string>& trackStream,
-                       vector<vector<StubStreamData>>& stubStream,
+void FitTrack::execute(vector<string>& streamTrackRaw,
+                       vector<vector<StubStreamData>>& streamsStubRaw,
                        unsigned int iSector) {
   // merge
   const std::vector<Tracklet*>& matches1 = orderedMatches(fullmatch1_);
@@ -1040,8 +1040,8 @@ void FitTrack::execute(vector<string>& trackStream,
       // add gap if enough layer to form track
       if (!bestTracklet->fit()) {
         static const string invalid = "0";
-        trackStream.emplace_back(invalid);
-        for (auto& stream : stubStream)
+        streamTrackRaw.emplace_back(invalid);
+        for (auto& stream : streamsStubRaw)
           stream.emplace_back(StubStreamData());
         continue;
       }
@@ -1053,7 +1053,7 @@ void FitTrack::execute(vector<string>& trackStream,
       const int seedType = bestTracklet->getISeed();
       const string seed = TTBV(seedType, settings_.nbitsseed()).str();
       const string valid("1");
-      trackStream.emplace_back(valid + seed + rinv + phi0 + z0 + t);
+      streamTrackRaw.emplace_back(valid + seed + rinv + phi0 + z0 + t);
 
       unsigned int ihit(0);
       for(unsigned int ilayer = 0 ; ilayer < N_LAYER + N_DISK ; ilayer++){
@@ -1071,12 +1071,12 @@ void FitTrack::execute(vector<string>& trackStream,
           bool disk2S = (stub->disk() != 0) && (stub->isPSmodule() == 0);
           if (disk2S) r = string(widthDisk2Sidentifier, '0') + r;
           // store seed, L1TStub, and bit accurate 64 bit word in clock accurate output
-          stubStream[ihit++].emplace_back(StubStreamData(seedType,*stub,valid + r + phi + rz));
+          streamsStubRaw[ihit++].emplace_back(StubStreamData(seedType,*stub,valid + r + phi + rz));
         }
       }
       // fill all layer with no stubs with gaps
-      while (ihit<stubStream.size()) {
-        stubStream[ihit++].emplace_back(StubStreamData());
+      while (ihit<streamsStubRaw.size()) {
+        streamsStubRaw[ihit++].emplace_back(StubStreamData());
       }
     }
 

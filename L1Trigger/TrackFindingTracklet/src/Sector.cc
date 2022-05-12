@@ -417,25 +417,25 @@ void Sector::executeMP() {
 // If using Hybrid, then PurgeDuplicates runs both duplicate removal & KF steps.
 // (unless duplicate removal disabled, in which case FitTrack runs KF).
 
-void Sector::executeFT(vector<vector<string>>& tracksStream, vector<vector<StubStreamData>>& stubsStream) {
-  const int numChannels = tracksStream.size() / N_SECTOR;
-  const int maxNumProjectionLayers = stubsStream.size()/tracksStream.size();
+void Sector::executeFT(vector<vector<string>>& streamsTrackRaw, vector<vector<StubStreamData>>& streamsStubRaw) {
+  const int numChannels = streamsTrackRaw.size() / N_SECTOR;
+  const int maxNumProjectionLayers = streamsStubRaw.size()/streamsTrackRaw.size();
   const int offsetTrack = isector_ * numChannels;
   int channelTrack(0);
 
   for (auto& i : FT_) {
     // Temporary streams for a single TrackBuilder (i.e. seed type)
-    vector<string> trackStreamTmp;
-    vector<vector<StubStreamData>> stubStreamTmp(maxNumProjectionLayers);
-    i->execute(trackStreamTmp, stubStreamTmp, isector_);
+    vector<string> streamTrackTmp;
+    vector<vector<StubStreamData>> streamsStubTmp(maxNumProjectionLayers);
+    i->execute(streamTrackTmp, streamsStubTmp, isector_);
     if (!settings_.storeTrackBuilderOutput())
       continue;
     const int offsetStub = (offsetTrack + channelTrack) * maxNumProjectionLayers;
-    tracksStream[offsetTrack + channelTrack] = trackStreamTmp;
+    streamsTrackRaw[offsetTrack + channelTrack] = streamTrackTmp;
     channelTrack++;
     int channelStub(0);
-    for (auto& stream : stubStreamTmp)
-      stubsStream[offsetStub + channelStub++] = stream;
+    for (auto& stream : streamsStubTmp)
+      streamsStubRaw[offsetStub + channelStub++] = stream;
   }
 }
 

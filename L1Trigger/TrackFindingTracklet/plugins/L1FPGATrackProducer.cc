@@ -622,14 +622,14 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
   for (int iSeedType = 0; iSeedType < channelAssignment_->numSeedTypes(); iSeedType++) {
     maxNumProjectionLayers = max(maxNumProjectionLayers, (unsigned int) channelAssignment_->numProjectionLayers(iSeedType));
   }
-  const unsigned int numStreamsPaddedStub = numStreamsTrack * maxNumProjectionLayers;
+  const unsigned int numStreamsStubRaw = numStreamsTrack * maxNumProjectionLayers;
 
-  // Streams allowing running outside CMSSW.
-  vector<vector<string>> tracksStream(numStreamsTrack);
-  vector<vector<StubStreamData>> stubsStream(numStreamsPaddedStub);
+  // Streams formatted to allow this code to run outside CMSSW.
+  vector<vector<string>> streamsTrackRaw(numStreamsTrack);
+  vector<vector<StubStreamData>> streamsStubRaw(numStreamsStubRaw);
 
   // this performs the actual tracklet event processing
-  eventProcessor.event(ev, tracksStream, stubsStream);
+  eventProcessor.event(ev, streamsTrackRaw, streamsStubRaw);
 
   int ntracks = 0;
 
@@ -706,14 +706,16 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
 
   iEvent.put(std::move(L1TkTracksForOutput), "Level1TTTracks");
 
-  // produce clock and bit accurate stream output tracks and stubs,
-  // converting from the streams created above.
+  // produce clock and bit accurate stream output tracks and stubs.
+  // from end of tracklet pattern recognition.
+  // Convertion here is from stream format that allows this code to run
+  // outside CMSSW to the EDProduct one.
   Streams streamsTrack(numStreamsTrack);
   StreamsStub streamsStub(numStreamsStub);
 
   for(unsigned int chanTrk=0; chanTrk<numStreamsTrack; chanTrk++) {
-    for(unsigned int itk=0; itk<tracksStream[chanTrk].size(); itk++) {
-      std::string bitsTrk = tracksStream[chanTrk][itk];
+    for(unsigned int itk=0; itk<streamsTrackRaw[chanTrk].size(); itk++) {
+      std::string bitsTrk = streamsTrackRaw[chanTrk][itk];
       int iSeed = chanTrk%channelAssignment_->numChannelsTrack(); // seed type
       // TO DO: CHECK -- THESE LINES NO LONGER NEEDED AS FITTRACK ADDS VALID+SEED TO trackStream.
       //if (bitsTrk != "0") 
@@ -728,9 +730,9 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
       // remove padding from stub stream
       for(unsigned int iproj=0; iproj<maxNumProjectionLayers; iproj++) {
         // FW current has one (perhaps invalid) stub per layer per track.
-        const StubStreamData& stubdata = stubsStream[chanStubOffsetIn+iproj][itk];
+        const StubStreamData& stubdata = streamsStubRaw[chanStubOffsetIn+iproj][itk];
         const L1TStub& stub = stubdata.stub();
-        if (stubdata.iSeed()!=-1) { // valid stub
+        if (stubdata.valid()) {
           const TTStubRef ttStubRef = stubMap[stub];
           int layerId(-1);
           if (!channelAssignment_->layerId(stubdata.iSeed(), ttStubRef, layerId)) continue;

@@ -175,8 +175,8 @@ void TrackletEventProcessor::configure(istream& inwire, istream& inmem, istream&
 }
 
 void TrackletEventProcessor::event(SLHCEvent& ev,
-				   vector<vector<string>>& tracksStream,
-				   vector<vector<StubStreamData>>& stubsStream) {
+				   vector<vector<string>>& streamsTrackRaw,
+				   vector<vector<StubStreamData>>& streamsStubRaw) {
   globals_->event() = &ev;
 
   tracks_.clear();
@@ -367,7 +367,7 @@ void TrackletEventProcessor::event(SLHCEvent& ev,
 
     // fit track
     FTTimer_.start();
-    sector_->executeFT(tracksStream, stubsStream);
+    sector_->executeFT(streamsTrackRaw, streamsStubRaw);
     if ((settings_->writeMem() || settings_->writeMonitorData("IFit")) && k == settings_->writememsect()) {
       sector_->writeTF(first);
     }

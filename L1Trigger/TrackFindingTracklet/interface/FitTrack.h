@@ -38,7 +38,7 @@ namespace trklet {
 
     std::vector<Tracklet*> orderedMatches(std::vector<FullMatchMemory*>& fullmatch);
 
-    void execute(std::vector<std::string>& trackStream,
+    void execute(std::vector<std::string>& streamTrackRaw,
                  std::vector<std::vector<StubStreamData>>& stubStream,
                  unsigned int iSector);
 
