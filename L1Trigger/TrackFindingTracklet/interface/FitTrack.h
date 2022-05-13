@@ -8,6 +8,7 @@
 #include "L1Trigger/TrackFindingTracklet/interface/StubStreamData.h"
 
 #include <vector>
+#include <deque>
 
 namespace trklet {
 
@@ -38,8 +39,8 @@ namespace trklet {
 
     std::vector<Tracklet*> orderedMatches(std::vector<FullMatchMemory*>& fullmatch);
 
-    void execute(std::vector<std::string>& streamTrackRaw,
-                 std::vector<std::vector<StubStreamData>>& stubStream,
+    void execute(std::deque<std::string>& streamTrackRaw,
+                 std::vector<std::deque<StubStreamData>>& stubStream,
                  unsigned int iSector);
 
   private:

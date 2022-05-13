@@ -617,11 +617,7 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
   // number of stub channels
   const unsigned int numStreamsStub = N_SECTOR * channelAssignment_->numChannelsStub();
   // number of stub channels if all seed types streams padded to have same number of stub channels (for coding simplicity)
-  unsigned int maxNumProjectionLayers = 0;
-  for (int iSeedType = 0; iSeedType < channelAssignment_->numSeedTypes(); iSeedType++) {
-    maxNumProjectionLayers =
-        max(maxNumProjectionLayers, (unsigned int)channelAssignment_->numProjectionLayers(iSeedType));
-  }
+  const unsigned int maxNumProjectionLayers = channelAssignment_->maxNumProjectionLayers();
   const unsigned int numStreamsStubRaw = numStreamsTrack * maxNumProjectionLayers;
 
   // Streams formatted to allow this code to run outside CMSSW.
@@ -734,7 +730,7 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
           if (!channelAssignment_->layerId(stubdata.iSeed(), ttStubRef, layerId))
             continue;
           hitMap.set(layerId);
-          streamsStub[chanStubOffsetOut + layerId].emplace_back(ttStubRef, stubdata.residuals());
+          streamsStub[chanStubOffsetOut + layerId].emplace_back(ttStubRef, stubdata.dataBits());
         }
       }
       for (int layerId : hitMap.ids(false)) {  // invalid stubs

@@ -874,8 +874,8 @@ std::vector<Tracklet*> FitTrack::orderedMatches(vector<FullMatchMemory*>& fullma
 // Also create output streams, that bypass these memories, (so can include gaps in time),
 // to be used by Hybrid case with exact New KF emulation.
 
-void FitTrack::execute(vector<string>& streamTrackRaw,
-                       vector<vector<StubStreamData>>& streamsStubRaw,
+void FitTrack::execute(deque<string>& streamTrackRaw,
+                       vector<deque<StubStreamData>>& streamsStubRaw,
                        unsigned int iSector) {
   // merge
   const std::vector<Tracklet*>& matches1 = orderedMatches(fullmatch1_);
@@ -1070,12 +1070,12 @@ void FitTrack::execute(vector<string>& streamTrackRaw,
           if (disk2S)
             r = string(widthDisk2Sidentifier, '0') + r;
           // store seed, L1TStub, and bit accurate 64 bit word in clock accurate output
-          streamsStubRaw[ihit++].emplace_back(StubStreamData(seedType, *stub, valid + r + phi + rz));
+          streamsStubRaw[ihit++].emplace_back(seedType, *stub, valid + r + phi + rz);
         }
       }
       // fill all layer with no stubs with gaps
       while (ihit < streamsStubRaw.size()) {
-        streamsStubRaw[ihit++].emplace_back(StubStreamData());
+        streamsStubRaw[ihit++].emplace_back();
       }
     }
 

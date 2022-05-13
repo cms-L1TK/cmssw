@@ -425,17 +425,17 @@ void Sector::executeFT(vector<vector<string>>& streamsTrackRaw, vector<vector<St
 
   for (auto& i : FT_) {
     // Temporary streams for a single TrackBuilder (i.e. seed type)
-    vector<string> streamTrackTmp;
-    vector<vector<StubStreamData>> streamsStubTmp(maxNumProjectionLayers);
+    deque<string> streamTrackTmp;
+    vector<deque<StubStreamData>> streamsStubTmp(maxNumProjectionLayers);
     i->execute(streamTrackTmp, streamsStubTmp, isector_);
     if (!settings_.storeTrackBuilderOutput())
       continue;
     const int offsetStub = (offsetTrack + channelTrack) * maxNumProjectionLayers;
-    streamsTrackRaw[offsetTrack + channelTrack] = streamTrackTmp;
+    streamsTrackRaw[offsetTrack + channelTrack] = vector<string>(streamTrackTmp.begin(), streamTrackTmp.end());
     channelTrack++;
     int channelStub(0);
     for (auto& stream : streamsStubTmp)
-      streamsStubRaw[offsetStub + channelStub++] = stream;
+      streamsStubRaw[offsetStub + channelStub++] = vector<StubStreamData>(stream.begin(), stream.end());
   }
 }
 

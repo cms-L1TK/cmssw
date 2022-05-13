@@ -209,8 +209,14 @@ int main(const int argc, const char **argv) {
     edm::LogVerbatim("Tracklet") << "Process event: " << eventnum << " with " << ev.nstubs() << " stubs and "
                                  << ev.nsimtracks() << " simtracks";
 
-    std::vector<std::vector<std::string>> tracksStream(N_SECTOR * 8);
-    std::vector<std::vector<StubStreamData>> stubsStream(N_SECTOR * 8 * 8);
+    // Output track streams per nonant from track-builders.
+    constexpr unsigned int numStubStreamsPerTrack = settings.extended() ? N_SEED : N_SEED_PROMPT;
+    // Max. number of projection layers for any tracklet seed.
+    constexpr unsigned int maxNumProjectionLayers = 8;
+    constexpr unsigned int numStreamsTrack = N_SECTOR * numStubStreamsTrack;
+    constexpr unsigned int numStreamsStub = numStreamsTrack * maxNumProjectionLayers;
+    std::vector<std::vector<std::string>> tracksStream(numStreamsTrack);
+    std::vector<std::vector<StubStreamData>> stubsStream(numStreamsStub);
 
     eventProcessor.event(ev, tracksStream, stubsStream);
 
