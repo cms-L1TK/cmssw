@@ -612,12 +612,12 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
 
   const std::vector<trklet::Track>& tracks = eventProcessor.tracks();
 
+  const unsigned int maxNumProjectionLayers = channelAssignment_->maxNumProjectionLayers();
   // number of track channels
   const unsigned int numStreamsTrack = N_SECTOR * channelAssignment_->numChannelsTrack();
   // number of stub channels
   const unsigned int numStreamsStub = N_SECTOR * channelAssignment_->numChannelsStub();
   // number of stub channels if all seed types streams padded to have same number of stub channels (for coding simplicity)
-  const unsigned int maxNumProjectionLayers = channelAssignment_->maxNumProjectionLayers();
   const unsigned int numStreamsStubRaw = numStreamsTrack * maxNumProjectionLayers;
 
   // Streams formatted to allow this code to run outside CMSSW.
