@@ -428,10 +428,10 @@ void TrackletEventProcessor::printSummary() {
                                    << "TrackletCalculatorDisplaced" << setw(10) << TCDTimer_.ntimes() << setw(20)
                                    << setprecision(3) << TCDTimer_.avgtime() * 1000.0 << setw(20) << setprecision(3)
                                    << TCDTimer_.tottime() << "\n"
-				   << TCDTimer_.tottime() << "\n"
-				   << "TrackletProcessorDisplaced" << setw(10) << TPDTimer_.ntimes() << setw(20)
-				   << setprecision(3) << TPDTimer_.avgtime() * 1000.0 << setw(20) << setprecision(3)
-				   << TPDTimer_.tottime();
+                                   << TCDTimer_.tottime() << "\n"
+                                   << "TrackletProcessorDisplaced" << setw(10) << TPDTimer_.ntimes() << setw(20)
+                                   << setprecision(3) << TPDTimer_.avgtime() * 1000.0 << setw(20) << setprecision(3)
+                                   << TPDTimer_.tottime();
     }
     edm::LogVerbatim("Tracklet") << "TrackletCalculator    " << setw(10) << TCTimer_.ntimes() << setw(20)
                                  << setprecision(3) << TCTimer_.avgtime() * 1000.0 << setw(20) << setprecision(3)

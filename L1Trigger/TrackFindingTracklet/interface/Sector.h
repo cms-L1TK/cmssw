@@ -176,7 +176,7 @@ namespace trklet {
     std::vector<std::unique_ptr<TrackletEngineDisplaced>> TED_;
     std::vector<std::unique_ptr<TripletEngine>> TRE_;
     std::vector<std::unique_ptr<TrackletProcessor>> TP_;
-    std::vector<std::unique_ptr<TrackletProcessorDisplaced> > TPD_;
+    std::vector<std::unique_ptr<TrackletProcessorDisplaced>> TPD_;
     std::vector<std::unique_ptr<TrackletCalculator>> TC_;
     std::vector<std::unique_ptr<TrackletCalculatorDisplaced>> TCD_;
     std::vector<std::unique_ptr<ProjectionRouter>> PR_;
