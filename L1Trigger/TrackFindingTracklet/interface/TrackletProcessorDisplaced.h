@@ -77,11 +77,10 @@ namespace trklet {
     std::vector<VMStubsTEMemory*> outervmstubs_;
 
     StubTripletsMemory* stubtriplets_;
-                                                         
+
     std::map<std::string, std::vector<std::vector<std::string> > > tmpSPTable_;
     std::map<std::string, std::vector<std::map<std::string, unsigned> > > spTable_;
     std::vector<bool> table_;
-
   };
 
 };  // namespace trklet
