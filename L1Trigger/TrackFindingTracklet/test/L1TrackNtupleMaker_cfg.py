@@ -165,7 +165,6 @@ if (L1TRKALGO == 'HYBRID'):
     process.ChannelAssignment.SeedTypes = cms.vstring( "L1L2", "L2L3", "L3L4", "L5L6" )
     process.ChannelAssignment.SeedTypesSeedLayers = cms.PSet( L1L2 = cms.vint32( 1,  2 ), L2L3 = cms.vint32( 2,  3 ), L3L4 = cms.vint32( 3,  4 ), L5L6 = cms.vint32( 5,  6 ) )
     process.ChannelAssignment.SeedTypesProjectionLayers = cms.PSet( L1L2 = cms.vint32(  3,  4,  5,  6 ), L2L3 = cms.vint32(  1,  4,  5 ), L3L4 = cms.vint32(  1,  2,  5,  6 ), L5L6 = cms.vint32(  1,  2,  3,  4 ) )
-    process.ChannelAssignment.MaxNumProjectionLayers = 4
 
 # HYBRID: extended tracking
 elif (L1TRKALGO == 'HYBRID_DISPLACED'):
