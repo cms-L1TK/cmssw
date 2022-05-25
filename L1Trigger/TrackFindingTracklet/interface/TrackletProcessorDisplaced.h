@@ -1,3 +1,4 @@
+// TrackletProcessorDisplaced: This class performs the tasks of the TrackletEngineDisplaced+TripletEngine+TrackletCalculatorDisplaced.
 #ifndef L1Trigger_TrackFindingTracklet_interface_TrackletProcessorDisplaced_h
 #define L1Trigger_TrackFindingTracklet_interface_TrackletProcessorDisplaced_h
 
@@ -37,16 +38,12 @@ namespace trklet {
 
     void execute(unsigned int iSector, double phimin, double phimax);
 
-    /* void addDiskProj(Tracklet* tracklet, int disk); */
-    /* bool addLayerProj(Tracklet* tracklet, int layer); */
-
   private:
     int iTC_;
     int iAllStub_;
     unsigned int maxStep_;
     int count_;
     unsigned int layerdisk_;
-    /* VMStubsTEMemory* outervmstubs_; */
 
     int layer1_;
     int layer2_;
@@ -61,11 +58,6 @@ namespace trklet {
 
     int nbitszfinebintable_;
     int nbitsrfinebintable_;
-
-    /*                                 istub          imem          start imem    end imem */
-    /* std::tuple<CircularBuffer<TEData>, unsigned int, unsigned int, unsigned int, unsigned int> tebuffer_; */
-
-    /* std::vector<TrackletEngineUnit> teunits_; */
 
     TrackletLUT innerTable_;         //projection to next layer/disk
     TrackletLUT innerOverlapTable_;  //projection to disk from layer

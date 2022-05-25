@@ -20,7 +20,6 @@ using namespace trklet;
 
 TrackletProcessorDisplaced::TrackletProcessorDisplaced(string name, Settings const& settings, Globals* globals)
     : TrackletCalculatorDisplaced(name, settings, globals),
-      // tebuffer_(CircularBuffer<TEData>(3), 0, 0, 0, 0),
       innerTable_(settings),
       innerOverlapTable_(settings),
       innerThirdTable_(settings) {
