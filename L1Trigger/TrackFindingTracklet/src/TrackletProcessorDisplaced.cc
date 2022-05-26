@@ -30,10 +30,13 @@ TrackletProcessorDisplaced::TrackletProcessorDisplaced(string name, Settings con
   innervmstubs_.clear();
   outervmstubs_.clear();
 
-  // iAllStub_ = -1;
-  layerdisk_ = initLayerDisk(4);
+  const unsigned layerdiskPosInName = 4;
+  const unsigned regionPosInName1 = 9;
 
-  unsigned int region = name.substr(1)[9] - 'A';
+  // iAllStub_ = -1;
+  layerdisk_ = initLayerDisk(layerdiskPosInName);
+
+  unsigned int region = name.substr(1)[regionPosInName1] - 'A';
   // assert(region < settings_.nallstubs(layerdisk_));
 
   if (layerdisk_ == LayerDisk::L1 || layerdisk_ == LayerDisk::L2 || layerdisk_ == LayerDisk::L3 ||
@@ -76,25 +79,32 @@ TrackletProcessorDisplaced::TrackletProcessorDisplaced(string name, Settings con
   disk2_ = 0;
   disk3_ = 0;
 
+  const unsigned layerPosInName1 = 4;
+  const unsigned diskPosInName1 = 4;
+  const unsigned layer1PosInName1 = 4;
+  const unsigned disk1PosInName1 = 4;
+  const unsigned layer2PosInName1 = 6;
+  const unsigned disk2PosInName1 = 6;
+
   string name1 = name.substr(1);  //this is to correct for "TPD" having one more letter then "TP"
   if (name1[3] == 'L')
-    layer_ = name1[4] - '0';
+    layer_ = name1[layerPosInName1] - '0';
   if (name1[3] == 'D')
-    disk_ = name1[4] - '0';
+    disk_ = name1[diskPosInName1] - '0';
 
   if (name1[3] == 'L')
-    layer1_ = name1[4] - '0';
+    layer1_ = name1[layer1PosInName1] - '0';
   if (name1[3] == 'D')
-    disk1_ = name1[4] - '0';
+    disk1_ = name1[disk1PosInName1] - '0';
   if (name1[5] == 'L')
-    layer2_ = name1[6] - '0';
+    layer2_ = name1[layer2PosInName1] - '0';
   if (name1[5] == 'D')
-    disk2_ = name1[6] - '0';
+    disk2_ = name1[disk2PosInName1] - '0';
 
   // set TC index
   iSeed_ = 0;
 
-  int iTC = name1[9] - 'A';
+  int iTC = name1[regionPosInName1] - 'A';
 
   if (name1.substr(3, 6) == "L3L4L2") {
     iSeed_ = 8;
@@ -111,8 +121,11 @@ TrackletProcessorDisplaced::TrackletProcessorDisplaced(string name, Settings con
   }
   assert(iSeed_ != 0);
 
+  const int TCIndexMin = 128;
+  const int TCIndexMax = 191;
+
   TCIndex_ = (iSeed_ << 4) + iTC;
-  assert(TCIndex_ >= 128 && TCIndex_ < 191);
+  assert(TCIndex_ >= TCIndexMin && TCIndex_ < TCIndexMax);
 
   assert((layer_ != 0) || (disk_ != 0));
 }
@@ -140,8 +153,11 @@ void TrackletProcessorDisplaced::addOutput(MemoryBase* memory, string output) {
     auto* tmp = dynamic_cast<TrackletProjectionsMemory*>(memory);
     assert(tmp != nullptr);
 
-    unsigned int layerdisk = output[8] - '1';   //layer or disk counting from 0
-    unsigned int phiregion = output[12] - 'A';  //phiregion counting from 0
+    const unsigned layerdiskPosInprojout = 8;
+    const unsigned phiPosInprojout = 12;
+
+    unsigned int layerdisk = output[layerdiskPosInprojout] - '1';  //layer or disk counting from 0
+    unsigned int phiregion = output[phiPosInprojout] - 'A';        //phiregion counting from 0
 
     if (output[7] == 'L') {
       assert(layerdisk < N_LAYER);
