@@ -325,17 +325,26 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
           edm::LogVerbatim("Tracklet") << getName() << " Layer-layer pair\n";
         }
 
-        int lookupbits = binlookup.value() & 1023;
-        int zdiffmax = (lookupbits >> 7);
-        int newbin = (lookupbits & 127);
-        int bin = newbin / 8;
+        const int andlookupbits = 1023;
+        const int shiftzdiffmax = 7;
+        const int andnewbin = 127;
+        const int divbin = 8;
+        const int andzbinfirst = 7;
+        const int shiftstart = 1;
+        const int andlast = 1;
+        const int maxlast = 8;
 
-        int zbinfirst = newbin & 7;
+        int lookupbits = binlookup.value() & andlookupbits;
+        int zdiffmax = (lookupbits >> shiftzdiffmax);
+        int newbin = (lookupbits & andnewbin);
+        int bin = newbin / divbin;
 
-        int start = (bin >> 1);
-        int last = start + (bin & 1);
+        int zbinfirst = newbin & andzbinfirst;
 
-        assert(last < 8);
+        int start = (bin >> shiftstart);
+        int last = start + (bin & andlast);
+
+        assert(last < maxlast);
 
         if (settings_.debugTracklet()) {
           edm::LogVerbatim("Tracklet") << "Will look in zbins " << start << " to " << last << endl;
@@ -364,13 +373,19 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
               countpass++;
 
               if ((layer2_ == 4 && layer3_ == 2) || (layer2_ == 6 && layer3_ == 4)) {
-                constexpr unsigned int vmbitshift = 10;
-                int lookupbits_ = (int)((binlookup.value() >> vmbitshift) & 1023);
-                int newbin_ = (lookupbits_ & 127);
-                int bin_ = newbin_ / 8;
+                const int vmbitshift = 10;
+                const int andlookupbits_ = 1023;
+                const int andnewbin_ = 127;
+                const int divbin_ = 8;
+                const int shiftstart_ = 1;
+                const int andlast_ = 1;
 
-                int start_ = (bin_ >> 1);
-                int last_ = start_ + (bin_ & 1);
+                int lookupbits_ = (int)((binlookup.value() >> vmbitshift) & andlookupbits_);
+                int newbin_ = (lookupbits_ & andnewbin_);
+                int bin_ = newbin_ / divbin_;
+
+                int start_ = (bin_ >> shiftstart_);
+                int last_ = start_ + (bin_ & andlast_);
 
                 if (settings_.debugTracklet()) {
                   edm::LogVerbatim("Tracklet")
@@ -439,17 +454,26 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
           edm::LogVerbatim("Tracklet") << getName() << " Layer-layer pair";
         }
 
-        int lookupbits = binlookup.value() & 1023;
-        int zdiffmax = (lookupbits >> 7);
-        int newbin = (lookupbits & 127);
-        int bin = newbin / 8;
+        const int andlookupbits = 1023;
+        const int shiftzdiffmax = 7;
+        const int andnewbin = 127;
+        const int divbin = 8;
+        const int andzbinfirst = 7;
+        const int shiftstart = 1;
+        const int andlast = 1;
+        const int maxlast = 8;
 
-        int zbinfirst = newbin & 7;
+        int lookupbits = binlookup.value() & andlookupbits;
+        int zdiffmax = (lookupbits >> shiftzdiffmax);
+        int newbin = (lookupbits & andnewbin);
+        int bin = newbin / divbin;
 
-        int start = (bin >> 1);
-        int last = start + (bin & 1);
+        int zbinfirst = newbin & andzbinfirst;
 
-        assert(last < 8);
+        int start = (bin >> shiftstart);
+        int last = start + (bin & andlast);
+
+        assert(last < maxlast);
 
         if (settings_.debugTracklet()) {
           edm::LogVerbatim("Tracklet") << "Will look in zbins " << start << " to " << last;
@@ -476,12 +500,19 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
               }
 
               if (layer2_ == 3 && disk3_ == 1) {
-                int lookupbits_ = (int)((binlookup.value() >> 10) & 1023);
-                int newbin_ = (lookupbits_ & 127);
-                int bin_ = newbin_ / 8;
+                const int vmbitshift = 10;
+                const int andlookupbits_ = 1023;
+                const int andnewbin_ = 127;
+                const int divbin_ = 8;
+                const int shiftstart_ = 1;
+                const int andlast_ = 1;
 
-                int start_ = (bin_ >> 1);
-                int last_ = start_ + (bin_ & 1);
+                int lookupbits_ = (int)((binlookup.value() >> vmbitshift) & andlookupbits_);
+                int newbin_ = (lookupbits_ & andnewbin_);
+                int bin_ = newbin_ / divbin_;
+
+                int start_ = (bin_ >> shiftstart_);
+                int last_ = start_ + (bin_ & andlast_);
 
                 for (int ibin_ = start_; ibin_ <= last_; ibin_++) {
                   for (unsigned int k = 0; k < innervmstubs_.size(); k++) {
@@ -538,19 +569,28 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
         if (settings_.debugTracklet())
           edm::LogVerbatim("Tracklet") << getName() << " Disk-disk pair";
 
-        int lookupbits = binlookup.value() & 511;
+        const int andlookupbits = 511;
+        const int shiftrdiffmax = 6;
+        const int andnewbin = 63;
+        const int divbin = 8;
+        const int andrbinfirst = 7;
+        const int shiftstart = 1;
+        const int andlast = 1;
+        const int maxlast = 8;
+
+        int lookupbits = binlookup.value() & andlookupbits;
         bool negdisk = firstallstub->disk().value() < 0;
-        int rdiffmax = (lookupbits >> 6);
-        int newbin = (lookupbits & 63);
-        int bin = newbin / 8;
+        int rdiffmax = (lookupbits >> shiftrdiffmax);
+        int newbin = (lookupbits & andnewbin);
+        int bin = newbin / divbin;
 
-        int rbinfirst = newbin & 7;
+        int rbinfirst = newbin & andrbinfirst;
 
-        int start = (bin >> 1);
+        int start = (bin >> shiftstart);
         if (negdisk)
           start += 4;
-        int last = start + (bin & 1);
-        assert(last < 8);
+        int last = start + (bin & andlast);
+        assert(last < maxlast);
 
         for (int ibin = start; ibin <= last; ibin++) {
           for (unsigned int m = 0; m < outervmstubs_.size(); m++) {
@@ -573,12 +613,19 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
                 continue;
 
               if (disk2_ == 2 && layer3_ == 2) {
-                int lookupbits_ = (int)((binlookup.value() >> 10) & 1023);
-                int newbin_ = (lookupbits_ & 127);
-                int bin_ = newbin_ / 8;
+                const int vmbitshift = 10;
+                const int andlookupbits_ = 1023;
+                const int andnewbin_ = 127;
+                const int divbin_ = 8;
+                const int shiftstart_ = 1;
+                const int andlast_ = 1;
 
-                int start_ = (bin_ >> 1);
-                int last_ = start_ + (bin_ & 1);
+                int lookupbits_ = (int)((binlookup.value() >> vmbitshift) & andlookupbits_);
+                int newbin_ = (lookupbits_ & andnewbin_);
+                int bin_ = newbin_ / divbin_;
+
+                int start_ = (bin_ >> shiftstart_);
+                int last_ = start_ + (bin_ & andlast_);
 
                 if (firstallstub->disk().value() < 0) {  //TODO - negative disk should come from memory
                   start_ = settings_.NLONGVMBINS() - last_ - 1;
