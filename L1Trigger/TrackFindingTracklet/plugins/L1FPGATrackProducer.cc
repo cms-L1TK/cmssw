@@ -586,11 +586,11 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
           stubbend = -stubbend;
         }
 
+        bool barrel = (layerdisk < N_LAYER);
         // See  https://github.com/cms-sw/cmssw/tree/master/Geometry/TrackerNumberingBuilder
-
         enum TypeBarrel { nonBarrel = 0, tiltedMinus = 1, tiltedPlus = 2, flat = 3 };
         const TypeBarrel type = static_cast<TypeBarrel>(tTopo->tobSide(innerDetId));
-        bool tiltedBarrel = (type == tiltedMinus || type == tiltedPlus);
+        bool tiltedBarrel = barrel && (type == tiltedMinus || type == tiltedPlus);
 
         const unsigned int intDetId = innerDetId.rawId();
 
