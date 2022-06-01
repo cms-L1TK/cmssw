@@ -532,6 +532,17 @@ bool MatchProcessor::matchCalculator(Tracklet* tracklet, const Stub* fpgastub, b
                                          << endl;
     }
 
+    bool keep = true;
+    if (!settings_.doKF() || !settings_.doMultipleMatches()) {
+      // Case of allowing only one stub per track per layer (or no KF which implies the same).
+      if (imatch && tracklet->match(layerdisk_)) {
+        // Veto match if is not the best one for this tracklet (in given layer)
+        auto res = tracklet->resid(layerdisk_);
+        keep = abs(ideltaphi) < abs(res.fpgaphiresid().value());
+        imatch = keep;
+      }
+    }
+
     if (imatch) {
       tracklet->addMatch(layerdisk_,
                          ideltaphi,
@@ -682,6 +693,19 @@ bool MatchProcessor::matchCalculator(Tracklet* tracklet, const Stub* fpgastub, b
                                    << " " << drphicut / (settings_.kphi() * stub->r()) << " " << std::abs(ideltar)
                                    << " " << drcut / settings_.krprojshiftdisk() << " r = " << stub->r();
     }
+
+    bool keep = true;
+    if (!settings_.doKF() || !settings_.doMultipleMatches()) {
+      // Case of allowing only one stub per track per layer (or no KF which implies the same).
+      if (imatch && tracklet->match(layerdisk_)) {
+        // Veto match if is not the best one for this tracklet (in given layer)
+        auto res = tracklet->resid(layerdisk_);
+        keep = abs(ideltaphi) < abs(res.fpgaphiresid().value());
+        imatch = keep;
+      }
+    }
+    if (not keep)
+      match = false;  // FIX: should calc keep with float point here.
 
     if (imatch) {
       if (settings_.debugTracklet()) {
