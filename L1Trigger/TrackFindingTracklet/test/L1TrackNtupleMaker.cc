@@ -96,8 +96,7 @@ public:
   // Mandatory methods
   void beginJob() override;
   void endJob() override;
-  void analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) 
-override;
+  void analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) override;
   void beginRun(const Run& iEvent, const EventSetup& iSetup) override {}
   void endRun(const Run& iEvent, const EventSetup& iSetup) override {}
 
