@@ -76,7 +76,6 @@ private:
   float bendchi2Max_;
   float minPt_;
   int nStubsmin_;
-  float ONNXInvRScaling_;
   const hph::Setup* setup_;
   bool useHPH;
 };

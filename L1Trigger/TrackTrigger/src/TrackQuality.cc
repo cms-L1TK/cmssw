@@ -29,52 +29,29 @@ TrackQuality::TrackQuality(const edm::ParameterSet& qualityParams) : setup_(), u
                  qualityParams.getParameter<edm::FileInPath>("ONNXmodel"),
                  qualityParams.getParameter<std::string>("ONNXInputName"),
                  qualityParams.getParameter<std::vector<std::string>>("featureNames"));
-    ONNXInvRScaling_ = qualityParams.getParameter<double>("ONNXInvRScale");
   }
 }
 
 std::vector<float> TrackQuality::featureTransform(TTTrack<Ref_Phase2TrackerDigi_>& aTrack,
                                                   std::vector<std::string> const& featureNames) {
-  // List input features for MVA in proper order below, the features options are
-  // {"log_chi2","log_chi2rphi","log_chi2rz","log_bendchi2","nstubs","lay1_hits","lay2_hits",
-  // "lay3_hits","lay4_hits","lay5_hits","lay6_hits","disk1_hits","disk2_hits","disk3_hits",
-  // "disk4_hits","disk5_hits","rinv","tanl","z0","dtot","ltot","chi2","chi2rz","chi2rphi",
-  // "bendchi2","pt","eta","nlaymiss_interior","phi","bendchi2_bin","chi2rz_bin","chi2rphi_bin",
-  // "nlaymiss_PS","nlaymiss_2S"}
+  // List input features for MVA in proper order below, the current features options are
+  // {"phi", "eta", "z0", "bendchi2_bin", "nstub", "nlaymiss_interior", "chi2rphi_bin",
+  // "chi2rz_bin"}
+  //
+  // To use more features, they must be created here and added to feature_map below
 
   std::vector<float> transformedFeatures;
 
   // Define feature map, filled as features are generated
   std::map<std::string, float> feature_map;
 
-  // The following converts the 7 bit hitmask in the TTTrackword to an expected
-  // 11 bit hitmask based on the eta of the track
-  std::vector<int> hitpattern_binary = {0, 0, 0, 0, 0, 0, 0};
-  std::vector<int> hitpattern_expanded_binary = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-  std::vector<float> eta_bins = {0.0, 0.2, 0.41, 0.62, 0.9, 1.26, 1.68, 2.08, 2.4};
+  // -------- calculate feature variables --------
 
-  // Expected hitmap table, each row corresponds to an eta bin, each value corresponds to
-  // the expected layer in the expanded hit pattern. The expanded hit pattern should be
-  // 11 bits but contains a 12th element so this hitmap table is symmetric
-  int hitmap[8][7] = {{0, 1, 2, 3, 4, 5, 11},
-                      {0, 1, 2, 3, 4, 5, 11},
-                      {0, 1, 2, 3, 4, 5, 11},
-                      {0, 1, 2, 3, 4, 5, 11},
-                      {0, 1, 2, 3, 4, 5, 11},
-                      {0, 1, 2, 6, 7, 8, 9},
-                      {0, 1, 7, 8, 9, 10, 11},
-                      {0, 6, 7, 8, 9, 10, 11}};
-
-  // iterate through bits of the hitpattern and compare to 1 filling the hitpattern binary vector
-  int tmp_trk_hitpattern = aTrack.hitPattern();
   // calculate number of missed interior layers from hitpattern
+  int tmp_trk_hitpattern = aTrack.hitPattern();
   int nbits = floor(log2(tmp_trk_hitpattern)) + 1;
   int lay_i = 0;
   int tmp_trk_nlaymiss_interior = 0;
-  int tmp_trk_nlaymiss_PS = 0;
-  int tmp_trk_nlaymiss_2S = 0;
-  double tmp_trk_tanL = aTrack.tanL();
-  double tmp_trk_z0 = aTrack.z0();
   bool seq = false;
   for (int i = 0; i < nbits; i++) {
     lay_i = ((1 << i) & tmp_trk_hitpattern) >> i;  //0 or 1 in ith bit (right to left)
@@ -85,139 +62,31 @@ std::vector<float> TrackQuality::featureTransform(TTTrack<Ref_Phase2TrackerDigi_
       tmp_trk_nlaymiss_interior++;
   }
 
-  if (useHPH) {
-    hph::HitPatternHelper hph(setup_, tmp_trk_hitpattern, tmp_trk_tanL, tmp_trk_z0);
-    hitpattern_expanded_binary = hph.binary();
-    tmp_trk_nlaymiss_PS = hph.numMissingPS();
-    tmp_trk_nlaymiss_2S = hph.numMissing2S();
-  } else {
-    for (int i = 6; i >= 0; i--) {
-      int k = tmp_trk_hitpattern >> i;
-      if (k & 1)
-        hitpattern_binary[i] = 1;
-    }
-    float eta = abs(aTrack.eta());
-    int eta_size = static_cast<int>(eta_bins.size());
-    // First iterate through eta bins
-    for (int j = 1; j < eta_size; j++) {
-      if (eta < eta_bins[j] && eta >= eta_bins[j - 1])  // if track in eta bin
-      {
-        // Iterate through hitpattern binary
-        for (int k = 0; k <= 6; k++)
-          // Fill expanded binary entries using the expected hitmap table positions
-          hitpattern_expanded_binary[hitmap[j - 1][k]] = hitpattern_binary[k];
-        break;
-      }
-    }
-  }
-
-  int tmp_trk_ltot = 0;
-  //calculate number of layer hits
-  for (int i = 0; i < 6; ++i) {
-    tmp_trk_ltot += hitpattern_expanded_binary[i];
-  }
-
-  int tmp_trk_dtot = 0;
-  //calculate number of disk hits
-  for (int i = 6; i < 11; ++i) {
-    tmp_trk_dtot += hitpattern_expanded_binary[i];
-  }
-
-  // bin bendchi2 variable (bins from https://twiki.cern.ch/twiki/bin/viewauth/CMS/HybridDataFormat#Fitted_Tracks_written_by_KalmanF)
-  float tmp_trk_bendchi2 = aTrack.stubPtConsistency();
-  std::array<float, 8> bendchi2_bins{{0, 0.75, 1.0, 1.5, 2.25, 3.5, 5.0, 20.0}};
-  int n_bendchi2 = static_cast<int>(bendchi2_bins.size());
-  float tmp_trk_bendchi2_bin = -1;
-  for (int i = 0; i < n_bendchi2; i++) {
-    if (tmp_trk_bendchi2 >= bendchi2_bins[i] && tmp_trk_bendchi2 < bendchi2_bins[i + 1]) {
-      tmp_trk_bendchi2_bin = i;
-      break;
-    }
-  }
-  if (tmp_trk_bendchi2_bin < 0)
-    tmp_trk_bendchi2_bin = n_bendchi2;
-
-  // bin chi2rphi variable (bins from https://twiki.cern.ch/twiki/bin/viewauth/CMS/HybridDataFormat#Fitted_Tracks_written_by_KalmanF)
-  float tmp_trk_chi2rphi = aTrack.chi2XYRed();
-  std::array<float, 16> chi2rphi_bins{
-      {0, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 5.0, 6.0, 10.0, 15.0, 20.0, 35.0, 60.0, 200.0}};
-  int n_chi2rphi = static_cast<int>(chi2rphi_bins.size());
-  float tmp_trk_chi2rphi_bin = -1;
-  for (int i = 0; i < n_chi2rphi; i++) {
-    if (tmp_trk_chi2rphi >= chi2rphi_bins[i] && tmp_trk_chi2rphi < chi2rphi_bins[i + 1]) {
-      tmp_trk_chi2rphi_bin = i;
-      break;
-    }
-  }
-  if (tmp_trk_chi2rphi_bin < 0)
-    tmp_trk_chi2rphi_bin = n_chi2rphi;
-
-  // bin chi2rz variable (bins from https://twiki.cern.ch/twiki/bin/viewauth/CMS/HybridDataFormat#Fitted_Tracks_written_by_KalmanF)
-  float tmp_trk_chi2rz = aTrack.chi2ZRed();
-  std::array<float, 16> chi2rz_bins{{0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 6.0, 8.0, 10.0, 20.0, 50.0}};
-  int n_chi2rz = static_cast<int>(chi2rz_bins.size());
-  float tmp_trk_chi2rz_bin = -1;
-  for (int i = 0; i < n_chi2rz; i++) {
-    if (tmp_trk_chi2rz >= chi2rz_bins[i] && tmp_trk_chi2rz < chi2rz_bins[i + 1]) {
-      tmp_trk_chi2rz_bin = i;
-      break;
-    }
-  }
-  if (tmp_trk_chi2rz_bin < 0)
-    tmp_trk_chi2rz_bin = n_chi2rz;
+  // binned chi2 variables
+  int tmp_trk_bendchi2_bin = aTrack.getBendChi2Bits();
+  int tmp_trk_chi2rphi_bin = aTrack.getChi2RPhiBits();
+  int tmp_trk_chi2rz_bin = aTrack.getChi2RZBits();
 
   // get the nstub
   std::vector<edm::Ref<edmNew::DetSetVector<TTStub<Ref_Phase2TrackerDigi_>>, TTStub<Ref_Phase2TrackerDigi_>>> stubRefs =
       aTrack.getStubRefs();
+  int tmp_trk_nstub = stubRefs.size();
 
-  // fill the feature map
-  feature_map["nstub"] = stubRefs.size();
-  feature_map["rinv"] = ONNXInvRScaling_ * abs(aTrack.rInv());
-  feature_map["tanl"] = abs(tmp_trk_tanL);
+  // get other variables directly from TTTrack
+  float tmp_trk_z0 = aTrack.z0();
+  float tmp_trk_phi = aTrack.phi();
+  float tmp_trk_eta = aTrack.eta();
+
+  // -------- fill the feature map ---------
+
+  feature_map["nstub"] = float(tmp_trk_nstub);
   feature_map["z0"] = tmp_trk_z0;
-  feature_map["phi"] = aTrack.phi();
-  feature_map["pt"] = aTrack.momentum().perp();
-  feature_map["eta"] = aTrack.eta();
-
-  float tmp_trk_chi2 = aTrack.chi2();
-  feature_map["chi2"] = tmp_trk_chi2;
-  feature_map["log_chi2"] = log(tmp_trk_chi2);
-
-  feature_map["chi2rphi"] = tmp_trk_chi2rphi;
-  feature_map["log_chi2rphi"] = log(tmp_trk_chi2rphi);
-
-  feature_map["chi2rz"] = tmp_trk_chi2rz;
-  feature_map["log_chi2rz"] = log(tmp_trk_chi2rz);
-
-  feature_map["chi2rz"] = tmp_trk_chi2rz;
-  feature_map["log_chi2rz"] = log(tmp_trk_chi2rz);
-
-  feature_map["bendchi2"] = tmp_trk_bendchi2;
-  feature_map["log_bendchi2"] = log(tmp_trk_bendchi2);
-
-  feature_map["lay1_hits"] = float(hitpattern_expanded_binary[0]);
-  feature_map["lay2_hits"] = float(hitpattern_expanded_binary[1]);
-  feature_map["lay3_hits"] = float(hitpattern_expanded_binary[2]);
-  feature_map["lay4_hits"] = float(hitpattern_expanded_binary[3]);
-  feature_map["lay5_hits"] = float(hitpattern_expanded_binary[4]);
-  feature_map["lay6_hits"] = float(hitpattern_expanded_binary[5]);
-  feature_map["disk1_hits"] = float(hitpattern_expanded_binary[6]);
-  feature_map["disk2_hits"] = float(hitpattern_expanded_binary[7]);
-  feature_map["disk3_hits"] = float(hitpattern_expanded_binary[8]);
-  feature_map["disk4_hits"] = float(hitpattern_expanded_binary[9]);
-  feature_map["disk5_hits"] = float(hitpattern_expanded_binary[10]);
-
-  feature_map["dtot"] = float(tmp_trk_dtot);
-  feature_map["ltot"] = float(tmp_trk_ltot);
-
+  feature_map["phi"] = tmp_trk_phi;
+  feature_map["eta"] = tmp_trk_eta;
   feature_map["nlaymiss_interior"] = float(tmp_trk_nlaymiss_interior);
   feature_map["bendchi2_bin"] = tmp_trk_bendchi2_bin;
   feature_map["chi2rphi_bin"] = tmp_trk_chi2rphi_bin;
   feature_map["chi2rz_bin"] = tmp_trk_chi2rz_bin;
-
-  //Bonus features from hitpattern
-  feature_map["nlaymiss_PS"] = float(tmp_trk_nlaymiss_PS);
-  feature_map["nlaymiss_2S"] = float(tmp_trk_nlaymiss_2S);
 
   // fill tensor with track params
   transformedFeatures.reserve(featureNames.size());
