@@ -20,7 +20,7 @@ GEOMETRY = "D88"
 # 'HYBRID_NEWKF' (baseline, 4par fit, with bit-accurate KF emulation),
 # 'HYBRID_REDUCED' to use the "Summer Chain" configuration with reduced inputs.
 # (Or legacy algos 'TMTT' or 'TRACKLET').
-L1TRKALGO = 'HYBRID'
+L1TRKALGO = 'HYBRID_NEWKF'
 
 WRITE_DATA = False
 
@@ -156,15 +156,6 @@ if (L1TRKALGO == 'HYBRID'):
     L1TRK_NAME  = "l1tTTTracksFromTrackletEmulation"
     L1TRK_LABEL = "Level1TTTracks"
     L1TRUTH_NAME = "TTTrackAssociatorFromPixelDigis"
-    from L1Trigger.TrackFindingTracklet.Customize_cff import *
-    fwConfig( process )
-    process.TTTracksFromTrackletEmulation.memoryModulesFile = 'L1Trigger/TrackFindingTracklet/data/barrel_memorymodules.dat'
-    process.TTTracksFromTrackletEmulation.processingModulesFile = 'L1Trigger/TrackFindingTracklet/data/barrel_processingmodules.dat'
-    process.TTTracksFromTrackletEmulation.wiresFile = 'L1Trigger/TrackFindingTracklet/data/barrel_wires.dat'
-
-    process.ChannelAssignment.SeedTypes = cms.vstring( "L1L2", "L2L3", "L3L4", "L5L6" )
-    process.ChannelAssignment.SeedTypesSeedLayers = cms.PSet( L1L2 = cms.vint32( 1,  2 ), L2L3 = cms.vint32( 2,  3 ), L3L4 = cms.vint32( 3,  4 ), L5L6 = cms.vint32( 5,  6 ) )
-    process.ChannelAssignment.SeedTypesProjectionLayers = cms.PSet( L1L2 = cms.vint32(  3,  4,  5,  6 ), L2L3 = cms.vint32(  1,  4,  5 ), L3L4 = cms.vint32(  1,  2,  5,  6 ), L5L6 = cms.vint32(  1,  2,  3,  4 ) )
 
 # HYBRID: extended tracking
 elif (L1TRKALGO == 'HYBRID_DISPLACED'):
@@ -193,6 +184,15 @@ elif (L1TRKALGO == 'HYBRID_NEWKF' or L1TRKALGO == 'HYBRID_REDUCED'):
     from L1Trigger.TrackFindingTracklet.Customize_cff import *
     if (L1TRKALGO == 'HYBRID_NEWKF'):
         fwConfig( process )
+
+        process.TTTracksFromTrackletEmulation.memoryModulesFile = 'L1Trigger/TrackFindingTracklet/data/barrel_memorymodules.dat'
+        process.TTTracksFromTrackletEmulation.processingModulesFile = 'L1Trigger/TrackFindingTracklet/data/barrel_processingmodules.dat'
+        process.TTTracksFromTrackletEmulation.wiresFile = 'L1Trigger/TrackFindingTracklet/data/barrel_wires.dat'
+
+        process.ChannelAssignment.SeedTypes = cms.vstring( "L1L2", "L2L3", "L3L4", "L5L6" )
+        process.ChannelAssignment.SeedTypesSeedLayers = cms.PSet( L1L2 = cms.vint32( 1,  2 ), L2L3 = cms.vint32( 2,  3 ), L3L4 = cms.vint32( 3,  4 ), L5L6 = cms.vint32( 5,  6 ) )
+        process.ChannelAssignment.SeedTypesProjectionLayers = cms.PSet( L1L2 = cms.vint32(  3,  4,  5,  6 ), L2L3 = cms.vint32(  1,  4,  5 ), L3L4 = cms.vint32(  1,  2,  5,  6 ), L5L6 = cms.vint32(  1,  2,  3,  4 ) )
+
     if (L1TRKALGO == 'HYBRID_REDUCED'):
         reducedConfig( process )
 
