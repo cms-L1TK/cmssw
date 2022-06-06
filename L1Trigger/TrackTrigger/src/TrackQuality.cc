@@ -35,7 +35,7 @@ TrackQuality::TrackQuality(const edm::ParameterSet& qualityParams) : setup_(), u
 std::vector<float> TrackQuality::featureTransform(TTTrack<Ref_Phase2TrackerDigi_>& aTrack,
                                                   std::vector<std::string> const& featureNames) {
   // List input features for MVA in proper order below, the current features options are
-  // {"phi", "eta", "z0", "bendchi2_bin", "nstub", "nlaymiss_interior", "chi2rphi_bin", 
+  // {"phi", "eta", "z0", "bendchi2_bin", "nstub", "nlaymiss_interior", "chi2rphi_bin",
   // "chi2rz_bin"}
   //
   // To use more features, they must be created here and added to feature_map below
@@ -64,8 +64,8 @@ std::vector<float> TrackQuality::featureTransform(TTTrack<Ref_Phase2TrackerDigi_
 
   // binned chi2 variables
   int tmp_trk_bendchi2_bin = aTrack.getBendChi2Bits();
-  int tmp_trk_chi2rphi_bin = aTrack.getChi2RPhiBits();  
-  int tmp_trk_chi2rz_bin = aTrack.getChi2RZBits();  
+  int tmp_trk_chi2rphi_bin = aTrack.getChi2RPhiBits();
+  int tmp_trk_chi2rz_bin = aTrack.getChi2RZBits();
 
   // get the nstub
   std::vector<edm::Ref<edmNew::DetSetVector<TTStub<Ref_Phase2TrackerDigi_>>, TTStub<Ref_Phase2TrackerDigi_>>> stubRefs =
