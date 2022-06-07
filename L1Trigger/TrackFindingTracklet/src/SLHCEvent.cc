@@ -17,6 +17,8 @@ bool SLHCEvent::addStub(string DTClink,
                         int isPSmodule,
                         int isFlipped,
                         bool tiltedBarrel,
+                        unsigned int tiltedRingId,
+                        unsigned int endcapRingId,
                         unsigned int detId,
                         double x,
                         double y,
@@ -24,8 +26,7 @@ bool SLHCEvent::addStub(string DTClink,
                         double bend,
                         double strip,
                         vector<int> tps) {
-  L1TStub stub(
-      DTClink, region, layerdisk, stubword, isPSmodule, isFlipped, tiltedBarrel, detId, x, y, z, bend, strip, tps);
+  L1TStub stub(DTClink, region, layerdisk, stubword, isPSmodule, isFlipped, tiltedBarrel, tiltedRingId, endcapRingId, detId, x, y, z, bend, strip, tps);
 
   stubs_.push_back(stub);
   return true;
@@ -97,6 +98,8 @@ SLHCEvent::SLHCEvent(istream& in) {
 
     // TO FIX: READ THESE FROM INPUT FILE
     bool tiltedBarrel = false;
+    unsigned int tiltedRingId = 999999;
+    unsigned int endcapRingId = 999999;
     unsigned int detId = 999999;  // Lower sensor in module
 
     for (unsigned int itps = 0; itps < ntps; itps++) {
@@ -105,8 +108,7 @@ SLHCEvent::SLHCEvent(istream& in) {
       tps.push_back(tp);
     }
 
-    L1TStub stub(
-        DTClink, region, layerdisk, stubword, isPSmodule, isFlipped, tiltedBarrel, detId, x, y, z, bend, strip, tps);
+    L1TStub stub(DTClink, region, layerdisk, stubword, isPSmodule, isFlipped, tiltedBarrel, tiltedRingId, endcapRingId, detId, x, y, z, bend, strip, tps);
 
     in >> tmp;
 

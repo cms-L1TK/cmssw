@@ -583,6 +583,18 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
         enum TypeBarrel { nonBarrel = 0, tiltedMinus = 1, tiltedPlus = 2, flat = 3 };
         const TypeBarrel type = static_cast<TypeBarrel>(tTopo->tobSide(innerDetId));
         bool tiltedBarrel = barrel && (type == tiltedMinus || type == tiltedPlus);
+        unsigned int tiltedRingId = 0;
+        // Tilted module ring no. (Increasing 1 to 12 as |z| increases).
+        if (tiltedBarrel) {
+          tiltedRingId = tTopo->tobRod(innerDetId);
+          if (type == tiltedMinus) {
+            unsigned int layp1 = 1 + layerdisk; // Setup counts from 1
+            unsigned int nTilted = setup_->numTiltedLayerRing(layp1);
+            tiltedRingId = 1 + nTilted - tiltedRingId;
+          }
+        }
+        // Endcap module ring number (1-15) in endcap disks.
+        unsigned int endcapRingId = barrel ? 0 : tTopo->tidRing(innerDetId);
 
         const unsigned int intDetId = innerDetId.rawId();
 
@@ -593,6 +605,8 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
                    setup_->psModule(dtcId),
                    isFlipped,
                    tiltedBarrel,
+                   tiltedRingId,
+                   endcapRingId,
                    intDetId,
                    ttPos.x(),
                    ttPos.y(),

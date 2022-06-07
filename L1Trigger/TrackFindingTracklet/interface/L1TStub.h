@@ -22,6 +22,8 @@ namespace trklet {
             int isPSmodule,
             int isFlipped,
             bool tiltedBarrel,
+            unsigned int tiltedRingId,
+            unsigned int endcapRingId,
             unsigned int detId,
             double x,
             double y,
@@ -96,7 +98,11 @@ namespace trklet {
 
     bool isTilted() const { return tiltedBarrel_; }  // Tilted barrel
 
-    unsigned int detId() const { return detId_; }  // Lower sensor in module
+    // Tilted module ring no. (Increasing 1 to 12 as |z| increases).
+    unsigned int tiltedRingId() const { return tiltedRingId_; }
+    // Endcap disk module ring number (1-15 as r increases).
+    unsigned int endcapRingId() const { return endcapRingId_; }
+    unsigned int detId() const { return detId_; }  // Of lower sensor in module
 
     bool tpmatch(int tp) const;
     bool tpmatch2(int tp) const;
@@ -128,10 +134,11 @@ namespace trklet {
     double pt_;
     double bend_;
     unsigned int allstubindex_;
-
     unsigned int isPSmodule_;
     unsigned int isFlipped_;
     bool tiltedBarrel_;
+    unsigned int tiltedRingId_;
+    unsigned int endcapRingId_;
     unsigned int detId_;
   };
 };  // namespace trklet
