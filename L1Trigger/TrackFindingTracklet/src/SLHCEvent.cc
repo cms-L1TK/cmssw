@@ -26,7 +26,22 @@ bool SLHCEvent::addStub(string DTClink,
                         double bend,
                         double strip,
                         vector<int> tps) {
-  L1TStub stub(DTClink, region, layerdisk, stubword, isPSmodule, isFlipped, tiltedBarrel, tiltedRingId, endcapRingId, detId, x, y, z, bend, strip, tps);
+  L1TStub stub(DTClink,
+               region,
+               layerdisk,
+               stubword,
+               isPSmodule,
+               isFlipped,
+               tiltedBarrel,
+               tiltedRingId,
+               endcapRingId,
+               detId,
+               x,
+               y,
+               z,
+               bend,
+               strip,
+               tps);
 
   stubs_.push_back(stub);
   return true;
@@ -108,7 +123,22 @@ SLHCEvent::SLHCEvent(istream& in) {
       tps.push_back(tp);
     }
 
-    L1TStub stub(DTClink, region, layerdisk, stubword, isPSmodule, isFlipped, tiltedBarrel, tiltedRingId, endcapRingId, detId, x, y, z, bend, strip, tps);
+    L1TStub stub(DTClink,
+                 region,
+                 layerdisk,
+                 stubword,
+                 isPSmodule,
+                 isFlipped,
+                 tiltedBarrel,
+                 tiltedRingId,
+                 endcapRingId,
+                 detId,
+                 x,
+                 y,
+                 z,
+                 bend,
+                 strip,
+                 tps);
 
     in >> tmp;
 

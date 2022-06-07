@@ -588,7 +588,7 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
         if (tiltedBarrel) {
           tiltedRingId = tTopo->tobRod(innerDetId);
           if (type == tiltedMinus) {
-            unsigned int layp1 = 1 + layerdisk; // Setup counts from 1
+            unsigned int layp1 = 1 + layerdisk;  // Setup counts from 1
             unsigned int nTilted = setup_->numTiltedLayerRing(layp1);
             tiltedRingId = 1 + nTilted - tiltedRingId;
           }
