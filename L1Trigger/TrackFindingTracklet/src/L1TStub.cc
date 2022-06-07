@@ -12,6 +12,8 @@ L1TStub::L1TStub(std::string DTClink,
                  int isPSmodule,
                  int isFlipped,
                  bool tiltedBarrel,
+                 unsigned int tiltedRingId,
+                 unsigned int endcapRingId,
                  unsigned int detId,
                  double x,
                  double y,
@@ -45,6 +47,8 @@ L1TStub::L1TStub(std::string DTClink,
   isPSmodule_ = isPSmodule;
   isFlipped_ = isFlipped;
   tiltedBarrel_ = tiltedBarrel;
+  tiltedRingId_ = tiltedRingId;
+  endcapRingId_ = endcapRingId;
   detId_ = detId;
 
   allstubindex_ = 999;

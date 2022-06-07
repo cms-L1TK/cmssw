@@ -38,6 +38,8 @@ namespace trklet {
                  int isPSmodule,
                  int isFlipped,
                  bool tiltedBarrel,
+                 unsigned int tiltedRingId,
+                 unsigned int endcapRingId,
                  unsigned int detId,
                  double x,
                  double y,
