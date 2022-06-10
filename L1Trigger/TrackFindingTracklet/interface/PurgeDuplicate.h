@@ -37,13 +37,13 @@ namespace trklet {
 
   private:
     double getPhiRes(Tracklet* curTracklet, const Stub* curStub);
-    bool isSeedingStub(int , int , int );
+    bool isSeedingStub(int, int, int);
     std::string l1tinfo(const L1TStub*, std::string);
-    std::pair<int,int> findLayerDisk(const Stub*);
+    std::pair<int, int> findLayerDisk(const Stub*);
     std::vector<double> getInventedCoords(unsigned int, const Stub*, Tracklet*);
     std::vector<double> getInventedCoordsExtended(unsigned int, const Stub*, Tracklet*);
-    std::vector<const Stub*> seedStubCoordsFromTracklet (unsigned int, Tracklet* , std::vector<const Stub*>  );
-    
+    std::vector<const Stub*> seedStubCoordsFromTracklet(unsigned int, Tracklet*, std::vector<const Stub*>);
+
     std::vector<Track*> inputtracks_;
     std::vector<std::vector<const Stub*>> inputstublists_;
     std::vector<std::vector<std::pair<int, int>>> inputstubidslists_;

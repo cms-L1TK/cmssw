@@ -946,7 +946,7 @@ namespace trklet {
     unsigned int nHelixPar_{4};  // 4 or 5 param helix fit
     bool extended_{false};       // turn on displaced tracking
     bool reduced_{false};        // use reduced (Summer Chain) config
-    bool inventStubs_{false}; // invent seeding stub coordinates based on tracklet traj
+    bool inventStubs_{false};    // invent seeding stub coordinates based on tracklet traj
 
     bool combined_{false};  // use combined TP (TE+TC) and MP (PR+ME+MC) configuration
 

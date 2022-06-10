@@ -372,7 +372,7 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
       stubMapType;
   typedef std::map<unsigned int,
                    edm::Ref<edmNew::DetSetVector<TTStub<Ref_Phase2TrackerDigi_>>, TTStub<Ref_Phase2TrackerDigi_>>>
-      stubIndexMapType;    
+      stubIndexMapType;
   typedef edm::Ref<edmNew::DetSetVector<TTCluster<Ref_Phase2TrackerDigi_>>, TTCluster<Ref_Phase2TrackerDigi_>>
       TTClusterRef;
 
@@ -709,10 +709,7 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
       itIndex = stubIndexMap.find(itstubs.uniqueIndex());
       if (itIndex != stubIndexMap.end()) {
         aTrack.addStubRef(itIndex->second);
-        countStubs = countStubs+1;
-//       it = stubMap.find(itstubs);
-//       if (it != stubMap.end()) {
-//         aTrack.addStubRef(it->second);
+        countStubs = countStubs + 1;
       } else {
         // could not find stub in stub map
       }
