@@ -8,7 +8,8 @@
 // FRAMEWORK HEADERS
 #include "FWCore/PluginManager/interface/ModuleDef.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
-#include "FWCore/Framework/interface/EDAnalyzer.h"
+#include "FWCore/Framework/interface/one/EDAnalyzer.h"
+#include "FWCore/Framework/interface/Run.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/ESHandle.h"
 #include "FWCore/Framework/interface/EventSetup.h"
@@ -86,7 +87,7 @@ using namespace edm;
 //                          //
 //////////////////////////////
 
-class L1TrackNtupleMaker : public edm::EDAnalyzer {
+class L1TrackNtupleMaker : public one::EDAnalyzer<one::WatchRuns> {
 public:
   // Constructor/destructor
   explicit L1TrackNtupleMaker(const edm::ParameterSet& iConfig);
@@ -96,6 +97,8 @@ public:
   void beginJob() override;
   void endJob() override;
   void analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) override;
+  void beginRun(const Run& iEvent, const EventSetup& iSetup) override {}
+  void endRun(const Run& iEvent, const EventSetup& iSetup) override {}
 
 protected:
 private:
