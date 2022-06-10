@@ -87,7 +87,7 @@ using namespace edm;
 //                          //
 //////////////////////////////
 
-class L1TrackNtupleMaker : public one::EDAnalyzer<one::WatchRuns> {
+class L1TrackNtupleMaker : public one::EDAnalyzer<one::WatchRuns, one::SharedResources> {
 public:
   // Constructor/destructor
   explicit L1TrackNtupleMaker(const edm::ParameterSet& iConfig);
@@ -142,6 +142,10 @@ private:
 
   edm::EDGetTokenT<std::vector<reco::GenJet> > GenJetToken_;
 
+  edm::ESGetToken<TrackerGeometry, TrackerDigiGeometryRecord> getTokenTrackerGeom_;
+  edm::ESGetToken<TrackerTopology, TrackerTopologyRcd> getTokenTrackerTopo_;
+  edm::ESGetToken<MagneticField, IdealMagneticFieldRecord> getTokenBField_;
+  edm::ESGetToken<hph::Setup, hph::SetupRcd> getTokenHPHSetup_;
   //-----------------------------------------------------------------------------------------------
   // tree & branches for mini-ntuple
 
@@ -269,6 +273,7 @@ private:
 //////////////
 // CONSTRUCTOR
 L1TrackNtupleMaker::L1TrackNtupleMaker(edm::ParameterSet const& iConfig) : config(iConfig) {
+  usesResource("TFileService");
   MyProcess = iConfig.getParameter<int>("MyProcess");
   DebugMode = iConfig.getParameter<bool>("DebugMode");
   SaveAllTracks = iConfig.getParameter<bool>("SaveAllTracks");
@@ -301,6 +306,11 @@ L1TrackNtupleMaker::L1TrackNtupleMaker(edm::ParameterSet const& iConfig) : confi
   TrackingParticleToken_ = consumes<std::vector<TrackingParticle> >(TrackingParticleInputTag);
   TrackingVertexToken_ = consumes<std::vector<TrackingVertex> >(TrackingVertexInputTag);
   GenJetToken_ = consumes<std::vector<reco::GenJet> >(GenJetInputTag);
+
+  getTokenTrackerGeom_ = esConsumes<TrackerGeometry, TrackerDigiGeometryRecord>();
+  getTokenTrackerTopo_ = esConsumes<TrackerTopology, TrackerTopologyRcd>();
+  getTokenBField_ = esConsumes<MagneticField, IdealMagneticFieldRecord>();
+  getTokenHPHSetup_ = esConsumes<hph::Setup, hph::SetupRcd>();
 }
 
 /////////////
@@ -707,24 +717,17 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
 
   // -----------------------------------------------------------------------------------------------
   // more for TTStubs
-  edm::ESHandle<TrackerGeometry> geometryHandle;
-  iSetup.get<TrackerDigiGeometryRecord>().get(geometryHandle);
+  edm::ESHandle<TrackerGeometry> tGeomHandle = iSetup.getHandle(getTokenTrackerGeom_);
 
-  edm::ESHandle<TrackerTopology> tTopoHandle;
-  iSetup.get<TrackerTopologyRcd>().get(tTopoHandle);
+  edm::ESHandle<TrackerTopology> tTopoHandle = iSetup.getHandle(getTokenTrackerTopo_);
 
-  edm::ESHandle<TrackerGeometry> tGeomHandle;
-  iSetup.get<TrackerDigiGeometryRecord>().get(tGeomHandle);
+  edm::ESHandle<MagneticField> bFieldHandle = iSetup.getHandle(getTokenBField_);
 
-  edm::ESHandle<MagneticField> magneticFieldHandle;
-  iSetup.get<IdealMagneticFieldRecord>().get(magneticFieldHandle);
-
-  edm::ESHandle<hph::Setup> HPHHandle;
-  iSetup.get<hph::SetupRcd>().get(HPHHandle);
+  edm::ESHandle<hph::Setup> hphHandle = iSetup.getHandle(getTokenHPHSetup_);
 
   const TrackerTopology* const tTopo = tTopoHandle.product();
   const TrackerGeometry* const theTrackerGeom = tGeomHandle.product();
-  const hph::Setup* HPHsetup = HPHHandle.product();
+  const hph::Setup* hphSetup = hphHandle.product();
 
   // ----------------------------------------------------------------------------------------------
   // loop over L1 stubs
@@ -912,7 +915,7 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
 
       int tmp_trk_hitpattern = 0;
       tmp_trk_hitpattern = (int)iterL1Track->hitPattern();
-      hph::HitPatternHelper hph(HPHsetup, tmp_trk_hitpattern, tmp_trk_tanL, tmp_trk_z0);
+      hph::HitPatternHelper hph(hphSetup, tmp_trk_hitpattern, tmp_trk_tanL, tmp_trk_z0);
       std::vector<int> hitpattern_expanded_binary = hph.binary();
       int tmp_trk_lhits_hitpattern = 0;
       int tmp_trk_dhits_hitpattern = 0;
@@ -1099,7 +1102,7 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
         float delx = -tmp_matchtp_vx;
         float dely = -tmp_matchtp_vy;
 
-        float b_field = magneticFieldHandle.product()->inTesla(GlobalPoint(0, 0, 0)).z();
+        float b_field = bFieldHandle.product()->inTesla(GlobalPoint(0, 0, 0)).z();
         float c_converted = CLHEP::c_light / 1.0E5;
         float r2_inv = my_tp->charge() * c_converted * b_field / tmp_matchtp_pt / 2.0;
 
@@ -1211,7 +1214,7 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
     float delx = -tmp_tp_vx;
     float dely = -tmp_tp_vy;
 
-    float b_field = magneticFieldHandle.product()->inTesla(GlobalPoint(0, 0, 0)).z();
+    float b_field = bFieldHandle.product()->inTesla(GlobalPoint(0, 0, 0)).z();
     float c_converted = CLHEP::c_light / 1.0E5;
     float r2_inv = tmp_tp_charge * c_converted * b_field / tmp_tp_pt / 2.0;
 
