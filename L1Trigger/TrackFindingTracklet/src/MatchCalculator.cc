@@ -495,21 +495,6 @@ void MatchCalculator::execute(unsigned int iSector, double phioffset) {
         imatch = false;
       }
 
-      bool keep = true;
-      if (!settings_.doKF() || !settings_.doMultipleMatches()) {
-        // Case of allowing only one stub per track per layer (or no KF which implies the same).
-        if (imatch && tracklet->match(layerdisk_)) {
-          // Veto match if is not the best one for this tracklet (in given layer)
-          auto res = tracklet->resid(layerdisk_);
-          keep = abs(ideltaphi) < abs(res.fpgaphiresid().value());
-          imatch = keep;
-          if(keep) std::cout << "Replacing" << std::endl;
-          else     std::cout << "Skipping" << std::endl;
-        }
-      }
-      if (not keep)
-        match = false;  // FIX: should calc keep with float point here.
-
       if (settings_.debugTracklet()) {
         edm::LogVerbatim("Tracklet") << "imatch match disk: " << imatch << " " << match << " " << std::abs(ideltaphi)
                                      << " " << drphicut / (settings_.kphi() * stub->r()) << " " << std::abs(ideltar)
