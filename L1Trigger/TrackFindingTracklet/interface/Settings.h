@@ -225,7 +225,8 @@ namespace trklet {
 
     std::string geomext() const {
       std::string geo = extended_ ? "hourglassExtended" : "hourglass";
-      if (combined_) geo += "Combined";
+      if (combined_)
+        geo += "Combined";
       return geo;
     }
 
@@ -260,7 +261,7 @@ namespace trklet {
     void setReduced(bool reduced) { reduced_ = reduced; }
     bool inventStubs() const { return inventStubs_; }
     void setInventStubs(bool inventStubs) { inventStubs_ = inventStubs; }
-    
+
     double bfield() const { return bfield_; }
     void setBfield(double bfield) { bfield_ = bfield; }
 
@@ -946,8 +947,8 @@ namespace trklet {
     unsigned int nHelixPar_{4};  // 4 or 5 param helix fit
     bool extended_{false};       // turn on displaced tracking
     bool reduced_{false};        // use reduced (Summer Chain) config
-    bool inventStubs_{false}; // invent seeding stub coordinates based on tracklet traj
-    
+    bool inventStubs_{false};    // invent seeding stub coordinates based on tracklet traj
+
     // Use combined TP (TE+TC) and MP (PR+ME+MC) configuration (with prompt tracking)
     bool combined_{false};
     // N.B. To use combined modules with extended tracking, edit

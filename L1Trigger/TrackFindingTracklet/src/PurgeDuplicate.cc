@@ -172,7 +172,7 @@ void PurgeDuplicate::execute(std::vector<Track>& outputtracks_, unsigned int iSe
     if (inputtracklets_.empty())
       return;
     unsigned int numStublists = inputstublists_.size();
-    
+
     if (settings_.inventStubs()) {
       for (unsigned int itrk = 0; itrk < numStublists; itrk++) {
         inputstublists_[itrk] = seedStubCoordsFromTracklet(iSector, inputtracklets_[itrk], inputstublists_[itrk]);
@@ -696,4 +696,3 @@ std::vector<const Stub*> PurgeDuplicate::seedStubCoordsFromTracklet(unsigned int
   }
   return newStubList;
 }
-
