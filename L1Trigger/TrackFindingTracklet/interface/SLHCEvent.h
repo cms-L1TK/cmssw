@@ -48,7 +48,7 @@ namespace trklet {
                  double strip,
                  std::vector<int> tpstt,
                  int stubindex);
-                 
+
     const L1TStub& lastStub() const { return stubs_.back(); }
 
     void setIP(double x, double y) {

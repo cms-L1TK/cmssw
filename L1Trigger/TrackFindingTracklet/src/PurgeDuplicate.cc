@@ -173,12 +173,12 @@ void PurgeDuplicate::execute(std::vector<Track>& outputtracks_, unsigned int iSe
       return;
     unsigned int numStublists = inputstublists_.size();
 
-    if ( settings_.inventStubs()){
+    if (settings_.inventStubs()) {
       for (unsigned int itrk = 0; itrk < numStublists; itrk++) {
-        inputstublists_[itrk] = seedStubCoordsFromTracklet ( iSector, inputtracklets_[itrk], inputstublists_[itrk] );
+        inputstublists_[itrk] = seedStubCoordsFromTracklet(iSector, inputtracklets_[itrk], inputstublists_[itrk]);
       }
     }
-    
+
     // Initialize all-false 2D array of tracks being duplicates to other tracks
     bool dupMap[numStublists][numStublists];  // Ends up symmetric
     for (unsigned int itrk = 0; itrk < numStublists; itrk++) {
@@ -304,32 +304,34 @@ void PurgeDuplicate::execute(std::vector<Track>& outputtracks_, unsigned int iSe
           std::vector<unsigned int> stubsTrk2indices;
           for (unsigned int stub1it = 0; stub1it < stubsTrk1.size(); stub1it++) {
             stubsTrk1indices.push_back(stubsTrk1[stub1it]->l1tstub()->uniqueIndex());
-          }          
+          }
           for (unsigned int stub2it = 0; stub2it < stubsTrk2.size(); stub2it++) {
             stubsTrk2indices.push_back(stubsTrk2[stub2it]->l1tstub()->uniqueIndex());
-          }          
+          }
           newStubList = stubsTrk1;
           for (unsigned int stub2it = 0; stub2it < stubsTrk2.size(); stub2it++) {
-            if (find(stubsTrk1indices.begin(), stubsTrk1indices.end(), stubsTrk2indices[stub2it]) == stubsTrk1indices.end()) {
+            if (find(stubsTrk1indices.begin(), stubsTrk1indices.end(), stubsTrk2indices[stub2it]) ==
+                stubsTrk1indices.end()) {
               newStubList.push_back(stubsTrk2[stub2it]);
             }
           }
           //   Overwrite stublist of preferred track with merged list
           inputstublists_[preftrk] = newStubList;
-  
+
           std::vector<std::pair<int, int>> newStubidsList;
           std::vector<std::pair<int, int>> stubidsTrk1 = mergedstubidslists_[preftrk];
           std::vector<std::pair<int, int>> stubidsTrk2 = mergedstubidslists_[rejetrk];
           newStubidsList = stubidsTrk1;
 
           for (unsigned int stub2it = 0; stub2it < stubsTrk2.size(); stub2it++) {
-            if (find(stubsTrk1indices.begin(), stubsTrk1indices.end(), stubsTrk2indices[stub2it]) == stubsTrk1indices.end()) {
+            if (find(stubsTrk1indices.begin(), stubsTrk1indices.end(), stubsTrk2indices[stub2it]) ==
+                stubsTrk1indices.end()) {
               newStubidsList.push_back(stubidsTrk2[stub2it]);
             }
           }
           // Overwrite stubidslist of preferred track with merged list
           mergedstubidslists_[preftrk] = newStubidsList;
-          
+
           // Mark that rejected track has been merged into another track
           trackInfo[rejetrk].second = true;
         }
@@ -512,7 +514,7 @@ double PurgeDuplicate::getPhiRes(Tracklet* curTracklet, const Stub* curStub) {
   // Get phi projection of tracklet
   int seedindex = curTracklet->seedIndex();
   // If this stub is a seed stub, set projection=phi, so that res=0
-  if (isSeedingStub(seedindex, Layer, Disk)){
+  if (isSeedingStub(seedindex, Layer, Disk)) {
     phiproj = stubphi;
     // Otherwise, get projection of tracklet
   } else {
@@ -523,182 +525,173 @@ double PurgeDuplicate::getPhiRes(Tracklet* curTracklet, const Stub* curStub) {
   return phires;
 }
 
-
-
 // Encoding: L1L2=0, L2L3=1, L3L4=2, L5L6=3, D1D2=4, D3D4=5, L1D1=6, L2D1=7
-bool PurgeDuplicate::isSeedingStub(int seedindex, int Layer, int Disk){
-  if ((seedindex == 0 && (Layer == 1 || Layer == 2)) || 
-      (seedindex == 1 && (Layer == 2 || Layer == 3)) ||
-      (seedindex == 2 && (Layer == 3 || Layer == 4)) || 
-      (seedindex == 3 && (Layer == 5 || Layer == 6)) ||
+bool PurgeDuplicate::isSeedingStub(int seedindex, int Layer, int Disk) {
+  if ((seedindex == 0 && (Layer == 1 || Layer == 2)) || (seedindex == 1 && (Layer == 2 || Layer == 3)) ||
+      (seedindex == 2 && (Layer == 3 || Layer == 4)) || (seedindex == 3 && (Layer == 5 || Layer == 6)) ||
       (seedindex == 4 && (abs(Disk) == 1 || abs(Disk) == 2)) ||
-      (seedindex == 5 && (abs(Disk) == 3 || abs(Disk) == 4)) || 
-      (seedindex == 6 && (Layer == 1 || abs(Disk) == 1)) ||
+      (seedindex == 5 && (abs(Disk) == 3 || abs(Disk) == 4)) || (seedindex == 6 && (Layer == 1 || abs(Disk) == 1)) ||
       (seedindex == 7 && (Layer == 2 || abs(Disk) == 1)) ||
       (seedindex == 8 && (Layer == 2 || Layer == 3 || Layer == 4)) ||
       (seedindex == 9 && (Layer == 4 || Layer == 5 || Layer == 6)) ||
       (seedindex == 10 && (Layer == 2 || Layer == 3 || abs(Disk) == 1)) ||
-      (seedindex == 11 && (Layer == 2 || abs(Disk) == 1 || abs(Disk) == 2))) 
-      return true;
+      (seedindex == 11 && (Layer == 2 || abs(Disk) == 1 || abs(Disk) == 2)))
+    return true;
 
   return false;
 }
 
-std::pair<int,int> PurgeDuplicate::findLayerDisk(const Stub* st){
-
-    std::pair<int,int> layer_disk;
-    layer_disk.first = st->layerdisk() + 1;
-    if (layer_disk.first > N_LAYER) {
-        layer_disk.first = 0;
-    }
-    layer_disk.second = st->layerdisk() - (N_LAYER - 1);
-    if (layer_disk.second < 0) {
-        layer_disk.second = 0;
-    }
-    return layer_disk;
+std::pair<int, int> PurgeDuplicate::findLayerDisk(const Stub* st) {
+  std::pair<int, int> layer_disk;
+  layer_disk.first = st->layerdisk() + 1;
+  if (layer_disk.first > N_LAYER) {
+    layer_disk.first = 0;
+  }
+  layer_disk.second = st->layerdisk() - (N_LAYER - 1);
+  if (layer_disk.second < 0) {
+    layer_disk.second = 0;
+  }
+  return layer_disk;
 }
 
-
-std::string PurgeDuplicate::l1tinfo(const L1TStub* L1stub, std::string str=""){
-    std::string thestr = Form("\t %s stub info:  r/z/phi:\t%f\t%f\t%f\t%d\t%f\t%d", str.c_str(), L1stub->r(), L1stub->z(), L1stub->phi(), L1stub->iphi(), L1stub->bend(),  L1stub->layerdisk()   );
-    return thestr;                        
+std::string PurgeDuplicate::l1tinfo(const L1TStub* L1stub, std::string str = "") {
+  std::string thestr = Form("\t %s stub info:  r/z/phi:\t%f\t%f\t%f\t%d\t%f\t%d",
+                            str.c_str(),
+                            L1stub->r(),
+                            L1stub->z(),
+                            L1stub->phi(),
+                            L1stub->iphi(),
+                            L1stub->bend(),
+                            L1stub->layerdisk());
+  return thestr;
 }
 
-
-std::vector<double> PurgeDuplicate::getInventedCoords(unsigned int iSector, const Stub* st, Tracklet* tracklet){     
-
+std::vector<double> PurgeDuplicate::getInventedCoords(unsigned int iSector, const Stub* st, Tracklet* tracklet) {
   int stubLayer = (findLayerDisk(st)).first;
   int stubDisk = (findLayerDisk(st)).second;
 
-  double stub_phi  = -99;
-  double stub_z    = -99;
-  double stub_r    = -99;
+  double stub_phi = -99;
+  double stub_z = -99;
+  double stub_r = -99;
 
   double tracklet_rinv = tracklet->rinv();
 
-  if (st->isBarrel()){
-      stub_r = settings_.rmean(stubLayer-1);
-      stub_phi  = tracklet->phi0() - std::asin(stub_r*tracklet_rinv/2);
-      stub_phi  = stub_phi + iSector * settings_.dphisector() - 0.5 * settings_.dphisectorHG();
-      stub_phi  = reco::reduceRange(stub_phi);
-      stub_z  = tracklet->z0() + 2 * tracklet->t() * 1 / tracklet_rinv * std::asin(stub_r*tracklet_rinv/2);
-  }
-  else{
-      stub_z = settings_.zmean(stubDisk-1)*tracklet->disk()/abs(tracklet->disk());
-      stub_phi  = tracklet->phi0() - (stub_z - tracklet->z0())*tracklet_rinv/2/tracklet->t();
-      stub_phi  = stub_phi + iSector * settings_.dphisector() - 0.5 * settings_.dphisectorHG();
-      stub_phi  = reco::reduceRange(stub_phi);
-      stub_r  = 2/tracklet_rinv * std::sin ((stub_z - tracklet->z0())*tracklet_rinv/2/tracklet->t());
+  if (st->isBarrel()) {
+    stub_r = settings_.rmean(stubLayer - 1);
+    stub_phi = tracklet->phi0() - std::asin(stub_r * tracklet_rinv / 2);
+    stub_phi = stub_phi + iSector * settings_.dphisector() - 0.5 * settings_.dphisectorHG();
+    stub_phi = reco::reduceRange(stub_phi);
+    stub_z = tracklet->z0() + 2 * tracklet->t() * 1 / tracklet_rinv * std::asin(stub_r * tracklet_rinv / 2);
+  } else {
+    stub_z = settings_.zmean(stubDisk - 1) * tracklet->disk() / abs(tracklet->disk());
+    stub_phi = tracklet->phi0() - (stub_z - tracklet->z0()) * tracklet_rinv / 2 / tracklet->t();
+    stub_phi = stub_phi + iSector * settings_.dphisector() - 0.5 * settings_.dphisectorHG();
+    stub_phi = reco::reduceRange(stub_phi);
+    stub_r = 2 / tracklet_rinv * std::sin((stub_z - tracklet->z0()) * tracklet_rinv / 2 / tracklet->t());
   }
 
   std::vector invented_coords{stub_r, stub_z, stub_phi};
   return invented_coords;
 }
 
-
-std::vector<double> PurgeDuplicate::getInventedCoordsExtended(unsigned int iSector, const Stub* st, Tracklet* tracklet){     
-
+std::vector<double> PurgeDuplicate::getInventedCoordsExtended(unsigned int iSector,
+                                                              const Stub* st,
+                                                              Tracklet* tracklet) {
   int stubLayer = (findLayerDisk(st)).first;
   int stubDisk = (findLayerDisk(st)).second;
 
+  double stub_phi = -99;
+  double stub_z = -99;
+  double stub_r = -99;
 
-  double stub_phi  = -99;
-  double stub_z    = -99;
-  double stub_r    = -99;
-
-  double rho = 1/tracklet->rinv();
-  double rho_minus_d0 = rho + tracklet->d0(); // should be -, but otherwise does not work
+  double rho = 1 / tracklet->rinv();
+  double rho_minus_d0 = rho + tracklet->d0();  // should be -, but otherwise does not work
 
   // exact helix
-  if (st->isBarrel()){
-      stub_r = settings_.rmean(stubLayer-1);
+  if (st->isBarrel()) {
+    stub_r = settings_.rmean(stubLayer - 1);
 
-      double sin_val = (stub_r*stub_r + rho_minus_d0*rho_minus_d0 - rho*rho) / (2 * stub_r * rho_minus_d0) ;
-      stub_phi = tracklet->phi0() - std::asin(sin_val);
-      stub_phi = stub_phi + iSector * settings_.dphisector() - 0.5 * settings_.dphisectorHG();
-      stub_phi = reco::reduceRange(stub_phi);
+    double sin_val = (stub_r * stub_r + rho_minus_d0 * rho_minus_d0 - rho * rho) / (2 * stub_r * rho_minus_d0);
+    stub_phi = tracklet->phi0() - std::asin(sin_val);
+    stub_phi = stub_phi + iSector * settings_.dphisector() - 0.5 * settings_.dphisectorHG();
+    stub_phi = reco::reduceRange(stub_phi);
 
-      double beta =  std::acos((rho*rho + rho_minus_d0*rho_minus_d0 - stub_r*stub_r) / (2 * rho * rho_minus_d0) );
-      stub_z = tracklet->z0() + tracklet->t() * std::abs(rho * beta);
-  }
-  else {
-      stub_z = settings_.zmean(stubDisk-1)*tracklet->disk()/abs(tracklet->disk());
+    double beta = std::acos((rho * rho + rho_minus_d0 * rho_minus_d0 - stub_r * stub_r) / (2 * rho * rho_minus_d0));
+    stub_z = tracklet->z0() + tracklet->t() * std::abs(rho * beta);
+  } else {
+    stub_z = settings_.zmean(stubDisk - 1) * tracklet->disk() / abs(tracklet->disk());
 
-      double beta = (stub_z - tracklet->z0()) / (tracklet->t() * std::abs(rho)); // maybe rho should be abs value
-      double r_square = -2 * rho * rho_minus_d0 * std::cos(beta) + rho*rho + rho_minus_d0*rho_minus_d0;
-      stub_r = sqrt(r_square);
+    double beta = (stub_z - tracklet->z0()) / (tracklet->t() * std::abs(rho));  // maybe rho should be abs value
+    double r_square = -2 * rho * rho_minus_d0 * std::cos(beta) + rho * rho + rho_minus_d0 * rho_minus_d0;
+    stub_r = sqrt(r_square);
 
-      double sin_val = (stub_r*stub_r + rho_minus_d0*rho_minus_d0 - rho*rho) / (2 * stub_r * rho_minus_d0) ;
-      stub_phi = tracklet->phi0() - std::asin(sin_val);
-      stub_phi = stub_phi + iSector * settings_.dphisector() - 0.5 * settings_.dphisectorHG();
-      stub_phi = reco::reduceRange(stub_phi);
+    double sin_val = (stub_r * stub_r + rho_minus_d0 * rho_minus_d0 - rho * rho) / (2 * stub_r * rho_minus_d0);
+    stub_phi = tracklet->phi0() - std::asin(sin_val);
+    stub_phi = stub_phi + iSector * settings_.dphisector() - 0.5 * settings_.dphisectorHG();
+    stub_phi = reco::reduceRange(stub_phi);
   }
 
   // TMP: for displaced tracking, exclude one of the 3 seeding stubs
   // to be discussed
   int seed = tracklet->seedIndex();
-  if ( (seed == 8 && stubLayer == 4) ||\
-       (seed == 9 && stubLayer == 5) ||\
-       (seed == 10 && stubLayer == 3) ||\
-       (seed == 11 && abs(stubDisk) == 1)
-     ){
-    stub_phi  = st->l1tstub()->phi();
-    stub_z    = st->l1tstub()->z();
-    stub_r    = st->l1tstub()->r();
+  if ((seed == 8 && stubLayer == 4) || (seed == 9 && stubLayer == 5) || (seed == 10 && stubLayer == 3) ||
+      (seed == 11 && abs(stubDisk) == 1)) {
+    stub_phi = st->l1tstub()->phi();
+    stub_z = st->l1tstub()->z();
+    stub_r = st->l1tstub()->r();
   }
 
   std::vector invented_coords{stub_r, stub_z, stub_phi};
   return invented_coords;
 }
 
-std::vector<const Stub*> PurgeDuplicate::seedStubCoordsFromTracklet (unsigned int iSector, Tracklet* tracklet, std::vector<const Stub*> originalStubsList ){
-
+std::vector<const Stub*> PurgeDuplicate::seedStubCoordsFromTracklet(unsigned int iSector,
+                                                                    Tracklet* tracklet,
+                                                                    std::vector<const Stub*> originalStubsList) {
   std::vector<const Stub*> newStubList;
 
   for (unsigned int stubit = 0; stubit < originalStubsList.size(); stubit++) {
     const Stub* thisStub = originalStubsList[stubit];
 
-    if ( isSeedingStub(tracklet->seedIndex(), (findLayerDisk(thisStub)).first, (findLayerDisk(thisStub)).second)) {
+    if (isSeedingStub(tracklet->seedIndex(), (findLayerDisk(thisStub)).first, (findLayerDisk(thisStub)).second)) {
       // get a vector containing r, z, phi
       std::vector<double> inv_r_z_phi;
       if (!settings_.extended())
-        inv_r_z_phi = getInventedCoords(iSector, thisStub, tracklet );
-      else  {
-        inv_r_z_phi = getInventedCoordsExtended(iSector, thisStub, tracklet );
-      }      
+        inv_r_z_phi = getInventedCoords(iSector, thisStub, tracklet);
+      else {
+        inv_r_z_phi = getInventedCoordsExtended(iSector, thisStub, tracklet);
+      }
       double stub_x_invent = inv_r_z_phi[0] * std::cos(inv_r_z_phi[2]);
       double stub_y_invent = inv_r_z_phi[0] * std::sin(inv_r_z_phi[2]);
       double stub_z_invent = inv_r_z_phi[1];
 
-      Stub* invent_stub_ptr = new Stub(*thisStub) ;
+      Stub* invent_stub_ptr = new Stub(*thisStub);
       const L1TStub* L1stub = thisStub->l1tstub();
 
-      L1TStub invent_L1stub ( L1stub->DTClink(),
-                              L1stub->region(),
-                              L1stub->layerdisk(),
-                              L1stub->stubword(),
-                              L1stub->isPSmodule(),
-                              L1stub->isFlipped(),
-                              L1stub->isTilted(),
-                              L1stub->tiltedRingId(),
-                              L1stub->endcapRingId(),
-                              L1stub->detId(),
-                              stub_x_invent,
-                              stub_y_invent,
-                              stub_z_invent,
-                              L1stub->bend(),
-                              L1stub->strip(),
-                              L1stub->tps()
-                            );
+      L1TStub invent_L1stub(L1stub->DTClink(),
+                            L1stub->region(),
+                            L1stub->layerdisk(),
+                            L1stub->stubword(),
+                            L1stub->isPSmodule(),
+                            L1stub->isFlipped(),
+                            L1stub->isTilted(),
+                            L1stub->tiltedRingId(),
+                            L1stub->endcapRingId(),
+                            L1stub->detId(),
+                            stub_x_invent,
+                            stub_y_invent,
+                            stub_z_invent,
+                            L1stub->bend(),
+                            L1stub->strip(),
+                            L1stub->tps());
 
       invent_stub_ptr->setl1tstub(new L1TStub(invent_L1stub));
       invent_stub_ptr->l1tstub()->setAllStubIndex(L1stub->allStubIndex());
       invent_stub_ptr->l1tstub()->setUniqueIndex(L1stub->uniqueIndex());
 
-      newStubList.push_back(invent_stub_ptr);  
+      newStubList.push_back(invent_stub_ptr);
 
-    }
-    else{
+    } else {
       newStubList.push_back(thisStub);
     }
   }

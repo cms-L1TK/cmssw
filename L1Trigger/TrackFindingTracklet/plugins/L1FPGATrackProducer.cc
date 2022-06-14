@@ -175,7 +175,7 @@ private:
   bool extended_;
   bool reduced_;
   bool invent_;
-  
+
   bool trackQuality_;
   std::unique_ptr<L1TrackQuality> trackQualityModel_;
 
@@ -381,7 +381,7 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
 
   stubMapType stubMap;
   stubIndexMapType stubIndexMap;
-  
+
   ////////////
   // GET BS //
   edm::Handle<reco::BeamSpot> beamSpotHandle;
@@ -709,7 +709,7 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
       itIndex = stubIndexMap.find(itstubs.uniqueIndex());
       if (itIndex != stubIndexMap.end()) {
         aTrack.addStubRef(itIndex->second);
-        countStubs = countStubs+1;
+        countStubs = countStubs + 1;
       } else {
         // could not find stub in stub map
       }
