@@ -258,7 +258,10 @@ namespace trklet {
     void setCombined(bool combined) { combined_ = combined; }
     bool reduced() const { return reduced_; }
     void setReduced(bool reduced) { reduced_ = reduced; }
-
+    
+    bool inventStubs() const { return inventStubs_; }
+    void setInventStubs(bool inventStubs) { inventStubs_ = inventStubs; }
+    
     double bfield() const { return bfield_; }
     void setBfield(double bfield) { bfield_ = bfield; }
 
@@ -944,7 +947,8 @@ namespace trklet {
     unsigned int nHelixPar_{4};  // 4 or 5 param helix fit
     bool extended_{false};       // turn on displaced tracking
     bool reduced_{false};        // use reduced (Summer Chain) config
-
+    bool inventStubs_{false}; // invent seeding stub coordinates based on tracklet traj
+    
     bool combined_{false};  // use combined TP (TE+TC) and MP (PR+ME+MC) configuration
 
     std::string skimfile_{""};  //if not empty events will be written out in ascii format to this file
