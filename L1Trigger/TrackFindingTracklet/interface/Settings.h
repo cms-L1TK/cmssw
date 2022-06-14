@@ -258,10 +258,10 @@ namespace trklet {
     void setCombined(bool combined) { combined_ = combined; }
     bool reduced() const { return reduced_; }
     void setReduced(bool reduced) { reduced_ = reduced; }
-    
+
     bool inventStubs() const { return inventStubs_; }
     void setInventStubs(bool inventStubs) { inventStubs_ = inventStubs; }
-    
+
     double bfield() const { return bfield_; }
     void setBfield(double bfield) { bfield_ = bfield; }
 
@@ -955,8 +955,6 @@ namespace trklet {
     // Tracklet_cfi.py to refer to *_hourglassExtendedCombined.dat,
     // but leave combined_=false.
     
-    bool combined_{false};  // use combined TP (TE+TC) and MP (PR+ME+MC) configuration
-
     std::string skimfile_{""};  //if not empty events will be written out in ascii format to this file
 
     double bfield_{3.8112};  //B-field in T
