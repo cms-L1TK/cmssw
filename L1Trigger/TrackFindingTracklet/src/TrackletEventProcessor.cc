@@ -281,44 +281,47 @@ void TrackletEventProcessor::event(SLHCEvent& ev,
     sector_->executeTC();
     TCTimer_.stop();
 
-    int nTP = globals_->event()->nsimtracks();
-    for (int iTP = 0; iTP < nTP; iTP++) {
-      L1SimTrack simtrk = globals_->event()->simtrack(iTP);
-      if (simtrk.pt() < 2.0)
-        continue;
-      if (std::abs(simtrk.vz()) > 15.0)
-        continue;
-      if (hypot(simtrk.vx(), simtrk.vy()) > 0.1)
-        continue;
-      bool electron = (abs(simtrk.type()) == 11);
-      bool muon = (abs(simtrk.type()) == 13);
-      bool pion = (abs(simtrk.type()) == 211);
-      bool kaon = (abs(simtrk.type()) == 321);
-      bool proton = (abs(simtrk.type()) == 2212);
-      if (!(electron || muon || pion || kaon || proton))
-        continue;
-      int nlayers = 0;
-      int ndisks = 0;
-      int simtrackid = simtrk.trackid();
-      unsigned int hitmask = ev.layersHit(simtrackid, nlayers, ndisks);
-      if (nlayers + ndisks < 4)
-        continue;
+    if (settings_->writeMonitorData("HitEff") || settings_->bookHistos()) {
+      int nTP = globals_->event()->nsimtracks();
+      for (int iTP = 0; iTP < nTP; iTP++) {
+        L1SimTrack simtrk = globals_->event()->simtrack(iTP);
+        if (simtrk.pt() < 2.0)
+          continue;
+        if (std::abs(simtrk.vz()) > 15.0)
+          continue;
+        if (hypot(simtrk.vx(), simtrk.vy()) > 0.1)
+          continue;
+        bool electron = (abs(simtrk.type()) == 11);
+        bool muon = (abs(simtrk.type()) == 13);
+        bool pion = (abs(simtrk.type()) == 211);
+        bool kaon = (abs(simtrk.type()) == 321);
+        bool proton = (abs(simtrk.type()) == 2212);
+        if (!(electron || muon || pion || kaon || proton))
+          continue;
+        int nlayers = 0;
+        int ndisks = 0;
+        int simtrackid = simtrk.trackid();
+        unsigned int hitmask = 0;
+        hitmask = ev.layersHit(simtrackid, nlayers, ndisks);  // FIX CPU use.
+        if (nlayers + ndisks < 4)
+          continue;
 
-      if (settings_->writeMonitorData("HitEff")) {
-        static ofstream outhit("hiteff.txt");
-        outhit << simtrk.eta() << " " << (hitmask & 1) << " " << (hitmask & 2) << " " << (hitmask & 4) << " "
-               << (hitmask & 8) << " " << (hitmask & 16) << " " << (hitmask & 32) << " " << (hitmask & 64) << " "
-               << (hitmask & 128) << " " << (hitmask & 256) << " " << (hitmask & 512) << " " << (hitmask & 1024)
-               << endl;
-      }
+        if (settings_->writeMonitorData("HitEff")) {
+          static ofstream outhit("hiteff.txt");
+          outhit << simtrk.eta() << " " << (hitmask & 1) << " " << (hitmask & 2) << " " << (hitmask & 4) << " "
+                 << (hitmask & 8) << " " << (hitmask & 16) << " " << (hitmask & 32) << " " << (hitmask & 64) << " "
+                 << (hitmask & 128) << " " << (hitmask & 256) << " " << (hitmask & 512) << " " << (hitmask & 1024)
+                 << endl;
+        }
 
-      std::unordered_set<int> matchseed;
-      std::unordered_set<int> matchseedtmp = sector_->seedMatch(iTP);
-      matchseed.insert(matchseedtmp.begin(), matchseedtmp.end());
-      if (settings_->bookHistos()) {
-        for (int iseed = 0; iseed < 8; iseed++) {
-          bool eff = matchseed.find(iseed) != matchseed.end();
-          globals_->histograms()->fillSeedEff(iseed, simtrk.eta(), eff);
+        std::unordered_set<int> matchseed;
+        std::unordered_set<int> matchseedtmp = sector_->seedMatch(iTP);
+        matchseed.insert(matchseedtmp.begin(), matchseedtmp.end());
+        if (settings_->bookHistos()) {
+          for (int iseed = 0; iseed < 8; iseed++) {
+            bool eff = matchseed.find(iseed) != matchseed.end();
+            globals_->histograms()->fillSeedEff(iseed, simtrk.eta(), eff);
+          }
         }
       }
     }
