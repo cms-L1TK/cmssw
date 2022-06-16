@@ -138,7 +138,7 @@ void MatchCalculator::execute(unsigned int iSector, double phioffset) {
 
   unsigned int maxProc = std::min(settings_.maxStep("MC") - mergedepth, (unsigned int)mergedMatches.size());
 
-  # Pick some initial large values
+  // Pick some initial large values
   int best_ideltaphi_barrel = 0xFFFF;
   int best_ideltaz_barrel = 0xFFFF;
   int best_ideltaphi_disk = 0xFFFF;
