@@ -124,7 +124,7 @@ void MatchCalculator::execute(unsigned int iSector, double phioffset) {
 
   std::vector<std::pair<std::pair<Tracklet*, int>, const Stub*> > mergedMatches = mergeMatches(matches_);
 
-  // Number of clock cycles the pipeline in HLS takes to process the projection merging to 
+  // Number of clock cycles the pipeline in HLS takes to process the projection merging to
   // produce the first projectio
   unsigned int mergedepth = 3;
 
@@ -202,12 +202,13 @@ void MatchCalculator::execute(unsigned int iSector, double phioffset) {
       double dzapprox = z - (proj.rzprojapprox() + dr * proj.rzprojderapprox());
 
       int seedindex = tracklet->getISeed();
-      unsigned int projindex = mergedMatches[j].first.second;               // Allproj index
+      unsigned int projindex = mergedMatches[j].first.second;  // Allproj index
       curr_projid = next_projid;
       next_projid = projindex;
 
       bool newtracklet = (j == 0 || projindex != curr_projid);
-      if (j == 0)  best_ideltar_disk = (1 << (fpgastub->r().nbits() - 1)); // Set to the maximum possible
+      if (j == 0)
+        best_ideltar_disk = (1 << (fpgastub->r().nbits() - 1));  // Set to the maximum possible
       if (newtracklet) {
         best_ideltaphi_barrel = (int)phimatchcuttable_.lookup(seedindex);
         best_ideltaz_barrel = (int)zmatchcuttable_.lookup(seedindex);
@@ -247,10 +248,8 @@ void MatchCalculator::execute(unsigned int iSector, double phioffset) {
             << zmatchcuttable_.lookup(seedindex) * settings_.kz() << endl;
       }
 
-
-      bool imatch = (std::abs(ideltaphi) <= best_ideltaphi_barrel) &&
-                    (ideltaz * fact_ < best_ideltaz_barrel) &&
-                    (ideltaz * fact_ >= - best_ideltaz_barrel);
+      bool imatch = (std::abs(ideltaphi) <= best_ideltaphi_barrel) && (ideltaz * fact_ < best_ideltaz_barrel) &&
+                    (ideltaz * fact_ >= -best_ideltaz_barrel);
       if (imatch) {
         best_ideltaphi_barrel = std::abs(ideltaphi);
         best_ideltaz_barrel = std::abs(ideltaz * fact_);
@@ -393,11 +392,12 @@ void MatchCalculator::execute(unsigned int iSector, double phioffset) {
         idrcut = rcut2Stable_.lookup(seedindex);
       }
 
-      unsigned int projindex = mergedMatches[j].first.second;               // Allproj index
+      unsigned int projindex = mergedMatches[j].first.second;  // Allproj index
       curr_projid = next_projid;
       next_projid = projindex;
       bool newtracklet = (j == 0 || projindex != curr_projid);
-      if (j == 0)  best_ideltar_disk = (1 << (fpgastub->r().nbits() - 1)); // Set to the maximum possible
+      if (j == 0)
+        best_ideltar_disk = (1 << (fpgastub->r().nbits() - 1));  // Set to the maximum possible
       if (newtracklet) {
         best_ideltaphi_disk = idrphicut;
         best_ideltar_disk = idrcut;
