@@ -20,8 +20,6 @@ void FullMatchMemory::addMatch(Tracklet* tracklet, const Stub* stub) {
     for (auto& match : matches_) {
       if (match.first == tracklet) {  //Better match, replace
         match.second = stub;
-        string m = (layer_ > 0) ? match.first->fullmatchstr(layer_) : match.first->fullmatchdiskstr(disk_);
-        std::cout << "Found match: " << m << " " << trklet::hexFormat(m) << endl;
         return;
       }
     }
