@@ -138,6 +138,7 @@ void MatchCalculator::execute(unsigned int iSector, double phioffset) {
 
   unsigned int maxProc = std::min(settings_.maxStep("MC") - mergedepth, (unsigned int)mergedMatches.size());
 
+  # Pick some initial large values
   int best_ideltaphi_barrel = 0xFFFF;
   int best_ideltaz_barrel = 0xFFFF;
   int best_ideltaphi_disk = 0xFFFF;
@@ -214,7 +215,7 @@ void MatchCalculator::execute(unsigned int iSector, double phioffset) {
       next_projid = projindex;
 
       bool newtracklet = (j == 0 || projindex != curr_projid);
-      if (j == 0)  best_ideltar_disk = (1 << (fpgastub->r().nbits() - 1));
+      if (j == 0)  best_ideltar_disk = (1 << (fpgastub->r().nbits() - 1)); // Set to the maximum possible
       if (newtracklet) {
         best_ideltaphi_barrel = (int)phimatchcuttable_.lookup(seedindex);
         best_ideltaz_barrel = (int)zmatchcuttable_.lookup(seedindex);
@@ -404,12 +405,13 @@ void MatchCalculator::execute(unsigned int iSector, double phioffset) {
       curr_projid = next_projid;
       next_projid = projindex;
       bool newtracklet = (j == 0 || projindex != curr_projid);
-      if (j == 0)  best_ideltar_disk = (1 << (fpgastub->r().nbits() - 1));
+      if (j == 0)  best_ideltar_disk = (1 << (fpgastub->r().nbits() - 1)); // Set to the maximum possible
       if (newtracklet) {
         best_ideltaphi_disk = idrphicut;
         best_ideltar_disk = idrcut;
       }
 
+      // Update the cut vales (cut table if new tracklet, otherwise current best)
       idrphicut = newtracklet ? idrphicut : best_ideltaphi_disk;
       idrcut = newtracklet ? idrcut : best_ideltar_disk;
 
