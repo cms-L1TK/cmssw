@@ -1202,17 +1202,21 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
     float tmp_tp_vx = iterTP->vx();
     float tmp_tp_vy = iterTP->vy();
     int tmp_tp_pdgid = iterTP->pdgId();
+    float tmp_tp_charge = iterTP->charge();
     float tmp_tp_z0_prod = tmp_tp_vz;
     float tmp_tp_d0_prod = tmp_tp_vx * sin(tmp_tp_phi) - tmp_tp_vy * cos(tmp_tp_phi);
 
-    if (tmp_tp_pt < TP_minPt)  // Save CPU by applying this cut early.
+    if (tmp_tp_pt < TP_minPt)  // Save CPU by applying these cuts here.
+      continue;
+    if (tmp_tp_charge == 0.)
+      continue;
+    if (std::abs(tmp_tp_eta) > TP_maxEta)
       continue;
 
     // ----------------------------------------------------------------------------------------------
     // get d0/z0 propagated back to the IP
 
     float tmp_tp_t = 1.0 / tan(2.0 * atan(exp(-tmp_tp_eta)));
-    float tmp_tp_charge = iterTP->charge();
 
     float delx = -tmp_tp_vx;
     float dely = -tmp_tp_vy;
@@ -1242,8 +1246,6 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
     if ((MyProcess == 6 || MyProcess == 15 || MyProcess == 211) && abs(tmp_tp_pdgid) != 211)
       continue;
 
-    if (std::abs(tmp_tp_eta) > TP_maxEta)
-      continue;
     if (std::abs(tmp_tp_z0) > TP_maxZ0)
       continue;
 
