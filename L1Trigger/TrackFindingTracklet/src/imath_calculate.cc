@@ -18,12 +18,15 @@ bool VarBase::calculate(int debug_level) {
   long int ival_prev = ival_;
   local_calculate();
 
-  bool all_ok = ok1 && ok2 && ok3 && debug_level;
+  bool all_ok = debug_level && ok1 && ok2 && ok3;
 
   if (fval_ > maxval_)
     maxval_ = fval_;
   if (fval_ < minval_)
     minval_ = fval_;
+
+  val_ = ival_ * K_;
+
 #ifdef IMATH_ROOT
   if (globals_->use_root) {
     if (h_ == 0) {
@@ -43,6 +46,13 @@ bool VarBase::calculate(int debug_level) {
   }
 #endif
 
+  if (debug_level)
+    calcDebug(debug_level, ival_prev, all_ok);
+
+  return all_ok;
+}
+
+void VarBase::calcDebug(int debug_level, long int ival_prev, bool &all_ok) {
   bool todump = false;
   int nmax = sizeof(long int) * 8;
   int ns = nmax - nbits_;
@@ -57,7 +67,6 @@ bool VarBase::calculate(int debug_level) {
     all_ok = false;
   }
 
-  val_ = ival_ * K_;
   float ftest = val_;
   float tolerance = 0.1 * std::abs(fval_);
   if (tolerance < 2 * K_)
@@ -71,11 +80,8 @@ bool VarBase::calculate(int debug_level) {
     }
     all_ok = false;
   }
-
   if (todump)
     edm::LogVerbatim("Tracklet") << dump();
-
-  return all_ok;
 }
 
 void VarFlag::calculate_step() {

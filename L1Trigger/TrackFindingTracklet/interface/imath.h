@@ -253,6 +253,7 @@ namespace trklet {
     bool calculate(int debug_level);
     bool calculate() { return calculate(0); }
     virtual void local_calculate() {}
+    void calcDebug(int debug_level, long int ival_prev, bool &all_ok);
     virtual void print(std::ofstream &fs, Verilog, int l1 = 0, int l2 = 0, int l3 = 0) {
       fs << "// VarBase here. Soemthing is wrong!! " << l1 << ", " << l2 << ", " << l3 << "\n";
     }
