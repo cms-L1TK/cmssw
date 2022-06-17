@@ -5,7 +5,6 @@ C.Brown & C.Savard 07/2020
 */
 
 #include "L1Trigger/TrackTrigger/interface/L1TrackQuality.h"
-#include "PhysicsTools/ONNXRuntime/interface/ONNXRuntime.h"
 
 //Constructors
 
@@ -29,6 +28,7 @@ L1TrackQuality::L1TrackQuality(const edm::ParameterSet& qualityParams) : setupHP
                  qualityParams.getParameter<edm::FileInPath>("ONNXmodel"),
                  qualityParams.getParameter<std::string>("ONNXInputName"),
                  qualityParams.getParameter<std::vector<std::string>>("featureNames"));
+    runTime_ = std::make_unique<cms::Ort::ONNXRuntime>(this->ONNXmodel_.fullPath());
   }
 }
 
@@ -134,10 +134,10 @@ void L1TrackQuality::setL1TrackQuality(TTTrack<Ref_Phase2TrackerDigi_>& aTrack) 
     cms::Ort::FloatArrays ortoutputs;
 
     std::vector<float> Transformed_features = featureTransform(aTrack, this->featureNames_);
-    cms::Ort::ONNXRuntime Runtime(this->ONNXmodel_.fullPath());  //Setup ONNX runtime
+    //    cms::Ort::ONNXRuntime runTime(this->ONNXmodel_.fullPath());  //Setup ONNX runtime
 
     ortinput_names.push_back(this->ONNXInputName_);
-    ortoutput_names = Runtime.getOutputNames();
+    ortoutput_names = runTime_->getOutputNames();
 
     //ONNX runtime recieves a vector of vectors of floats so push back the input
     // vector of float to create a 1,1,21 ortinput
@@ -146,7 +146,7 @@ void L1TrackQuality::setL1TrackQuality(TTTrack<Ref_Phase2TrackerDigi_>& aTrack) 
     // batch_size 1 as only one set of transformed features is being processed
     int batch_size = 1;
     // Run classification
-    ortoutputs = Runtime.run(ortinput_names, ortinput, {}, ortoutput_names, batch_size);
+    ortoutputs = runTime_->run(ortinput_names, ortinput, {}, ortoutput_names, batch_size);
 
     if (this->qualityAlgorithm_ == QualityAlgorithm::NN) {
       aTrack.settrkMVA1(ortoutputs[0][0]);

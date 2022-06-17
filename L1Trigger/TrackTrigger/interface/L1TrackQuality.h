@@ -21,8 +21,8 @@ C.Brown 28/07/20
 #include "DataFormats/L1TrackTrigger/interface/TTTrack.h"
 #include "DataFormats/L1TrackTrigger/interface/TTTypes.h"
 #include "L1Trigger/TrackTrigger/interface/HitPatternHelper.h"
-
-#include "L1Trigger/TrackTrigger/interface/HitPatternHelper.h"
+#include "PhysicsTools/ONNXRuntime/interface/ONNXRuntime.h"
+#include <memory>
 
 class L1TrackQuality {
 public:
@@ -74,5 +74,6 @@ private:
   int nStubsmin_;
   const hph::Setup* setupHPH_;
   bool useHPH_;
+  std::unique_ptr<cms::Ort::ONNXRuntime> runTime_;
 };
 #endif
