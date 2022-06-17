@@ -58,7 +58,7 @@ public:
                     std::string const& ONNXInputName,
                     std::vector<std::string> const& featureNames);
 
-  void setHPHSetup(const hph::Setup* setup);
+  void beginRun(const hph::Setup* setup);
 
 private:
   // Private Member Data
@@ -72,7 +72,7 @@ private:
   float bendchi2Max_;
   float minPt_;
   int nStubsmin_;
-  const hph::Setup* setup_;
-  bool useHPH;
+  const hph::Setup* setupHPH_;
+  bool useHPH_;
 };
 #endif

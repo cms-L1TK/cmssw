@@ -351,7 +351,7 @@ void L1FPGATrackProducer::beginRun(const edm::Run& run, const edm::EventSetup& i
   setup_ = &iSetup.getData(esGetToken_);
   setupHPH_ = &iSetup.getData(esGetTokenHPH_);
   if (trackQuality_) {
-    trackQualityModel_->setHPHSetup(setupHPH_);
+    trackQualityModel_->beginRun(setupHPH_);
   }
   // Tracklet pattern reco output channel info.
   channelAssignment_ = &iSetup.getData(esGetTokenChannelAssignment_);
