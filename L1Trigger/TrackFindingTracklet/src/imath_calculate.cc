@@ -48,7 +48,6 @@ bool VarBase::calculate(int debug_level) {
 }
 
 void VarBase::calcDebug(int debug_level, long int ival_prev, bool &all_ok) {
-
   if (fval_ > maxval_)
     maxval_ = fval_;
   if (fval_ < minval_)
