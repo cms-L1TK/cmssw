@@ -15,15 +15,10 @@ bool VarBase::calculate(int debug_level) {
   if (p3_)
     ok3 = p3_->calculate(debug_level);
 
-  long int ival_prev = ival_;
-  local_calculate();
-
   bool all_ok = debug_level && ok1 && ok2 && ok3;
+  long int ival_prev = ival_;
 
-  if (fval_ > maxval_)
-    maxval_ = fval_;
-  if (fval_ < minval_)
-    minval_ = fval_;
+  local_calculate();
 
   val_ = ival_ * K_;
 
@@ -53,6 +48,12 @@ bool VarBase::calculate(int debug_level) {
 }
 
 void VarBase::calcDebug(int debug_level, long int ival_prev, bool &all_ok) {
+
+  if (fval_ > maxval_)
+    maxval_ = fval_;
+  if (fval_ < minval_)
+    minval_ = fval_;
+
   bool todump = false;
   int nmax = sizeof(long int) * 8;
   int ns = nmax - nbits_;
