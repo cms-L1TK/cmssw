@@ -304,7 +304,7 @@ L1TrackNtupleMaker::L1TrackNtupleMaker(edm::ParameterSet const& iConfig) : confi
   ttStubMCTruthToken_ = consumes<TTStubAssociationMap<Ref_Phase2TrackerDigi_> >(MCTruthStubInputTag);
 
   TrackingParticleToken_ = consumes<std::vector<TrackingParticle> >(TrackingParticleInputTag);
-  TrackingVertexToken_ = consumes<std::vector<TrackingVertex> >(TrackingVertexInputTag);
+  //TrackingVertexToken_ = consumes<std::vector<TrackingVertex> >(TrackingVertexInputTag);
   GenJetToken_ = consumes<std::vector<reco::GenJet> >(GenJetInputTag);
 
   getTokenTrackerGeom_ = esConsumes<TrackerGeometry, TrackerDigiGeometryRecord>();
@@ -713,7 +713,7 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
   edm::Handle<std::vector<TrackingParticle> > TrackingParticleHandle;
   edm::Handle<std::vector<TrackingVertex> > TrackingVertexHandle;
   iEvent.getByToken(TrackingParticleToken_, TrackingParticleHandle);
-  iEvent.getByToken(TrackingVertexToken_, TrackingVertexHandle);
+  //iEvent.getByToken(TrackingVertexToken_, TrackingVertexHandle);
 
   // -----------------------------------------------------------------------------------------------
   // more for TTStubs
@@ -1196,15 +1196,8 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
       continue;  //only care about tracking particles from the primary interaction (except for MyProcess==1, i.e. looking at all TPs)
 
     float tmp_tp_pt = iterTP->pt();
-    float tmp_tp_eta = iterTP->eta();
-    float tmp_tp_phi = iterTP->phi();
-    float tmp_tp_vz = iterTP->vz();
-    float tmp_tp_vx = iterTP->vx();
-    float tmp_tp_vy = iterTP->vy();
-    int tmp_tp_pdgid = iterTP->pdgId();
     float tmp_tp_charge = iterTP->charge();
-    float tmp_tp_z0_prod = tmp_tp_vz;
-    float tmp_tp_d0_prod = tmp_tp_vx * sin(tmp_tp_phi) - tmp_tp_vy * cos(tmp_tp_phi);
+    float tmp_tp_eta = iterTP->eta();
 
     if (tmp_tp_pt < TP_minPt)  // Save CPU by applying these cuts here.
       continue;
@@ -1212,6 +1205,14 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
       continue;
     if (std::abs(tmp_tp_eta) > TP_maxEta)
       continue;
+
+    float tmp_tp_phi = iterTP->phi();
+    float tmp_tp_vz = iterTP->vz();
+    float tmp_tp_vx = iterTP->vx();
+    float tmp_tp_vy = iterTP->vy();
+    int tmp_tp_pdgid = iterTP->pdgId();
+    float tmp_tp_z0_prod = tmp_tp_vz;
+    float tmp_tp_d0_prod = tmp_tp_vx * sin(tmp_tp_phi) - tmp_tp_vy * cos(tmp_tp_phi);
 
     // ----------------------------------------------------------------------------------------------
     // get d0/z0 propagated back to the IP
