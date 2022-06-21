@@ -349,6 +349,10 @@ void L1FPGATrackProducer::beginRun(const edm::Run& run, const edm::EventSetup& i
   settings_.setBfield(mMagneticFieldStrength);
 
   setup_ = &iSetup.getData(esGetToken_);
+
+  //getBendCut
+  settings_.passSetup(setup_);
+
   setupHPH_ = &iSetup.getData(esGetTokenHPH_);
   if (trackQuality_) {
     trackQualityModel_->setHPHSetup(setupHPH_);

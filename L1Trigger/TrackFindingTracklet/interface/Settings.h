@@ -13,6 +13,7 @@
 
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 #include "FWCore/Utilities/interface/Exception.h"
+#include "L1Trigger/TrackTrigger/interface/Setup.h"
 
 namespace trklet {
 
@@ -61,6 +62,9 @@ namespace trklet {
     }
 
     ~Settings() = default;
+
+    void passSetup(const tt::Setup* setup) { setup_ = setup; }
+    const tt::Setup* setup() const {return setup_; }
 
     // processing & memory modules, wiring, etc.
     std::string const& fitPatternFile() const { return fitPatternFile_; }
@@ -167,6 +171,9 @@ namespace trklet {
     double zmean(unsigned int iDisk) const { return izmean_[iDisk] * zlength_ / 2048; }
     double zmax(unsigned int iDisk) const { return zmean(iDisk) + dzmax(); }
     double zmin(unsigned int iDisk) const { return zmean(iDisk) - dzmax(); }
+
+    double zmindisk(unsigned int iDisk) const { return zmean(iDisk) - zsepdisk_/2;}
+    double zmaxdisk(unsigned int iDisk) const { return zmean(iDisk) + zsepdisk_/2;}
 
     double rDSSinner(unsigned int iBin) const {
       return rDSSinner_mod_[iBin / 2] + halfstrip_ * ((iBin % 2 == 0) ? -1 : 1);
@@ -448,6 +455,27 @@ namespace trklet {
       return fact * bendcut(ibend, layerdisk, isPSmodule);
     }
 
+    bool useCalcBendCuts = false;
+    unsigned int nzbinsPhiCorr = 2; // 1, 2, or 13 (2 = (Flat, Tilted), 13 = (Flat, TR1, ..., TR12))
+                                    // TODO Test 13 bin version
+
+    double bendcutTE(unsigned int seed, bool inner) const { 
+      if (inner){
+        return bendcutTE_[seed][0];
+      } 
+      else{
+        return bendcutTE_[seed][1];
+      }
+    }
+
+    double bendcutME(unsigned int layerdisk, bool isPSmodule) const { 
+      if (layerdisk >= N_LAYER && (!isPSmodule))
+        layerdisk += N_DISK;
+
+      return bendcutME_[layerdisk]; 
+    }
+
+
     //layers/disks used by each seed
     std::array<std::array<int, 3>, N_SEED> seedlayers() const { return seedlayers_; }
 
@@ -458,6 +486,9 @@ namespace trklet {
     std::array<std::array<unsigned int, N_DISK>, N_SEED> projdisks() const { return projdisks_; }
 
   private:
+
+    const tt::Setup* setup_;
+
     std::string fitPatternFile_;
     std::string processingModulesFile_;
     std::string memoryModulesFile_;
@@ -539,6 +570,8 @@ namespace trklet {
     double zlength_{120.0};
     double rmaxdisk_{120.0};
     double rmindisk_{20.0};
+
+    double zsepdisk_{1.5}; //cm
 
     double half2SmoduleWidth_{4.57};
 
@@ -785,6 +818,35 @@ namespace trklet {
          {{2.2, 1.5, 1.5, 1.5, 2.0, 2.0, 2.0, 2.0, 99.9, 2.0, 2.0, 2.0, 2.0, 1.5, 1.5, 1.5}},          //D3 2S
          {{2.5, 1.5, 1.5, 2.0, 2.0, 2.0, 2.0, 2.0, 99.9, 2.0, 2.0, 2.0, 2.0, 2.0, 1.5, 1.5}},          //D4 2S
          {{2.5, 1.5, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 99.9, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 1.5}}}};        //D5 2S
+
+
+    double FEbendcut = 0.4; // ~sqrt(1/6)
+    double bendcutTE_[N_SEED_PROMPT][2] = {{2.2*FEbendcut, 2.5*FEbendcut}, //L1L2 
+                                        {2.0*FEbendcut, 2.0*FEbendcut}, //L2L3 
+                                        {2.0*FEbendcut, 2.6*FEbendcut}, //L3L4 
+                                        {2.4*FEbendcut, 2.4*FEbendcut}, //L5L6 
+                                        {2.5*FEbendcut, 2.2*FEbendcut}, //D1D2 PS
+                                        {2.0*FEbendcut, 2.0*FEbendcut}, //D3D4 PS
+                                        {2.0*FEbendcut, 2.4*FEbendcut}, //L1D1 PS
+                                        {2.2*FEbendcut, 2.2*FEbendcut}};//L2D1 PS
+ 
+    double bendcutME_[N_LAYER+2*N_DISK] = {2.0*FEbendcut, //0  L1
+                                           2.5*FEbendcut, //1  L2
+                                           2.0*FEbendcut, //2  L3
+                                           2.5*FEbendcut, //3  L4
+                                           2.2*FEbendcut, //4  L5
+                                           2.3*FEbendcut, //5  L6
+                                           4.0*FEbendcut, //6  D1 PS
+                                           3.5*FEbendcut, //7  D2 PS
+                                           3.5*FEbendcut, //8  D3 PS
+                                           3.5*FEbendcut, //9  D4 PS
+                                           2.7*FEbendcut, //10 D5 PS
+                                           3.5*FEbendcut, //11 D1 2S
+                                           3.4*FEbendcut, //12 D2 2S
+                                           3.5*FEbendcut, //13 D3 2S
+                                           3.7*FEbendcut, //14 D4 2S
+                                           3.5*FEbendcut};//15 D5 2S
+
 
     // Offset to the maximum number of steps in each processing step:
     // Set to 0 (default) means standard truncation

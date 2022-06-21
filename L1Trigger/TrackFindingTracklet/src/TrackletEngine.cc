@@ -104,7 +104,7 @@ void TrackletEngine::execute() {
 
         if (iSeed_ >= 4) {  //Also use r-position
           int ir = ((ibin & 3) << 1) + (rzbin >> 2);
-          index = (index << 3) + ir;
+          index += (ir << (outerphibits_ + innerphibits_));
         }
 
         if (start != ibin)

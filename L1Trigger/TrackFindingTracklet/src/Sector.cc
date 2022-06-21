@@ -83,8 +83,26 @@ bool Sector::addStub(L1TStub stub, string dtc) {
     FPGAWord r = fpgastub.r();
     int bendbin = fpgastub.bend().value();
     int rbin = (r.value() + (1 << (r.nbits() - 1))) >> (r.nbits() - 3);
+
     const TrackletLUT& phiCorrTable = *globals_->phiCorr(layerdisk);
-    int iphicorr = phiCorrTable.lookup(bendbin * (1 << 3) + rbin);
+
+    int zbin = 0;
+
+    if (layerdisk < 3 and settings_.useCalcBendCuts ){
+      if (settings_.nzbinsPhiCorr > 1){ 
+        if (settings_.nzbinsPhiCorr == 2)
+          zbin = (stub.tiltedRingId() == 0) ? 0: 1;
+        else if (settings_.nzbinsPhiCorr == 13)
+          zbin = stub.tiltedRingId();
+      }
+    }
+    
+    int nrbits = 3;
+    int bendbits = fpgastub.bend().nbits();
+
+    int index = (zbin<<(nrbits+bendbits)) + (bendbin<<nrbits) + rbin;
+
+    int iphicorr = phiCorrTable.lookup(index);
     fpgastub.setPhiCorr(iphicorr);
   }
 

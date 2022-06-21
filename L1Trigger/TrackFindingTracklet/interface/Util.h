@@ -46,6 +46,24 @@ namespace trklet {
     return bend;
   }
 
+  inline double convertFEBend( double FEbend, double sensorSep, double CF, bool barrel, double r = 0){
+    double bend = 0.18*CF*FEbend/sensorSep;
+    return bend; 
+  }
+
+  inline double tan_theta( double r, double z, double z0, bool z0_max ){
+    //Calculates tan(theta) = z_displaced/r 
+    //measure tan theta at different points to account for displaced tracks 
+    double tan;
+    if (z0_max)
+      tan = (z-z0)/r;
+    else
+      tan = (z+z0)/r;
+
+    return tan;
+  }
+
+
   inline double rinv(double phi1, double phi2, double r1, double r2) {
     assert(r1 < r2);  //Can not form tracklet should not call function with r2<=r1
 
