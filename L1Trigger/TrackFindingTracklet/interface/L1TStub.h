@@ -82,7 +82,11 @@ namespace trklet {
 
     void setAllStubIndex(unsigned int index) { allstubindex_ = index; }
     void setUniqueIndex(unsigned int index) { uniqueindex_ = index; }
-    void setCoords(double x, double y, double z) { x_ = x; y_ = y; z_ = z; }
+    void setCoords(double x, double y, double z) {
+      x_ = x;
+      y_ = y;
+      z_ = z;
+    }
 
     unsigned int allStubIndex() const { return allstubindex_; }
     unsigned int uniqueIndex() const { return uniqueindex_; }

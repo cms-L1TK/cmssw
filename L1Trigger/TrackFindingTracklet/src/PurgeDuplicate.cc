@@ -645,8 +645,8 @@ std::vector<double> PurgeDuplicate::getInventedCoordsExtended(unsigned int iSect
 }
 
 std::vector<const Stub*> PurgeDuplicate::getInventedSeedingStub(unsigned int iSector,
-                                                                    Tracklet* tracklet,
-                                                                    std::vector<const Stub*> originalStubsList) {
+                                                                Tracklet* tracklet,
+                                                                std::vector<const Stub*> originalStubsList) {
   std::vector<const Stub*> newStubList;
 
   for (unsigned int stubit = 0; stubit < originalStubsList.size(); stubit++) {
