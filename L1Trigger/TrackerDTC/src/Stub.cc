@@ -79,14 +79,14 @@ namespace trackerDTC {
         valid_ = false;
       else {
         zTMin = max(zTMin, -setup->maxZT());
-        zTMax = min(zTMax, setup->maxZT());
+        zTMax = min(zTMax, setup->maxZT() - 1.e-12);
       }
       // range of stub cot(theta)
       cot_ = {zTMin / setup->chosenRofZ(), zTMax / setup->chosenRofZ()};
     }
 
     // stub r w.r.t. chosenRofPhi in cm
-    static const double chosenRofPhi = hybrid_ ? setup->hybridChosenRofPhi() : setup->chosenRofPhi();
+    static const double chosenRofPhi = setup->chosenRofPhi();
     r_ = digi(r_ - chosenRofPhi, setup->tmttBaseR());
 
     // radial (cylindrical) component of sensor separation
@@ -97,7 +97,7 @@ namespace trackerDTC {
     const double inv2R = -bend_ * setup->baseBend() * inv2ROverBend;
     // inv2R uncertainty in 1/cm
     const double dInv2R = setup->bendCut() * inv2ROverBend;
-    const double minPt = hybrid_ ? setup->hybridMinPtStub() : setup->minPt();
+    const double minPt = hybrid_ ? setup->hybridMinPt() : setup->minPt();
     const double maxInv2R = setup->invPtToDphi() / minPt - setup->dtcBaseInv2R() / 2.;
     double inv2RMin = digi(inv2R - dInv2R, setup->dtcBaseInv2R());
     double inv2RMax = digi(inv2R + dInv2R, setup->dtcBaseInv2R());
@@ -216,8 +216,8 @@ namespace trackerDTC {
         sectorsPhi.set(2);
     }
     // assign stub to eta sectors within a processing region
-    pair<int, int> sectorEta({0, setup_->numSectorsEta() - 1});
-    for (int bin = 0; bin < setup_->numSectorsEta(); bin++)
+    pair<int, int> sectorEta({setup_->sectorEta(cot_.first), setup_->sectorEta(cot_.second)});
+    /*for (int bin = 0; bin < setup_->numSectorsEta(); bin++)
       if (asinh(cot_.first) < setup_->boundarieEta(bin + 1)) {
         sectorEta.first = bin;
         break;
@@ -226,7 +226,7 @@ namespace trackerDTC {
       if (asinh(cot_.second) < setup_->boundarieEta(bin + 1)) {
         sectorEta.second = bin;
         break;
-      }
+      }*/
     // stub phi w.r.t. processing region centre in rad
     const double phi = phi_ - (region - .5) * setup_->baseRegion();
     // convert stub variables into bit vectors

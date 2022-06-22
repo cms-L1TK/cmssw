@@ -214,7 +214,7 @@ namespace trklet {
           // Correction to Phi calcuation depending if +ve/-ve phi sector
           const double baseSectorCorr = inTrack.sectorPhi() ? -setup_->baseSector() : setup_->baseSector();
 
-          double temp_phi0 = inTrack.phiT() - ((inTrack.inv2R()) * setup_->hybridChosenRofPhi()) + baseSectorCorr;
+          double temp_phi0 = InTrack.phiT() - ((InTrack.inv2R()) * setup_->chosenRofPhi()) + baseSectorCorr;
 
           double temp_tanL = inTrack.cotGlobal();
 

@@ -22,12 +22,6 @@ namespace trackerTFP {
     State(State* state, const std::vector<double>& doubles);
     ~State() {}
 
-    // Determine quality of completed state
-    void finish();
-    // number of skipped layers
-    int numSkippedLayers() const { return numSkippedLayers_; }
-    // number of consitent layers
-    int numConsistentLayers() const { return numConsistentLayers_; }
     // input track
     TrackKFin* track() const { return track_; }
     // parent state (nullpointer if no parent available)
@@ -39,7 +33,7 @@ namespace trackerTFP {
     // track id of input track
     int trackId() const { return trackId_; }
     // pattern of maybe layers for input track
-    TTBV maybePattern() const { return track_->maybePattern(); }
+    const TTBV& maybePattern() const { return track_->maybePattern(); }
     // stub id per layer of so far added stubs
     const std::vector<int>& layerMap() const { return layerMap_; }
     // layer id of the current stub to add
@@ -67,7 +61,7 @@ namespace trackerTFP {
     // Derivative of predicted stub coords wrt helix params: stub radius minus chosenRofPhi
     double H00() const { return stub_->r(); }
     // Derivative of predicted stub coords wrt helix params: stub radius minus chosenRofZ
-    double H12() const { return stub_->r() + dataFormats_->chosenRofPhi() - setup_->chosenRofZ(); }
+    double H12() const { return stub_->r() + setup_->chosenRofPhi() - setup_->chosenRofZ(); }
     // stub phi residual wrt input helix
     double m0() const { return stub_->phi(); }
     // stub z residual wrt input helix
@@ -80,10 +74,6 @@ namespace trackerTFP {
     double v0() const { return pow(stub_->dPhi(), 2); }
     // squared stub projected z uncertainty instead of wheight (wrong but simpler)
     double v1() const { return pow(stub_->dZ(), 2); }
-    // output frame
-    tt::FrameTrack frame() const { return TrackKF(*track_, x1_, x0_, x3_, x2_).frame(); }
-    // fill collection of stubs added so far to state
-    void fill(std::vector<StubKF>& stubs) const;
 
   private:
     // provides data fomats

@@ -29,15 +29,15 @@ using namespace tt;
 
 namespace trackerDTC {
 
-  /*! \class  trackerDTC::ProducerED
+  /*! \class  trackerDTC::ProducerDTC
    *  \brief  Class to produce hardware like structured TTStub Collection used by Track Trigger emulators
    *  \author Thomas Schuh
    *  \date   2020, Jan
    */
-  class ProducerED : public stream::EDProducer<> {
+  class ProducerDTC : public stream::EDProducer<> {
   public:
-    explicit ProducerED(const ParameterSet&);
-    ~ProducerED() override {}
+    explicit ProducerDTC(const ParameterSet&);
+    ~ProducerDTC() override {}
 
   private:
     void beginRun(const Run&, const EventSetup&) override;
@@ -61,7 +61,7 @@ namespace trackerDTC {
     ParameterSet iConfig_;
   };
 
-  ProducerED::ProducerED(const ParameterSet& iConfig) : iConfig_(iConfig) {
+  ProducerDTC::ProducerDTC(const ParameterSet& iConfig) : iConfig_(iConfig) {
     // book in- and output ED products
     const auto& inputTag = iConfig.getParameter<InputTag>("InputTag");
     const auto& branchAccepted = iConfig.getParameter<string>("BranchAccepted");
@@ -74,7 +74,7 @@ namespace trackerDTC {
     esGetTokenLayerEncoding_ = esConsumes<LayerEncoding, LayerEncodingRcd, Transition::BeginRun>();
   }
 
-  void ProducerED::beginRun(const Run& iRun, const EventSetup& iSetup) {
+  void ProducerDTC::beginRun(const Run& iRun, const EventSetup& iSetup) {
     setup_ = &iSetup.getData(esGetTokenSetup_);
     if (!setup_->configurationSupported())
       return;
@@ -84,7 +84,7 @@ namespace trackerDTC {
     layerEncoding_ = &iSetup.getData(esGetTokenLayerEncoding_);
   }
 
-  void ProducerED::produce(Event& iEvent, const EventSetup& iSetup) {
+  void ProducerDTC::produce(Event& iEvent, const EventSetup& iSetup) {
     // empty DTC products
     TTDTC productAccepted = setup_->ttDTC();
     TTDTC productLost = setup_->ttDTC();
@@ -121,4 +121,4 @@ namespace trackerDTC {
 
 }  // namespace trackerDTC
 
-DEFINE_FWK_MODULE(trackerDTC::ProducerED);
+DEFINE_FWK_MODULE(trackerDTC::ProducerDTC);

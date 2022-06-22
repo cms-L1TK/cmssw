@@ -8,46 +8,29 @@
 
 import FWCore.ParameterSet.Config as cms
 
-process = cms.Process( "Demo" )
+process = cms.Process( "CleanUp" )
 process.load( 'FWCore.MessageService.MessageLogger_cfi' )
-process.load( 'Configuration.Geometry.GeometryExtended2026D88Reco_cff' ) 
-process.load( 'Configuration.Geometry.GeometryExtended2026D88_cff' )
+process.load( 'Configuration.Geometry.GeometryExtended2026D76Reco_cff' ) 
+process.load( 'Configuration.Geometry.GeometryExtended2026D76_cff' )
 process.load( 'Configuration.StandardSequences.MagneticField_cff' )
 process.load( 'Configuration.StandardSequences.FrontierConditions_GlobalTag_cff' )
+process.load( 'Configuration.EventContent.EventContent_cff' )
 process.load( 'L1Trigger.TrackTrigger.TrackTrigger_cff' )
 
 from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:phase2_realistic', '')
 
-# load code that associates stubs with mctruth
-process.load( 'SimTracker.TrackTriggerAssociation.StubAssociator_cff' )
-# load code that produces DTCStubs
-process.load( 'L1Trigger.TrackerDTC.DTC_cff' )
-# load code that analyzes DTCStubs
-process.load( 'L1Trigger.TrackerDTC.Analyzer_cff' )
-# cosutmize TT algorithm
-from L1Trigger.TrackerDTC.Customize_cff import *
-producerUseTMTT( process )
-analyzerUseTMTT( process )
-#--- Load code that produces tfp Stubs
-process.load( 'L1Trigger.TrackerTFP.Producer_cff' )
-from L1Trigger.TrackerTFP.Customize_cff import *
-setupUseTMTT( process )
-#--- Load code that analyzes tfp Stubs
-process.load( 'L1Trigger.TrackerTFP.Analyzer_cff' )
+# load code that creates clean TVs
+process.load( 'SimTracker.TrackTriggerAssociation.CleanTV_cff' )
+# load code that creates clean TPs
+process.load( 'SimTracker.TrackTriggerAssociation.CleanTP_cff' )
+# load code that associates TTStubs with clean TPs
+process.load( 'SimTracker.TrackTriggerAssociation.CleanAssoc_cff' )
 
 # build schedule
-process.mc = cms.Sequence( process.StubAssociator )
-process.dtc = cms.Sequence( process.TrackerDTCProducer )#+ process.TrackerDTCAnalyzer )
-process.gp = cms.Sequence( process.TrackerTFPProducerGP + process.TrackerTFPAnalyzerGP )
-process.ht = cms.Sequence( process.TrackerTFPProducerHT + process.TrackerTFPAnalyzerHT )
-process.mht = cms.Sequence( process.TrackerTFPProducerMHT + process.TrackerTFPAnalyzerMHT )
-process.zht = cms.Sequence( process.TrackerTFPProducerZHT + process.TrackerTFPAnalyzerZHT )
-process.interIn = cms.Sequence( process.TrackerTFPProducerTTFound + process.TrackerTFPProducerKFin + process.TrackerTFPAnalyzerKFin )
-process.kf = cms.Sequence( process.TrackerTFPProducerKF + process.TrackerTFPAnalyzerKF )
-process.interOut = cms.Sequence( process.TrackerTFPProducerTTFitted + process.TrackerTFPProducerAS + process.TrackerTFPAnalyzerTT )
-process.tt = cms.Path( process.mc + process.dtc + process.gp + process.ht + process.mht + process.zht + process.interIn + process.kf )#+ process.interOut )
-process.schedule = cms.Schedule( process.tt )
+process.clean = cms.Path( process.CleanTV + process.CleanTP )
+process.assoc = cms.Path( process.TTClusterAssociatorFromPixelDigis )
+process.schedule = cms.Schedule( process.assoc )
 
 # create options
 import FWCore.ParameterSet.VarParsing as VarParsing
@@ -66,15 +49,15 @@ Samples = [
   #'/store/relval/CMSSW_11_3_0_pre6/RelValSingleMuFlatPt2To100/GEN-SIM-DIGI-RAW/113X_mcRun4_realistic_v6_2026D76noPU-v1/10000/27d006b1-d023-4775-8430-382e6962149c.root'
   #'/store/relval/CMSSW_11_3_0_pre6/RelValDisplacedMuPt2To100Dxy100/GEN-SIM-DIGI-RAW/113X_mcRun4_realistic_v6_2026D76noPU-v1/00000/011da61a-9524-4a96-b91f-03e8690af3bd.root'
   '/store/relval/CMSSW_11_3_0_pre6/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU_113X_mcRun4_realistic_v6_2026D76PU200-v1/00000/00026541-6200-4eed-b6f8-d3a1fd720e9c.root',
-  #'/store/relval/CMSSW_11_3_0_pre6/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU_113X_mcRun4_realistic_v6_2026D76PU200-v1/00000/013d0125-8f6e-496b-8335-614398c9210d.root',
-  #'/store/relval/CMSSW_11_3_0_pre6/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU_113X_mcRun4_realistic_v6_2026D76PU200-v1/00000/058bd134-86de-47e1-bcde-379ed9b79e1b.root',
-  #'/store/relval/CMSSW_11_3_0_pre6/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU_113X_mcRun4_realistic_v6_2026D76PU200-v1/00000/0915d66c-cbd4-4ef6-9971-7dd59e198b56.root',
-  #'/store/relval/CMSSW_11_3_0_pre6/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU_113X_mcRun4_realistic_v6_2026D76PU200-v1/00000/09823c8d-e443-4066-8347-8c704929cb2b.root',
-  #'/store/relval/CMSSW_11_3_0_pre6/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU_113X_mcRun4_realistic_v6_2026D76PU200-v1/00000/0c39a1aa-93ee-41c1-8543-6d90c09114a7.root',
-  #'/store/relval/CMSSW_11_3_0_pre6/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU_113X_mcRun4_realistic_v6_2026D76PU200-v1/00000/0fcdcc53-fb9f-4f0b-8529-a4d60d914c14.root',
-  #'/store/relval/CMSSW_11_3_0_pre6/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU_113X_mcRun4_realistic_v6_2026D76PU200-v1/00000/16760a5c-9cd2-41c3-82e5-399bb962d537.root',
-  #'/store/relval/CMSSW_11_3_0_pre6/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU_113X_mcRun4_realistic_v6_2026D76PU200-v1/00000/1752640f-2001-4d14-9276-063ec07cea92.root',
-  #'/store/relval/CMSSW_11_3_0_pre6/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU_113X_mcRun4_realistic_v6_2026D76PU200-v1/00000/180712c9-31a5-4f2a-bf92-a7fbee4dabad.root'
+  '/store/relval/CMSSW_11_3_0_pre6/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU_113X_mcRun4_realistic_v6_2026D76PU200-v1/00000/013d0125-8f6e-496b-8335-614398c9210d.root',
+  '/store/relval/CMSSW_11_3_0_pre6/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU_113X_mcRun4_realistic_v6_2026D76PU200-v1/00000/058bd134-86de-47e1-bcde-379ed9b79e1b.root',
+  '/store/relval/CMSSW_11_3_0_pre6/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU_113X_mcRun4_realistic_v6_2026D76PU200-v1/00000/0915d66c-cbd4-4ef6-9971-7dd59e198b56.root',
+  '/store/relval/CMSSW_11_3_0_pre6/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU_113X_mcRun4_realistic_v6_2026D76PU200-v1/00000/09823c8d-e443-4066-8347-8c704929cb2b.root',
+  '/store/relval/CMSSW_11_3_0_pre6/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU_113X_mcRun4_realistic_v6_2026D76PU200-v1/00000/0c39a1aa-93ee-41c1-8543-6d90c09114a7.root',
+  '/store/relval/CMSSW_11_3_0_pre6/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU_113X_mcRun4_realistic_v6_2026D76PU200-v1/00000/0fcdcc53-fb9f-4f0b-8529-a4d60d914c14.root',
+  '/store/relval/CMSSW_11_3_0_pre6/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU_113X_mcRun4_realistic_v6_2026D76PU200-v1/00000/16760a5c-9cd2-41c3-82e5-399bb962d537.root',
+  '/store/relval/CMSSW_11_3_0_pre6/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU_113X_mcRun4_realistic_v6_2026D76PU200-v1/00000/1752640f-2001-4d14-9276-063ec07cea92.root',
+  '/store/relval/CMSSW_11_3_0_pre6/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU_113X_mcRun4_realistic_v6_2026D76PU200-v1/00000/180712c9-31a5-4f2a-bf92-a7fbee4dabad.root'
 ]
 options.register( 'inputMC', Samples, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.string, "Files to be processed" )
 # specify number of events to process.
@@ -89,8 +72,28 @@ process.source = cms.Source(
   #skipEvents = cms.untracked.uint32( 64+16+4+2 ),
   noEventSort = cms.untracked.bool( True ),
   secondaryFileNames = cms.untracked.vstring(),
-  duplicateCheckMode = cms.untracked.string( 'noDuplicateCheck' ),
+  duplicateCheckMode = cms.untracked.string( 'noDuplicateCheck' )
 )
-process.Timing = cms.Service( "Timing", summaryOnly = cms.untracked.bool( True ) )
+#process.Timing = cms.Service( "Timing", summaryOnly = cms.untracked.bool( True ) )
 process.MessageLogger.cerr.enableStatistics = False
-process.TFileService = cms.Service( "TFileService", fileName = cms.string( "Hist.root" ) )
+
+if True :
+  process.writeDataset = cms.OutputModule("PoolOutputModule",
+    splitLevel = cms.untracked.int32(0),
+    eventAutoFlushCompressedSize = cms.untracked.int32(5242880),
+    outputCommands = process.RAWSIMEventContent.outputCommands,
+    fileName = cms.untracked.string('output_dataset.root'), ## ADAPT IT ##
+    dataset = cms.untracked.PSet(
+      filterName = cms.untracked.string(''),
+      dataTier = cms.untracked.string('GEN-SIM')
+    )
+  )
+  process.writeDataset.outputCommands.append('drop  *_*_*_*')
+  process.writeDataset.outputCommands.append('keep  *_CleanTV_AtLeastOneCluster_*')
+  process.writeDataset.outputCommands.append('keep  *_CleanTP_AtLeastOneCluster_*')
+  process.writeDataset.outputCommands.append('keep  *_TTStubsFromPhase2TrackerDigis_ClusterAccepted_*')
+  process.writeDataset.outputCommands.append('keep  *_TTStubsFromPhase2TrackerDigis_StubAccepted_*')
+  process.writeDataset.outputCommands.append('keep  *_CleanAssoc_AtLeastOneCluster_*')
+
+  process.pd = cms.EndPath(process.writeDataset)
+  process.schedule.append(process.pd)

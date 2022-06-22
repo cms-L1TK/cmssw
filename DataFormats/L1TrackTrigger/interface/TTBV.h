@@ -19,7 +19,7 @@
  */
 class TTBV {
 public:
-  static constexpr int S_ = 64;  // Frame width of emp infrastructure f/w, max number of bits a TTBV can handle
+  static constexpr int S_ = 128;  // Frame width of emp infrastructure f/w, max number of bits a TTBV can handle
 
 private:
   bool twos_;           // Two's complement (true) or binary (false)
@@ -42,11 +42,11 @@ public:
   }
 
   // constructor: unsigned int value
-  TTBV(unsigned long long int value, int size) : twos_(false), size_(size), bs_(value) {}
+  TTBV(unsigned long long int value, int size) : twos_(false), size_(size), bs_(value) { checkU(value); }
 
   // constructor: int value
   TTBV(int value, int size, bool twos = false)
-      : twos_(twos), size_(size), bs_((!twos || value >= 0) ? value : value + iMax()) {}
+      : twos_(twos), size_(size), bs_((!twos || value >= 0) ? value : value + iMax()) { checkI(value); }
 
   // constructor: double value + precision, biased (floor) representation
   TTBV(double value, double base, int size, bool twos = false) : TTBV((int)std::floor(value / base), size, twos) {}
@@ -344,17 +344,52 @@ public:
 
 private:
   // look up table initializer for powers of 2
-  constexpr std::array<unsigned long long int, S_> powersOfTwo() const {
-    std::array<unsigned long long int, S_> lut = {};
+  constexpr std::array<double, S_> powersOfTwo() const {
+    std::array<double, S_> lut = {};
     for (int i = 0; i < S_; i++)
       lut[i] = std::pow(2, i);
     return lut;
   }
 
   // returns 2 ** size_
-  unsigned long long int iMax() const {
-    static const std::array<unsigned long long int, S_> lut = powersOfTwo();
-    return lut[size_];
+  double iMax() const {
+    static const std::array<double, S_> lut = powersOfTwo();
+    return std::round(lut[size_]);
+  }
+
+  // check if value fits into binary BV
+  void checkU(unsigned long long int value) {
+    if (value < iMax())
+      return;
+    cms::Exception exception("RunTimeError.");
+    exception << "Value " << value << " does not fit into a " << size_ << "b binary.";
+    exception.addContext("TTBV::checkU");
+    throw exception;
+  }
+
+  // check if value fits into twos's complement BV
+  void checkT(int value) {
+    static const std::array<double, S_> lut = powersOfTwo();
+    auto abs = [](int val){ return val < 0 ? std::abs(val) - 1 : val; };
+    if (abs(value) < std::round(lut[size_ - 1]))
+      return;
+    cms::Exception exception("RunTimeError.");
+    exception << "Value " << value << " does not fit into a " << size_ << "b two's complement.";
+    exception.addContext("TTBV::checkT");
+    throw exception;
+  }
+
+  // check if value fits into twos complement / binary BV
+  void checkI(int value) {
+    if (twos_)
+      checkT(value);
+    else if (value < 0) {
+      cms::Exception exception("RunTimeError.");
+      exception << size_ << "b Binary TTBV constructor called with negative value (" << value << ").";
+      exception.addContext("TTBV::checkI");
+      throw exception;
+    } else
+      checkU(value);
   }
 };
 

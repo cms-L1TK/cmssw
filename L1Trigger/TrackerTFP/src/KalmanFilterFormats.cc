@@ -41,8 +41,8 @@ namespace trackerTFP {
   }
 
   KalmanFilterFormats::KalmanFilterFormats(const ParameterSet& iConfig, const DataFormats* dataFormats)
-      : iConfig_(dataFormats->hybrid() ? iConfig.getParameter<ParameterSet>("hybrid")
-                                       : iConfig.getParameter<ParameterSet>("tmtt")),
+      : hybrid_(iConfig.getParameter<bool>("UseHybrid")),
+        iConfig_(iConfig.getParameter<ParameterSet>(hybrid_ ? "hybrid" : "tmtt")),
         dataFormats_(dataFormats),
         setup_(dataFormats_->setup()) {
     formats_.reserve(+VariableKF::end);

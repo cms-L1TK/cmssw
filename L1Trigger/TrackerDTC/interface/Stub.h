@@ -20,7 +20,7 @@ namespace trackerDTC {
     Stub(const edm::ParameterSet&, const tt::Setup*, const LayerEncoding*, tt::SensorModule*, const TTStubRef&);
     ~Stub() {}
     // underlying TTStubRef
-    TTStubRef ttStubRef() const { return ttStubRef_; }
+    const TTStubRef& ttStubRef() const { return ttStubRef_; }
     // did pass pt and eta cut
     bool valid() const { return valid_; }
     // stub bend in quarter pitch units

@@ -1,6 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 
-TrackerDTCProducer_params = cms.PSet (
+TrackerDTC_params = cms.PSet (
 
   InputTag         = cms.InputTag( "TTStubsFromPhase2TrackerDigis", "StubAccepted" ), # original TTStub selection
   BranchAccepted   = cms.string  ( "StubAccepted" ),                                  # label for prodcut with passed stubs

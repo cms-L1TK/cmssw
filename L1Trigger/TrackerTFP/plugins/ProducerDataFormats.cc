@@ -14,15 +14,15 @@ using namespace tt;
 
 namespace trackerTFP {
 
-  /*! \class  trackerTFP::ProducerES
+  /*! \class  trackerTFP::ProducerDataFormats
    *  \brief  Class to produce setup of Track Trigger emulator data formats
    *  \author Thomas Schuh
    *  \date   2020, June
    */
-  class ProducerES : public ESProducer {
+  class ProducerDataFormats : public ESProducer {
   public:
-    ProducerES(const ParameterSet& iConfig);
-    ~ProducerES() override {}
+    ProducerDataFormats(const ParameterSet& iConfig);
+    ~ProducerDataFormats() override {}
     unique_ptr<DataFormats> produce(const DataFormatsRcd& rcd);
 
   private:
@@ -30,16 +30,16 @@ namespace trackerTFP {
     ESGetToken<Setup, SetupRcd> esGetToken_;
   };
 
-  ProducerES::ProducerES(const ParameterSet& iConfig) : iConfig_(iConfig) {
+  ProducerDataFormats::ProducerDataFormats(const ParameterSet& iConfig) {
     auto cc = setWhatProduced(this);
     esGetToken_ = cc.consumes();
   }
 
-  unique_ptr<DataFormats> ProducerES::produce(const DataFormatsRcd& rcd) {
+  unique_ptr<DataFormats> ProducerDataFormats::produce(const DataFormatsRcd& rcd) {
     const Setup* setup = &rcd.get(esGetToken_);
-    return make_unique<DataFormats>(iConfig_, setup);
+    return make_unique<DataFormats>(setup);
   }
 
 }  // namespace trackerTFP
 
-DEFINE_FWK_EVENTSETUP_MODULE(trackerTFP::ProducerES);
+DEFINE_FWK_EVENTSETUP_MODULE(trackerTFP::ProducerDataFormats);

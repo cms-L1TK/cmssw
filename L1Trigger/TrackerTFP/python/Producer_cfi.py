@@ -2,17 +2,17 @@ import FWCore.ParameterSet.Config as cms
 
 TrackerTFPProducer_params = cms.PSet (
 
-  LabelDTC         = cms.string( "TrackerDTCProducer"       ), #
-  LabelGP          = cms.string( "TrackerTFPProducerGP"     ), #
-  LabelHT          = cms.string( "TrackerTFPProducerHT"     ), #
-  LabelMHT         = cms.string( "TrackerTFPProducerMHT"    ), #
-  LabelZHT         = cms.string( "TrackerTFPProducerZHT"    ), #
-  LabelZHTout      = cms.string( "TrackerTFPProducerZHTout" ), #
-  LabelKFin        = cms.string( "TrackerTFPProducerKFin"   ), #
-  LabelKF          = cms.string( "TrackerTFPProducerKF"     ), #
-  LabelDR          = cms.string( "TrackerTFPProducerDR"     ), #
-  LabelTT          = cms.string( "TrackerTFPProducerTT"     ), #
-  LabelAS          = cms.string( "TrackerTFPProducerAS"     ), #
+  LabelDTC      = cms.string( "TrackerDTCProducer"         ), #
+  LabelGP       = cms.string( "TrackerTFPProducerGP"       ), #
+  LabelHT       = cms.string( "TrackerTFPProducerHT"       ), #
+  LabelMHT      = cms.string( "TrackerTFPProducerMHT"      ), #
+  LabelZHT      = cms.string( "TrackerTFPProducerZHT"      ), #
+  LabelTTFound  = cms.string( "TrackerTFPProducerTTFound"  ), #
+  LabelKFin     = cms.string( "TrackerTFPProducerKFin"     ), #
+  LabelKF       = cms.string( "TrackerTFPProducerKF"       ), #
+  LabelDR       = cms.string( "TrackerTFPProducerDR"       ), #
+  LabelTTFitted = cms.string( "TrackerTFPProducerTTFitted" ), #
+  LabelAS       = cms.string( "TrackerTFPProducerAS"       ), #
   BranchAcceptedStubs  = cms.string( "StubAccepted"  ),        # branch for prodcut with passed stubs
   BranchAcceptedTracks = cms.string( "TrackAccepted" ),        # branch for prodcut with passed tracks
   BranchLostStubs      = cms.string( "StubLost"      ),        # branch for prodcut with lost stubs
