@@ -175,7 +175,7 @@ void PurgeDuplicate::execute(std::vector<Track>& outputtracks_, unsigned int iSe
 
     if (settings_.inventStubs()) {
       for (unsigned int itrk = 0; itrk < numStublists; itrk++) {
-        inputstublists_[itrk] = seedStubCoordsFromTracklet(iSector, inputtracklets_[itrk], inputstublists_[itrk]);
+        inputstublists_[itrk] = getInventedSeedingStub(iSector, inputtracklets_[itrk], inputstublists_[itrk]);
       }
     }
 
@@ -553,15 +553,15 @@ std::pair<int, int> PurgeDuplicate::findLayerDisk(const Stub* st) {
   return layer_disk;
 }
 
-std::string PurgeDuplicate::l1tinfo(const L1TStub* L1stub, std::string str = "") {
+std::string PurgeDuplicate::l1tinfo(const L1TStub* l1stub, std::string str = "") {
   std::string thestr = Form("\t %s stub info:  r/z/phi:\t%f\t%f\t%f\t%d\t%f\t%d",
                             str.c_str(),
-                            L1stub->r(),
-                            L1stub->z(),
-                            L1stub->phi(),
-                            L1stub->iphi(),
-                            L1stub->bend(),
-                            L1stub->layerdisk());
+                            l1stub->r(),
+                            l1stub->z(),
+                            l1stub->phi(),
+                            l1stub->iphi(),
+                            l1stub->bend(),
+                            l1stub->layerdisk());
   return thestr;
 }
 
@@ -644,7 +644,7 @@ std::vector<double> PurgeDuplicate::getInventedCoordsExtended(unsigned int iSect
   return invented_coords;
 }
 
-std::vector<const Stub*> PurgeDuplicate::seedStubCoordsFromTracklet(unsigned int iSector,
+std::vector<const Stub*> PurgeDuplicate::getInventedSeedingStub(unsigned int iSector,
                                                                     Tracklet* tracklet,
                                                                     std::vector<const Stub*> originalStubsList) {
   std::vector<const Stub*> newStubList;
@@ -665,28 +665,13 @@ std::vector<const Stub*> PurgeDuplicate::seedStubCoordsFromTracklet(unsigned int
       double stub_z_invent = inv_r_z_phi[1];
 
       Stub* invent_stub_ptr = new Stub(*thisStub);
-      const L1TStub* L1stub = thisStub->l1tstub();
+      const L1TStub* l1stub = thisStub->l1tstub();
+      L1TStub invent_l1stub = *l1stub;
+      invent_l1stub.setCoords(stub_x_invent, stub_y_invent, stub_z_invent);
 
-      L1TStub invent_L1stub(L1stub->DTClink(),
-                            L1stub->region(),
-                            L1stub->layerdisk(),
-                            L1stub->stubword(),
-                            L1stub->isPSmodule(),
-                            L1stub->isFlipped(),
-                            L1stub->isTilted(),
-                            L1stub->tiltedRingId(),
-                            L1stub->endcapRingId(),
-                            L1stub->detId(),
-                            stub_x_invent,
-                            stub_y_invent,
-                            stub_z_invent,
-                            L1stub->bend(),
-                            L1stub->strip(),
-                            L1stub->tps());
-
-      invent_stub_ptr->setl1tstub(new L1TStub(invent_L1stub));
-      invent_stub_ptr->l1tstub()->setAllStubIndex(L1stub->allStubIndex());
-      invent_stub_ptr->l1tstub()->setUniqueIndex(L1stub->uniqueIndex());
+      invent_stub_ptr->setl1tstub(new L1TStub(invent_l1stub));
+      invent_stub_ptr->l1tstub()->setAllStubIndex(l1stub->allStubIndex());
+      invent_stub_ptr->l1tstub()->setUniqueIndex(l1stub->uniqueIndex());
 
       newStubList.push_back(invent_stub_ptr);
 
