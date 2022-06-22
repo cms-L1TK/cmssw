@@ -456,8 +456,7 @@ namespace trklet {
     }
 
     bool useCalcBendCuts = false;
-    unsigned int nzbinsPhiCorr = 2; // 1, 2, or 13 (2 = (Flat, Tilted), 13 = (Flat, TR1, ..., TR12))
-                                    // TODO Test 13 bin version
+    unsigned int nzbinsPhiCorr = 1; // 1, 2, or 13 (2 = (Flat, Tilted), 13 = (Flat, TR1, ..., TR12)) Only marginal improvments for > 1 z bin
 
     double bendcutTE(unsigned int seed, bool inner) const { 
       if (inner){
