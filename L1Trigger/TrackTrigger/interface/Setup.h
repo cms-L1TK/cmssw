@@ -76,6 +76,8 @@ namespace tt {
     int slot(int dtcId) const;
     // sensor module for det id
     SensorModule* sensorModule(const DetId& detId) const;
+    // sensor module for ttStubRef
+    SensorModule* sensorModule(const TTStubRef& ttStubRef) const;
     // TrackerGeometry
     const TrackerGeometry* trackerGeometry() const { return trackerGeometry_; }
     // TrackerTopology
@@ -124,6 +126,8 @@ namespace tt {
     double v1(const TTStubRef& ttStubRef, double cot) const;
     //
     const std::vector<SensorModule>& sensorModules() const { return sensorModules_; }
+    //
+    int sectorEta(double cot) const { return quantileToSectorEta_.at(floor(cot * chosenRofZ_ / baseQuantile_) + numQuantile_ / 2); }
 
     // Firmware specific Parameter
 
@@ -202,17 +206,33 @@ namespace tt {
     int tpMaxBadStubsPS() const { return tpMaxBadStubsPS_; }
     // BField used in fw in T
     double bField() const { return bField_; }
-
-    // TMTT specific parameter
-
+    // outer radius of outer tracker in cm
+    double outerRadius() const { return outerRadius_; }
+    // inner radius of outer tracker in cm
+    double innerRadius() const { return innerRadius_; }
+    // half length of outer tracker in cm
+    double halfLength() const { return halfLength_; }
+    // max strip/pixel length of outer tracker sensors in cm
+    double maxLength() const { return maxLength_; }
+    // In tilted barrel, grad*|z|/r + int approximates |cosTilt| + |sinTilt * cotTheta|
+    double tiltApproxSlope() const { return tiltApproxSlope_; }
+    // In tilted barrel, grad*|z|/r + int approximates |cosTilt| + |sinTilt * cotTheta|
+    double tiltApproxIntercept() const { return tiltApproxIntercept_; }
+    // In tilted barrel, constant assumed stub radial uncertainty * sqrt(12) in cm
+    double tiltUncertaintyR() const { return tiltUncertaintyR_; }
+    // scattering term used to add stub phi uncertainty depending on assumed track inv2R
+    double scattering() const { return scattering_; }
     // cut on stub and TP pt, also defines region overlap shape in GeV
     double minPt() const { return minPt_; }
     // cut on stub eta
     double maxEta() const { return maxEta_; }
     // critical radius defining region overlap shape in cm
     double chosenRofPhi() const { return chosenRofPhi_; }
-    // number of detector layers a reconstructbale particle may cross
+    // TMTT: number of detector layers a reconstructbale particle may cross; Hybrid: max number of layers connected to one DTC
     int numLayers() const { return numLayers_; }
+
+    // TMTT specific parameter
+
     // number of bits used for stub r - ChosenRofPhi
     int tmttWidthR() const { return tmttWidthR_; }
     // number of bits used for stub phi w.r.t. phi sector centre
@@ -237,35 +257,13 @@ namespace tt {
     double tmttBasePhiT() const { return tmttBasePhiT_; }
     // number of padded 0s in output data format
     int tmttNumUnusedBits() const { return tmttNumUnusedBits_; }
-    // outer radius of outer tracker in cm
-    double outerRadius() const { return outerRadius_; }
-    // inner radius of outer tracker in cm
-    double innerRadius() const { return innerRadius_; }
-    // half length of outer tracker in cm
-    double halfLength() const { return halfLength_; }
-    // max strip/pixel length of outer tracker sensors in cm
-    double maxLength() const { return maxLength_; }
-    // In tilted barrel, grad*|z|/r + int approximates |cosTilt| + |sinTilt * cotTheta|
-    double tiltApproxSlope() const { return tiltApproxSlope_; }
-    // In tilted barrel, grad*|z|/r + int approximates |cosTilt| + |sinTilt * cotTheta|
-    double tiltApproxIntercept() const { return tiltApproxIntercept_; }
-    // In tilted barrel, constant assumed stub radial uncertainty * sqrt(12) in cm
-    double tiltUncertaintyR() const { return tiltUncertaintyR_; }
-    // scattering term used to add stub phi uncertainty depending on assumed track inv2R
-    double scattering() const { return scattering_; }
 
     // Hybrid specific parameter
 
-    // cut on stub pt in GeV, also defines region overlap shape
-    double hybridMinPtStub() const { return hybridMinPtStub_; }
     // cut on andidate pt in GeV
-    double hybridMinPtCand() const { return hybridMinPtCand_; }
-    // cut on stub eta
-    double hybridMaxEta() const { return hybridMaxEta_; }
-    // critical radius defining region overlap shape in cm
-    double hybridChosenRofPhi() const { return hybridChosenRofPhi_; }
-    // max number of detector layer connected to one DTC
-    int hybridNumLayers() const { return hybridNumLayers_; }
+    double hybridMinPt() const { return hybridMinPt_; }
+    // max number of layer connected to one DTC
+    double hybridNumLayers() const { return hybridNumLayers_; }
     // number of bits used for stub r w.r.t layer/disk centre for module types (barrelPS, barrel2S, diskPS, disk2S)
     int hybridWidthR(SensorModule::Type type) const { return hybridWidthsR_.at(type); }
     // number of bits used for stub z w.r.t layer/disk centre for module types (barrelPS, barrel2S, diskPS, disk2S)
@@ -419,7 +417,7 @@ namespace tt {
     int gpDepthMemory() const { return gpDepthMemory_; }
     // defining r-z sector shape
     double boundarieEta(int eta) const { return boundariesEta_.at(eta); }
-    std::vector<double> boundarieEta() const { return boundariesEta_; }
+    const std::vector<double>& boundarieEta() const { return boundariesEta_; }
     // phi sector size in rad
     double baseSector() const { return baseSector_; }
     // cut on zT
@@ -432,6 +430,10 @@ namespace tt {
     double sectorCot(int eta) const { return sectorCots_.at(eta); }
     //
     double neededRangeChiZ() const { return neededRangeChiZ_; }
+    //
+    const std::vector<int>& gpQuantiles() const { return gpQuantiles_; }
+    //
+    double baseQuantile() const { return baseQuantile_; }
 
     // Parameter specifying HoughTransform
 
@@ -446,16 +448,12 @@ namespace tt {
 
     // Parameter specifying MiniHoughTransform
 
+    // number of chained mhts
+    int mhtNumStages() const { return mhtNumStages_; }
     // number of finer inv2R bins inside HT bin
     int mhtNumBinsInv2R() const { return mhtNumBinsInv2R_; }
     // number of finer phiT bins inside HT bin
     int mhtNumBinsPhiT() const { return mhtNumBinsPhiT_; }
-    // number of dynamic load balancing steps
-    int mhtNumDLBs() const { return mhtNumDLBs_; }
-    // number of units per dynamic load balancing step
-    int mhtNumDLBNodes() const { return mhtNumDLBNodes_; }
-    // number of inputs per dynamic load balancing unit
-    int mhtNumDLBChannel() const { return mhtNumDLBChannel_; }
     // required number of stub layers to form a candidate
     int mhtMinLayers() const { return mhtMinLayers_; }
     // number of mht cells
@@ -505,6 +503,11 @@ namespace tt {
     int kfShiftInitialC33() const { return kfShiftInitialC33_; }
 
     // Parameter specifying KalmanFilter Output Formatter
+
+    // Final Chi2rphi digitization TODO extract from TTTrack Word
+    const std::vector<double>& kfoutchi2rphiBins() const { return kfoutchi2rphiBins_; }
+    // Final Chi2rz digitization TODO extract from TTTrack Word
+    const std::vector<double>& kfoutchi2rzBins() const { return kfoutchi2rzBins_; }
     // Conversion factor between dphi^2/weight and chi2rphi
     int kfoutchi2rphiConv() const { return kfoutchi2rphiConv_; }
     // Conversion factor between dz^2/weight and chi2rz
@@ -607,9 +610,6 @@ namespace tt {
     int unMatchedStubsPS_;
     // scattering term used to add stub phi uncertainty depending on assumed track inv2R
     double scattering_;
-
-    // TMTT specific parameter
-    edm::ParameterSet pSetTMTT_;
     // cut on stub and TP pt, also defines region overlap shape in GeV
     double minPt_;
     // cut on stub eta
@@ -618,6 +618,9 @@ namespace tt {
     double chosenRofPhi_;
     // number of detector layers a reconstructbale particle may cross
     int numLayers_;
+
+    // TMTT specific parameter
+    edm::ParameterSet pSetTMTT_;
     // number of bits used for stub r - ChosenRofPhi
     int tmttWidthR_;
     // number of bits used for stub phi w.r.t. phi sector centre
@@ -627,15 +630,9 @@ namespace tt {
 
     // Hybrid specific parameter
     edm::ParameterSet pSetHybrid_;
-    // cut on stub pt in GeV, also defines region overlap shape
-    double hybridMinPtStub_;
     // cut on andidate pt in GeV
-    double hybridMinPtCand_;
-    // cut on stub eta
-    double hybridMaxEta_;
-    // critical radius defining region overlap shape in cm
-    double hybridChosenRofPhi_;
-    // max number of detector layer connected to one DTC
+    double hybridMinPt_;
+    // max number of layers connected to one DTC
     int hybridNumLayers_;
     // number of outer PS rings for disk 1, 2, 3, 4, 5
     std::vector<int> hybridNumRingsPS_;
@@ -849,6 +846,8 @@ namespace tt {
     int gpDepthMemory_;
     // defining r-z sector shape
     std::vector<double> boundariesEta_;
+    //
+    std::vector<int> gpQuantiles_;
 
     // Parameter specifying HoughTransform
     edm::ParameterSet pSetHT_;
@@ -863,16 +862,12 @@ namespace tt {
 
     // Parameter specifying MiniHoughTransform
     edm::ParameterSet pSetMHT_;
+    // number of chained mhts
+    int mhtNumStages_;
     // number of finer inv2R bins inside HT bin
     int mhtNumBinsInv2R_;
     // number of finer phiT bins inside HT bin
     int mhtNumBinsPhiT_;
-    // number of dynamic load balancing steps
-    int mhtNumDLBs_;
-    // number of units per dynamic load balancing step
-    int mhtNumDLBNodes_;
-    // number of inputs per dynamic load balancing unit
-    int mhtNumDLBChannel_;
     // required number of stub layers to form a candidate
     int mhtMinLayers_;
 
@@ -919,6 +914,10 @@ namespace tt {
 
     // Parameter specifying KalmanFilter Output Formatter
     edm::ParameterSet pSetKFOut_;
+    // Final Chi2rphi digitization TODO extract from TTTrack Word
+    std::vector<double> kfoutchi2rphiBins_;
+    // Final Chi2rz digitization TODO extract from TTTrack Word
+    std::vector<double> kfoutchi2rzBins_;
     // Conversion factor between dphi^2/weight and chi2rphi
     int kfoutchi2rphiConv_;
     // Conversion factor between dz^2/weight and chi2rz
@@ -1065,6 +1064,12 @@ namespace tt {
     int gpNumUnusedBits_;
     // cot(theta) of eta sectors
     std::vector<double> sectorCots_;
+    //
+    int numQuantile_;
+    //
+    double baseQuantile_;
+    // 
+    std::vector<int> quantileToSectorEta_;
 
     // MHT
 
@@ -1079,6 +1084,17 @@ namespace tt {
     // KF
 
     int kfWidthLayerCount_;
+
+    // KFout
+
+    // Bins used to digitize dPhi for chi2 calculation
+    std::vector<int> kfoutdPhiBins_;
+    // Bins used to digitize dZ for chi2 calculation
+    std::vector<int> kfoutdZBins_;
+    // v0 weight Bins corresponding to dPhi Bins for chi2 calculation
+    std::vector<int> kfoutv0Bins_;
+    // v1 weight Bins corresponding to dZ Bins for chi2 calculation
+    std::vector<int> kfoutv1Bins_;
   };
 
 }  // namespace tt

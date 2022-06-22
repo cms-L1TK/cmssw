@@ -25,15 +25,26 @@ namespace trackerTFP {
     void produce(tt::StreamsStub& accepted, tt::StreamsStub& lost);
 
   private:
-    // remove and return first element of deque, returns nullptr if empty
-    template <class T>
-    T* pop_front(std::deque<T*>& ts) const;
+    struct State {
+      State(const StubMHT& stub, const tt::Setup* setup) : z_(stub.z()), dZ_(stub.dZ()), layer_(stub.layer()), cot_(0), zT_(0), trackId_(stub.trackId()), stub_(&stub) {
+        r_ = stub.r() + setup->chosenRofPhi() - setup->chosenRofZ();
+      }
+      void update(int cot, int zT, const DataFormats* df) {
+        cot_ += cot;
+        zT_ += zT;
+        z_ -= df->base(Variable::zT, Process::zht) * zT + df->base(Variable::cot, Process::zht) * cot * r_;
+      }
+      double r_;
+      double z_;
+      double dZ_;
+      int layer_;
+      int cot_;
+      int zT_;
+      int trackId_;
+      const StubMHT* stub_;
+    };
     // perform finer pattern recognition per track
-    void fill(int channel, const std::deque<StubZHT*>& input, std::vector<std::deque<StubZHT*>>& output);
-    // Static load balancing of inputs: mux 4 streams to 1 stream
-    void slb(std::vector<std::deque<StubZHT*>>& inputs, std::deque<StubZHT*>& accepted, tt::StreamStub& lost) const;
-    //
-    void merge(std::deque<StubZHT*>& stubs, tt::StreamStub& stream) const;
+    void stage(int iter, std::vector<State*>& stream);
 
     // true if truncation is enbaled
     bool enableTruncation_;
@@ -43,12 +54,12 @@ namespace trackerTFP {
     const DataFormats* dataFormats_;
     // processing region (0 - 8)
     int region_;
-    // container of in- and output stubs
-    std::vector<StubZHT> stubsZHT_;
+    // container of input stubs
+    std::vector<StubMHT> stubs_;
+    // container of intermediate stubs
+    std::vector<State> states_;
     // h/w liked organized pointer to input stubs
-    std::vector<std::vector<StubZHT*>> input_;
-    //
-    int stage_;
+    std::vector<std::vector<State*>> input_;
   };
 
 }  // namespace trackerTFP

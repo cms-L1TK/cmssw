@@ -46,10 +46,10 @@ namespace trackerTFP {
     x2_ = 0.;
     x3_ = 0.;
     // initial uncertainties
-    C00_ = pow(dataFormats_->base(Variable::inv2R, Process::kfin), 2) * pow(2, setup_->kfShiftInitialC00());
-    C11_ = pow(dataFormats_->base(Variable::phiT, Process::kfin), 2) * pow(2, setup_->kfShiftInitialC11());
-    C22_ = pow(dataFormats_->base(Variable::cot, Process::kfin), 2) * pow(2, setup_->kfShiftInitialC22());
-    C33_ = pow(dataFormats_->base(Variable::zT, Process::kfin), 2) * pow(2, setup_->kfShiftInitialC33());
+    C00_ = pow(dataFormats_->base(Variable::inv2R, Process::kfin), 2) - 1.e-12;
+    C11_ = pow(dataFormats_->base(Variable::phiT, Process::kfin), 2) - 1.e-12;
+    C22_ = pow(dataFormats_->base(Variable::cot, Process::kfin), 2) - 1.e-12;
+    C33_ = pow(dataFormats_->base(Variable::zT, Process::kfin), 2) - 1.e-12;
     C01_ = 0.;
     C23_ = 0.;
     // first stub from first layer on input track with stubs
@@ -91,35 +91,6 @@ namespace trackerTFP {
         break;
       }
     }
-  }
-
-  // fills collection of stubs added so far to state
-  void State::fill(vector<StubKF>& stubs) const {
-    stubs.reserve(hitPattern_.count());
-    State* s = parent_;
-    while (s) {
-      stubs.emplace_back(*(s->stub()), x0_, x1_, x2_, x3_);
-      s = s->parent();
-    }
-  }
-
-  // Determine quality of completed state
-  void State::finish() {
-    auto consistent = [this](int sum, const StubKF& stub) {
-      static const DataFormat& phi = dataFormats_->format(Variable::phi, Process::kf);
-      static const DataFormat& z = dataFormats_->format(Variable::z, Process::kf);
-      // Check stub consistent with helix, allowing for stub uncertainty
-      const bool inRange0 = 2. * abs(stub.phi()) - stub.dPhi() < phi.base();
-      const bool inRange1 = 2. * abs(stub.z()) - stub.dZ() < z.base();
-      return sum + (inRange0 && inRange1 ? 1 : 0);
-    };
-    vector<StubKF> stubs;
-    fill(stubs);
-    numConsistentLayers_ = accumulate(stubs.begin(), stubs.end(), 0, consistent);
-    TTBV pattern = hitPattern_;
-    pattern |= maybePattern();
-    // Skipped layers before final stub on state
-    numSkippedLayers_ = pattern.count(0, hitPattern_.pmEncode(), false);
   }
 
 }  // namespace trackerTFP

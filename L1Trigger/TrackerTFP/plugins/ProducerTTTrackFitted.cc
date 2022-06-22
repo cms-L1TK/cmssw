@@ -23,15 +23,15 @@ using namespace tt;
 
 namespace trackerTFP {
 
-  /*! \class  trackerTFP::ProducerTT
+  /*! \class  trackerTFP::ProducerTTTrackFitted
    *  \brief  Converts KF output into TTTracks
    *  \author Thomas Schuh
    *  \date   2020, Oct
    */
-  class ProducerTT : public stream::EDProducer<> {
+  class ProducerTTTrackFitted : public stream::EDProducer<> {
   public:
-    explicit ProducerTT(const ParameterSet&);
-    ~ProducerTT() override {}
+    explicit ProducerTTTrackFitted(const ParameterSet&);
+    ~ProducerTTTrackFitted() override {}
 
   private:
     void beginRun(const Run&, const EventSetup&) override;
@@ -56,7 +56,7 @@ namespace trackerTFP {
     const DataFormats* dataFormats_ = nullptr;
   };
 
-  ProducerTT::ProducerTT(const ParameterSet& iConfig) : iConfig_(iConfig) {
+  ProducerTTTrackFitted::ProducerTTTrackFitted(const ParameterSet& iConfig) : iConfig_(iConfig) {
     const string& label = iConfig.getParameter<string>("LabelKF");
     const string& branchStubs = iConfig.getParameter<string>("BranchAcceptedStubs");
     const string& branchTracks = iConfig.getParameter<string>("BranchAcceptedTracks");
@@ -69,7 +69,7 @@ namespace trackerTFP {
     esGetTokenDataFormats_ = esConsumes<DataFormats, DataFormatsRcd, Transition::BeginRun>();
   }
 
-  void ProducerTT::beginRun(const Run& iRun, const EventSetup& iSetup) {
+  void ProducerTTTrackFitted::beginRun(const Run& iRun, const EventSetup& iSetup) {
     // helper class to store configurations
     setup_ = &iSetup.getData(esGetTokenSetup_);
     if (!setup_->configurationSupported())
@@ -81,7 +81,7 @@ namespace trackerTFP {
     dataFormats_ = &iSetup.getData(esGetTokenDataFormats_);
   }
 
-  void ProducerTT::produce(Event& iEvent, const EventSetup& iSetup) {
+  void ProducerTTTrackFitted::produce(Event& iEvent, const EventSetup& iSetup) {
     // empty KFTTTrack product
     TTTracks ttTracks;
     // read in KF Product and produce KFTTTrack product
@@ -121,4 +121,4 @@ namespace trackerTFP {
 
 }  // namespace trackerTFP
 
-DEFINE_FWK_MODULE(trackerTFP::ProducerTT);
+DEFINE_FWK_MODULE(trackerTFP::ProducerTTTrackFitted);

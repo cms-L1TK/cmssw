@@ -1,7 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 
 from Configuration.ProcessModifiers.dd4hep_cff import dd4hep
-from L1Trigger.TrackTrigger.ProducerSetup_cfi import TrackTrigger_params
+from L1Trigger.TrackTrigger.Setup_cfi import TrackTrigger_params
 
 dd4hep.toModify(TrackTrigger_params,
                 fromDD4hep = cms.bool(True),

@@ -24,15 +24,15 @@ using namespace tt;
 
 namespace trackerTFP {
 
-  /*! \class  trackerTFP::ProducerZHTout
-   *  \brief  transforms SF output into TTTracks
+  /*! \class  trackerTFP::ProducerTTTrackFound
+   *  \brief  transforms ZHT output into TTTracks
    *  \author Thomas Schuh
    *  \date   2020, July
    */
-  class ProducerZHTout : public stream::EDProducer<> {
+  class ProducerTTTrackFound : public stream::EDProducer<> {
   public:
-    explicit ProducerZHTout(const ParameterSet&);
-    ~ProducerZHTout() override {}
+    explicit ProducerTTTrackFound(const ParameterSet&);
+    ~ProducerTTTrackFound() override {}
 
   private:
     void beginRun(const Run&, const EventSetup&) override;
@@ -55,7 +55,7 @@ namespace trackerTFP {
     const DataFormats* dataFormats_ = nullptr;
   };
 
-  ProducerZHTout::ProducerZHTout(const ParameterSet& iConfig) : iConfig_(iConfig) {
+  ProducerTTTrackFound::ProducerTTTrackFound(const ParameterSet& iConfig) : iConfig_(iConfig) {
     const string& label = iConfig.getParameter<string>("LabelZHT");
     const string& branchAcceptedStubs = iConfig.getParameter<string>("BranchAcceptedStubs");
     const string& branchAcceptedTracks = iConfig.getParameter<string>("BranchAcceptedTracks");
@@ -67,7 +67,7 @@ namespace trackerTFP {
     esGetTokenDataFormats_ = esConsumes<DataFormats, DataFormatsRcd, Transition::BeginRun>();
   }
 
-  void ProducerZHTout::beginRun(const Run& iRun, const EventSetup& iSetup) {
+  void ProducerTTTrackFound::beginRun(const Run& iRun, const EventSetup& iSetup) {
     // helper class to store configurations
     setup_ = &iSetup.getData(esGetTokenSetup_);
     if (!setup_->configurationSupported())
@@ -79,7 +79,7 @@ namespace trackerTFP {
     dataFormats_ = &iSetup.getData(esGetTokenDataFormats_);
   }
 
-  void ProducerZHTout::produce(Event& iEvent, const EventSetup& iSetup) {
+  void ProducerTTTrackFound::produce(Event& iEvent, const EventSetup& iSetup) {
     const DataFormat& dfCot = dataFormats_->format(Variable::cot, Process::zht);
     const DataFormat& dfZT = dataFormats_->format(Variable::zT, Process::zht);
     const DataFormat& dfPhiT = dataFormats_->format(Variable::phiT, Process::zht);
@@ -132,4 +132,4 @@ namespace trackerTFP {
 
 }  // namespace trackerTFP
 
-DEFINE_FWK_MODULE(trackerTFP::ProducerZHTout);
+DEFINE_FWK_MODULE(trackerTFP::ProducerTTTrackFound);

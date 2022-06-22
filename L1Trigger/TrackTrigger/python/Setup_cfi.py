@@ -21,32 +21,29 @@ TrackTrigger_params = cms.PSet (
 
   # Common track finding parameter
   TrackFinding = cms.PSet (
-    BeamWindowZ      = cms.double( 15. ), # half lumi region size in cm
-    MatchedLayers    = cms.int32 (  4  ), # required number of layers a found track has to have in common with a TP to consider it matched to it
-    MatchedLayersPS  = cms.int32 (  0  ), # required number of ps layers a found track has to have in common with a TP to consider it matched to it
-    UnMatchedStubs   = cms.int32 (  1  ), # allowed number of stubs a found track may have not in common with its matched TP
-    UnMatchedStubsPS = cms.int32 (  0  ), # allowed number of PS stubs a found track may have not in common with its matched TP
-    Scattering       = cms.double( 0.131283 ) # additional radial uncertainty in cm used to calculate stub phi residual uncertainty to take multiple scattering into account
+    BeamWindowZ      = cms.double( 15.      ), # half lumi region size in cm
+    MatchedLayers    = cms.int32 (  4       ), # required number of layers a found track has to have in common with a TP to consider it matched to it
+    MatchedLayersPS  = cms.int32 (  0       ), # required number of ps layers a found track has to have in common with a TP to consider it matched to it
+    UnMatchedStubs   = cms.int32 (  1       ), # allowed number of stubs a found track may have not in common with its matched TP
+    UnMatchedStubsPS = cms.int32 (  0       ), # allowed number of PS stubs a found track may have not in common with its matched TP
+    Scattering       = cms.double( 0.131283 ), # additional radial uncertainty in cm used to calculate stub phi residual uncertainty to take multiple scattering into account
+    NumLayers        = cms.int32 (  7       ), # TMTT: number of detector layers a reconstructbale particle may cross, reduced to 7, 8th layer almost never corssed
+    MinPt            = cms.double(  1.34    ), # min track pt in GeV
+    MaxEta           = cms.double(  2.5     ), # cut on stub eta
+    ChosenRofPhi     = cms.double( 55.      ), # critical radius defining region overlap shape in cm
   ),
 
   # TMTT specific parameter
   TMTT = cms.PSet (
-    MinPt            = cms.double(  3.   ), # cut on stub in GeV, also defines region overlap shape
-    MaxEta           = cms.double(  2.4  ), # cut on stub eta
-    ChosenRofPhi     = cms.double( 67.24 ), # critical radius defining region overlap shape in cm
-    NumLayers        = cms.int32 (  7    ), # number of detector layers a reconstructbale particle may cross, reduced to 7, 8th layer almost never corssed
-    WidthR           = cms.int32 ( 12    ), # number of bits used for stub r - ChosenRofPhi
-    WidthPhi         = cms.int32 ( 15    ), # number of bits used for stub phi w.r.t. phi region centre
-    WidthZ           = cms.int32 ( 14    )  # number of bits used for stub z
+    WidthR   = cms.int32 ( 12 ), # number of bits used for stub r - ChosenRofPhi
+    WidthPhi = cms.int32 ( 15 ), # number of bits used for stub phi w.r.t. phi region centre
+    WidthZ   = cms.int32 ( 14 )  # number of bits used for stub z
   ),
 
   # Hybrid specific parameter
   Hybrid = cms.PSet (
-    MinPtStub    = cms.double(  2.0  ),                        # cut on stub pt in GeV, also defines region overlap shape
-    MinPtCand    = cms.double(  1.34 ),                        # cut on candidate pt in GeV
-    MaxEta       = cms.double(  2.5  ),                        # cut on stub eta
-    ChosenRofPhi = cms.double( 55.   ),                        # critical radius defining region overlap shape in cm
-    NumLayers    = cms.int32 (  4    ),                        # max number of detector layer connected to one DTC
+    MinPt        = cms.double (  2.0 ),                        # cut on stub pt in GeV, also defines region overlap shape
+    NumLayers    = cms.int32  (  4   ),                        # max number of layer connected to one DTC
     NumRingsPS   = cms.vint32 ( 11, 11, 8, 8, 8 ),             # number of outer PS rings for disk 1, 2, 3, 4, 5
     WidthsR      = cms.vint32 (   7,     7,    12,      7   ), # number of bits used for stub r w.r.t layer/disk centre for module types (barrelPS, barrel2S, diskPS, disk2S)
     WidthsZ      = cms.vint32 (  12,     8,     7,      7   ), # number of bits used for stub z w.r.t layer/disk centre for module types (barrelPS, barrel2S, diskPS, disk2S)
@@ -163,7 +160,8 @@ TrackTrigger_params = cms.PSet (
     RangeChiZ     = cms.double( 160. ), # range of stub z residual w.r.t. sector center which needs to be covered
     DepthMemory   = cms.int32 (  64  ), # fifo depth in stub router firmware
     #BoundariesEta = cms.vdouble( -2.40, -2.08, -1.68, -1.26, -0.90, -0.62, -0.41, -0.20, 0.0, 0.20, 0.41, 0.62, 0.90, 1.26, 1.68, 2.08, 2.40 ) # defining r-z sector shape
-    BoundariesEta = cms.vdouble( -2.50, -2.23, -1.88, -1.36, -0.90, -0.62, -0.41, -0.20, 0.0, 0.20, 0.41, 0.62, 0.90, 1.36, 1.88, 2.23, 2.50 ) # defining r-z sector shape
+    BoundariesEta = cms.vdouble( -2.50, -2.23, -1.88, -1.36, -0.90, -0.62, -0.41, -0.20, 0.0, 0.20, 0.41, 0.62, 0.90, 1.36, 1.88, 2.23, 2.50 ), # defining r-z sector shape
+    Quantiles = cms.vint32( 4, 4, 4, 4, 2, 1, 1, 1, 1, 1, 1, 2, 4, 4, 4, 4 )
   ),
 
   # Parmeter specifying HoughTransform
@@ -176,12 +174,10 @@ TrackTrigger_params = cms.PSet (
 
   # Parmeter specifying MiniHoughTransform
   MiniHoughTransform = cms.PSet (
-    NumBinsInv2R  = cms.int32( 2 ), # number of finer inv2R bins inside HT bin
-    NumBinsPhiT   = cms.int32( 2 ), # number of finer phiT bins inside HT bin
-    NumDLBs       = cms.int32( 2 ), # number of dynamic load balancing steps
-    NumDLBNodes   = cms.int32( 8 ), # number of units per dynamic load balancing step
-    NumDLBChannel = cms.int32( 2 ), # number of inputs per dynamic load balancing unit
-    MinLayers     = cms.int32( 5 )  # required number of stub layers to form a candidate
+    NumStages     = cms.int32( 2 ), # number of chained mhts
+    NumBinsInv2R  = cms.int32( 2 ), # number of finer inv2R bins inside current bin
+    NumBinsPhiT   = cms.int32( 2 ), # number of finer phiT bins inside current bin
+    MinLayers     = cms.int32( 4 )  # required number of stub layers to form a candidate
   ),
 
   # Parmeter specifying ZHoughTransform

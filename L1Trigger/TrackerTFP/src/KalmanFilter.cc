@@ -63,10 +63,10 @@ namespace trackerTFP {
         C22_(&kalmanFilterFormats_->format(VariableKF::C22)),
         C23_(&kalmanFilterFormats_->format(VariableKF::C23)),
         C33_(&kalmanFilterFormats_->format(VariableKF::C33)) {
-    C00_->updateRangeActual(pow(dataFormats_->base(Variable::inv2R, Process::kfin), 2));
-    C11_->updateRangeActual(pow(dataFormats_->base(Variable::phiT, Process::kfin), 2));
-    C22_->updateRangeActual(pow(dataFormats_->base(Variable::cot, Process::kfin), 2));
-    C33_->updateRangeActual(pow(dataFormats_->base(Variable::zT, Process::kfin), 2));
+    C00_->updateRangeActual(pow(dataFormats_->base(Variable::inv2R, Process::kfin), 2) - 1.e-12);
+    C11_->updateRangeActual(pow(dataFormats_->base(Variable::phiT, Process::kfin), 2) - 1.e-12);
+    C22_->updateRangeActual(pow(dataFormats_->base(Variable::cot, Process::kfin), 2) - 1.e-12);
+    C33_->updateRangeActual(pow(dataFormats_->base(Variable::zT, Process::kfin), 2) - 1.e-12);
   }
 
   // read in and organize input product (fill vector input_)
@@ -98,12 +98,12 @@ namespace trackerTFP {
         const FrameTrack& frameTrack = streamTracks[frame];
         // Select frames with valid track
         if (frameTrack.first.isNull()) {
-          if (dataFormats_->hybrid())
+          if (kalmanFilterFormats_->hybrid())
             tracks.push_back(nullptr);
           continue;
         }
         auto endOfTrk = find_if(next(streamTracks.begin(), frame + 1), streamTracks.end(), valid);
-        if (dataFormats_->hybrid())
+        if (kalmanFilterFormats_->hybrid())
           endOfTrk = next(streamTracks.begin(), frame + 1);
         // No. of frames before next track indicates gives max. no. of stubs this track had in any layer
         const int maxStubsPerLayer = distance(next(streamTracks.begin(), frame), endOfTrk);
@@ -137,30 +137,24 @@ namespace trackerTFP {
                              int& numAcceptedStates,
                              int& numLostStates) {
     auto put = [this](
-                   const deque<State*>& states, StreamsStub& streamsStubs, StreamsTrack& streamsTracks, int channel) {
+                   const vector<TrackKF*>& stream, StreamsStub& streamsStubs, StreamsTrack& streamsTracks, int channel) {
       const int streamId = region_ * dataFormats_->numChannel(Process::kf) + channel;
       const int offset = streamId * setup_->numLayers();
       StreamTrack& tracks = streamsTracks[streamId];
-      tracks.reserve(states.size());
+      tracks.reserve(stream.size());
       for (int layer = 0; layer < setup_->numLayers(); layer++)
-        streamsStubs[offset + layer].reserve(states.size());
-      for (State* state : states) {
-        tracks.emplace_back(state->frame());
-        vector<StubKF> stubs;
-        state->fill(stubs);
-        for (const StubKF& stub : stubs)
-          streamsStubs[offset + stub.layer()].emplace_back(stub.frame());
+        streamsStubs[offset + layer].reserve(stream.size());
+      for (TrackKF* track : stream) {
+        tracks.emplace_back(track->frame());
+        for (StubKF* stub : track->stubs())
+          streamsStubs[offset + stub->layer()].emplace_back(stub->frame());
         // adding a gap to all layer without a stub
-        for (int layer : state->hitPattern().ids(false))
+        for (int layer : track->hitPattern().ids(false))
           streamsStubs[offset + layer].emplace_back(FrameStub());
       }
     };
-    auto count = [this](int sum, const State* state) {
-      return sum + ((state && state->hitPattern().count() >= setup_->kfMinLayers()) ? 1 : 0);
-    };
     for (int channel = 0; channel < dataFormats_->numChannel(Process::kf); channel++) {
       deque<State*> stream;
-      deque<State*> lost;
       // proto state creation
       int trackId(0);
       for (TrackKFin* track : input_[channel]) {
@@ -175,35 +169,72 @@ namespace trackerTFP {
       // Propagate state to each layer in turn, updating it with all viable stub combinations there, using KF maths
       for (layer_ = 0; layer_ < setup_->numLayers(); layer_++)
         addLayer(stream);
-      // calculate number of states before truncating
-      const int numUntruncatedStates = accumulate(stream.begin(), stream.end(), 0, count);
+      // kill states with not enough layer
+      int numUntruncatedTracks(0);
+      int numUntruncatedStubs(0);
+      int numTruncatedTracks(0);
+      int frame(-1);
+      for (auto& state : stream) {
+        frame++;
+        const int nStubs = state ? state->hitPattern().count() : 0;
+        if (nStubs < setup_->kfMinLayers())
+          state = nullptr;
+        if (!state)
+          continue;
+        numUntruncatedTracks++;
+        numUntruncatedStubs += nStubs;
+        if (frame < setup_->numFrames())
+          numTruncatedTracks++;
+      }
+      // Transform Stream into TracksKF
+      vector<StubKF> stubsKF;
+      stubsKF.reserve(numUntruncatedStubs);
+      vector<TrackKF> tracksKF;
+      tracksKF.reserve(numUntruncatedTracks);
+      vector<TrackKF*> tracks;
+      tracks.reserve(stream.size());
+      for (State* state : stream) {
+        if (!state) {
+          tracks.push_back(nullptr);
+          continue;
+        }
+        vector<StubKF*> stubs;
+        stubs.reserve(state->hitPattern().count());
+        State* s = state;
+        while ((s = s->parent())) {
+          stubsKF.emplace_back(*(s->stub()), state->x0(), state->x1(), state->x2(), state->x3());
+          stubs.push_back(&stubsKF.back());
+        }
+        tracksKF.emplace_back(*state->track(), stubs, state->trackId(), state->x0(), state->x1(), state->x2(), state->x3());
+        tracks.push_back(&tracksKF.back());
+      }
       // untruncated best state selection
-      deque<State*> untruncatedStream = stream;
-      accumulator(untruncatedStream);
+      vector<TrackKF*> untruncatedTracks = tracks;
+      accumulator(untruncatedTracks);
       // apply truncation
-      if (enableTruncation_ && (int)stream.size() > setup_->numFrames())
-        stream.resize(setup_->numFrames());
-      // calculate number of states after truncating
-      const int numTruncatedStates = accumulate(stream.begin(), stream.end(), 0, count);
+      if (enableTruncation_ && (int)tracks.size() > setup_->numFrames())
+        tracks.resize(setup_->numFrames());
       // best state per candidate selection
-      accumulator(stream);
-      deque<State*> truncatedStream = stream;
+      accumulator(tracks);
       // storing of best states missed due to truncation
-      sort(untruncatedStream.begin(), untruncatedStream.end());
-      sort(truncatedStream.begin(), truncatedStream.end());
-      set_difference(untruncatedStream.begin(),
-                     untruncatedStream.end(),
-                     truncatedStream.begin(),
-                     truncatedStream.end(),
+      vector<TrackKF*> truncatedTracks = tracks;
+      sort(untruncatedTracks.begin(), untruncatedTracks.end());
+      sort(truncatedTracks.begin(), truncatedTracks.end());
+      vector<TrackKF*> lost;
+      lost.reserve(tracks.size());
+      set_difference(untruncatedTracks.begin(),
+                     untruncatedTracks.end(),
+                     truncatedTracks.begin(),
+                     truncatedTracks.end(),
                      back_inserter(lost));
       // store found tracks
-      put(stream, acceptedStubs, acceptedTracks, channel);
+      put(tracks, acceptedStubs, acceptedTracks, channel);
       // store lost tracks
       put(lost, lostStubs, lostTracks, channel);
       // store number of states which got taken into account
-      numAcceptedStates += numTruncatedStates;
+      numAcceptedStates += numTruncatedTracks;
       // store number of states which got not taken into account due to truncation
-      numLostStates += numUntruncatedStates - numTruncatedStates;
+      numLostStates += numUntruncatedTracks - numTruncatedTracks;
     }
   }
 
@@ -287,30 +318,23 @@ namespace trackerTFP {
   }
 
   // best state selection
-  void KalmanFilter::accumulator(deque<State*>& stream) {
+  void KalmanFilter::accumulator(vector<TrackKF*>& stream) {
     // accumulator delivers contigious stream of best state per track
     // remove gaps and not final states
-    stream.erase(
-        remove_if(stream.begin(),
-                  stream.end(),
-                  [this](State* state) { return !state || state->hitPattern().count() < setup_->kfMinLayers(); }),
-        stream.end());
-    // Determine quality of completed state
-    for (State* state : stream)
-      state->finish();
+    stream.erase(remove(stream.begin(), stream.end(), nullptr), stream.end());
     // sort in number of skipped layers
-    auto lessSkippedLayers = [](State* lhs, State* rhs) { return lhs->numSkippedLayers() < rhs->numSkippedLayers(); };
+    auto lessSkippedLayers = [](TrackKF* lhs, TrackKF* rhs) { return lhs->numSkippedLayers() < rhs->numSkippedLayers(); };
     stable_sort(stream.begin(), stream.end(), lessSkippedLayers);
     // sort in number of consistent stubs
-    auto moreConsistentLayers = [](State* lhs, State* rhs) {
+    auto moreConsistentLayers = [](TrackKF* lhs, TrackKF* rhs) {
       return lhs->numConsistentLayers() > rhs->numConsistentLayers();
     };
     stable_sort(stream.begin(), stream.end(), moreConsistentLayers);
     // sort in track id
-    stable_sort(stream.begin(), stream.end(), [](State* lhs, State* rhs) { return lhs->trackId() < rhs->trackId(); });
+    stable_sort(stream.begin(), stream.end(), [](TrackKF* lhs, TrackKF* rhs) { return lhs->trackId() < rhs->trackId(); });
     // keep first state (best due to previous sorts) per track id
     stream.erase(
-        unique(stream.begin(), stream.end(), [](State* lhs, State* rhs) { return lhs->track() == rhs->track(); }),
+        unique(stream.begin(), stream.end(), [](TrackKF* lhs, TrackKF* rhs) { return lhs->trackId() == rhs->trackId(); }),
         stream.end());
   }
 
@@ -387,6 +411,16 @@ namespace trackerTFP {
     C22 = C22_->digi(C22 - S12 * K21);
     C23 = C23_->digi(C23 - S13 * K21);
     C33 = C33_->digi(C33 - S13 * K31);
+    // range check
+    const bool valid0 = dataFormats_->format(Variable::inv2R, Process::kf).inRange(state->track()->inv2R() + x0);
+    const bool valid1 = dataFormats_->format(Variable::phiT, Process::kf).inRange(state->track()->phiT() + x1);
+    const bool valid2 = dataFormats_->format(Variable::cot, Process::kf).inRange(state->track()->cot() + x2);
+    const bool valid3 = dataFormats_->format(Variable::zT, Process::kf).inRange(state->track()->zT() + x3);
+    const bool valid = valid0 && valid1 && valid2 && valid3;
+    if (!valid) {
+      state = nullptr;
+      return;
+    }
     // create updated state
     states_.emplace_back(State(state, (initializer_list<double>){x0, x1, x2, x3, C00, C11, C22, C33, C01, C23}));
     state = &states_.back();

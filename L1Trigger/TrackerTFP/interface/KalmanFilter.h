@@ -44,7 +44,7 @@ namespace trackerTFP {
     // Assign next combinatoric (i.e. not first in layer) stub to state
     void comb(State*& state);
     // best state selection
-    void accumulator(std::deque<State*>& stream);
+    void accumulator(std::vector<TrackKF*>& stream);
     // updates state
     void update(State*& state);
 

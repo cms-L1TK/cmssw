@@ -26,15 +26,28 @@ namespace trackerTFP {
     void produce(tt::StreamsStub& accepted, tt::StreamsStub& lost);
 
   private:
-    // remove and return first element of deque, returns nullptr if empty
-    template <class T>
-    T* pop_front(std::deque<T*>& ts) const;
+    struct State {
+      State(const StubHT& stub, const tt::Setup* setup) : r_(stub.r()), phi_(stub.phi()), dPhi_(stub.dPhi()), layer_(stub.layer()), trackId_(stub.trackId()), stubHT_(&stub) {
+        const double p = pow(2., setup->mhtNumStages());
+        inv2R_ = floor((stub.inv2R() + .5) * setup->mhtNumBinsInv2R() * p);
+        phiT_ = floor((stub.phiT() + .5) * setup->mhtNumBinsPhiT() * p);
+      }
+      void update(int inv2R, int phiT, const DataFormats* df) {
+        inv2R_ += inv2R;
+        phiT_ += phiT;
+        phi_ -= df->base(Variable::phiT, Process::mht) * phiT + df->base(Variable::inv2R, Process::mht) * inv2R * r_;
+      }
+      double r_;
+      double phi_;
+      double dPhi_;
+      int layer_;
+      int inv2R_;
+      int phiT_;
+      int trackId_;
+      const StubHT* stubHT_;
+    };
     // perform finer pattern recognition per track
-    void fill(int channel, const std::vector<StubHT*>& input, std::vector<std::deque<StubMHT*>>& output);
-    // Static load balancing of inputs: mux 4 streams to 1 stream
-    void slb(std::vector<std::deque<StubMHT*>>& inputs, std::vector<StubMHT*>& accepted, tt::StreamStub& lost) const;
-    // Dynamic load balancing of inputs: swapping parts of streams to balance the amount of tracks per stream
-    void dlb(std::vector<std::vector<StubMHT*>>& streams) const;
+    void stage(int iter, std::vector<State*>& stream);
 
     // true if truncation is enbaled
     bool enableTruncation_;
@@ -50,18 +63,16 @@ namespace trackerTFP {
     int region_;
     // number of inv2R bins used in HT
     int numBinsInv2R_;
+    // number of chained mhts
+    int numStages_;
     // number of cells used in MHT
     int numCells_;
-    // number of dynamic load balancing nodes
-    int numNodes_;
-    // number of channel per dynamic load balancing node
-    int numChannel_;
     // container of input stubs
-    std::vector<StubHT> stubsHT_;
-    // container of output stubs
-    std::vector<StubMHT> stubsMHT_;
+    std::vector<StubHT> stubs_;
+    // container of intermediate stubs
+    std::vector<State> states_;
     // h/w liked organized pointer to input stubs
-    std::vector<std::vector<StubHT*>> input_;
+    std::vector<std::vector<State*>> input_;
   };
 
 }  // namespace trackerTFP

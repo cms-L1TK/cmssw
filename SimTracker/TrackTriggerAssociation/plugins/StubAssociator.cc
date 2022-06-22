@@ -18,7 +18,6 @@
 #include <set>
 #include <algorithm>
 #include <iterator>
-#include <cmath>
 
 using namespace std;
 using namespace edm;
@@ -76,7 +75,6 @@ namespace tt {
     Handle<TTStubDetSetVec> handleTTStubDetSetVec;
     iEvent.getByToken<TTStubDetSetVec>(getTokenTTStubDetSetVec_, handleTTStubDetSetVec);
     Handle<TTClusterAssMap> handleTTClusterAssMap;
-    Handle<TTStubAssMap> handleTTStubAssMap;
     iEvent.getByToken<TTClusterAssMap>(getTokenTTClusterAssMap_, handleTTClusterAssMap);
     map<TPPtr, vector<TTStubRef>> mapTPPtrsTTStubRefs;
     auto isNonnull = [](const TPPtr& tpPtr) { return tpPtr.isNonnull(); };

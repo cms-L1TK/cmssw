@@ -453,7 +453,7 @@ namespace trackerDTC {
 
   // configuring track particle selector
   void Analyzer::configTPSelector() {
-    const double ptMin = hybrid_ ? setup_->hybridMinPtStub() : setup_->minPt();
+    const double ptMin = setup_->tpMinPt();
     constexpr double ptMax = 9999999999.;
     const double etaMax = setup_->tpMaxEta();
     const double tip = setup_->tpMaxVertR();

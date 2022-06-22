@@ -6,6 +6,7 @@
 
 #include <cmath>
 #include <algorithm>
+#include <numeric>
 #include <vector>
 #include <set>
 #include <unordered_map>
@@ -56,21 +57,18 @@ namespace tt {
         unMatchedStubs_(pSetTF_.getParameter<int>("UnMatchedStubs")),
         unMatchedStubsPS_(pSetTF_.getParameter<int>("UnMatchedStubsPS")),
         scattering_(pSetTF_.getParameter<double>("Scattering")),
+        minPt_(pSetTF_.getParameter<double>("MinPt")),
+        maxEta_(pSetTF_.getParameter<double>("MaxEta")),
+        chosenRofPhi_(pSetTF_.getParameter<double>("ChosenRofPhi")),
+        numLayers_(pSetTF_.getParameter<int>("NumLayers")),
         // TMTT specific parameter
         pSetTMTT_(iConfig.getParameter<ParameterSet>("TMTT")),
-        minPt_(pSetTMTT_.getParameter<double>("MinPt")),
-        maxEta_(pSetTMTT_.getParameter<double>("MaxEta")),
-        chosenRofPhi_(pSetTMTT_.getParameter<double>("ChosenRofPhi")),
-        numLayers_(pSetTMTT_.getParameter<int>("NumLayers")),
         tmttWidthR_(pSetTMTT_.getParameter<int>("WidthR")),
         tmttWidthPhi_(pSetTMTT_.getParameter<int>("WidthPhi")),
         tmttWidthZ_(pSetTMTT_.getParameter<int>("WidthZ")),
         // Hybrid specific parameter
         pSetHybrid_(iConfig.getParameter<ParameterSet>("Hybrid")),
-        hybridMinPtStub_(pSetHybrid_.getParameter<double>("MinPtStub")),
-        hybridMinPtCand_(pSetHybrid_.getParameter<double>("MinPtCand")),
-        hybridMaxEta_(pSetHybrid_.getParameter<double>("MaxEta")),
-        hybridChosenRofPhi_(pSetHybrid_.getParameter<double>("ChosenRofPhi")),
+        hybridMinPt_(pSetHybrid_.getParameter<double>("MinPt")),
         hybridNumLayers_(pSetHybrid_.getParameter<int>("NumLayers")),
         hybridNumRingsPS_(pSetHybrid_.getParameter<vector<int>>("NumRingsPS")),
         hybridWidthsR_(pSetHybrid_.getParameter<vector<int>>("WidthsR")),
@@ -170,6 +168,7 @@ namespace tt {
         neededRangeChiZ_(pSetGP_.getParameter<double>("RangeChiZ")),
         gpDepthMemory_(pSetGP_.getParameter<int>("DepthMemory")),
         boundariesEta_(pSetGP_.getParameter<vector<double>>("BoundariesEta")),
+        gpQuantiles_(pSetGP_.getParameter<vector<int>>("Quantiles")),
         // Parmeter specifying HoughTransform
         pSetHT_(iConfig.getParameter<ParameterSet>("HoughTransform")),
         htNumBinsInv2R_(pSetHT_.getParameter<int>("NumBinsInv2R")),
@@ -178,11 +177,9 @@ namespace tt {
         htDepthMemory_(pSetHT_.getParameter<int>("DepthMemory")),
         // Parmeter specifying MiniHoughTransform
         pSetMHT_(iConfig.getParameter<ParameterSet>("MiniHoughTransform")),
+        mhtNumStages_(pSetMHT_.getParameter<int>("NumStages")),
         mhtNumBinsInv2R_(pSetMHT_.getParameter<int>("NumBinsInv2R")),
         mhtNumBinsPhiT_(pSetMHT_.getParameter<int>("NumBinsPhiT")),
-        mhtNumDLBs_(pSetMHT_.getParameter<int>("NumDLBs")),
-        mhtNumDLBNodes_(pSetMHT_.getParameter<int>("NumDLBNodes")),
-        mhtNumDLBChannel_(pSetMHT_.getParameter<int>("NumDLBChannel")),
         mhtMinLayers_(pSetMHT_.getParameter<int>("MinLayers")),
         // Parmeter specifying ZHoughTransform
         pSetZHT_(iConfig.getParameter<ParameterSet>("ZHoughTransform")),
@@ -371,6 +368,12 @@ namespace tt {
       throw exception;
     }
     return it->second;
+  }
+
+  // sensor module for ttStubRef
+  SensorModule* Setup::sensorModule(const TTStubRef& ttStubRef) const {
+    const DetId detId = ttStubRef->getDetId() + offsetDetIdDSV_;
+    return this->sensorModule(detId);
   }
 
   // index = encoded bend, value = decoded bend for given window size and module type
@@ -678,11 +681,20 @@ namespace tt {
     baseSector_ = baseRegion_ / numSectorsPhi_;
     maxCot_ = sinh(maxEta_);
     maxZT_ = maxCot_ * chosenRofZ_;
-    numSectorsEta_ = boundariesEta_.size() - 1;
+    numSectorsEta_ = gpQuantiles_.size();
+    numQuantile_ = accumulate(gpQuantiles_.begin(), gpQuantiles_.end(), 0);
+    baseQuantile_ = 2. * maxZT_ / (double)numQuantile_;
     numSectors_ = numSectorsPhi_ * numSectorsEta_;
     sectorCots_.reserve(numSectorsEta_);
-    for (int eta = 0; eta < numSectorsEta_; eta++)
-      sectorCots_.emplace_back((sinh(boundariesEta_.at(eta)) + sinh(boundariesEta_.at(eta + 1))) / 2.);
+    double left = -maxZT_;
+    int sectorEta = 0;
+    quantileToSectorEta_.reserve(numQuantile_);
+    for (int numQuantiles : gpQuantiles_) {
+      const double dZT = numQuantiles * baseQuantile_;
+      sectorCots_.emplace_back((left + dZT / 2.) / chosenRofZ_);
+      left += dZT;
+      quantileToSectorEta_.insert(quantileToSectorEta_.end(), numQuantiles, sectorEta++);
+    }
     // tmtt
     const double rangeInv2R = 2. * invPtToDphi_ / minPt_;
     tmttBaseInv2R_ = rangeInv2R / htNumBinsInv2R_;
@@ -703,9 +715,9 @@ namespace tt {
     tmttNumUnusedBits_ = TTBV::S_ - tmttWidthLayer_ - 2 * tmttWidthSectorEta_ - tmttWidthR_ - tmttWidthPhi_ -
                          tmttWidthZ_ - 2 * tmttWidthInv2R_ - numSectorsPhi_ - 1;
     // hybrid
-    const double hybridRangeInv2R = 2. * invPtToDphi_ / hybridMinPtStub_;
+    const double hybridRangeInv2R = 2. * invPtToDphi_ / hybridMinPt_;
     const double hybridRangeR =
-        2. * max(abs(outerRadius_ - hybridChosenRofPhi_), abs(innerRadius_ - hybridChosenRofPhi_));
+        2. * max(abs(outerRadius_ - chosenRofPhi_), abs(innerRadius_ - chosenRofPhi_));
     hybridRangePhi_ = baseRegion_ + (hybridRangeR * hybridRangeInv2R) / 2.;
     hybridWidthLayerId_ = ceil(log2(hybridNumLayers_));
     hybridBasesZ_.reserve(SensorModule::NumTypes);
@@ -726,7 +738,7 @@ namespace tt {
       hybridNumsUnusedBits_.emplace_back(TTBV::S_ - hybridWidthsR_.at(type) - hybridWidthsZ_.at(type) -
                                          hybridWidthsPhi_.at(type) - hybridWidthsAlpha_.at(type) -
                                          hybridWidthsBend_.at(type) - hybridWidthLayerId_ - 1);
-    hybridMaxCot_ = sinh(hybridMaxEta_);
+    hybridMaxCot_ = sinh(maxEta_);
     disk2SRs_.reserve(hybridDisk2SRsSet_.size());
     for (const auto& pSet : hybridDisk2SRsSet_)
       disk2SRs_.emplace_back(pSet.getParameter<vector<double>>("Disk2SRs"));

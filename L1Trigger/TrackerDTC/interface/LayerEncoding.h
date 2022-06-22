@@ -5,7 +5,6 @@
 #include "L1Trigger/TrackerDTC/interface/LayerEncodingRcd.h"
 #include "L1Trigger/TrackTrigger/interface/Setup.h"
 #include "L1Trigger/TrackTrigger/interface/SensorModule.h"
-#include "FWCore/ParameterSet/interface/ParameterSet.h"
 
 #include <vector>
 
@@ -19,7 +18,7 @@ namespace trackerDTC {
   class LayerEncoding {
   public:
     LayerEncoding() {}
-    LayerEncoding(const edm::ParameterSet& iConfig, const tt::Setup* setup);
+    LayerEncoding(const tt::Setup* setup);
     ~LayerEncoding() {}
     // decode layer id for given sensor module
     int decode(tt::SensorModule* sm) const;
