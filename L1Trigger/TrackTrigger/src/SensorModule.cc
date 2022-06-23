@@ -119,7 +119,7 @@ namespace tt {
     }
   }
 
-  unsigned int SensorModule::ringId(const Setup* setup) const{
+  unsigned int SensorModule::ringId(const Setup* setup) const {
     // In barrel PS: Tilted module ring no. (Increasing 1 to 12 as |z| increases)
     // In barrel 2S: 0
     // In disk: Endcap module ring number (1-15) in endcap disks
@@ -138,8 +138,8 @@ namespace tt {
         unsigned int nTilted = setup->numTiltedLayerRing(layp1);
         ringId = 1 + nTilted - ringId;
       }
-    } else{
-    ringId = barrel_ ? 0 : trackerTopology->tidRing(detId_);
+    } else {
+      ringId = barrel_ ? 0 : trackerTopology->tidRing(detId_);
     }
     return ringId;
   }

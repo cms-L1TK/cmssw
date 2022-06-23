@@ -82,24 +82,23 @@ namespace trklet {
     const Settings& settings_;
     const tt::Setup* setup_;
 
-
     //Determine bend/bend cuts in LUT regions
-    std::vector<const tt::SensorModule*> getSensorModules(unsigned int layerdisk, 
+    std::vector<const tt::SensorModule*> getSensorModules(unsigned int layerdisk,
                                                           bool isPS,
-                                                          std::array<double, 2> tan_range = {{-1,-1}},
+                                                          std::array<double, 2> tan_range = {{-1, -1}},
                                                           unsigned int nzbins = 1,
                                                           unsigned int zbin = 0);
 
-    std::array<double, 2> getTanRange(const std::vector<const tt::SensorModule*>& sensorModules );
+    std::array<double, 2> getTanRange(const std::vector<const tt::SensorModule*>& sensorModules);
 
-    std::vector<double> getBendAverage(unsigned int layerdisk, 
-                                       const std::vector<const tt::SensorModule*>& sensorModules, 
-                                       bool isPS, 
+    std::vector<double> getBendAverage(unsigned int layerdisk,
+                                       const std::vector<const tt::SensorModule*>& sensorModules,
+                                       bool isPS,
                                        std::string bend_type);
 
-    std::vector<std::array<double, 2>> getBendCut(unsigned int layerdisk, 
-                                                  const std::vector<const tt::SensorModule*>& sensorModules, 
-                                                  bool isPS, 
+    std::vector<std::array<double, 2>> getBendCut(unsigned int layerdisk,
+                                                  const std::vector<const tt::SensorModule*>& sensorModules,
+                                                  bool isPS,
                                                   double FEbendcut = 0);
 
     int getphiCorrValue(

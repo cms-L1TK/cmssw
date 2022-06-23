@@ -69,7 +69,7 @@ namespace tt {
     int windowSize() const { return windowSize_; }
     //
     double tiltCorrection(double cot) const { return abs(tiltCorrectionSlope_ * cot) + tiltCorrectionIntercept_; }
-  
+
     unsigned int ringId(const Setup* setup) const;
 
   private:
