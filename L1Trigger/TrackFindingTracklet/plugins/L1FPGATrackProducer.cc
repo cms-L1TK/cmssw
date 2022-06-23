@@ -174,7 +174,6 @@ private:
   unsigned int nHelixPar_;
   bool extended_;
   bool reduced_;
-  bool invent_;
 
   bool trackQuality_;
   std::unique_ptr<L1TrackQuality> trackQualityModel_;
@@ -259,7 +258,6 @@ L1FPGATrackProducer::L1FPGATrackProducer(edm::ParameterSet const& iConfig)
 
   extended_ = iConfig.getParameter<bool>("Extended");
   reduced_ = iConfig.getParameter<bool>("Reduced");
-  invent_ = iConfig.getParameter<bool>("InventStubs");
   nHelixPar_ = iConfig.getParameter<unsigned int>("Hnpar");
 
   if (extended_) {
@@ -277,7 +275,6 @@ L1FPGATrackProducer::L1FPGATrackProducer(edm::ParameterSet const& iConfig)
 
   settings_.setExtended(extended_);
   settings_.setReduced(reduced_);
-  settings_.setInventStubs(invent_);
   settings_.setNHelixPar(nHelixPar_);
 
   settings_.setFitPatternFile(fitPatternFile.fullPath());
