@@ -47,27 +47,43 @@ namespace hph {
     Setup(const edm::ParameterSet& iConfig, const tt::Setup& setupTT);
     ~Setup() {}
 
-    bool hphDebug() const { return iConfig_.getParameter<bool>("hphDebug"); }
-    bool useNewKF() const { return iConfig_.getParameter<bool>("useNewKF"); }
-    double deltaTanL() const { return iConfig_.getParameter<double>("deltaTanL"); }
-    double chosenRofZ() const { return setupTT_.chosenRofZ(); }
-    std::vector<double> etaRegions() const { return setupTT_.boundarieEta(); }
-    std::vector<tt::SensorModule> sensorModules() const { return setupTT_.sensorModules(); }
+    bool hphDebug() const { return hphDebug_; }
+    bool useNewKF() const { return useNewKF_; }
+    double deltaTanL() const { return deltaTanL_; }
+    double chosenRofZ() const { return chosenRofZ_; }
+    double beamWindowZ() const { return beamWindowZ_; }
+    std::vector<double> etaRegions() const { return etaRegions_; }
+    const std::vector<tt::SensorModule>& layerEncoding(int binCot, int binZ0) const {
+      return layerEncoding_.at(binCot).at(binZ0);
+    }
     std::map<int, std::map<int, std::vector<int>>> layermap() const { return layermap_; }
     int nKalmanLayers() const { return nKalmanLayers_; }
     static auto smallerID(std::pair<int, bool> lhs, std::pair<int, bool> rhs) { return lhs.first < rhs.first; }
     static auto equalID(std::pair<int, bool> lhs, std::pair<int, bool> rhs) { return lhs.first == rhs.first; }
+    int digiCot(double Cot) const;
+    int digiZ0(double Z0) const;
 
   private:
     edm::ParameterSet iConfig_;
+    edm::ParameterSet oldKFPSet_;
     const tt::Setup setupTT_;  // Helper class to store TrackTrigger configuration
+    bool hphDebug_;
+    bool useNewKF_;
+    double deltaTanL_;
+    int cotNbins_;
+    int z0Nbins_;
+    double chosenRofZ_;
+    double beamWindowZ_;
+    double cotMax_;
+    std::vector<double> etaRegions_;
     std::vector<std::pair<int, bool>>
         layerIds_;  // layer IDs (1~6->L1~L6;11~15->D1~D5) and whether or not they are from tracker barrel
                     // Only needed by Old KF
     std::map<int, std::map<int, std::vector<int>>> layermap_;  // Hard-coded layermap in Old KF
-    int nEtaRegions_;                                          // # of eta regions
-    int nKalmanLayers_;                                        // # of maximum KF layers allowed
-  };                                                           // Only needed by Old KF
+    std::vector<std::vector<std::vector<tt::SensorModule>>> layerEncoding_;
+    int nEtaRegions_;    // # of eta regions
+    int nKalmanLayers_;  // # of maximum KF layers allowed
+  };                     // Only needed by Old KF
 
   //Class that returns decoded information from hitpattern
   class HitPatternHelper {
@@ -98,14 +114,13 @@ namespace hph {
     static auto smallerID(tt::SensorModule lhs, tt::SensorModule rhs) { return lhs.layerId() < rhs.layerId(); }
     static auto equalID(tt::SensorModule lhs, tt::SensorModule rhs) { return lhs.layerId() == rhs.layerId(); }
 
-    int ReducedId(
+    int reducedId(
         int layerId);  //Converts layer ID (1~6->L1~L6;11~15->D1~D5) to reduced layer ID (0~5->L1~L6;6~10->D1~D5)
     int findLayer(int layerId);  //Search for a layer ID from sensor modules
 
   private:
     int etaSector_;
     int hitpattern_;
-    int numExpLayer_;
     int numMissingLayer_;
     int numMissingPS_;
     int numMissing2S_;
@@ -124,6 +139,7 @@ namespace hph {
     float deltaTanL_;  // Uncertainty added to tanL (cot) when layermap in new KF is determined
     std::vector<double> etaRegions_;
     int nKalmanLayers_;
+    int numExpLayer_;
     std::map<int, std::map<int, std::vector<int>>> layermap_;
   };
 

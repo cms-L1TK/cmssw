@@ -15,11 +15,59 @@ namespace hph {
 
   Setup::Setup(const edm::ParameterSet& iConfig, const tt::Setup& setupTT)
       : iConfig_(iConfig),
+        oldKFPSet_(iConfig.getParameter<edm::ParameterSet>("oldKFPSet")),
         setupTT_(setupTT),
+        hphDebug_(iConfig.getParameter<bool>("hphDebug")),
+        useNewKF_(iConfig.getParameter<bool>("useNewKF")),
+        deltaTanL_(iConfig.getParameter<double>("deltaTanL")),
+        cotNbins_(iConfig.getParameter<int>("cotNbins")),
+        z0Nbins_(iConfig.getParameter<int>("z0Nbins")),
+        chosenRofZ_(),
+        beamWindowZ_(),
+        cotMax_(),
+        etaRegions_(),
         layerIds_(),
         layermap_(),
+        layerEncoding_(cotNbins_, std::vector<std::vector<tt::SensorModule>>(z0Nbins_)),
         nEtaRegions_(tmtt::KFbase::nEta_ / 2),
         nKalmanLayers_(tmtt::KFbase::nKFlayer_) {
+    if (useNewKF_) {
+      chosenRofZ_ = setupTT_.chosenRofZ();
+      beamWindowZ_ = setupTT_.beamWindowZ();
+      etaRegions_ = setupTT_.boundarieEta();
+    } else {
+      chosenRofZ_ = oldKFPSet_.getParameter<double>("ChosenRofZ");
+      beamWindowZ_ = oldKFPSet_.getParameter<double>("BeamWindowZ");
+      etaRegions_ = oldKFPSet_.getParameter<vector<double>>("EtaRegions");
+    }
+    double etaMax_ = abs(etaRegions_[0]);
+    cotMax_ = abs(1 / tan(2. * atan(exp(-etaMax_))));
+    for (int cotBin = 0; cotBin < cotNbins_; cotBin++) {
+      double cotDigi_ = (2 * cotMax_ / cotNbins_) * (cotBin + 1) - cotMax_;
+      for (int z0Bin = 0; z0Bin < z0Nbins_; z0Bin++) {
+        double z0Digi_ = (2 * beamWindowZ_ / z0Nbins_) * (z0Bin + 1) - beamWindowZ_;
+        std::vector<tt::SensorModule>& layers_ = layerEncoding_[cotBin][z0Bin];
+        //Looping over sensor modules to make predictions on which layers particles are expected to hit
+        for (const tt::SensorModule& sm : setupTT_.sensorModules()) {
+          double d = (z0Digi_ - sm.z() + sm.r() * cotDigi_) / (sm.cosTilt() - sm.sinTilt() * cotDigi_);
+          double d_p = (z0Digi_ - sm.z() + sm.r() * (cotDigi_ + deltaTanL_ / 2)) /
+                       (sm.cosTilt() - sm.sinTilt() * (cotDigi_ + deltaTanL_ / 2));
+          double d_m = (z0Digi_ - sm.z() + sm.r() * (cotDigi_ - deltaTanL_ / 2)) /
+                       (sm.cosTilt() - sm.sinTilt() * (cotDigi_ - deltaTanL_ / 2));
+          if (useNewKF_ &&
+              (abs(d_p) < sm.numColumns() * sm.pitchCol() / 2. || abs(d_m) < sm.numColumns() * sm.pitchCol() / 2.)) {
+            layers_.push_back(sm);
+          }
+          if (!useNewKF_ && abs(d) < sm.numColumns() * sm.pitchCol() / 2.) {
+            layers_.push_back(sm);
+          }
+        }
+        //layers_ constains all the sensor modules that particles are expected to hit
+        sort(layers_.begin(), layers_.end(), HitPatternHelper::smallerID);
+        layers_.erase(unique(layers_.begin(), layers_.end(), HitPatternHelper::equalID),
+                      layers_.end());  //Keep only one sensor per layer
+      }
+    }
     for (const tt::SensorModule& sm : setupTT_.sensorModules()) {
       layerIds_.push_back(std::make_pair(sm.layerId(), sm.barrel()));
     }
@@ -43,7 +91,6 @@ namespace hph {
 
   HitPatternHelper::HitPatternHelper(const Setup* setup, int hitpattern, double cot, double z0)
       : hitpattern_(hitpattern),
-        numExpLayer_(0),
         numMissingLayer_(0),
         numMissingPS_(0),
         numMissing2S_(0),
@@ -54,6 +101,7 @@ namespace hph {
         cot_(cot),
         z0_(z0),
         setup_(setup),
+        layers_(setup_->layerEncoding(setup_->digiCot(cot_), setup_->digiZ0(z0_))),
         binary_(11, 0),
         hphDebug_(setup_->hphDebug()),
         useNewKF_(setup_->useNewKF()),
@@ -61,6 +109,7 @@ namespace hph {
         deltaTanL_(setup_->deltaTanL()),
         etaRegions_(setup_->etaRegions()),
         nKalmanLayers_(setup_->nKalmanLayers()),
+        numExpLayer_(layers_.size()),
         layermap_(setup_->layermap()) {
     //Calculating eta sector based on cot and z0
     float kfzRef = z0_ + chosenRofZ_ * cot_;
@@ -78,26 +127,6 @@ namespace hph {
     } else {
       kf_eta_reg = kf_eta_reg - (int)(etaRegions_.size() - 1) / 2;
     }
-    //Looping over sensor modules to make predictions on which layers particles are expected to hit
-    for (const tt::SensorModule& sm : setup_->sensorModules()) {
-      double d = (z0_ - sm.z() + sm.r() * cot_) / (sm.cosTilt() - sm.sinTilt() * cot_);
-      double d_p =
-          (z0_ - sm.z() + sm.r() * (cot_ + deltaTanL_ / 2)) / (sm.cosTilt() - sm.sinTilt() * (cot_ + deltaTanL_ / 2));
-      double d_m =
-          (z0_ - sm.z() + sm.r() * (cot_ - deltaTanL_ / 2)) / (sm.cosTilt() - sm.sinTilt() * (cot_ - deltaTanL_ / 2));
-      if (useNewKF_ &&
-          (abs(d_p) < sm.numColumns() * sm.pitchCol() / 2. || abs(d_m) < sm.numColumns() * sm.pitchCol() / 2.)) {
-        layers_.push_back(sm);
-      }
-      if (!useNewKF_ && abs(d) < sm.numColumns() * sm.pitchCol() / 2.) {
-        layers_.push_back(sm);
-      }
-    }
-    //layers_ constains all the sensor modules that particles are expected to hit
-    sort(layers_.begin(), layers_.end(), smallerID);
-    layers_.erase(unique(layers_.begin(), layers_.end(), equalID), layers_.end());  //Keep only one sensor per layer
-
-    numExpLayer_ = layers_.size();
 
     int nbits = floor(log2(hitpattern_)) + 1;
     int lay_i = 0;
@@ -153,7 +182,7 @@ namespace hph {
             edm::LogVerbatim("TrackTriggerHPH") << "Layer found in hitpattern";
           }
 
-          binary_[ReducedId(layers_[i].layerId())] = 1;
+          binary_[reducedId(layers_[i].layerId())] = 1;
           if (layers_[i].psModule()) {
             numPS_++;
           } else {
@@ -219,7 +248,7 @@ namespace hph {
               edm::LogVerbatim("TrackTriggerHPH") << "Layer found in hitpattern";
             }
 
-            binary_[ReducedId(j)] = 1;
+            binary_[reducedId(j)] = 1;
             if (layers_[k].psModule()) {
               numPS_++;
             } else {
@@ -248,7 +277,27 @@ namespace hph {
     }
   }
 
-  int HitPatternHelper::ReducedId(int layerId) {
+  int Setup::digiCot(double Cot) const {
+    int cotBin_ = 0;
+    for (int cotBin = 0; cotBin < cotNbins_; cotBin++) {
+      if (Cot > ((2 * cotMax_ / cotNbins_) * cotBin - cotMax_)) {
+        cotBin_ = cotBin;
+      }
+    }
+    return cotBin_;
+  }
+
+  int Setup::digiZ0(double Z0) const {
+    int z0Bin_ = 0;
+    for (int z0Bin = 0; z0Bin < z0Nbins_; z0Bin++) {
+      if (Z0 > ((2 * beamWindowZ_ / z0Nbins_) * z0Bin - beamWindowZ_)) {
+        z0Bin_ = z0Bin;
+      }
+    }
+    return z0Bin_;
+  }
+
+  int HitPatternHelper::reducedId(int layerId) {
     if (hphDebug_ && (layerId > 15 || layerId < 1)) {
       edm::LogVerbatim("TrackTriggerHPH") << "Warning: invalid layer id !";
     }
@@ -259,7 +308,7 @@ namespace hph {
       layerId = layerId - 5;
       return layerId;
     }
-  };
+  }
 
   int HitPatternHelper::findLayer(int layerId) {
     for (int i = 0; i < (int)layers_.size(); i++) {
