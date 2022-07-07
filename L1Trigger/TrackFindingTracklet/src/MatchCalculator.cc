@@ -25,6 +25,7 @@
 
 #include <filesystem>
 #include <algorithm>
+#include <bitset>
 
 using namespace std;
 using namespace trklet;
@@ -36,7 +37,11 @@ MatchCalculator::MatchCalculator(string name, Settings const& settings, Globals*
       rphicutPStable_(settings),
       rphicut2Stable_(settings),
       rcutPStable_(settings),
-      rcut2Stable_(settings) {
+      rcut2Stable_(settings),
+      alphainner_(settings),
+      alphaouter_(settings),
+      rSSinner_(settings),
+      rSSouter_(settings) {
   phiregion_ = name[8] - 'A';
   layerdisk_ = initLayerDisk(3);
 
@@ -71,6 +76,10 @@ MatchCalculator::MatchCalculator(string name, Settings const& settings, Globals*
     rphicut2Stable_.initmatchcut(layerdisk_, TrackletLUT::MatchType::disk2Sphi, region);
     rcutPStable_.initmatchcut(layerdisk_, TrackletLUT::MatchType::diskPSr, region);
     rcut2Stable_.initmatchcut(layerdisk_, TrackletLUT::MatchType::disk2Sr, region);
+    alphainner_.initmatchcut(layerdisk_, TrackletLUT::MatchType::alphainner, region);
+    alphaouter_.initmatchcut(layerdisk_, TrackletLUT::MatchType::alphaouter, region);
+    rSSinner_.initmatchcut(layerdisk_, TrackletLUT::MatchType::rSSinner, region);
+    rSSouter_.initmatchcut(layerdisk_, TrackletLUT::MatchType::rSSouter, region);
   }
 
   for (unsigned int i = 0; i < N_DSS_MOD * 2; i++) {
@@ -444,6 +453,29 @@ void MatchCalculator::execute(unsigned int iSector, double phioffset) {
 
         // integer match
         imatch = (std::abs(ideltaphi) * irstub < best_ideltaphi_disk) && (std::abs(ideltar) < best_ideltar_disk);
+        if(imatch) {
+          std::cout << "stub=" << trklet::hexFormat(fpgastub->str()) << endl;
+          std::cout << "proj=" << trklet::hexFormat(tracklet->trackletprojstrdisk(disk)) << std::endl;
+          string stubid = mergedMatches[j].second->stubindex().str();  // stub ID
+          FPGAWord tmp;
+          if (projindex >= (1 << 7)) {
+            projindex = (1 << 7) - 1;
+          }
+          tmp.set(projindex, 7, true, __LINE__, __FILE__);
+          std::cout << "cmatch=" << tmp.str() << "|" << (stub->isPSmodule() ? "1" : "0") << "|" << stubid << " " << trklet::hexFormat(tmp.str() + stubid) << endl;
+          std::cout << std::hex << "iz=" << iz << "\t" << std::bitset<7>(iz) << std::endl;
+          std::cout << "iphicorr=" << iphicorr << "\t" << std::bitset<11>(iphicorr) << std::endl;
+          std::cout << "iphi=" << iphi << "\t" << std::bitset<14>(iphi) << std::endl;
+          std::cout << "ideltaphi=" << ideltaphi << "\t" << std::bitset<20>(ideltaphi) << std::endl;
+          std::cout << "ircorr=" << ircorr << "\t" << std::bitset<7>(ircorr) << std::endl;
+          std::cout << "ir=" << ir << "\t" << std::bitset<12>(ir) << std::endl;
+          std::cout << "ircorr=" << ircorr << std::endl;
+          std::cout << "irstub=" << irstub << "\t" << std::bitset<7>(ircorr) << std::endl;
+          std::cout << "Overwriting best_ideltaphi_disk=" << best_ideltaphi_disk << std::endl;
+          std::cout << "Overwriting best_ideltar_disk=" << best_ideltar_disk << std::endl;
+          std::cout << "imatch=" << std::endl;
+          std::cout << (std::abs(ideltaphi) * irstub < best_ideltaphi_disk) << "\t" << (std::abs(ideltar) < best_ideltar_disk) << std::endl;
+        }
         // Update the "best" values
         if (imatch) {
           best_ideltaphi_disk = std::abs(ideltaphi) * irstub;

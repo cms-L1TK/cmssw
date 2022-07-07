@@ -24,7 +24,7 @@ namespace trklet {
 
     ~TrackletLUT() = default;
 
-    enum MatchType { barrelphi, barrelz, disk2Sphi, disk2Sr, diskPSphi, diskPSr };
+    enum MatchType { barrelphi, barrelz, disk2Sphi, disk2Sr, diskPSphi, diskPSr, alphainner, alphaouter, rSSinner, rSSouter };
 
     //region only used for name - should be removed
     void initmatchcut(unsigned int layerdisk, MatchType type, unsigned int region);
