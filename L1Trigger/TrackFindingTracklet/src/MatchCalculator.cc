@@ -25,7 +25,6 @@
 
 #include <filesystem>
 #include <algorithm>
-#include <bitset>
 
 using namespace std;
 using namespace trklet;

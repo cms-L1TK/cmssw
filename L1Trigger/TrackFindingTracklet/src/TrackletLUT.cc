@@ -35,25 +35,25 @@ void TrackletLUT::initmatchcut(unsigned int layerdisk, MatchType type, unsigned 
     if (type == alphainner) {
       for (unsigned int i = 0; i < N_DSS_MOD * 2; i++) {
         table_.push_back((1 << settings_.alphashift()) * settings_.krprojshiftdisk() * settings_.half2SmoduleWidth() /
-                              (1 << (settings_.nbitsalpha() - 1)) / (settings_.rDSSinner(i) * settings_.rDSSinner(i)) /
-                              settings_.kphi());
+                         (1 << (settings_.nbitsalpha() - 1)) / (settings_.rDSSinner(i) * settings_.rDSSinner(i)) /
+                         settings_.kphi());
       }
     }
     if (type == alphaouter) {
       for (unsigned int i = 0; i < N_DSS_MOD * 2; i++) {
         table_.push_back((1 << settings_.alphashift()) * settings_.krprojshiftdisk() * settings_.half2SmoduleWidth() /
-                              (1 << (settings_.nbitsalpha() - 1)) / (settings_.rDSSouter(i) * settings_.rDSSouter(i)) /
-                              settings_.kphi());
+                         (1 << (settings_.nbitsalpha() - 1)) / (settings_.rDSSouter(i) * settings_.rDSSouter(i)) /
+                         settings_.kphi());
       }
     }
     if (type == rSSinner) {
       for (unsigned int i = 0; i < N_DSS_MOD * 2; i++) {
-          table_.push_back(settings_.rDSSinner(i) / settings_.kr());
+        table_.push_back(settings_.rDSSinner(i) / settings_.kr());
       }
     }
     if (type == rSSouter) {
       for (unsigned int i = 0; i < N_DSS_MOD * 2; i++) {
-          table_.push_back(settings_.rDSSouter(i) / settings_.kr());
+        table_.push_back(settings_.rDSSouter(i) / settings_.kr());
       }
     }
   }
