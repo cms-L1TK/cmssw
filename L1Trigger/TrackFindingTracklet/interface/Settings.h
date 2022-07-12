@@ -455,7 +455,7 @@ namespace trklet {
       return fact * bendcut(ibend, layerdisk, isPSmodule);
     }
 
-    bool useCalcBendCuts = true;
+    bool useCalcBendCuts = false;
     unsigned int nzbinsPhiCorr = 1;  // 1, 2, or 13 (2 = (Flat, Tilted), 13 = (Flat, TR1, ..., TR12))
 
     double bendcutTE(unsigned int seed, bool inner) const {
