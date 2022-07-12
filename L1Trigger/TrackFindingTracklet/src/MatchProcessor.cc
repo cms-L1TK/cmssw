@@ -86,6 +86,14 @@ MatchProcessor::MatchProcessor(string name, Settings const& settings, Globals* g
     tmpME.setimeu(iME);
     matchengines_.push_back(tmpME);
   }
+
+  // Pick some initial large values
+  best_ideltaphi_barrel = 0xFFFF;
+  best_ideltaz_barrel = 0xFFFF;
+  best_ideltaphi_disk = 0xFFFF;
+  best_ideltar_disk = 0xFFFF;
+  curr_tracklet = nullptr;
+  next_tracklet = nullptr;
 }
 
 void MatchProcessor::addOutput(MemoryBase* memory, string output) {
@@ -440,7 +448,7 @@ void MatchProcessor::execute(unsigned int iSector, double phimin) {
   }
 }
 
-bool MatchProcessor::matchCalculator(Tracklet* tracklet, const Stub* fpgastub, bool, unsigned int) {
+bool MatchProcessor::matchCalculator(Tracklet* tracklet, const Stub* fpgastub, bool, unsigned int istep) {
   const L1TStub* stub = fpgastub->l1tstub();
 
   if (layerdisk_ < N_LAYER) {
@@ -487,6 +495,19 @@ bool MatchProcessor::matchCalculator(Tracklet* tracklet, const Stub* fpgastub, b
     double dzapprox = z - (proj.rzprojapprox() + dr * proj.rzprojderapprox());
 
     int seedindex = tracklet->getISeed();
+    curr_tracklet = next_tracklet;
+    next_tracklet = tracklet;
+
+    // Do we have a new tracklet?
+    bool newtracklet = (istep == 0 || tracklet != curr_tracklet);
+    if (istep == 0)
+      best_ideltar_disk = (1 << (fpgastub->r().nbits() - 1));  // Set to the maximum possible
+    // If so, replace the "best" values with the cut tables
+    if (newtracklet) {
+      best_ideltaphi_barrel = (int)phimatchcuttable_.lookup(seedindex);
+      best_ideltaz_barrel = (int)zmatchcuttable_.lookup(seedindex);
+    }
+
 
     assert(phimatchcuttable_.lookup(seedindex) > 0);
     assert(zmatchcuttable_.lookup(seedindex) > 0);
@@ -516,9 +537,14 @@ bool MatchProcessor::matchCalculator(Tracklet* tracklet, const Stub* fpgastub, b
           << zmatchcuttable_.lookup(seedindex) * settings_.kz() << endl;
     }
 
-    bool imatch = (std::abs(ideltaphi) <= phimatchcuttable_.lookup(seedindex)) &&
-                  (ideltaz << dzshift_ < zmatchcuttable_.lookup(seedindex)) &&
-                  (ideltaz << dzshift_ >= -zmatchcuttable_.lookup(seedindex));
+    bool imatch = (std::abs(ideltaphi) <= best_ideltaphi_barrel &&
+                  (ideltaz << dzshift_ < best_ideltaz_barrel) &&
+                  (ideltaz << dzshift_ >= -best_ideltaz_barrel));
+    // Update the "best" values
+    if (imatch) {
+      best_ideltaphi_barrel = std::abs(ideltaphi);
+      best_ideltaz_barrel = std::abs(ideltaz);
+    }
 
     if (settings_.debugTracklet()) {
       edm::LogVerbatim("Tracklet") << getName() << " imatch = " << imatch << " ideltaphi cut " << ideltaphi << " "
@@ -672,6 +698,18 @@ bool MatchProcessor::matchCalculator(Tracklet* tracklet, const Stub* fpgastub, b
       idrcut = rcut2Stable_.lookup(seedindex);
     }
 
+    curr_tracklet = next_tracklet;
+    next_tracklet = tracklet;
+    // Do we have a new tracklet?
+    bool newtracklet = (istep == 0 || tracklet != curr_tracklet);
+    if (istep == 0)
+      best_ideltar_disk = (1 << (fpgastub->r().nbits() - 1));  // Set to the maximum possible
+    // If so, replace the "best" values with the cut tables
+    if (newtracklet) {
+      best_ideltaphi_disk = idrphicut;
+      best_ideltar_disk = idrcut;
+    }
+
     double drphicut = idrphicut * settings_.kphi() * settings_.kr();
     double drcut = idrcut * settings_.krprojshiftdisk();
 
@@ -686,7 +724,28 @@ bool MatchProcessor::matchCalculator(Tracklet* tracklet, const Stub* fpgastub, b
     }
 
     bool match = (std::abs(drphi) < drphicut) && (std::abs(deltar) < drcut);
-    bool imatch = (std::abs(ideltaphi * irstub) < idrphicut) && (std::abs(ideltar) < idrcut);
+    bool imatch = (std::abs(ideltaphi * irstub) < best_ideltaphi_disk) && (std::abs(ideltar) < best_ideltar_disk);
+    // Update the "best" values
+    if (imatch) {
+      best_ideltaphi_disk = std::abs(ideltaphi) * irstub;
+      best_ideltar_disk = std::abs(ideltar);
+    }
+        if(imatch) {
+          std::cout << "stub=" << trklet::hexFormat(fpgastub->str()) << endl;
+          std::cout << "proj=" << trklet::hexFormat(tracklet->trackletprojstrdisk(disk)) << std::endl;
+          std::cout << std::hex << "iz=" << iz << "\t" << std::bitset<7>(iz) << std::endl;
+          std::cout << "iphicorr=" << iphicorr << "\t" << std::bitset<11>(iphicorr) << std::endl;
+          std::cout << "iphi=" << iphi << "\t" << std::bitset<14>(iphi) << std::endl;
+          std::cout << "ideltaphi=" << ideltaphi << "\t" << std::bitset<20>(ideltaphi) << std::endl;
+          std::cout << "ircorr=" << ircorr << "\t" << std::bitset<7>(ircorr) << std::endl;
+          std::cout << "ir=" << ir << "\t" << std::bitset<12>(ir) << std::endl;
+          std::cout << "ircorr=" << ircorr << std::endl;
+          std::cout << "irstub=" << irstub << "\t" << std::bitset<7>(ircorr) << std::endl;
+          std::cout << "Overwriting best_ideltaphi_disk=" << best_ideltaphi_disk << std::endl;
+          std::cout << "Overwriting best_ideltar_disk=" << best_ideltar_disk << std::endl;
+          std::cout << "imatch=" << std::endl;
+          std::cout << (std::abs(ideltaphi) * irstub < idrphicut) << "\t" << (std::abs(ideltar) < idrcut) << std::endl;
+        }
 
     if (settings_.debugTracklet()) {
       edm::LogVerbatim("Tracklet") << "imatch match disk: " << imatch << " " << match << " " << std::abs(ideltaphi)
