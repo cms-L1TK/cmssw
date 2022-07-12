@@ -91,11 +91,6 @@ namespace trklet {
 
     std::array<double, 2> getTanRange(const std::vector<const tt::SensorModule*>& sensorModules);
 
-    std::vector<double> getBendAverage(unsigned int layerdisk,
-                                       const std::vector<const tt::SensorModule*>& sensorModules,
-                                       bool isPS,
-                                       std::string bend_type);
-
     std::vector<std::array<double, 2>> getBendCut(unsigned int layerdisk,
                                                   const std::vector<const tt::SensorModule*>& sensorModules,
                                                   bool isPS,

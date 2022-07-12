@@ -350,7 +350,6 @@ void L1FPGATrackProducer::beginRun(const edm::Run& run, const edm::EventSetup& i
 
   setup_ = &iSetup.getData(esGetToken_);
 
-  //getBendCut
   settings_.passSetup(setup_);
 
   setupHPH_ = &iSetup.getData(esGetTokenHPH_);
