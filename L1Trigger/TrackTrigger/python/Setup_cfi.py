@@ -100,7 +100,7 @@ TrackTrigger_params = cms.PSet (
     TiltApproxSlope     = cms.double(   0.884            ), # In tilted barrel, grad*|z|/r + int approximates |cosTilt| + |sinTilt * cotTheta|
     TiltApproxIntercept = cms.double(   0.507            ), # In tilted barrel, grad*|z|/r + int approximates |cosTilt| + |sinTilt * cotTheta|
     TiltUncertaintyR    = cms.double(   0.12             ), # In tilted barrel, constant assumed stub radial uncertainty * sqrt(12) in cm
-    MindPhi             = cms.double(   0.0001           ), # minimum representable stub phi uncertainty * sqrt(12) + additional terms in rad
+    MindPhi             = cms.double(   0.00001          ), # minimum representable stub phi uncertainty * sqrt(12) + additional terms in rad
     MaxdPhi             = cms.double(   0.02             ), # maximum representable stub phi uncertainty * sqrt(12) + additional terms in rad
     MindZ               = cms.double(   0.1              ), # minimum representable stub z uncertainty * sqrt(12) + additional terms in cm
     MaxdZ               = cms.double(  30.               ), # maximum representable stub z uncertainty * sqrt(12) + additional terms in cm
@@ -174,27 +174,27 @@ TrackTrigger_params = cms.PSet (
 
   # Parmeter specifying MiniHoughTransform
   MiniHoughTransform = cms.PSet (
-    NumStages     = cms.int32( 2 ), # number of chained mhts
-    NumBinsInv2R  = cms.int32( 2 ), # number of finer inv2R bins inside current bin
-    NumBinsPhiT   = cms.int32( 2 ), # number of finer phiT bins inside current bin
-    MinLayers     = cms.int32( 4 )  # required number of stub layers to form a candidate
+    NumBinsInv2R = cms.int32( 4 ), # number of inv2R bins
+    NumBinsPhiT  = cms.int32( 4 ), # number of phiT bins
+    MinLayers    = cms.int32( 4 ), # required number of stub layers to form a candidate
+    MinLayersPS  = cms.int32( 2 )  # required number of stub PS layers to form a candidate
   ),
 
   # Parmeter specifying ZHoughTransform
   ZHoughTransform = cms.PSet (
-    NumBinsZT        = cms.int32(  2 ), #
-    NumBinsCot       = cms.int32(  2 ), #
-    NumStages        = cms.int32(  5 ), #
-    MinLayers        = cms.int32(  4 ), # required number of stub layers to form a candidate
-    MaxTracks        = cms.int32( 16 ), # max number of output tracks per node
-    MaxStubsPerLayer = cms.int32(  4 )  # cut on number of stub per layer for input candidates
+    NumBinsCot  = cms.int32( 16 ), # number of cot bins
+    NumBinsZT   = cms.int32( 16 ), # number of zT bins
+    MinLayers   = cms.int32(  4 ), # required number of stub layers to form a candidate
+    MinLayersPS = cms.int32(  2 )  # required number of stub PS layers to form a candidate
   ),
 
   # Parmeter specifying KalmanFilter Input Formatter
 
   KalmanFilterIn = cms.PSet (
-    ShiftRangePhi = cms.int32( 2 ), # power of 2 multiplier of stub phi residual range
-    ShiftRangeZ   = cms.int32( 1 )  # power of 2 multiplier of stub z residual range
+    ShiftRangePhi    = cms.int32(  2 ), # power of 2 multiplier of stub phi residual range
+    ShiftRangeZ      = cms.int32(  1 ), # power of 2 multiplier of stub z residual range
+    MaxTracks        = cms.int32( 16 ), # max number of output tracks per node
+    MaxStubsPerLayer = cms.int32(  4 )  # cut on number of stub per layer for input candidates
   ),
 
   # Parmeter specifying KalmanFilter
@@ -202,11 +202,11 @@ TrackTrigger_params = cms.PSet (
     NumWorker       = cms.int32 (  2   ), # number of kf worker
     RangeFactor     = cms.double(  2.0 ), # search window of each track parameter in initial uncertainties
     MinLayers       = cms.int32 (  4   ), # required number of stub layers to form a track
-    MaxLayers       = cms.int32 (  7   ), # maximum number of  layers added to a track
-    ShiftInitialC00 = cms.int32 (  0   ), #
-    ShiftInitialC11 = cms.int32 ( -2   ), #
-    ShiftInitialC22 = cms.int32 (  0   ), #
-    ShiftInitialC33 = cms.int32 (  0   )  #
+    MaxLayers       = cms.int32 (  4   ), # maximum number of  layers added to a track
+    ShiftInitialC00 = cms.int32 (  0   ), # initial C00 is given by inv2R uncertainty squared times this power of 2
+    ShiftInitialC11 = cms.int32 (  0   ), # initial C11 is given by phiT uncertainty squared times this power of 2
+    ShiftInitialC22 = cms.int32 ( -1   ), # initial C22 is given by cot uncertainty squared times this power of 2
+    ShiftInitialC33 = cms.int32 ( -1   )  # initial C33 is given by zT uncertainty squared times this power of 2
   ),
 
   # Parmeter specifying KalmanFilter Output Formatter

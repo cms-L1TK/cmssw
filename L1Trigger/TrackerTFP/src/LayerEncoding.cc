@@ -24,6 +24,8 @@ namespace trackerTFP {
                               pow(2, zT_->width()), vector<map<int, const SensorModule*>>(pow(2, cot_->width())))),
         maybeLayer_(setup_->numSectorsEta(),
                     vector<vector<vector<int>>>(pow(2, zT_->width()), vector<vector<int>>(pow(2, cot_->width())))) {
+    const double baseCot = cot_->base() * 4.;
+    const double baseZT = zT_->base() * 4.;
     // number of boundaries of fiducial area in r-z plane for a given set of rough r-z track parameter
     static constexpr int boundaries = 2;
     // find unique sensor mouldes in r-z
@@ -52,25 +54,17 @@ namespace trackerTFP {
       for (int binZT = 0; binZT < pow(2, zT_->width()); binZT++) {
         // z at radius chosenRofZ wrt zT of sectorZT of this bin centre
         const double zT = zT_->floating(zT_->toSigned(binZT));
-        // skip this bin if zT is outside of eta sector
-        //if (abs(zT) > rangeZT + zT_->base() / 2.)
-          //continue;
         // z at radius chosenRofZ wrt zT of sectorZT of this bin boundaries
-        const vector<double> zTs = {sectorZT + zT - zT_->base() / 2., sectorZT + zT + zT_->base() / 2.};
+        const vector<double> zTs = {sectorZT + zT - baseZT / 2., sectorZT + zT + baseZT / 2.};
         // loop over bins in cotTheta
         for (int binCot = 0; binCot < pow(2, cot_->width()); binCot++) {
           // cotTheta wrt sectorCot of this bin centre
           const double cot = cot_->floating(cot_->toSigned(binCot));
-          // global z0 of this set of r-z parameter
-          const double z0 = zT - cot * setup_->chosenRofZ();
-          // skip this bin if z0 is outside of fiducial area (+- 15 cm)
-          //if (abs(z0) > setup_->beamWindowZ() + cot_->base() * setup_->chosenRofZ() / 2.)
-            //continue;
           // layer ids crossed by left and right rough r-z parameter shape boundaries
           vector<set<int>> layers(boundaries);
           map<int, const SensorModule*>& layermaps = layerEncodingMap_[binEta][binZT][binCot];
           // cotTheta wrt sectorCot of this bin boundaries
-          const vector<double> cots = {sectorCot + cot - cot_->base() / 2., sectorCot + cot + cot_->base() / 2.};
+          const vector<double> cots = {sectorCot + cot - baseCot / 2., sectorCot + cot + baseCot / 2.};
           // loop over all unique modules
           for (const SensorModule* sm : sensorModules) {
             // check if module is crossed by left and right rough r-z parameter shape boundaries

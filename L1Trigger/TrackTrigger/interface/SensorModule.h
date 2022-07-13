@@ -132,6 +132,14 @@ namespace tt {
     double tiltCorrectionSlope_;
     // tilt correction parameter used to project r to z uncertainty
     double tiltCorrectionIntercept_;
+    //
+    double scattering_;
+    //
+    double dR_;
+    //
+    double dPhi_;
+    //
+    double dZ_;
   };
 
 }  // namespace tt

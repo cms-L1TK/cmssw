@@ -183,7 +183,7 @@ namespace trackerTFP {
           continue;
         numUntruncatedTracks++;
         numUntruncatedStubs += nStubs;
-        if (frame < setup_->numFrames())
+        if (!enableTruncation_ || frame < setup_->numFrames())
           numTruncatedTracks++;
       }
       // Transform Stream into TracksKF

@@ -177,22 +177,22 @@ namespace tt {
         htDepthMemory_(pSetHT_.getParameter<int>("DepthMemory")),
         // Parmeter specifying MiniHoughTransform
         pSetMHT_(iConfig.getParameter<ParameterSet>("MiniHoughTransform")),
-        mhtNumStages_(pSetMHT_.getParameter<int>("NumStages")),
         mhtNumBinsInv2R_(pSetMHT_.getParameter<int>("NumBinsInv2R")),
         mhtNumBinsPhiT_(pSetMHT_.getParameter<int>("NumBinsPhiT")),
         mhtMinLayers_(pSetMHT_.getParameter<int>("MinLayers")),
+        mhtMinLayersPS_(pSetMHT_.getParameter<int>("MinLayersPS")),
         // Parmeter specifying ZHoughTransform
         pSetZHT_(iConfig.getParameter<ParameterSet>("ZHoughTransform")),
-        zhtNumBinsZT_(pSetZHT_.getParameter<int>("NumBinsZT")),
         zhtNumBinsCot_(pSetZHT_.getParameter<int>("NumBinsCot")),
-        zhtNumStages_(pSetZHT_.getParameter<int>("NumStages")),
+        zhtNumBinsZT_(pSetZHT_.getParameter<int>("NumBinsZT")),
         zhtMinLayers_(pSetZHT_.getParameter<int>("MinLayers")),
-        zhtMaxTracks_(pSetZHT_.getParameter<int>("MaxTracks")),
-        zhtMaxStubsPerLayer_(pSetZHT_.getParameter<int>("MaxStubsPerLayer")),
+        zhtMinLayersPS_(pSetZHT_.getParameter<int>("MinLayersPS")),
         // Parameter specifying KalmanFilter Input Formatter
         pSetKFin_(iConfig.getParameter<ParameterSet>("KalmanFilterIn")),
         kfinShiftRangePhi_(pSetKFin_.getParameter<int>("ShiftRangePhi")),
         kfinShiftRangeZ_(pSetKFin_.getParameter<int>("ShiftRangeZ")),
+        kfinMaxTracks_(pSetKFin_.getParameter<int>("MaxTracks")),
+        kfinMaxStubsPerLayer_(pSetKFin_.getParameter<int>("MaxStubsPerLayer")),
         // Parmeter specifying KalmanFilter
         pSetKF_(iConfig.getParameter<ParameterSet>("KalmanFilter")),
         kfNumWorker_(pSetKF_.getParameter<int>("NumWorker")),
@@ -536,7 +536,9 @@ namespace tt {
   // true if stub from barrel module
   bool Setup::psModule(const TTStubRef& ttStubRef) const {
     const DetId& detId = ttStubRef->getDetId();
-    return trackerGeometry_->getDetectorType(detId) == TrackerGeometry::ModuleType::Ph2PSP;
+    SensorModule* sm = sensorModule(detId + 1);
+    return sm->psModule();
+    //return trackerGeometry_->getDetectorType(detId) == TrackerGeometry::ModuleType::Ph2PSP;
   }
 
   //
@@ -583,12 +585,7 @@ namespace tt {
   double Setup::dPhi(const TTStubRef& ttStubRef, double inv2R) const {
     const DetId& detId = ttStubRef->getDetId();
     SensorModule* sm = sensorModule(detId + 1);
-    const double r = stubPos(ttStubRef).perp();
-    const double sigma = sm->pitchRow() / r;
-    const double scat = scattering_ * abs(inv2R);
-    const double extra = sm->barrel() ? 0. : sm->pitchCol() * abs(inv2R);
-    const double digi = tmttBasePhi_;
-    const double dPhi = sigma + scat + extra + digi;
+    const double dPhi = sm->dPhi(inv2R);
     if (dPhi >= maxdPhi_ || dPhi < mindPhi_) {
       cms::Exception exception("out_of_range");
       exception.addContext("tt::Setup::dPhi");
@@ -600,12 +597,10 @@ namespace tt {
   }
 
   // stub projected z uncertainty
-  double Setup::dZ(const TTStubRef& ttStubRef, double cot) const {
+  double Setup::dZ(const TTStubRef& ttStubRef) const {
     const DetId& detId = ttStubRef->getDetId();
     SensorModule* sm = sensorModule(detId + 1);
-    const double sigma = sm->pitchCol() * sm->tiltCorrection(cot);
-    const double digi = tmttBaseZ_;
-    const double dZ = sigma + digi;
+    const double dZ = sm->dZ();
     if (dZ >= maxdZ_ || dZ < mindZ_) {
       cms::Exception exception("out_of_range");
       exception.addContext("tt::Setup::dZ");
@@ -763,7 +758,7 @@ namespace tt {
     // zht
     zhtNumCells_ = zhtNumBinsCot_ * zhtNumBinsZT_;
     //
-    kfWidthLayerCount_ = ceil(log2(zhtMaxStubsPerLayer_));
+    kfWidthLayerCount_ = ceil(log2(kfinMaxStubsPerLayer_));
   }
 
   // returns bit accurate hybrid stub radius for given TTStubRef and h/w bit word

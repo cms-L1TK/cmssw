@@ -117,6 +117,11 @@ namespace tt {
       tiltCorrectionSlope_ = setup->tiltApproxSlope();
       tiltCorrectionIntercept_ = setup->tiltApproxIntercept();
     }
+    // stub uncertainty
+    scattering_ = setup->scattering();
+    dR_ = abs(sinTilt_) * pitchCol_;
+    dPhi_ = pitchRow_ / r_;
+    dZ_ = abs(cosTilt_) * pitchCol_ + dR_ * abs(z_) / r_;
   }
 
   unsigned int SensorModule::ringId(const Setup* setup) const {

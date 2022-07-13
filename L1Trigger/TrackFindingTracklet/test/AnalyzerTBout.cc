@@ -144,6 +144,10 @@ namespace trklet {
     esGetTokenSetup_ = esConsumes<Setup, SetupRcd, Transition::BeginRun>();
     esGetTokenDataFormats_ = esConsumes<DataFormats, DataFormatsRcd, Transition::BeginRun>();
     esGetTokenChannelAssignment_ = esConsumes<ChannelAssignment, ChannelAssignmentRcd, Transition::BeginRun>();
+    // initial ES products
+    setup_ = nullptr;
+    dataFormats_ = nullptr;
+    channelAssignment_ = nullptr;
     // log config
     log_.setf(ios::fixed, ios::floatfield);
     log_.precision(4);

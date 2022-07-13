@@ -119,7 +119,7 @@ namespace tt {
     // stub projected phi uncertainty
     double dPhi(const TTStubRef& ttStubRef, double inv2R) const;
     // stub projected z uncertainty
-    double dZ(const TTStubRef& ttStubRef, double cot) const;
+    double dZ(const TTStubRef& ttStubRef) const;
     // stub projected chi2phi wheight
     double v0(const TTStubRef& ttStubRef, double inv2R) const;
     // stub projected chi2z wheight
@@ -448,31 +448,27 @@ namespace tt {
 
     // Parameter specifying MiniHoughTransform
 
-    // number of chained mhts
-    int mhtNumStages() const { return mhtNumStages_; }
     // number of finer inv2R bins inside HT bin
     int mhtNumBinsInv2R() const { return mhtNumBinsInv2R_; }
     // number of finer phiT bins inside HT bin
     int mhtNumBinsPhiT() const { return mhtNumBinsPhiT_; }
     // required number of stub layers to form a candidate
     int mhtMinLayers() const { return mhtMinLayers_; }
+    // required number of stub PS layers to form a candidate
+    int mhtMinLayersPS() const { return mhtMinLayersPS_; }
     // number of mht cells
     int mhtNumCells() const { return mhtNumCells_; }
 
     // Parameter specifying ZHoughTransform
 
-    //number of used zT bins
-    int zhtNumBinsZT() const { return zhtNumBinsZT_; }
     // number of used cot bins
     int zhtNumBinsCot() const { return zhtNumBinsCot_; }
-    //  number of stages
-    int zhtNumStages() const { return zhtNumStages_; }
+    //number of used zT bins
+    int zhtNumBinsZT() const { return zhtNumBinsZT_; }
     // required number of stub layers to form a candidate
     int zhtMinLayers() const { return zhtMinLayers_; }
-    // max number of output tracks per node
-    int zhtMaxTracks() const { return zhtMaxTracks_; }
-    // cut on number of stub per layer for input candidates
-    int zhtMaxStubsPerLayer() const { return zhtMaxStubsPerLayer_; }
+    // required number of stub PS layers to form a candidate
+    int zhtMinLayersPS() const { return zhtMinLayersPS_; }
     // number of zht cells
     int zhtNumCells() const { return zhtNumCells_; }
 
@@ -482,6 +478,10 @@ namespace tt {
     int kfinShiftRangePhi() const { return kfinShiftRangePhi_; }
     // power of 2 multiplier of stub z residual range
     int kfinShiftRangeZ() const { return kfinShiftRangeZ_; }
+    // max number of output tracks per node
+    int kfinMaxTracks() const { return kfinMaxTracks_; }
+    // cut on number of stub per layer for input candidates
+    int kfinMaxStubsPerLayer() const { return kfinMaxStubsPerLayer_; }
 
     // Parameter specifying KalmanFilter
 
@@ -493,6 +493,7 @@ namespace tt {
     int kfMaxLayers() const { return kfMaxLayers_; }
     // search window of each track parameter in initial uncertainties
     double kfRangeFactor() const { return kfRangeFactor_; }
+<<<<<<< HEAD
     //
     int kfShiftInitialC00() const { return kfShiftInitialC00_; }
     //
@@ -500,6 +501,15 @@ namespace tt {
     //
     int kfShiftInitialC22() const { return kfShiftInitialC22_; }
     //
+=======
+    // initial C00 is given by inv2R uncertainty squared times this power of 2
+    int kfShiftInitialC00() const { return kfShiftInitialC00_; }
+    // initial C11 is given by phiT uncertainty squared times this power of 2
+    int kfShiftInitialC11() const { return kfShiftInitialC11_; }
+    // initial C22 is given by cot uncertainty squared times this power of 2
+    int kfShiftInitialC22() const { return kfShiftInitialC22_; }
+    // initial C33 is given by zT uncertainty squared times this power of 2
+>>>>>>> 27f125d2c17 (mini ht done.)
     int kfShiftInitialC33() const { return kfShiftInitialC33_; }
 
     // Parameter specifying KalmanFilter Output Formatter
@@ -862,29 +872,25 @@ namespace tt {
 
     // Parameter specifying MiniHoughTransform
     edm::ParameterSet pSetMHT_;
-    // number of chained mhts
-    int mhtNumStages_;
     // number of finer inv2R bins inside HT bin
     int mhtNumBinsInv2R_;
     // number of finer phiT bins inside HT bin
     int mhtNumBinsPhiT_;
     // required number of stub layers to form a candidate
     int mhtMinLayers_;
+    // required number of stub PS layers to form a candidate
+    int mhtMinLayersPS_;
 
     // Parameter specifying ZHoughTransform
     edm::ParameterSet pSetZHT_;
-    //number of used zT bins
-    int zhtNumBinsZT_;
     // number of used cot bins
     int zhtNumBinsCot_;
-    // number of stages
-    int zhtNumStages_;
+    //number of used zT bins
+    int zhtNumBinsZT_;
     // required number of stub layers to form a candidate
     int zhtMinLayers_;
-    // max number of output tracks per node
-    int zhtMaxTracks_;
-    // cut on number of stub per layer for input candidates
-    int zhtMaxStubsPerLayer_;
+    // required number of stub PS layers to form a candidate
+    int zhtMinLayersPS_;
 
     // Parameter specifying KalmanFilter Input Formatter
     edm::ParameterSet pSetKFin_;
@@ -892,6 +898,10 @@ namespace tt {
     int kfinShiftRangePhi_;
     // power of 2 multiplier of stub z residual range
     int kfinShiftRangeZ_;
+    // max number of output tracks per node
+    int kfinMaxTracks_;
+    // cut on number of stub per layer for input candidates
+    int kfinMaxStubsPerLayer_;
 
     // Parameter specifying KalmanFilter
     edm::ParameterSet pSetKF_;
@@ -903,13 +913,13 @@ namespace tt {
     int kfMaxLayers_;
     // search window of each track parameter in initial uncertainties
     double kfRangeFactor_;
-    //
+    // initial C00 is given by inv2R uncertainty squared times this power of 2
     int kfShiftInitialC00_;
-    //
+    // initial C11 is given by phiT uncertainty squared times this power of 2
     int kfShiftInitialC11_;
-    //
+    // initial C22 is given by cot uncertainty squared times this power of 2
     int kfShiftInitialC22_;
-    //
+    // initial C33 is given by zT uncertainty squared times this power of 2
     int kfShiftInitialC33_;
 
     // Parameter specifying KalmanFilter Output Formatter

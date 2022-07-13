@@ -22,29 +22,11 @@ namespace trackerTFP {
     // read in and organize input product (fill vector input_)
     void consume(const tt::StreamsStub& streams);
     // fill output products
-    void produce(tt::StreamsStub& accepted, tt::StreamsStub& lost);
+    void produce(tt::StreamsStub& accepted, tt::StreamsStub& lost) const;
 
   private:
-    struct State {
-      State(const StubMHT& stub, const tt::Setup* setup) : z_(stub.z()), dZ_(stub.dZ()), layer_(stub.layer()), cot_(0), zT_(0), trackId_(stub.trackId()), stub_(&stub) {
-        r_ = stub.r() + setup->chosenRofPhi() - setup->chosenRofZ();
-      }
-      void update(int cot, int zT, const DataFormats* df) {
-        cot_ += cot;
-        zT_ += zT;
-        z_ -= df->base(Variable::zT, Process::zht) * zT + df->base(Variable::cot, Process::zht) * cot * r_;
-      }
-      double r_;
-      double z_;
-      double dZ_;
-      int layer_;
-      int cot_;
-      int zT_;
-      int trackId_;
-      const StubMHT* stub_;
-    };
-    // perform finer pattern recognition per track
-    void stage(int iter, std::vector<State*>& stream);
+    // run single track through r-z hough transform ans store result
+    void produce(const std::vector<StubMHT*>& track, tt::StreamStub& accepted) const;
 
     // true if truncation is enbaled
     bool enableTruncation_;
@@ -56,10 +38,8 @@ namespace trackerTFP {
     int region_;
     // container of input stubs
     std::vector<StubMHT> stubs_;
-    // container of intermediate stubs
-    std::vector<State> states_;
     // h/w liked organized pointer to input stubs
-    std::vector<std::vector<State*>> input_;
+    std::vector<std::vector<StubMHT*>> input_;
   };
 
 }  // namespace trackerTFP

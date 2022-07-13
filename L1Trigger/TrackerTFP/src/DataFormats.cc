@@ -49,6 +49,7 @@ namespace trackerTFP {
     fillDataFormats();
     for (const Process p : Processes)
       for (const Variable v : stubs_[+p])
+        if (p == Process::mht)
         numUnusedBitsStubs_[+p] -= formats_[+v][+p] ? formats_[+v][+p]->width() : 0;
     for (const Process p : Processes)
       for (const Variable v : tracks_[+p])
@@ -128,7 +129,7 @@ namespace trackerTFP {
   template <int it, typename... Ts>
   void DataFormats::attachStub(Process p, const tuple<Ts...>& data, TTBV& ttBV) const {
     Variable v = *next(stubs_[+p].begin(), it);
-    //cout << +p << " " << +v << " " << get<it>(data) << endl;
+    cout << +p << " " << +v << " " << get<it>(data) << endl;
     formats_[+v][+p]->attach(get<it>(data), ttBV);
     if constexpr (it + 1 != sizeof...(Ts))
       attachStub<it + 1>(p, data, ttBV);
@@ -218,19 +219,15 @@ namespace trackerTFP {
   // construct StubHT from Frame
   StubHT::StubHT(const FrameStub& frame, const DataFormats* formats, int inv2R)
       : Stub(frame, formats, Process::ht), inv2R_(inv2R) {
+    dPhi_ = setup()->dPhi(ttStubRef(), format(Variable::inv2R).floating(inv2R));
+    ps_ = setup()->psModule(ttStubRef());
     fillTrackId();
   }
 
   // construct StubHT from StubGP and HT cell assignment
   StubHT::StubHT(const StubGP& stub, int phiT, int inv2R)
-      : Stub(stub, stub.r(), stub.phi(), stub.z(), 0., 0., stub.layer(), stub.sectorPhi(), stub.sectorEta(), phiT), inv2R_(inv2R) {
-    const double inv2Rf = format(Variable::inv2R).floating(inv2R);
-    const double phiTf = format(Variable::phiT).floating(phiT);
-    get<1>(data_) -= inv2Rf * r() + phiTf;
-    const SensorModule* sm = setup()->sensorModule(ttStubRef());
-    const double dR = abs(sm->sinTilt()) * sm->pitchCol();
-    get<4>(data_) = abs(sm->cosTilt()) * sm->pitchCol() + dR * abs(sm->z()) / sm->r();
-    get<3>(data_) = (setup()->scattering() + dR) * abs(inv2Rf) + sm->pitchRow() / sm->r();
+      : Stub(stub, stub.r(), stub.phi(), stub.z(), stub.layer(), stub.sectorPhi(), stub.sectorEta(), phiT), inv2R_(inv2R) {
+    get<1>(data_) -= format(Variable::inv2R).floating(inv2R) * r() + format(Variable::phiT).floating(phiT);
     dataFormats_->convertStub(p_, data_, frame_.second);
     fillTrackId();
   }
@@ -243,24 +240,29 @@ namespace trackerTFP {
   // construct StubMHT from Frame
   StubMHT::StubMHT(const FrameStub& frame, const DataFormats* formats) : Stub(frame, formats, Process::mht) {
     TTBV ttBV(bv());
+    dZ_ = setup()->dZ(ttStubRef());
+    ps_ = setup()->psModule(ttStubRef());
     trackId_ = ttBV.extract(width(Variable::sectorPhi) + width(Variable::sectorEta) + width(Variable::inv2R) +
                             width(Variable::phiT));
   }
 
   StubMHT::StubMHT(const StubHT& stub, double phi, int inv2R, int phiT)
-      : Stub(stub, stub.r(), phi, stub.z(), stub.dPhi(), stub.dZ(), stub.layer(), stub.sectorPhi(), stub.sectorEta(), inv2R, phiT) {
+      : Stub(stub, stub.r(), phi, stub.z(), stub.layer(), stub.sectorPhi(), stub.sectorEta(), 0, 0), ps_(stub.ps()) {
+    get<6>(data_) = inv2R;
+    get<7>(data_) = stub.phiT() * setup()->mhtNumBinsPhiT() + phiT + setup()->mhtNumBinsPhiT() / 2.;
     dataFormats_->convertStub(p_, data_, frame_.second);
   }
 
   // construct StubZHT from Frame
-  StubZHT::StubZHT(const FrameStub& frame, const DataFormats* formats) : Stub(frame, formats, Process::zht) {
+  StubZHT::StubZHT(const FrameStub& frame, const DataFormats* formats, int inv2R) : Stub(frame, formats, Process::zht) {
     TTBV ttBV(bv());
+    inv2R_ = inv2R * setup()->mhtNumBinsInv2R() + this->inv2R() + setup()->mhtNumBinsInv2R() / 2.;
     trackId_ = ttBV.extract(width(Variable::sectorPhi) + width(Variable::sectorEta) + width(Variable::phiT) +
                             width(Variable::inv2R) + width(Variable::zT) + width(Variable::cot));
   }
 
   StubZHT::StubZHT(const StubMHT& stub, double z, int cot, int zT)
-      : Stub(stub, stub.r(), stub.phi(), z, stub.dPhi(), stub.dZ(), stub.layer(), stub.sectorPhi(), stub.sectorEta(), stub.inv2R(), stub.phiT(), cot, zT) {
+      : Stub(stub, stub.r(), stub.phi(), z, stub.layer(), stub.sectorPhi(), stub.sectorEta(), stub.inv2R(), stub.phiT(), cot, zT) {
     dataFormats_->convertStub(p_, data_, frame_.second);
   }
 
@@ -270,7 +272,9 @@ namespace trackerTFP {
 
   // construct StubKFin from StubZHT
   StubKFin::StubKFin(const StubZHT& stub, int layer)
-      : Stub(stub, stub.r(), stub.phi(), stub.z(), stub.dPhi(), stub.dZ()), layer_(layer) {
+      : Stub(stub, stub.r(), stub.phi(), stub.z(), 0., 0.), layer_(layer) {
+    get<3>(data_) = setup()->dPhi(ttStubRef(), format(Variable::inv2R).floating(stub.inv2R()));
+    get<4>(data_) = setup()->dZ(ttStubRef());
     dataFormats_->convertStub(p_, data_, frame_.second);
   }
 
@@ -345,7 +349,7 @@ namespace trackerTFP {
       : Track(stub, ttTrackRef, maybePattern, stub.sectorPhi(), stub.sectorEta(), 0., 0., 0., 0.),
         stubs_(setup()->numLayers()),
         hitPattern_(0, setup()->numLayers()) {
-    get<3>(data_) = format(Variable::inv2R, Process::mht).floating(stub.inv2R());
+    get<3>(data_) = format(Variable::inv2R, Process::kfin).floating(stub.inv2RFull());
     get<4>(data_) = format(Variable::phiT, Process::mht).floating(stub.phiT());
     get<5>(data_) = format(Variable::cot, Process::zht).floating(stub.cot());
     get<6>(data_) = format(Variable::zT, Process::zht).floating(stub.zT());
@@ -590,33 +594,33 @@ namespace trackerTFP {
   template <>
   Format<Variable::inv2R, Process::mht>::Format(const Setup* setup) : DataFormat(true) {
     const Format<Variable::inv2R, Process::ht> ht(setup);
-    range_ = ht.range();
-    base_ = ht.base() / setup->mhtNumBinsInv2R() / pow(2., setup->mhtNumStages());
+    range_ = ht.base();
+    base_ = ht.base() / setup->mhtNumBinsInv2R() / 2.;
     width_ = ceil(log2(range_ / base_));
   }
   template <>
   Format<Variable::phiT, Process::mht>::Format(const Setup* setup) : DataFormat(true) {
     const Format<Variable::phiT, Process::ht> ht(setup);
     range_ = ht.range();
-    base_ = ht.base() / setup->mhtNumBinsPhiT() / pow(2., setup->mhtNumStages());
+    base_ = ht.base() / setup->mhtNumBinsPhiT() / 2.;
     width_ = ceil(log2(range_ / base_));
   }
   template <>
   Format<Variable::phi, Process::mht>::Format(const Setup* setup) : DataFormat(true) {
-    const Format<Variable::phi, Process::ht> phi(setup);
     const Format<Variable::r, Process::dtc> r(setup);
+    const Format<Variable::phi, Process::ht> phi(setup);
+    const Format<Variable::dPhi, Process::ht> dPhi(setup);
     const Format<Variable::inv2R, Process::mht> inv2R(setup);
     const Format<Variable::phiT, Process::mht> phiT(setup);
-    const Format<Variable::dPhi, Process::ht> dPhi(setup);
-    range_ = phiT.base() * 4. + r.range() / 2. * inv2R.base() * 4. + dPhi.range();
     base_ = phi.base();
+    range_ = phiT.base() * 4. + r.range() / 2. * inv2R.base() * 4. + dPhi.range();
     width_ = ceil(log2(range_ / base_));
   }
 
   template <>
   Format<Variable::cot, Process::zht>::Format(const Setup* setup) : DataFormat(true) {
     const Format<Variable::zT, Process::zht> zT(setup);
-    width_ = ceil(log2(pow(setup->zhtNumBinsCot(), setup->zhtNumStages()))) + 1;
+    width_ = ceil(log2(setup->zhtNumBinsCot())) + 1;
     range_ = (zT.range() + 2. * setup->beamWindowZ()) / setup->chosenRofZ();
     const int shift = ceil(log2(range_)) - width_;
     base_ = pow(2., shift);
@@ -624,7 +628,7 @@ namespace trackerTFP {
   template <>
   Format<Variable::zT, Process::zht>::Format(const Setup* setup) : DataFormat(true) {
     const Format<Variable::z, Process::dtc> z(setup);
-    width_ = ceil(log2(pow(setup->zhtNumBinsZT(), setup->zhtNumStages()))) + 1;
+    width_ = ceil(log2(setup->zhtNumBinsZT())) + 1;
     const vector<int>& quantiles = setup->gpQuantiles();
     const int maxQ = *max_element(quantiles.begin(), quantiles.end());
     range_ = maxQ * setup->baseQuantile();
@@ -635,12 +639,12 @@ namespace trackerTFP {
   Format<Variable::z, Process::zht>::Format(const Setup* setup) : DataFormat(true) {
     const Format<Variable::z, Process::gp> z(setup);
     const Format<Variable::dZ, Process::ht> dZ(setup);
-    const Format<Variable::zT, Process::zht> zT(setup);
     const Format<Variable::cot, Process::zht> cot(setup);
+    const Format<Variable::zT, Process::zht> zT(setup);
     const double offset = setup->chosenRofZ();
     const double rangeR = 2. * max(abs(setup->outerRadius() - offset), abs(setup->innerRadius() - offset));
-    range_ = zT.base() * 4. + cot.base() * 4. * rangeR / 2. + dZ.range();
     base_ = z.base();
+    range_ = zT.base() * 4. + cot.base() * 4. * rangeR / 2. + dZ.range();
     width_ = ceil(log2(range_ / base_));
   }
 
