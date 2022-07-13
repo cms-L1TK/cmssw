@@ -139,10 +139,11 @@ namespace trackerTFP {
         vector<StubZHT> stubsZHT;
         stubsZHT.reserve(nStubsZHT);
         for (int channel = 0; channel < dataFormats_->numChannel(Process::zht); channel++) {
+          const int inv2R = dataFormats_->format(Variable::inv2R, Process::ht).toSigned(channel);
           const int index = region * dataFormats_->numChannel(Process::zht) + channel;
           for (const FrameStub& frame : streams[index])
             if (frame.first.isNonnull())
-              stubsZHT.emplace_back(frame, dataFormats_);
+              stubsZHT.emplace_back(frame, dataFormats_, inv2R);
         }
         vector<deque<FrameStub>> dequesStubs(dataFormats_->numChannel(Process::kf) * setup_->numLayers());
         vector<deque<FrameTrack>> dequesTracks(dataFormats_->numChannel(Process::kf));
@@ -165,7 +166,7 @@ namespace trackerTFP {
             int layerIdKF = layerEncoding_->layerIdKF(binEta, binZT, binCot, layerId);
             if (layerIdKF == -1)
               layerIdKF = 6;
-            if (layerCounts[layerIdKF] == setup_->zhtMaxStubsPerLayer())
+            if (layerCounts[layerIdKF] == setup_->kfinMaxStubsPerLayer())
               continue;
             layerCounts[layerIdKF]++;
             deque<FrameStub>& stubs = dequesStubs[channel * setup_->numLayers() + layerIdKF];

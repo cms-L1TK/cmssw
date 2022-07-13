@@ -93,6 +93,7 @@ namespace trackerTFP {
       const StreamsStub& streams = *handle.product();
       for (int region = 0; region < setup_->numRegions(); region++) {
         for (int channel = 0; channel < dataFormats_->numChannel(Process::zht); channel++) {
+          const int inv2R = dataFormats_->format(Variable::inv2R, Process::ht).toSigned(channel);
           const int index = region * dataFormats_->numChannel(Process::zht) + channel;
           // convert stream to stubs
           const StreamStub& stream = streams[index];
@@ -100,7 +101,7 @@ namespace trackerTFP {
           stubs.reserve(stream.size());
           for (const FrameStub& frame : stream)
             if (frame.first.isNonnull())
-              stubs.emplace_back(frame, dataFormats_);
+              stubs.emplace_back(frame, dataFormats_, inv2R);
           // form tracks
           int i(0);
           for (auto it = stubs.begin(); it != stubs.end();) {
@@ -120,7 +121,7 @@ namespace trackerTFP {
             ttTracks.back().setPhiSector(start->sectorPhi() + region * setup_->numSectorsPhi());
             ttTracks.back().setEtaSector(start->sectorEta());
             ttTracks.back().setTrackSeedType(start->trackId());
-            if (i++ == setup_->zhtMaxTracks())
+            if (i++ == setup_->kfinMaxTracks())
               break;
           }
         }

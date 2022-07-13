@@ -77,7 +77,6 @@ namespace trackerTFP {
           deque<StubGP*>& stack = stacks[channel];
           StubPP* stub = pop_front(inputs[channel]);
           if (stub) {
-            stubsGP_.emplace_back(*stub, sectorPhi, sectorEta);
             if (enableTruncation_ && (int)stack.size() == setup_->gpDepthMemory() - 1)
               lostSector.push_back(pop_front(stack));
             stack.push_back(&stubsGP_.back());

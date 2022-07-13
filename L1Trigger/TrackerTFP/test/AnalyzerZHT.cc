@@ -49,7 +49,7 @@ namespace trackerTFP {
 
   private:
     //
-    void formTracks(const StreamStub& stream, vector<vector<TTStubRef>>& tracks) const;
+    void formTracks(const StreamStub& stream, vector<vector<TTStubRef>>& tracks, int inv2R) const;
     //
     void associate(const vector<vector<TTStubRef>>& tracks, const StubAssociation* ass, set<TPPtr>& tps, int& sum) const;
 
@@ -171,6 +171,7 @@ namespace trackerTFP {
       int nTracks(0);
       int nLost(0);
       for (int channel = 0; channel < dataFormats_->numChannel(Process::mht); channel++) {
+        const int inv2R = dataFormats_->format(Variable::inv2R, Process::ht).toSigned(channel);
         const int index = region * dataFormats_->numChannel(Process::mht) + channel;
         const StreamStub& accepted = handleAccepted->at(index);
         hisChannel_->Fill(accepted.size());
@@ -180,8 +181,8 @@ namespace trackerTFP {
         });
         vector<vector<TTStubRef>> tracks;
         vector<vector<TTStubRef>> lost;
-        formTracks(accepted, tracks);
-        formTracks(handleLost->at(index), lost);
+        formTracks(accepted, tracks, inv2R);
+        formTracks(handleLost->at(index), lost, inv2R);
         nTracks += tracks.size();
         allTracks += tracks.size();
         nLost += lost.size();
@@ -257,12 +258,12 @@ namespace trackerTFP {
   }
 
   //
-  void AnalyzerZHT::formTracks(const StreamStub& stream, vector<vector<TTStubRef>>& tracks) const {
+  void AnalyzerZHT::formTracks(const StreamStub& stream, vector<vector<TTStubRef>>& tracks, int inv2R) const {
     vector<StubZHT> stubs;
     stubs.reserve(stream.size());
     for (const FrameStub& frame : stream)
       if (frame.first.isNonnull())
-        stubs.emplace_back(frame, dataFormats_);
+        stubs.emplace_back(frame, dataFormats_, inv2R);
     for (auto it = stubs.begin(); it != stubs.end();) {
       const auto start = it;
       const int id = it->trackId();
