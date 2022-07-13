@@ -63,8 +63,7 @@ std::vector<const tt::SensorModule*> TrackletLUT::getSensorModules(
         if (sm.ringId(setup_) == zbin)
           sensorModules.push_back(&sm);
       } else {
-        edm::LogVerbatim("Tracklet") << "Unspecified number of z bins";
-        throw exception();
+        throw cms::Exception("Unspecified number of z bins");
       }
     } else {
       sensorModules.push_back(&sm);
