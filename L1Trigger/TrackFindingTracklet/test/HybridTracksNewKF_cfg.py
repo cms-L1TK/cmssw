@@ -40,11 +40,11 @@ process.load( 'L1Trigger.TrackFindingTracklet.Analyzer_cff' )
 process.load( 'L1Trigger.TrackFindingTracklet.Producer_cff' )
 
 # load and configure TrackTriggerAssociation
-process.load( 'SimTracker.TrackTriggerAssociation.TrackTriggerAssociator_cff' )
-process.TTTrackAssociatorFromPixelDigis.TTTracks = cms.VInputTag( cms.InputTag(
-  process.TrackFindingTrackletProducer_params.LabelTT.value(),
-  process.TrackFindingTrackletProducer_params.BranchAcceptedTracks.value()
-) )
+#process.load( 'SimTracker.TrackTriggerAssociation.TrackTriggerAssociator_cff' )
+#process.TTTrackAssociatorFromPixelDigis.TTTracks = cms.VInputTag( cms.InputTag(
+  #process.TrackFindingTrackletProducer_params.LabelTT.value(),
+  #process.TrackFindingTrackletProducer_params.BranchAcceptedTracks.value()
+#) )
 
 # build schedule
 process.mc = cms.Sequence( process.StubAssociator )
@@ -55,9 +55,8 @@ process.drin = cms.Sequence( process.TrackFindingTrackletProducerDRin + process.
 process.dr = cms.Sequence( process.TrackFindingTrackletProducerDR + process.TrackFindingTrackletAnalyzerDR )
 process.kfin = cms.Sequence( process.TrackFindingTrackletProducerKFin + process.TrackFindingTrackletAnalyzerKFin )
 process.kf = cms.Sequence( process.TrackFindingTrackletProducerKF + process.TrackFindingTrackletAnalyzerKF )
-process.TTTracks = cms.Sequence( process.TrackFindingTrackletProducerTT + process.TrackFindingTrackletProducerAS + process.TrackTriggerAssociatorTracks )
 process.interOut = cms.Sequence( process.TrackFindingTrackletProducerKFout + process.TrackFindingTrackletAnalyzerKFout )
-process.tt = cms.Path( process.mc + process.dtc + process.tracklet + process.TBout + process.interIn + process.kf )#+ process.TTTracks + process.interOut )
+process.tt = cms.Path( process.mc + process.dtc + process.tracklet + process.TBout )#+ process.interIn + process.kf )#+ process.TTTracks + process.interOut )
 process.schedule = cms.Schedule( process.tt )
 
 # create options

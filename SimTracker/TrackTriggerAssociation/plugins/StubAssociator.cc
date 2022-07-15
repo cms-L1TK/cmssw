@@ -90,7 +90,8 @@ namespace tt {
           copy_if(assocPtrs.begin(), assocPtrs.end(), inserter(tpPtrs, tpPtrs.begin()), isNonnull);
         }
         for (const TPPtr& tpPtr : tpPtrs)
-          mapTPPtrsTTStubRefs[tpPtr].push_back(ttStubRef);
+          if (setup_->useForReconstructable(*tpPtr))
+            mapTPPtrsTTStubRefs[tpPtr].push_back(ttStubRef);
       }
     }
     // associate reconstructable TrackingParticles with TTStubs
