@@ -49,7 +49,6 @@ namespace trackerTFP {
     fillDataFormats();
     for (const Process p : Processes)
       for (const Variable v : stubs_[+p])
-        if (p == Process::mht)
         numUnusedBitsStubs_[+p] -= formats_[+v][+p] ? formats_[+v][+p]->width() : 0;
     for (const Process p : Processes)
       for (const Variable v : tracks_[+p])
@@ -129,7 +128,7 @@ namespace trackerTFP {
   template <int it, typename... Ts>
   void DataFormats::attachStub(Process p, const tuple<Ts...>& data, TTBV& ttBV) const {
     Variable v = *next(stubs_[+p].begin(), it);
-    cout << +p << " " << +v << " " << get<it>(data) << endl;
+    //cout << +p << " " << +v << " " << get<it>(data) << endl << flush;
     formats_[+v][+p]->attach(get<it>(data), ttBV);
     if constexpr (it + 1 != sizeof...(Ts))
       attachStub<it + 1>(p, data, ttBV);

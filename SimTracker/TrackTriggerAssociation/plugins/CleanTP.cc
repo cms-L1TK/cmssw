@@ -68,6 +68,9 @@ namespace tt {
       const TPPtr& tpPtr = p.first;
       const Ref<TrackingVertexCollection> tvRef(handleV, i++);
       tps.emplace_back(tpPtr->g4Tracks().front(), tvRef);
+      tps.back().setNumberOfHits(tpPtr-> numberOfHits());
+      tps.back().setNumberOfTrackerHits(tpPtr-> numberOfTrackerHits());
+      tps.back().setNumberOfTrackerLayers(tpPtr-> numberOfTrackerLayers());
     }
     // store products
     iEvent.emplace(edPutToken_, move(tps));

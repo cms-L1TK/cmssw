@@ -47,10 +47,7 @@ TrackletConfigBuilder::TrackletConfigBuilder(const Settings& settings, const tt:
     NVMME_[layerdisk] = settings.nvmme(layerdisk);
   }
 
-  const TTBV seedTypes("00000001");
-  //for (unsigned int iseed = 0; iseed < N_SEED_PROMPT; iseed++) {
-  for (int iiseed : seedTypes.ids()) {
-    const unsigned int iseed = iiseed;
+  for (unsigned int iseed = 0; iseed < N_SEED_PROMPT; iseed++) {
     NVMTE_[iseed] = std::pair<unsigned int, unsigned int>(settings.nvmte(0, iseed), settings.nvmte(1, iseed));
     NTC_[iseed] = settings.NTC(iseed);
   }

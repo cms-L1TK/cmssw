@@ -57,7 +57,7 @@ namespace tt {
   }
 
   // Get all TPs that are matched to these stubs in at least 'tpMinLayers' layers and 'tpMinLayersPS' ps layers with not more then 'tpMaxBadStubs2S' not associated 2S stubs and not more then 'tpMaxBadStubsPS' associated PS stubs
-  std::vector<TPPtr> StubAssociation::associateFinal(const std::vector<TTStubRef>& ttStubRefs) const {
+  vector<TPPtr> StubAssociation::associateFinal(const vector<TTStubRef>& ttStubRefs) const {
     // Get all TPs that are matched to these stubs in at least 'tpMinLayers' layers and 'tpMinLayersPS' ps layers
     vector<TPPtr> tpPtrs = associate(ttStubRefs);
     // remove TPs with more then 'tpMaxBadStubs2S' not associated 2S stubs and more then 'tpMaxBadStubsPS' not associated PS stubs

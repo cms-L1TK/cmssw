@@ -46,7 +46,7 @@ process.zht = cms.Sequence( process.TrackerTFPProducerZHT  + process.TrackerTFPA
 process.interIn = cms.Sequence( process.TrackerTFPProducerTTFound + process.TrackerTFPProducerKFin  + process.TrackerTFPAnalyzerKFin )
 process.kf = cms.Sequence( process.TrackerTFPProducerKF  + process.TrackerTFPAnalyzerKF )
 process.interOut = cms.Sequence( process.TrackerTFPProducerTTFitted + process.TrackerTFPProducerAS + process.TrackerTFPAnalyzerTT )
-process.tt = cms.Path( process.mc + process.dtc + process.gp + process.ht + process.mht + process.zht + process.interIn + process.kf )#+ process.interOut )
+process.tt = cms.Path( process.mc + process.dtc + process.gp + process.ht + process.mht + process.zht )#+ process.interIn + process.kf )#+ process.interOut )
 process.schedule = cms.Schedule( process.tt )
 
 # create options

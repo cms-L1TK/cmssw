@@ -344,21 +344,23 @@ public:
 
 private:
   // look up table initializer for powers of 2
-  constexpr std::array<double, S_> powersOfTwo() const {
-    std::array<double, S_> lut = {};
-    for (int i = 0; i < S_; i++)
+  constexpr std::array<double, S_ + 1> powersOfTwo() const {
+    std::array<double, S_ + 1> lut = {};
+    for (int i = 0; i <= S_; i++)
       lut[i] = std::pow(2, i);
     return lut;
   }
 
   // returns 2 ** size_
   double iMax() const {
-    static const std::array<double, S_> lut = powersOfTwo();
+    static const std::array<double, S_ + 1> lut = powersOfTwo();
     return std::round(lut[size_]);
   }
 
   // check if value fits into binary BV
   void checkU(unsigned long long int value) {
+    if (size_ == 0)
+      return;
     if (value < iMax())
       return;
     cms::Exception exception("RunTimeError.");
@@ -369,7 +371,9 @@ private:
 
   // check if value fits into twos's complement BV
   void checkT(int value) {
-    static const std::array<double, S_> lut = powersOfTwo();
+    if (size_ == 0)
+      return;
+    static const std::array<double, S_ + 1> lut = powersOfTwo();
     auto abs = [](int val){ return val < 0 ? std::abs(val) - 1 : val; };
     if (abs(value) < std::round(lut[size_ - 1]))
       return;
@@ -381,6 +385,8 @@ private:
 
   // check if value fits into twos complement / binary BV
   void checkI(int value) {
+    if (size_ == 0)
+      return;
     if (twos_)
       checkT(value);
     else if (value < 0) {
