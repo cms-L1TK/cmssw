@@ -52,6 +52,9 @@ namespace trklet {
         unsigned int,
         Tracklet*,
         std::vector<const Stub*>);  // return stub with invented x,y,z coords, if it's a seeding one for this tracklet
+    unsigned int findVarRInvBin(Tracklet* trk);
+    std::vector<unsigned int> findOverlapRInvBins(Tracklet* trk);
+    bool findBin(std::vector<unsigned int> vec, unsigned int num);
 
     std::vector<Track*> inputtracks_;
     std::vector<std::vector<const Stub*>> inputstublists_;
