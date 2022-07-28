@@ -1,3 +1,15 @@
+//////////////////////////////////////////////////////////////////
+// MatchProcessor
+//
+// This module is the combined version of the PR+ME+MC
+// See more in execute()
+//
+// Variables such as `best_ideltaphi_barrel` store the "global"
+// best value for delta phi, r, z, and r*phi, for instances
+// where the same tracklet has multiple stub pairs. This allows
+// us to find the truly best match
+//////////////////////////////////////////////////////////////////
+
 #include "L1Trigger/TrackFindingTracklet/interface/MatchProcessor.h"
 #include "L1Trigger/TrackFindingTracklet/interface/Globals.h"
 #include "L1Trigger/TrackFindingTracklet/interface/Util.h"
@@ -508,7 +520,6 @@ bool MatchProcessor::matchCalculator(Tracklet* tracklet, const Stub* fpgastub, b
       best_ideltaz_barrel = (int)zmatchcuttable_.lookup(seedindex);
     }
 
-
     assert(phimatchcuttable_.lookup(seedindex) > 0);
     assert(zmatchcuttable_.lookup(seedindex) > 0);
 
@@ -537,9 +548,8 @@ bool MatchProcessor::matchCalculator(Tracklet* tracklet, const Stub* fpgastub, b
           << zmatchcuttable_.lookup(seedindex) * settings_.kz() << endl;
     }
 
-    bool imatch = (std::abs(ideltaphi) <= best_ideltaphi_barrel &&
-                  (ideltaz << dzshift_ < best_ideltaz_barrel) &&
-                  (ideltaz << dzshift_ >= -best_ideltaz_barrel));
+    bool imatch = (std::abs(ideltaphi) <= best_ideltaphi_barrel && (ideltaz << dzshift_ < best_ideltaz_barrel) &&
+                   (ideltaz << dzshift_ >= -best_ideltaz_barrel));
     // Update the "best" values
     if (imatch) {
       best_ideltaphi_barrel = std::abs(ideltaphi);
@@ -730,22 +740,6 @@ bool MatchProcessor::matchCalculator(Tracklet* tracklet, const Stub* fpgastub, b
       best_ideltaphi_disk = std::abs(ideltaphi) * irstub;
       best_ideltar_disk = std::abs(ideltar);
     }
-        if(imatch) {
-          std::cout << "stub=" << trklet::hexFormat(fpgastub->str()) << endl;
-          std::cout << "proj=" << trklet::hexFormat(tracklet->trackletprojstrdisk(disk)) << std::endl;
-          std::cout << std::hex << "iz=" << iz << "\t" << std::bitset<7>(iz) << std::endl;
-          std::cout << "iphicorr=" << iphicorr << "\t" << std::bitset<11>(iphicorr) << std::endl;
-          std::cout << "iphi=" << iphi << "\t" << std::bitset<14>(iphi) << std::endl;
-          std::cout << "ideltaphi=" << ideltaphi << "\t" << std::bitset<20>(ideltaphi) << std::endl;
-          std::cout << "ircorr=" << ircorr << "\t" << std::bitset<7>(ircorr) << std::endl;
-          std::cout << "ir=" << ir << "\t" << std::bitset<12>(ir) << std::endl;
-          std::cout << "ircorr=" << ircorr << std::endl;
-          std::cout << "irstub=" << irstub << "\t" << std::bitset<7>(ircorr) << std::endl;
-          std::cout << "Overwriting best_ideltaphi_disk=" << best_ideltaphi_disk << std::endl;
-          std::cout << "Overwriting best_ideltar_disk=" << best_ideltar_disk << std::endl;
-          std::cout << "imatch=" << std::endl;
-          std::cout << (std::abs(ideltaphi) * irstub < idrphicut) << "\t" << (std::abs(ideltar) < idrcut) << std::endl;
-        }
 
     if (settings_.debugTracklet()) {
       edm::LogVerbatim("Tracklet") << "imatch match disk: " << imatch << " " << match << " " << std::abs(ideltaphi)
