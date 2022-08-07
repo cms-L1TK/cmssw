@@ -8,7 +8,9 @@
 using namespace std;
 using namespace trklet;
 
-TrackletLUT::TrackletLUT(const Settings& settings) : settings_(settings) {}
+TrackletLUT::TrackletLUT(const Settings& settings) : settings_(settings) {
+  nbits_ = 1;
+}
 
 void TrackletLUT::initmatchcut(unsigned int layerdisk, MatchType type, unsigned int region) {
   char cregion = 'A' + region;
@@ -90,6 +92,8 @@ void TrackletLUT::initTPlut(bool fillInner,
     nbendbitsouter = 4;
   }
 
+  nbits_ = 10;
+
   int nbinsfinephidiff = (1 << nbitsfinephidiff);
 
   for (int iphibin = 0; iphibin < nbinsfinephidiff; iphibin++) {
@@ -165,6 +169,8 @@ void TrackletLUT::initTPlut(bool fillInner,
       }
     }
   }
+
+  nbits_ = 8;
 
   positive_ = false;
   char cTP = 'A' + iTP;
@@ -898,6 +904,30 @@ void TrackletLUT::writeTable() const {
   }
   out << endl << "};" << endl;
   out.close();
+
+  string name = name_;
+
+  name[name_.size()-3] = 'd';
+  name[name_.size()-2] = 'a';
+  name[name_.size()-1] = 't';
+  
+  out = openfile(settings_.tablePath(), name, __FILE__, __LINE__);
+
+  int width = (nbits_+3)/4;
+
+  for (unsigned int i = 0; i < table_.size(); i++) {
+    int itable = table_[i];
+    if (positive_) {
+      if (table_[i] < 0) {
+	itable = (1 << nbits_) - 1;
+      }
+    }
+    
+    out << uppercase << setfill('0') << setw(width) << hex <<itable << dec << endl;
+  }
+
+  out.close();
+
 }
 
 int TrackletLUT::lookup(unsigned int index) const {
