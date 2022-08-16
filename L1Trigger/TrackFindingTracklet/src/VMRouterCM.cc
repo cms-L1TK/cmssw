@@ -268,7 +268,7 @@ void VMRouterCM::execute(unsigned int) {
           allStubIndex);
 
       if (vmstubsMEPHI_[0] != nullptr) {
-	vmstubsMEPHI_[0]->addStub(vmstub, ivm * nvmmebins_ + vmbin);
+        vmstubsMEPHI_[0]->addStub(vmstub, ivm * nvmmebins_ + vmbin);
       }
 
       //Fill the TE VM memories
