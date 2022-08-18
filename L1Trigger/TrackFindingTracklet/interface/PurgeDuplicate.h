@@ -46,7 +46,6 @@ namespace trklet {
     unsigned int findVarRInvBin(Tracklet* trk);
     std::vector<unsigned int> findOverlapRInvBins(Tracklet* trk);
     bool findBin(std::vector<unsigned int> vec, unsigned int num);
-
     std::vector<Track*> inputtracks_;
     std::vector<std::vector<const Stub*>> inputstublists_;
     std::vector<std::vector<std::pair<int, int>>> inputstubidslists_;

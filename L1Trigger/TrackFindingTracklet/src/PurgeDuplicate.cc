@@ -138,11 +138,8 @@ void PurgeDuplicate::execute(std::vector<Track>& outputtracks_, unsigned int iSe
           if (findBin(findOverlapRInvBins(inputtrackfits_[i]->getTrack(j)), bin)) {
             Tracklet* aTrack = inputtrackfits_[i]->getTrack(j);
             inputtracklets_.push_back(inputtrackfits_[i]->getTrack(j));
-
             std::vector<const Stub*> stublist = inputtrackfits_[i]->getStublist(j);
-
             inputstublists_.push_back(stublist);
-
             std::vector<std::pair<int, int>> stubidslist = inputtrackfits_[i]->getStubidslist(j);
             inputstubidslists_.push_back(stubidslist);
             mergedstubidslists_.push_back(stubidslist);
