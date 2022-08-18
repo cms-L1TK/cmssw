@@ -123,7 +123,7 @@ void PurgeDuplicate::execute(std::vector<Track>& outputtracks_, unsigned int iSe
     std::vector<unsigned int> prefTracks;  // Stores all the tracks that are sent to the KF from each bin
     std::vector<int> prefTrackFit;  // Stores the track seed that corresponds to the associated track in prefTracks
 
-    for (unsigned int bin = 0; bin < settings_.overlapbins().size(); bin++) {
+    for (unsigned int bin = 0; bin < settings_.varrinvbins().size()-1; bin++) {
       // Get vectors from TrackFit and save them
       // inputtracklets: Tracklet objects from the FitTrack (not actually fit yet)
       // inputstublists: L1Stubs for that track
@@ -138,12 +138,6 @@ void PurgeDuplicate::execute(std::vector<Track>& outputtracks_, unsigned int iSe
           if (findBin(findOverlapRInvBins(inputtrackfits_[i]->getTrack(j)), bin)) {
             Tracklet* aTrack = inputtrackfits_[i]->getTrack(j);
             inputtracklets_.push_back(inputtrackfits_[i]->getTrack(j));
-
-            std::cout<<"This track's rinv is "<<inputtrackfits_[i]->getTrack(j)->rinv()<<std::endl;
-
-            for (unsigned int k = 0; k < findOverlapRInvBins(inputtrackfits_[i]->getTrack(j)).size(); k++) {
-              std::cout<<"This track is in bin(s) "<<findOverlapRInvBins(inputtrackfits_[i]->getTrack(j))[k]<<std::endl;
-            }
 
             std::vector<const Stub*> stublist = inputtrackfits_[i]->getStublist(j);
 
@@ -322,8 +316,6 @@ void PurgeDuplicate::execute(std::vector<Track>& outputtracks_, unsigned int iSe
           if ((findOverlapRInvBins(inputtracklets_[itrk]).size() > 1) &&
               (findVarRInvBin(inputtracklets_[itrk]) != bin)) {
             trackInfo[itrk].second = true;
-            std::cout<<"Rinv of itrk is "<<inputtracklets_[itrk]->rinv()<<std::endl;
-            std::cout<<"itrk is in actual bin "<< findVarRInvBin(inputtracklets_[itrk])<<std::endl;
           }
         }
       }
@@ -343,14 +335,11 @@ void PurgeDuplicate::execute(std::vector<Track>& outputtracks_, unsigned int iSe
               rejetrk = itrk;
             }
 
-            std::cout<<"The preftrk "<<preftrk<<" has rinv "<<inputtracklets_[preftrk]->rinv()<<" and is in "<<findOverlapRInvBins(inputtracklets_[preftrk]).size()<<" overlap bins and is in proper bin "<<findVarRInvBin(inputtracklets_[preftrk])<<std::endl;
-
             // If the preffered track is in more than one bin, but not in the proper varrinvbin, then mark as true
             if ((findOverlapRInvBins(inputtracklets_[preftrk]).size() > 1) &&
                 (findVarRInvBin(inputtracklets_[preftrk]) != bin)) {
               trackBinInfo[preftrk] = true;
               trackBinInfo[rejetrk] = true;
-              std::cout<<"Cannibalize preftrk "<<preftrk<<std::endl;
             } else {
               // Get a merged stub list
               std::vector<const Stub*> newStubList;
@@ -406,8 +395,6 @@ void PurgeDuplicate::execute(std::vector<Track>& outputtracks_, unsigned int iSe
         }
       }
 
-      std::cout<<"The number of tracks going to output is "<<prefTracks.size()<<std::endl;
-
       // Need to clear all the vectors which will be used in the next bin
       seedRank.clear();
       trackInfo.clear();
@@ -440,7 +427,6 @@ void PurgeDuplicate::execute(std::vector<Track>& outputtracks_, unsigned int iSe
         outtrack->setStubIDpremerge(inputstubidslistsall[itrk]);
         outtrack->setStubIDprefit(mergedstubidslistsall[itrk]);
         outputtracks_.push_back(*outtrack);
-        std::cout<<"The number of tracks that passed KF is "<<outputtracks_.size()<<std::endl;
       }
     }
   }
@@ -760,9 +746,10 @@ std::vector<const Stub*> PurgeDuplicate::getInventedSeedingStub(unsigned int iSe
   }
   return newStubList;
 }
+
 // Tells us the variable bin to which a track would belong
 unsigned int PurgeDuplicate::findVarRInvBin(Tracklet* trk) {
-  std::vector<double> rinvbins = settings_.varrinvbins(settings_.numbins());
+  std::vector<double> rinvbins = settings_.varrinvbins();
 
   //Get rinverse of track
   double rInv = trk->rinv();
@@ -773,33 +760,27 @@ unsigned int PurgeDuplicate::findVarRInvBin(Tracklet* trk) {
   //return integer for bin index
   unsigned int rIndx = std::distance(rinvbins.begin(), bins);
   if (rIndx == std::distance(rinvbins.end(), bins))
-    return rinvbins.size() - 1;
+    return rinvbins.size() - 2;
+  else if (bins == rinvbins.begin())
+    return std::distance(rinvbins.begin(), bins);
   else
-    return rIndx;
+    return rIndx - 1;
 }
+
 // Tells us the overlap bin(s) to which a track belongs
 std::vector<unsigned int> PurgeDuplicate::findOverlapRInvBins(Tracklet* trk) {
-  std::vector<std::vector<double>> ol_bins = settings_.overlapbins();
-  std::vector<unsigned int> bins;
-  //Get rinverse of track
   double rInv = trk->rinv();
-  for (long unsigned int i = 0; i < ol_bins.size(); i++) {
-    auto binnumber = std::upper_bound(ol_bins[i].begin(), ol_bins[i].end(), rInv);
-    if (binnumber == ol_bins[i].begin()) {
-      if (i == 0) {
-        bins.push_back(i);
-      } else
-        continue;
-    } else if (binnumber == ol_bins[i].end()) {
-      if (i == (ol_bins.size() - 1)) {
-        bins.push_back(i);
-      } else
-        continue;
-    } else
-      bins.push_back(i);
+  double overlapsize = settings_.overlapsize();
+  std::vector<double> varrinvbins = settings_.varrinvbins();
+  std::vector<unsigned int> chosenBins;
+  for (long unsigned int i = 0; i < varrinvbins.size()-1; i++) {
+    if ((rInv < varrinvbins[i+1] + overlapsize) && (rInv > varrinvbins[i] - overlapsize)) {
+      chosenBins.push_back(i);
+    } 
   }
-  return bins;
+  return chosenBins; 
 }
+
 // Tells us if a track is in the current bin
 bool PurgeDuplicate::findBin(std::vector<unsigned int> vec, unsigned int num) {
   auto result = std::find(vec.begin(), vec.end(), num);
