@@ -108,9 +108,10 @@ void PurgeDuplicate::execute(std::vector<Track>& outputtracks_, unsigned int iSe
 #ifdef USEHYBRID
 
   if (settings_.removalType() == "merge") {
-    std::vector<std::pair<int, bool>> trackInfo;  // Track seed & duplicate flag
-    std::vector<bool> trackBinInfo;  // Flag for tracks in multiple bins that get merged but are not in the correct variable bin
-
+    // Track seed & duplicate flag
+    std::vector<std::pair<int, bool>> trackInfo;
+    // Flag for tracks in multiple bins that get merged but are not in the correct variable bin
+    std::vector<bool> trackBinInfo;
     // Vector to store the relative rank of the track candidate for merging, based on seed type
     std::vector<int> seedRank;
 
@@ -177,7 +178,8 @@ void PurgeDuplicate::execute(std::vector<Track>& outputtracks_, unsigned int iSe
 
             trackInfo.emplace_back(i, false);
             trackBinInfo.emplace_back(false);
-          } else continue;
+          } else
+            continue;
         }
       }
 
