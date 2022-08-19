@@ -654,7 +654,9 @@ std::vector<double> PurgeDuplicate::getInventedCoords(unsigned int iSector, cons
   return invented_coords;
 }
 
-std::vector<double> PurgeDuplicate::getInventedCoordsExtended(unsigned int iSector, const Stub* st, Tracklet* tracklet) {
+std::vector<double> PurgeDuplicate::getInventedCoordsExtended(unsigned int iSector,
+                                                              const Stub* st,
+                                                              Tracklet* tracklet) {
   int stubLayer = (findLayerDisk(st)).first;
   int stubDisk = (findLayerDisk(st)).second;
 
@@ -703,7 +705,9 @@ std::vector<double> PurgeDuplicate::getInventedCoordsExtended(unsigned int iSect
   return invented_coords;
 }
 
-std::vector<const Stub*> PurgeDuplicate::getInventedSeedingStub(unsigned int iSector, Tracklet* tracklet, std::vector<const Stub*> originalStubsList) {
+std::vector<const Stub*> PurgeDuplicate::getInventedSeedingStub(unsigned int iSector,
+                                                                Tracklet* tracklet,
+                                                                std::vector<const Stub*> originalStubsList) {
   std::vector<const Stub*> newStubList;
 
   for (unsigned int stubit = 0; stubit < originalStubsList.size(); stubit++) {
