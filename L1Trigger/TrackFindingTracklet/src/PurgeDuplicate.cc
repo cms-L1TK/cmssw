@@ -123,7 +123,7 @@ void PurgeDuplicate::execute(std::vector<Track>& outputtracks_, unsigned int iSe
     std::vector<unsigned int> prefTracks;  // Stores all the tracks that are sent to the KF from each bin
     std::vector<int> prefTrackFit;  // Stores the track seed that corresponds to the associated track in prefTracks
 
-    for (unsigned int bin = 0; bin < settings_.varrinvbins().size()-1; bin++) {
+    for (unsigned int bin = 0; bin < settings_.varrinvbins().size() - 1; bin++) {
       // Get vectors from TrackFit and save them
       // inputtracklets: Tracklet objects from the FitTrack (not actually fit yet)
       // inputstublists: L1Stubs for that track
@@ -169,7 +169,7 @@ void PurgeDuplicate::execute(std::vector<Track>& outputtracks_, unsigned int iSe
               seedRank.push_back(9);
             } else {
               throw cms::Exception("LogError") << __FILE__ << " " << __LINE__ << " Seed " << curSeed
-                << " not found in list, and settings->extended() not set.";
+                                               << " not found in list, and settings->extended() not set.";
             }
 
             if (stublist.size() != stubidslist.size())
@@ -402,7 +402,6 @@ void PurgeDuplicate::execute(std::vector<Track>& outputtracks_, unsigned int iSe
       mergedstubidslists_.clear();
     }
 
-
     // Make the final track objects, fit with KF, and send to output
     for (unsigned int itrk = 0; itrk < prefTracks.size(); itrk++) {
       Tracklet* tracklet = inputtrackletsall[itrk];
@@ -427,7 +426,7 @@ void PurgeDuplicate::execute(std::vector<Track>& outputtracks_, unsigned int iSe
       }
     }
   }
-  
+
 #endif
 
   //////////////////
@@ -655,9 +654,7 @@ std::vector<double> PurgeDuplicate::getInventedCoords(unsigned int iSector, cons
   return invented_coords;
 }
 
-std::vector<double> PurgeDuplicate::getInventedCoordsExtended(unsigned int iSector,
-                                                              const Stub* st,
-                                                              Tracklet* tracklet) {
+std::vector<double> PurgeDuplicate::getInventedCoordsExtended(unsigned int iSector, const Stub* st, Tracklet* tracklet) {
   int stubLayer = (findLayerDisk(st)).first;
   int stubDisk = (findLayerDisk(st)).second;
 
@@ -706,9 +703,7 @@ std::vector<double> PurgeDuplicate::getInventedCoordsExtended(unsigned int iSect
   return invented_coords;
 }
 
-std::vector<const Stub*> PurgeDuplicate::getInventedSeedingStub(unsigned int iSector,
-                                                                Tracklet* tracklet,
-                                                                std::vector<const Stub*> originalStubsList) {
+std::vector<const Stub*> PurgeDuplicate::getInventedSeedingStub(unsigned int iSector, Tracklet* tracklet, std::vector<const Stub*> originalStubsList) {
   std::vector<const Stub*> newStubList;
 
   for (unsigned int stubit = 0; stubit < originalStubsList.size(); stubit++) {
@@ -770,12 +765,12 @@ std::vector<unsigned int> PurgeDuplicate::findOverlapRInvBins(Tracklet* trk) {
   double overlapsize = settings_.overlapsize();
   std::vector<double> varrinvbins = settings_.varrinvbins();
   std::vector<unsigned int> chosenBins;
-  for (long unsigned int i = 0; i < varrinvbins.size()-1; i++) {
-    if ((rInv < varrinvbins[i+1] + overlapsize) && (rInv > varrinvbins[i] - overlapsize)) {
+  for (long unsigned int i = 0; i < varrinvbins.size() - 1; i++) {
+    if ((rInv < varrinvbins[i + 1] + overlapsize) && (rInv > varrinvbins[i] - overlapsize)) {
       chosenBins.push_back(i);
-    } 
+    }
   }
-  return chosenBins; 
+  return chosenBins;
 }
 
 // Tells us if a track is in the current bin
@@ -786,4 +781,3 @@ bool PurgeDuplicate::findBin(std::vector<unsigned int> vec, unsigned int num) {
   } else
     return false;
 }
-
