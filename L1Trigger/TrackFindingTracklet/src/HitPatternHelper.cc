@@ -2,7 +2,7 @@
 //  Created by J.Li on 1/23/21.
 //
 
-#include "L1Trigger/TrackTrigger/interface/HitPatternHelper.h"
+#include "L1Trigger/TrackFindingTracklet/interface/HitPatternHelper.h"
 #include "L1Trigger/TrackFindingTMTT/interface/KFbase.h"
 #include "L1Trigger/TrackFindingTMTT/interface/TrackerModule.h"
 
@@ -13,84 +13,63 @@
 
 namespace hph {
 
-  Setup::Setup(const edm::ParameterSet& iConfig, const tt::Setup& setupTT)
+  Setup::Setup(const edm::ParameterSet& iConfig,
+               const tt::Setup& setupTT,
+               const trackerTFP::DataFormats& dataFormats,
+               const trackerTFP::LayerEncoding& layerEncoding)
       : iConfig_(iConfig),
         oldKFPSet_(iConfig.getParameter<edm::ParameterSet>("oldKFPSet")),
         setupTT_(setupTT),
+        dataFormats_(dataFormats),
+        dfcot_(dataFormats_.format(trackerTFP::Variable::cot, trackerTFP::Process::kfin)),
+        dfzT_(dataFormats_.format(trackerTFP::Variable::zT, trackerTFP::Process::kfin)),
+        layerEncoding_(layerEncoding),
         hphDebug_(iConfig.getParameter<bool>("hphDebug")),
         useNewKF_(iConfig.getParameter<bool>("useNewKF")),
-        deltaTanL_(iConfig.getParameter<double>("deltaTanL")),
-        cotNbins_(iConfig.getParameter<int>("cotNbins")),
-        z0Nbins_(iConfig.getParameter<int>("z0Nbins")),
-        chosenRofZ_(),
-        beamWindowZ_(),
-        cotMax_(),
-        etaRegions_(),
-        layerIds_(),
+        chosenRofZNewKF_(setupTT_.chosenRofZ()),
+        etaRegionsNewKF_(setupTT_.boundarieEta()),
         layermap_(),
-        layerEncoding_(cotNbins_, std::vector<std::vector<tt::SensorModule>>(z0Nbins_)),
         nEtaRegions_(tmtt::KFbase::nEta_ / 2),
         nKalmanLayers_(tmtt::KFbase::nKFlayer_) {
     if (useNewKF_) {
-      chosenRofZ_ = setupTT_.chosenRofZ();
-      beamWindowZ_ = setupTT_.beamWindowZ();
-      etaRegions_ = setupTT_.boundarieEta();
+      chosenRofZ_ = chosenRofZNewKF_;
+      etaRegions_ = etaRegionsNewKF_;
     } else {
       chosenRofZ_ = oldKFPSet_.getParameter<double>("ChosenRofZ");
-      beamWindowZ_ = oldKFPSet_.getParameter<double>("BeamWindowZ");
       etaRegions_ = oldKFPSet_.getParameter<vector<double>>("EtaRegions");
     }
-    double etaMax_ = abs(etaRegions_[0]);
-    cotMax_ = abs(1 / tan(2. * atan(exp(-etaMax_))));
-    for (int cotBin = 0; cotBin < cotNbins_; cotBin++) {
-      double cotDigi_ = (2 * cotMax_ / cotNbins_) * (cotBin + 1) - cotMax_;
-      for (int z0Bin = 0; z0Bin < z0Nbins_; z0Bin++) {
-        double z0Digi_ = (2 * beamWindowZ_ / z0Nbins_) * (z0Bin + 1) - beamWindowZ_;
-        std::vector<tt::SensorModule>& layers_ = layerEncoding_[cotBin][z0Bin];
-        //Looping over sensor modules to make predictions on which layers particles are expected to hit
-        for (const tt::SensorModule& sm : setupTT_.sensorModules()) {
-          double d = (z0Digi_ - sm.z() + sm.r() * cotDigi_) / (sm.cosTilt() - sm.sinTilt() * cotDigi_);
-          double d_p = (z0Digi_ - sm.z() + sm.r() * (cotDigi_ + deltaTanL_ / 2)) /
-                       (sm.cosTilt() - sm.sinTilt() * (cotDigi_ + deltaTanL_ / 2));
-          double d_m = (z0Digi_ - sm.z() + sm.r() * (cotDigi_ - deltaTanL_ / 2)) /
-                       (sm.cosTilt() - sm.sinTilt() * (cotDigi_ - deltaTanL_ / 2));
-          if (useNewKF_ &&
-              (abs(d_p) < sm.numColumns() * sm.pitchCol() / 2. || abs(d_m) < sm.numColumns() * sm.pitchCol() / 2.)) {
-            layers_.push_back(sm);
-          }
-          if (!useNewKF_ && abs(d) < sm.numColumns() * sm.pitchCol() / 2.) {
-            layers_.push_back(sm);
-          }
-        }
-        //layers_ constains all the sensor modules that particles are expected to hit
-        sort(layers_.begin(), layers_.end(), HitPatternHelper::smallerID);
-        layers_.erase(unique(layers_.begin(), layers_.end(), HitPatternHelper::equalID),
-                      layers_.end());  //Keep only one sensor per layer
-      }
-    }
-    for (const tt::SensorModule& sm : setupTT_.sensorModules()) {
-      layerIds_.push_back(std::make_pair(sm.layerId(), sm.barrel()));
-    }
-    sort(layerIds_.begin(), layerIds_.end(), smallerID);
-    layerIds_.erase(unique(layerIds_.begin(), layerIds_.end(), equalID), layerIds_.end());  //Keep only unique layerIds
+    static constexpr auto layerIds = {1, 2, 3, 4, 5, 6, 11, 12, 13, 14, 15};
     // Converting tmtt::KFbase::layerMap_ to a format that is acceptatble by HitPatternHelper
     for (int i = 0; i < nEtaRegions_; i++) {
-      for (int j = 0; j < (int)layerIds_.size(); j++) {
+      for (int j : layerIds) {
         int layer = nKalmanLayers_;
-        if (layerIds_[j].second) {
-          layer = tmtt::KFbase::layerMap_[i][tmtt::TrackerModule::calcLayerIdReduced(layerIds_[j].first)].first;
+        if (j < 7) {
+          layer = tmtt::KFbase::layerMap_[i][tmtt::TrackerModule::calcLayerIdReduced(j)].first;
         } else {
-          layer = tmtt::KFbase::layerMap_[i][tmtt::TrackerModule::calcLayerIdReduced(layerIds_[j].first)].second;
+          layer = tmtt::KFbase::layerMap_[i][tmtt::TrackerModule::calcLayerIdReduced(j)].second;
         }
         if (layer < nKalmanLayers_) {
-          layermap_[i][layer].push_back(layerIds_[j].first);
+          layermap_[i][layer].push_back(j);
         }
       }
     }
   }
 
   HitPatternHelper::HitPatternHelper(const Setup* setup, int hitpattern, double cot, double z0)
-      : hitpattern_(hitpattern),
+      : setup_(setup),
+        hphDebug_(setup_->hphDebug()),
+        useNewKF_(setup_->useNewKF()),
+        etaRegions_(setup_->etaRegions()),
+        layermap_(setup_->layermap()),
+        nKalmanLayers_(setup_->nKalmanLayers()),
+        etaBin_(setup_->etaRegion(z0, cot, true)),
+        cotBin_(setup_->digiCot(cot, etaBin_)),
+        zTBin_(setup_->digiZT(z0, cot, etaBin_)),
+        layerEncoding_(setup->layerEncoding(etaBin_, zTBin_, cotBin_)),
+        layerEncodingMap_(setup->layerEncodingMap(etaBin_, zTBin_, cotBin_)),
+        numExpLayer_(layerEncoding_.size()),
+        hitpattern_(hitpattern),
+        etaSector_(setup_->etaRegion(z0, cot, useNewKF_)),
         numMissingLayer_(0),
         numMissingPS_(0),
         numMissing2S_(0),
@@ -98,30 +77,9 @@ namespace hph {
         num2S_(0),
         numMissingInterior1_(0),
         numMissingInterior2_(0),
-        cot_(cot),
-        z0_(z0),
-        setup_(setup),
-        layers_(setup_->layerEncoding(setup_->digiCot(cot_), setup_->digiZ0(z0_))),
         binary_(11, 0),
-        hphDebug_(setup_->hphDebug()),
-        useNewKF_(setup_->useNewKF()),
-        chosenRofZ_(setup_->chosenRofZ()),
-        deltaTanL_(setup_->deltaTanL()),
-        etaRegions_(setup_->etaRegions()),
-        nKalmanLayers_(setup_->nKalmanLayers()),
-        numExpLayer_(layers_.size()),
-        layermap_(setup_->layermap()) {
-    //Calculating eta sector based on cot and z0
-    float kfzRef = z0_ + chosenRofZ_ * cot_;
-    int kf_eta_reg = 0;
-    for (int iEtaSec = 1; iEtaSec < ((int)etaRegions_.size() - 1); iEtaSec++) {  // Doesn't apply eta < 2.4 cut.
-      float etaMax = etaRegions_[iEtaSec];
-      float zRefMax = chosenRofZ_ / tan(2. * atan(exp(-etaMax)));
-      if (kfzRef > zRefMax) {
-        kf_eta_reg = iEtaSec;
-      }
-    }
-    etaSector_ = kf_eta_reg;
+        bonusFeatures_() {
+    int kf_eta_reg = etaSector_;
     if (kf_eta_reg < ((int)etaRegions_.size() - 1) / 2) {
       kf_eta_reg = ((int)etaRegions_.size() - 1) / 2 - 1 - kf_eta_reg;
     } else {
@@ -170,10 +128,11 @@ namespace hph {
         if (hphDebug_) {
           edm::LogVerbatim("TrackTriggerHPH") << "--------------------------";
           edm::LogVerbatim("TrackTriggerHPH") << "Looking at KF layer " << i;
-          if (layers_[i].layerId() < 10) {
-            edm::LogVerbatim("TrackTriggerHPH") << "KF expects L" << layers_[i].layerId();
+          if (layerEncodingMap_[layerEncoding_[i]]->layerId() < 10) {
+            edm::LogVerbatim("TrackTriggerHPH") << "KF expects L" << layerEncodingMap_[layerEncoding_[i]]->layerId();
           } else {
-            edm::LogVerbatim("TrackTriggerHPH") << "KF expects D" << layers_[i].layerId() - 10;
+            edm::LogVerbatim("TrackTriggerHPH")
+                << "KF expects D" << layerEncodingMap_[layerEncoding_[i]]->layerId() - 10;
           }
         }
 
@@ -182,8 +141,8 @@ namespace hph {
             edm::LogVerbatim("TrackTriggerHPH") << "Layer found in hitpattern";
           }
 
-          binary_[reducedId(layers_[i].layerId())] = 1;
-          if (layers_[i].psModule()) {
+          binary_[reducedId(layerEncodingMap_[layerEncoding_[i]]->layerId())] = 1;
+          if (layerEncodingMap_[layerEncoding_[i]]->psModule()) {
             numPS_++;
           } else {
             num2S_++;
@@ -193,7 +152,7 @@ namespace hph {
             edm::LogVerbatim("TrackTriggerHPH") << "Layer missing in hitpattern";
           }
 
-          if (layers_[i].psModule()) {
+          if (layerEncodingMap_[layerEncoding_[i]]->psModule()) {
             numMissingPS_++;
           } else {
             numMissing2S_++;
@@ -249,7 +208,7 @@ namespace hph {
             }
 
             binary_[reducedId(j)] = 1;
-            if (layers_[k].psModule()) {
+            if (layerEncodingMap_[layerEncoding_[k]]->psModule()) {
               numPS_++;
             } else {
               num2S_++;
@@ -259,7 +218,7 @@ namespace hph {
               edm::LogVerbatim("TrackTriggerHPH") << "Layer missing in hitpattern";
             }
 
-            if (layers_[k].psModule()) {
+            if (layerEncodingMap_[layerEncoding_[k]]->psModule()) {
               numMissingPS_++;
             } else {
               numMissing2S_++;
@@ -277,24 +236,38 @@ namespace hph {
     }
   }
 
-  int Setup::digiCot(double Cot) const {
-    int cotBin_ = 0;
-    for (int cotBin = 0; cotBin < cotNbins_; cotBin++) {
-      if (Cot > ((2 * cotMax_ / cotNbins_) * cotBin - cotMax_)) {
-        cotBin_ = cotBin;
+  int Setup::etaRegion(double z0, double cot, bool useNewKF) const {
+    //Calculating eta sector based on cot and z0
+    double chosenRofZ;
+    std::vector<double> etaRegions;
+    if (useNewKF) {
+      chosenRofZ = chosenRofZNewKF_;
+      etaRegions = etaRegionsNewKF_;
+    } else {
+      chosenRofZ = chosenRofZ_;
+      etaRegions = etaRegions_;
+    }
+    double kfzRef = z0 + chosenRofZ * cot;
+    int kf_eta_reg = 0;
+    for (int iEtaSec = 1; iEtaSec < ((int)etaRegions.size() - 1); iEtaSec++) {  // Doesn't apply eta < 2.4 cut.
+      double etaMax = etaRegions[iEtaSec];
+      double zRefMax = chosenRofZ / tan(2. * atan(exp(-etaMax)));
+      if (kfzRef > zRefMax) {
+        kf_eta_reg = iEtaSec;
       }
     }
-    return cotBin_;
+    return kf_eta_reg;
   }
 
-  int Setup::digiZ0(double Z0) const {
-    int z0Bin_ = 0;
-    for (int z0Bin = 0; z0Bin < z0Nbins_; z0Bin++) {
-      if (Z0 > ((2 * beamWindowZ_ / z0Nbins_) * z0Bin - beamWindowZ_)) {
-        z0Bin_ = z0Bin;
-      }
-    }
-    return z0Bin_;
+  int Setup::digiCot(double cot, int binEta) const {
+    double cotLocal = dfcot_.digi(cot - setupTT_.sectorCot(binEta));
+    return dfcot_.toUnsigned(dfcot_.integer(cotLocal));
+  }
+
+  int Setup::digiZT(double z0, double cot, int binEta) const {
+    double zT = z0 + setupTT_.chosenRofZ() * cot;
+    double zTLocal = dfzT_.digi(zT - setupTT_.sectorCot(binEta) * setupTT_.chosenRofZ());
+    return dfzT_.toUnsigned(dfzT_.integer(zTLocal));
   }
 
   int HitPatternHelper::reducedId(int layerId) {
@@ -311,8 +284,8 @@ namespace hph {
   }
 
   int HitPatternHelper::findLayer(int layerId) {
-    for (int i = 0; i < (int)layers_.size(); i++) {
-      if (layerId == (int)layers_[i].layerId()) {
+    for (int i = 0; i < (int)layerEncoding_.size(); i++) {
+      if (layerId == (int)layerEncoding_[i]) {
         return i;
       }
     }

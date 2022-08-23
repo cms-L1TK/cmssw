@@ -7,9 +7,6 @@ HitPatternHelper_params = cms.PSet (
 
   hphDebug   = cms.bool(False),   
   useNewKF   = cms.bool(False),
-  oldKFPSet  = cms.PSet(TMTrackProducer_params.EtaSectors),
-  deltaTanL  = cms.double(0.125),
-  cotNbins   = cms.int32(512),
-  z0Nbins    = cms.int32(512)
+  oldKFPSet  = cms.PSet(TMTrackProducer_params.EtaSectors)
   
 )
