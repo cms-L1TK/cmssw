@@ -7,6 +7,8 @@
 
 #include "L1Trigger/TrackTrigger/interface/Setup.h"
 
+class Setup;
+
 namespace trklet {
 
   class Settings;

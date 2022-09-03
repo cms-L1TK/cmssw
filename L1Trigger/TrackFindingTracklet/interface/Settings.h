@@ -13,7 +13,10 @@
 
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 #include "FWCore/Utilities/interface/Exception.h"
-#include "L1Trigger/TrackTrigger/interface/Setup.h"
+
+namespace tt{
+  class Setup;
+}
 
 namespace trklet {
 
@@ -278,6 +281,8 @@ namespace trklet {
     void setStripPitch_PS(double stripPitch_PS) { stripPitch_PS_ = stripPitch_PS; }
     void setStripPitch_2S(double stripPitch_2S) { stripPitch_2S_ = stripPitch_2S; }
 
+    double sensorSpacing2S() const { return sensorSpacing_2S_;}
+
     double stripLength(bool isPSmodule) const { return isPSmodule ? stripLength_PS_ : stripLength_2S_; }
     void setStripLength_PS(double stripLength_PS) { stripLength_PS_ = stripLength_PS; }
     void setStripLength_2S(double stripLength_2S) { stripLength_2S_ = stripLength_2S; }
@@ -455,8 +460,7 @@ namespace trklet {
       return fact * bendcut(ibend, layerdisk, isPSmodule);
     }
 
-    bool useCalcBendCuts = false;
-    unsigned int nzbinsPhiCorr = 1;  // 1, 2, or 13 (2 = (Flat, Tilted), 13 = (Flat, TR1, ..., TR12))
+    bool useCalcBendCuts = true;
 
     double bendcutTE(unsigned int seed, bool inner) const {
       if (inner) {
@@ -815,7 +819,7 @@ namespace trklet {
          {{2.5, 1.5, 1.5, 2.0, 2.0, 2.0, 2.0, 2.0, 99.9, 2.0, 2.0, 2.0, 2.0, 2.0, 1.5, 1.5}},          //D4 2S
          {{2.5, 1.5, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 99.9, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 1.5}}}};        //D5 2S
 
-    double FEbendcut = 0.4;  // ~sqrt(1/6)
+    double FEbendcut = sqrt(1/6.0);
 
     double bendcutTE_[N_SEED_PROMPT][2] = {{2.2 * FEbendcut, 2.5 * FEbendcut},   //L1L2
                                            {2.0 * FEbendcut, 2.0 * FEbendcut},   //L2L3
@@ -1022,6 +1026,9 @@ namespace trklet {
 
     double stripLength_PS_{0.1467};
     double stripLength_2S_{5.0250};
+
+    double sensorSpacing_2S_{0.18};
+
   };
 
   constexpr unsigned int N_TILTED_RINGS = 12;  // # of tilted rings per half-layer in TBPS layers

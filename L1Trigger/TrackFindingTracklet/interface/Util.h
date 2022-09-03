@@ -39,15 +39,19 @@ namespace trklet {
     return str;
   }
 
-  inline double bendstrip(double r, double rinv, double stripPitch) {
-    constexpr double dr = 0.18;
-    double delta = r * dr * 0.5 * rinv;
+  inline double bendstrip(double r, double rinv, double stripPitch, double sensorSpacing) {
+    double delta = r * sensorSpacing * 0.5 * rinv;
     double bend = delta / stripPitch;
     return bend;
   }
 
-  inline double convertFEBend(double FEbend, double sensorSep, double CF, bool barrel, double r = 0) {
-    double bend = 0.18 * CF * FEbend / sensorSep;
+  inline double convertFEBend(double FEbend, 
+                              double sensorSep, 
+                              double sensorSpacing, 
+                              double CF, 
+                              bool barrel, 
+                              double r = 0) {
+    double bend = sensorSpacing*CF*FEbend/sensorSep;
     return bend;
   }
 
