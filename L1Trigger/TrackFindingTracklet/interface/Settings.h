@@ -14,7 +14,7 @@
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 #include "FWCore/Utilities/interface/Exception.h"
 
-namespace tt{
+namespace tt {
   class Setup;
 }
 
@@ -281,7 +281,7 @@ namespace trklet {
     void setStripPitch_PS(double stripPitch_PS) { stripPitch_PS_ = stripPitch_PS; }
     void setStripPitch_2S(double stripPitch_2S) { stripPitch_2S_ = stripPitch_2S; }
 
-    double sensorSpacing2S() const { return sensorSpacing_2S_;}
+    double sensorSpacing2S() const { return sensorSpacing_2S_; }
 
     double stripLength(bool isPSmodule) const { return isPSmodule ? stripLength_PS_ : stripLength_2S_; }
     void setStripLength_PS(double stripLength_PS) { stripLength_PS_ = stripLength_PS; }
@@ -819,7 +819,7 @@ namespace trklet {
          {{2.5, 1.5, 1.5, 2.0, 2.0, 2.0, 2.0, 2.0, 99.9, 2.0, 2.0, 2.0, 2.0, 2.0, 1.5, 1.5}},          //D4 2S
          {{2.5, 1.5, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 99.9, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 1.5}}}};        //D5 2S
 
-    double FEbendcut = sqrt(1/6.0);
+    double FEbendcut = sqrt(1 / 6.0);
 
     double bendcutTE_[N_SEED_PROMPT][2] = {{2.2 * FEbendcut, 2.5 * FEbendcut},   //L1L2
                                            {2.0 * FEbendcut, 2.0 * FEbendcut},   //L2L3
@@ -1028,7 +1028,6 @@ namespace trklet {
     double stripLength_2S_{5.0250};
 
     double sensorSpacing_2S_{0.18};
-
   };
 
   constexpr unsigned int N_TILTED_RINGS = 12;  // # of tilted rings per half-layer in TBPS layers

@@ -160,10 +160,10 @@ std::vector<std::array<double, 2>> TrackletLUT::getBendCut(unsigned int layerdis
       for (int i = 0; i < 2; i++) {  // 2 points to cover range in tan(theta) = z/r
         double CF = std::abs(sm->sinTilt()) * (z_mod[i] / r_mod[i]) + sm->cosTilt();
 
-        double cbendmin = convertFEBend(bendmin, sm->sep(), settings_.sensorSpacing2S(), 
-                                        CF, (layerdisk < N_LAYER), r_mod[i]);
-        double cbendmax = convertFEBend(bendmax, sm->sep(), settings_.sensorSpacing2S(), 
-                                        CF, (layerdisk < N_LAYER), r_mod[i]);
+        double cbendmin =
+            convertFEBend(bendmin, sm->sep(), settings_.sensorSpacing2S(), CF, (layerdisk < N_LAYER), r_mod[i]);
+        double cbendmax =
+            convertFEBend(bendmax, sm->sep(), settings_.sensorSpacing2S(), CF, (layerdisk < N_LAYER), r_mod[i]);
 
         if (cbendmin < bendminmax[bend][0])
           bendminmax.at(bend)[0] = cbendmin;
@@ -263,7 +263,7 @@ void TrackletLUT::initTPlut(bool fillInner,
     isPSouter = false;
   } else if (iSeed == Seed::L5L6) {
     isPSinner = false;
-    isPSouter = false;   
+    isPSouter = false;
   } else {
     isPSinner = true;
     isPSouter = true;
@@ -393,9 +393,12 @@ void TrackletLUT::initTPlut(bool fillInner,
       double rinvcutte = settings_.rinvcutte();
 
       if (settings_.useCalcBendCuts) {
-        double lowrinvcutte = rinvcutte/3; //Somewhat arbitrary value, allows for better acceptance in bins with low rinv (high pt)
+        double lowrinvcutte =
+            rinvcutte / 3;  //Somewhat arbitrary value, allows for better acceptance in bins with low rinv (high pt)
         passptcut = rinvmin < rinvcutte and rinvmax > -rinvcutte;
-        bendfac = (rinvmin < lowrinvcutte and rinvmax > -lowrinvcutte) ? 1.05 : 1.0;  //Somewhat arbirary value, bend cuts are 5% larger in bins with low rinv (high pt)
+        bendfac = (rinvmin < lowrinvcutte and rinvmax > -lowrinvcutte)
+                      ? 1.05
+                      : 1.0;  //Somewhat arbirary value, bend cuts are 5% larger in bins with low rinv (high pt)
       } else {
         passptcut = absrinvmin < rinvcutte;
         bendfac = 1.0;
@@ -534,7 +537,7 @@ void TrackletLUT::initteptlut(bool fillInner,
     isPSouter = false;
   } else if (iSeed == Seed::L5L6) {
     isPSinner = false;
-    isPSouter = false;   
+    isPSouter = false;
   } else {
     isPSinner = true;
     isPSouter = true;

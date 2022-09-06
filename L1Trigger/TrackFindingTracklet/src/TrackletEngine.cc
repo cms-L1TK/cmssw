@@ -103,11 +103,11 @@ void TrackletEngine::execute() {
         unsigned int index = (iphiinnerbin.value() << outerphibits_) + iphiouterbin.value();
 
         if (iSeed_ >= 4) {  //Also use r-position
-  
-          int nrbits = 3; // Number of bits used for r position in disk LUT
-          int ibinmask = (1 << (nrbits-1)) - 1; // Mask of two least significant bits
 
-          int ir = ((ibin & ibinmask) << 1 ) + (rzbin >> (N_RZBITS-1));
+          int nrbits = 3;                          // Number of bits used for r position in disk LUT
+          int ibinmask = (1 << (nrbits - 1)) - 1;  // Mask of two least significant bits
+
+          int ir = ((ibin & ibinmask) << 1) + (rzbin >> (N_RZBITS - 1));
           index += (ir << (outerphibits_ + innerphibits_));
         }
 

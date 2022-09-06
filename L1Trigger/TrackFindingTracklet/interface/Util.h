@@ -45,13 +45,9 @@ namespace trklet {
     return bend;
   }
 
-  inline double convertFEBend(double FEbend, 
-                              double sensorSep, 
-                              double sensorSpacing, 
-                              double CF, 
-                              bool barrel, 
-                              double r = 0) {
-    double bend = sensorSpacing*CF*FEbend/sensorSep;
+  inline double convertFEBend(
+      double FEbend, double sensorSep, double sensorSpacing, double CF, bool barrel, double r = 0) {
+    double bend = sensorSpacing * CF * FEbend / sensorSep;
     return bend;
   }
 
