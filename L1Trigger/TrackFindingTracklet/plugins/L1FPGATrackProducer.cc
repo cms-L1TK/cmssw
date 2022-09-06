@@ -129,11 +129,12 @@ public:
   bool operator()(const trklet::L1TStub& a, const trklet::L1TStub& b) const {
     if (a.x() != b.x())
       return (b.x() > a.x());
-    if (a.y() != b.y())
+    else if (a.y() != b.y())
       return (b.y() > a.y());
-    if (a.z() != b.z())
+    else if (a.z() != b.z())
       return (a.z() > b.z());
-    return a.bend() > b.bend();
+    else
+      return a.bend() > b.bend();
   }
 };
 
