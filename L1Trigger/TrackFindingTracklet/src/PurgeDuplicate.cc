@@ -136,7 +136,7 @@ void PurgeDuplicate::execute(std::vector<Track>& outputtracks_, unsigned int iSe
         if (inputtrackfits_[i]->nStublists() != inputtrackfits_[i]->nTracks())
           throw "Number of stublists and tracks don't match up!";
         for (unsigned int j = 0; j < inputtrackfits_[i]->nStublists(); j++) {
-          if (findBin(findOverlapRInvBins(inputtrackfits_[i]->getTrack(j)), bin)) {
+          if (isTrackInBin(findOverlapRInvBins(inputtrackfits_[i]->getTrack(j)), bin)) {
             Tracklet* aTrack = inputtrackfits_[i]->getTrack(j);
             inputtracklets_.push_back(inputtrackfits_[i]->getTrack(j));
             std::vector<const Stub*> stublist = inputtrackfits_[i]->getStublist(j);
@@ -559,7 +559,7 @@ void PurgeDuplicate::execute(std::vector<Track>& outputtracks_, unsigned int iSe
   }
 }
 
-double PurgeDuplicate::getPhiRes(Tracklet* curTracklet, const Stub* curStub) {
+double PurgeDuplicate::getPhiRes(Tracklet* curTracklet, const Stub* curStub) const {
   double phiproj;
   double stubphi;
   double phires;
@@ -588,7 +588,7 @@ double PurgeDuplicate::getPhiRes(Tracklet* curTracklet, const Stub* curStub) {
   return phires;
 }
 
-bool PurgeDuplicate::isSeedingStub(int seedindex, int Layer, int Disk) {
+bool PurgeDuplicate::isSeedingStub(int seedindex, int Layer, int Disk) const {
   if ((seedindex == 0 && (Layer == 1 || Layer == 2)) || (seedindex == 1 && (Layer == 2 || Layer == 3)) ||
       (seedindex == 2 && (Layer == 3 || Layer == 4)) || (seedindex == 3 && (Layer == 5 || Layer == 6)) ||
       (seedindex == 4 && (abs(Disk) == 1 || abs(Disk) == 2)) ||
@@ -603,7 +603,7 @@ bool PurgeDuplicate::isSeedingStub(int seedindex, int Layer, int Disk) {
   return false;
 }
 
-std::pair<int, int> PurgeDuplicate::findLayerDisk(const Stub* st) {
+std::pair<int, int> PurgeDuplicate::findLayerDisk(const Stub* st) const {
   std::pair<int, int> layer_disk;
   layer_disk.first = st->layerdisk() + 1;
   if (layer_disk.first > N_LAYER) {
@@ -616,7 +616,7 @@ std::pair<int, int> PurgeDuplicate::findLayerDisk(const Stub* st) {
   return layer_disk;
 }
 
-std::string PurgeDuplicate::l1tinfo(const L1TStub* l1stub, std::string str = "") {
+std::string PurgeDuplicate::l1tinfo(const L1TStub* l1stub, std::string str = "") const {
   std::string thestr = Form("\t %s stub info:  r/z/phi:\t%f\t%f\t%f\t%d\t%f\t%d",
                             str.c_str(),
                             l1stub->r(),
@@ -628,7 +628,9 @@ std::string PurgeDuplicate::l1tinfo(const L1TStub* l1stub, std::string str = "")
   return thestr;
 }
 
-std::vector<double> PurgeDuplicate::getInventedCoords(unsigned int iSector, const Stub* st, Tracklet* tracklet) {
+std::vector<double> PurgeDuplicate::getInventedCoords(unsigned int iSector,
+                                                      const Stub* st,
+                                                      const Tracklet* tracklet) const {
   int stubLayer = (findLayerDisk(st)).first;
   int stubDisk = (findLayerDisk(st)).second;
 
@@ -658,7 +660,7 @@ std::vector<double> PurgeDuplicate::getInventedCoords(unsigned int iSector, cons
 
 std::vector<double> PurgeDuplicate::getInventedCoordsExtended(unsigned int iSector,
                                                               const Stub* st,
-                                                              Tracklet* tracklet) {
+                                                              const Tracklet* tracklet) const {
   int stubLayer = (findLayerDisk(st)).first;
   int stubDisk = (findLayerDisk(st)).second;
 
@@ -707,9 +709,8 @@ std::vector<double> PurgeDuplicate::getInventedCoordsExtended(unsigned int iSect
   return invented_coords;
 }
 
-std::vector<const Stub*> PurgeDuplicate::getInventedSeedingStub(unsigned int iSector,
-                                                                Tracklet* tracklet,
-                                                                std::vector<const Stub*> originalStubsList) {
+std::vector<const Stub*> PurgeDuplicate::getInventedSeedingStub(
+    unsigned int iSector, const Tracklet* tracklet, const std::vector<const Stub*>& originalStubsList) const {
   std::vector<const Stub*> newStubList;
 
   for (unsigned int stubit = 0; stubit < originalStubsList.size(); stubit++) {
@@ -746,7 +747,7 @@ std::vector<const Stub*> PurgeDuplicate::getInventedSeedingStub(unsigned int iSe
 }
 
 // Tells us the variable bin to which a track would belong
-unsigned int PurgeDuplicate::findVarRInvBin(Tracklet* trk) {
+unsigned int PurgeDuplicate::findVarRInvBin(const Tracklet* trk) const {
   std::vector<double> rinvbins = settings_.varrinvbins();
 
   //Get rinverse of track
@@ -766,10 +767,10 @@ unsigned int PurgeDuplicate::findVarRInvBin(Tracklet* trk) {
 }
 
 // Tells us the overlap bin(s) to which a track belongs
-std::vector<unsigned int> PurgeDuplicate::findOverlapRInvBins(Tracklet* trk) {
+std::vector<unsigned int> PurgeDuplicate::findOverlapRInvBins(const Tracklet* trk) const {
   double rInv = trk->rinv();
-  double overlapsize = settings_.overlapsize();
-  std::vector<double> varrinvbins = settings_.varrinvbins();
+  const double overlapsize = settings_.overlapsize();
+  const std::vector<double>& varrinvbins = settings_.varrinvbins();
   std::vector<unsigned int> chosenBins;
   for (long unsigned int i = 0; i < varrinvbins.size() - 1; i++) {
     if ((rInv < varrinvbins[i + 1] + overlapsize) && (rInv > varrinvbins[i] - overlapsize)) {
@@ -780,10 +781,8 @@ std::vector<unsigned int> PurgeDuplicate::findOverlapRInvBins(Tracklet* trk) {
 }
 
 // Tells us if a track is in the current bin
-bool PurgeDuplicate::findBin(std::vector<unsigned int> vec, unsigned int num) {
+bool PurgeDuplicate::isTrackInBin(const std::vector<unsigned int>& vec, unsigned int num) const {
   auto result = std::find(vec.begin(), vec.end(), num);
-  if (result != vec.end()) {
-    return true;
-  } else
-    return false;
+  bool found = (result != vec.end());
+  return found;
 }
