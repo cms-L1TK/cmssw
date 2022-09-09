@@ -38,11 +38,11 @@ namespace hph {
       chosenRofZ_ = oldKFPSet_.getParameter<double>("ChosenRofZ");
       etaRegions_ = oldKFPSet_.getParameter<vector<double>>("EtaRegions");
     }
-    static constexpr auto layerIds = {1, 2, 3, 4, 5, 6, 11, 12, 13, 14, 15};
+    static constexpr auto layerIds = {1, 2, 3, 4, 5, 6, 11, 12, 13, 14, 15};//layer ID 11~15 correspond to D1~D5
     // Converting tmtt::KFbase::layerMap_ to a format that is acceptatble by HitPatternHelper
     for (int i = 0; i < nEtaRegions_; i++) {
       for (int j : layerIds) {
-        int layer = nKalmanLayers_;
+        int layer;
         if (j < 7) {
           layer = tmtt::KFbase::layerMap_[i][tmtt::TrackerModule::calcLayerIdReduced(j)].first;
         } else {
@@ -77,7 +77,7 @@ namespace hph {
         num2S_(0),
         numMissingInterior1_(0),
         numMissingInterior2_(0),
-        binary_(11, 0),
+        binary_(11, 0),//there are 11 unique layer IDs, as defined in variable "layerIds"
         bonusFeatures_() {
     int kf_eta_reg = etaSector_;
     if (kf_eta_reg < ((int)etaRegions_.size() - 1) / 2) {
@@ -128,11 +128,11 @@ namespace hph {
         if (hphDebug_) {
           edm::LogVerbatim("TrackTriggerHPH") << "--------------------------";
           edm::LogVerbatim("TrackTriggerHPH") << "Looking at KF layer " << i;
-          if (layerEncodingMap_[layerEncoding_[i]]->layerId() < 10) {
-            edm::LogVerbatim("TrackTriggerHPH") << "KF expects L" << layerEncodingMap_[layerEncoding_[i]]->layerId();
+          if (layerEncoding_[i] < 10) {
+            edm::LogVerbatim("TrackTriggerHPH") << "KF expects L" << layerEncoding_[i];
           } else {
             edm::LogVerbatim("TrackTriggerHPH")
-                << "KF expects D" << layerEncodingMap_[layerEncoding_[i]]->layerId() - 10;
+                << "KF expects D" << layerEncoding_[i] - 10;
           }
         }
 
@@ -141,7 +141,7 @@ namespace hph {
             edm::LogVerbatim("TrackTriggerHPH") << "Layer found in hitpattern";
           }
 
-          binary_[reducedId(layerEncodingMap_[layerEncoding_[i]]->layerId())] = 1;
+          binary_[reducedId(layerEncoding_[i])] = 1;
           if (layerEncodingMap_[layerEncoding_[i]]->psModule()) {
             numPS_++;
           } else {

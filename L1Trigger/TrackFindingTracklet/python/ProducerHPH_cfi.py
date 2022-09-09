@@ -5,8 +5,8 @@ from L1Trigger.TrackFindingTMTT.TMTrackProducer_Defaults_cfi import TMTrackProdu
 
 HitPatternHelper_params = cms.PSet (
 
-  hphDebug   = cms.bool(False),   
-  useNewKF   = cms.bool(False),
-  oldKFPSet  = cms.PSet(TMTrackProducer_params.EtaSectors)
+  hphDebug   = cms.bool(False), # switch on/off debug statement
+  useNewKF   = cms.bool(False), # switch between new/old KF
+  oldKFPSet  = cms.PSet(TMTrackProducer_params.EtaSectors) # import eta sector boundries from old kf package
   
 )
