@@ -38,7 +38,7 @@ namespace hph {
       chosenRofZ_ = oldKFPSet_.getParameter<double>("ChosenRofZ");
       etaRegions_ = oldKFPSet_.getParameter<vector<double>>("EtaRegions");
     }
-    static constexpr auto layerIds = {1, 2, 3, 4, 5, 6, 11, 12, 13, 14, 15};//layer ID 11~15 correspond to D1~D5
+    static constexpr auto layerIds = {1, 2, 3, 4, 5, 6, 11, 12, 13, 14, 15};  //layer ID 11~15 correspond to D1~D5
     // Converting tmtt::KFbase::layerMap_ to a format that is acceptatble by HitPatternHelper
     for (int i = 0; i < nEtaRegions_; i++) {
       for (int j : layerIds) {
@@ -77,7 +77,7 @@ namespace hph {
         num2S_(0),
         numMissingInterior1_(0),
         numMissingInterior2_(0),
-        binary_(11, 0),//there are 11 unique layer IDs, as defined in variable "layerIds"
+        binary_(11, 0),  //there are 11 unique layer IDs, as defined in variable "layerIds"
         bonusFeatures_() {
     int kf_eta_reg = etaSector_;
     if (kf_eta_reg < ((int)etaRegions_.size() - 1) / 2) {
@@ -131,8 +131,7 @@ namespace hph {
           if (layerEncoding_[i] < 10) {
             edm::LogVerbatim("TrackTriggerHPH") << "KF expects L" << layerEncoding_[i];
           } else {
-            edm::LogVerbatim("TrackTriggerHPH")
-                << "KF expects D" << layerEncoding_[i] - 10;
+            edm::LogVerbatim("TrackTriggerHPH") << "KF expects D" << layerEncoding_[i] - 10;
           }
         }
 
