@@ -478,53 +478,42 @@ void TrackletLUT::initProjectionBend(double k_phider,
   writeTable();
 }
 
-void TrackletLUT::initProjectionDiskRadius(int nrbits){
-
+void TrackletLUT::initProjectionDiskRadius(int nrbits) {
   double roffset = 3.0;
 
-  for(unsigned int ir = 0; ir < (1u<<nrbits); ir++) {
+  for (unsigned int ir = 0; ir < (1u << nrbits); ir++) {
+    double r = ir * settings_.rmaxdisk() / (1u << nrbits);
 
-    double r = ir*settings_.rmaxdisk()/(1u<<nrbits);
-    
-    int rbin1 = 8.0 * (r - roffset - settings_.rmindiskvm()) /
-      (settings_.rmaxdisk() - settings_.rmindiskvm());
-    int rbin2 = 8.0 * (r + roffset - settings_.rmindiskvm()) /
-      (settings_.rmaxdisk() - settings_.rmindiskvm());
+    int rbin1 = 8.0 * (r - roffset - settings_.rmindiskvm()) / (settings_.rmaxdisk() - settings_.rmindiskvm());
+    int rbin2 = 8.0 * (r + roffset - settings_.rmindiskvm()) / (settings_.rmaxdisk() - settings_.rmindiskvm());
 
     if (rbin1 < 0) {
       rbin1 = 0;
     }
     rbin2 = clamp(rbin2, 0, 7);
-    
+
     assert(rbin1 <= rbin2);
     assert(rbin2 - rbin1 <= 1);
 
     int d = rbin1 != rbin2;
 
-    int finer = 64 *
-      ((r - settings_.rmindiskvm()) -
-       rbin1 * (settings_.rmaxdisk() - settings_.rmindiskvm()) / 8.0) /
-      (settings_.rmaxdisk() - settings_.rmindiskvm());
-    
+    int finer = 64 * ((r - settings_.rmindiskvm()) - rbin1 * (settings_.rmaxdisk() - settings_.rmindiskvm()) / 8.0) /
+                (settings_.rmaxdisk() - settings_.rmindiskvm());
+
     finer = clamp(finer, 0, 15);
 
     //Pack the data in a 8 bit word (ffffrrrd) where f is finer, r is rbin1, and d is difference
 
-    int word = (finer<<4) + (rbin1<<1) + d;
-    
+    int word = (finer << 4) + (rbin1 << 1) + d;
+
     table_.push_back(word);
-    
   }
-  
+
   nbits_ = 10;
   positive_ = true;
   name_ = "ProjectionDiskRadius.tab";
   writeTable();
-  
 }
-
-
-
 
 void TrackletLUT::initBendMatch(unsigned int layerdisk) {
   unsigned int nrinv = NRINVBITS;

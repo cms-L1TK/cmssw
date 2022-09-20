@@ -403,23 +403,24 @@ void MatchProcessor::execute(unsigned int iSector, double phimin) {
         unsigned int projfinephi =
             (fpgaphi.value() >> (fpgaphi.nbits() - (nvmbits_ + NFINEPHIBITS))) & ((1 << NFINEPHIBITS) - 1);
 
-	unsigned int slot;
-	bool second;
-	int projfinerz;
-       
-	if (barrel_) {
-	  slot = proj->proj(layerdisk_).fpgarzbin1projvm().value();
-	  second = proj->proj(layerdisk_).fpgarzbin2projvm().value();
-	  projfinerz = proj->proj(layerdisk_).fpgafinerzvm().value();
-	} else {
-	  //The -1 here is due to not using the full range of bits. Should be fixed.
-	  unsigned int ir = proj->proj(layerdisk_).fpgarzproj().value() >> (proj->proj(layerdisk_).fpgarzproj().nbits() - nrprojbits_ - 1);
-	  unsigned int word = diskRadius_.lookup(ir);
+        unsigned int slot;
+        bool second;
+        int projfinerz;
 
-	  slot = (word>>1)&((1<<N_RZBITS)-1);
-          if (proj->proj(layerdisk_).fpgarzprojder().value()<0) {
-	    slot += (1<<N_RZBITS);
-	  }
+        if (barrel_) {
+          slot = proj->proj(layerdisk_).fpgarzbin1projvm().value();
+          second = proj->proj(layerdisk_).fpgarzbin2projvm().value();
+          projfinerz = proj->proj(layerdisk_).fpgafinerzvm().value();
+        } else {
+          //The -1 here is due to not using the full range of bits. Should be fixed.
+          unsigned int ir = proj->proj(layerdisk_).fpgarzproj().value() >>
+                            (proj->proj(layerdisk_).fpgarzproj().nbits() - nrprojbits_ - 1);
+          unsigned int word = diskRadius_.lookup(ir);
+
+          slot = (word >> 1) & ((1 << N_RZBITS) - 1);
+          if (proj->proj(layerdisk_).fpgarzprojder().value() < 0) {
+            slot += (1 << N_RZBITS);
+          }
           second = word & 1;
           projfinerz = word >> 4;
         }
