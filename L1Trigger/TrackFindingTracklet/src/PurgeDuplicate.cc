@@ -137,6 +137,8 @@ void PurgeDuplicate::execute(std::vector<Track>& outputtracks_, unsigned int iSe
           throw "Number of stublists and tracks don't match up!";
         for (unsigned int j = 0; j < inputtrackfits_[i]->nStublists(); j++) {
           if (isTrackInBin(findOverlapRInvBins(inputtrackfits_[i]->getTrack(j)), bin)) {
+            if (inputtracklets_.size() > settings_.numtracksperbin())
+              continue;
             Tracklet* aTrack = inputtrackfits_[i]->getTrack(j);
             inputtracklets_.push_back(inputtrackfits_[i]->getTrack(j));
             std::vector<const Stub*> stublist = inputtrackfits_[i]->getStublist(j);
@@ -211,6 +213,8 @@ void PurgeDuplicate::execute(std::vector<Track>& outputtracks_, unsigned int iSe
       // numStublists-1 since last track has no other to compare to
       for (unsigned int itrk = 0; itrk < numStublists - 1; itrk++) {
         for (unsigned int jtrk = itrk + 1; jtrk < numStublists; jtrk++) {
+          if (itrk >= settings_.numtrackscomparedperbin())
+            continue;
           // Get primary track stubids
           const std::vector<std::pair<int, int>>& stubsTrk1 = inputstubidslists_[itrk];
 
