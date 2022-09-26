@@ -505,7 +505,7 @@ void TrackletLUT::initProjectionDiskRadius(int nrbits) {
     //Pack the data in a 8 bit word (ffffrrrd) where f is finer, r is rbin1, and d is difference
     int N_DIFF_FLAG = 1;  // Single bit for bool flag
 
-    int word = (finer << (N_RZBITS+N_DIFF_FLAG) + (rbin1 << N_DIFF_FLAG) + d;
+    int word = (finer << (N_RZBITS+N_DIFF_FLAG)) + (rbin1 << N_DIFF_FLAG) + d;
 
     table_.push_back(word);
   }
