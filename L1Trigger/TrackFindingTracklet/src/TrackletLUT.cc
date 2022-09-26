@@ -490,7 +490,7 @@ void TrackletLUT::initProjectionDiskRadius(int nrbits) {
     if (rbin1 < 0) {
       rbin1 = 0;
     }
-    rbin2 = clamp(rbin2, 0, 7);
+    rbin2 = clamp(rbin2, 0, ((1 << N_RZBITS) - 1));
 
     assert(rbin1 <= rbin2);
     assert(rbin2 - rbin1 <= 1);
@@ -500,11 +500,12 @@ void TrackletLUT::initProjectionDiskRadius(int nrbits) {
     int finer = 64 * ((r - settings_.rmindiskvm()) - rbin1 * (settings_.rmaxdisk() - settings_.rmindiskvm()) / 8.0) /
                 (settings_.rmaxdisk() - settings_.rmindiskvm());
 
-    finer = clamp(finer, 0, 15);
+    finer = clamp(finer, 0, ((1 << (NFINERZBITS + 1)) - 1));
 
     //Pack the data in a 8 bit word (ffffrrrd) where f is finer, r is rbin1, and d is difference
+    int N_DIFF_FLAG = 1;  // Single bit for bool flag
 
-    int word = (finer << 4) + (rbin1 << 1) + d;
+    int word = (finer << (N_RZBITS+N_DIFF_FLAG) + (rbin1 << N_DIFF_FLAG) + d;
 
     table_.push_back(word);
   }
