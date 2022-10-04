@@ -277,12 +277,12 @@ namespace trklet {
     void setStripLength_PS(double stripLength_PS) { stripLength_PS_ = stripLength_PS; }
     void setStripLength_2S(double stripLength_2S) { stripLength_2S_ = stripLength_2S; }
 
-    double overlapsize() const { return overlapsize_; }
-    long unsigned int numtracksperbin() const { return numtracksperbin_; }
-    unsigned int numtrackscomparedperbin() const { return numtrackscomparedperbin_; }
+    double overlapSize() const { return overlapSize_; }
+    long unsigned int numTracksPerBin() const { return numTracksPerBin_; }
+    unsigned int numTracksComparedPerBin() const { return numTracksComparedPerBin_; }
 
     //Grabs the bin edges you need for duplicate removal bins
-    const std::vector<double>& varrinvbins() const { return varrinvbins_; }
+    const std::vector<double>& varRInvBins() const { return varRInvBins_; }
 
     std::string skimfile() const { return skimfile_; }
     void setSkimfile(std::string skimfile) { skimfile_ = skimfile; }
@@ -978,7 +978,7 @@ namespace trklet {
 
     //Following values are used for duplicate removal
     //Variable bin edges for 12 bins.
-    std::vector<double> varrinvbins_{{-rinvcut(),
+    std::vector<double> varRInvBins_{{-rinvcut(),
                                       -0.005433,
                                       -0.004968,
                                       -0.004459,
@@ -992,11 +992,11 @@ namespace trklet {
                                       0.005433,
                                       rinvcut()}};
     //Overlap size for the overlap rinv bins in DR
-    double overlapsize_{0.0002};
+    double overlapSize_{0.0002};
     //Maximum number of tracks accepted per rinv bin
-    int numtracksperbin_{108};
+    int numTracksPerBin_{108};
     //The maximum number of tracks that are compared to all the other tracks
-    int numtrackscomparedperbin_{32};
+    int numTracksComparedPerBin_{32};
   };
 
   constexpr unsigned int N_TILTED_RINGS = 12;  // # of tilted rings per half-layer in TBPS layers
