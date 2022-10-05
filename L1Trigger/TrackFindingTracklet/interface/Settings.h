@@ -282,7 +282,7 @@ namespace trklet {
     unsigned int numTracksComparedPerBin() const { return numTracksComparedPerBin_; }
 
     //Grabs the bin edges you need for duplicate removal bins
-    const std::vector<double>& varRInvBins() const { return varRInvBins_; }
+    const std::vector<double> varRInvBins() const { return varRInvBins_; }
 
     std::string skimfile() const { return skimfile_; }
     void setSkimfile(std::string skimfile) { skimfile_ = skimfile; }
@@ -978,19 +978,19 @@ namespace trklet {
 
     //Following values are used for duplicate removal
     //Variable bin edges for 12 bins.
-    std::vector<double> varRInvBins_{{-rinvcut(),
-                                      -0.005433,
-                                      -0.004968,
-                                      -0.004459,
-                                      -0.003828,
-                                      -0.002911,
-                                      0,
-                                      0.002911,
-                                      0.003828,
-                                      0.004459,
-                                      0.004968,
-                                      0.005433,
-                                      rinvcut()}};
+    std::vector<double> varRInvBins_{-rinvcut(),
+                                     -0.005433,
+                                     -0.004968,
+                                     -0.004459,
+                                     -0.003828,
+                                     -0.002911,
+                                     0,
+                                     0.002911,
+                                     0.003828,
+                                     0.004459,
+                                     0.004968,
+                                     0.005433,
+                                     rinvcut()};
     //Overlap size for the overlap rinv bins in DR
     double overlapSize_{0.0002};
     //Maximum number of tracks accepted per rinv bin
