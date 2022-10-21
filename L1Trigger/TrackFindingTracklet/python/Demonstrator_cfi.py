@@ -3,9 +3,9 @@ import FWCore.ParameterSet.Config as cms
 
 TrackTriggerDemonstrator_params = cms.PSet (
 
-  LabelIn  = cms.string( "TrackFindingTrackletProducerKFin"  ), #
-  LabelOut = cms.string( "TrackFindingTrackletProducerKF" ), #
-  DirIPBB  = cms.string( "/heplnw039/tschuh/work/proj/kfinkf/" ), # path to ipbb proj area
+  LabelIn  = cms.string( "TrackFindingTrackletProducerIRin"  ), #
+  LabelOut = cms.string( "TrackFindingTrackletProducerTBout" ), #
+  DirIPBB  = cms.string( "/heplnw039/tschuh/work/proj/IRinTBout/" ), # path to ipbb proj area
   RunTime  = cms.double( 8.0 )                                  # runtime in us
 
 )
