@@ -43,9 +43,9 @@ namespace trklet {
                    unsigned int nbitsfinephidiff,
                    unsigned int iTP);
 
-    //Builds a lut for the TP ro decide if the region should be used. This is used in the 
+    //Builds a lut for the TP ro decide if the region should be used. This is used in the
     //first stage of the TP to decide which regions in the outer layer an inner stub needs
-    //to be combined with 
+    //to be combined with
     void initTPregionlut(unsigned int iSeed,
                          unsigned int layerdisk1,
                          unsigned int layerdisk2,
@@ -73,7 +73,7 @@ namespace trklet {
     //This LUT uses the phi derivative known in the projection to calculate the corresponding bend
     void initProjectionBend(double k_phider, unsigned int idisk, unsigned int nrbits, unsigned int nphiderbits);
 
-    //This LUT implements consistence check for match engine to check that stub bend is consistent with projection 
+    //This LUT implements consistence check for match engine to check that stub bend is consistent with projection
     void initBendMatch(unsigned int layerdisk);
 
     enum VMRTableType { me, disk, inner, inneroverlap, innerthird };
@@ -95,7 +95,6 @@ namespace trklet {
     unsigned int size() const { return table_.size(); }
 
   private:
-
     int getphiCorrValue(
         unsigned int layerdisk, unsigned int ibend, unsigned int irbin, double rmean, double dr, double drmax) const;
 
