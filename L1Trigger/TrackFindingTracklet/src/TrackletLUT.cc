@@ -1027,8 +1027,9 @@ void TrackletLUT::initVMRTable(unsigned int layerdisk, VMRTableType type, int re
         }
       }
 
-      unsigned int NRING = 5; //number of 2S rings in disks. This is multiplied below by two since we have two halfs of a module
-      if (layerdisk >= N_LAYER && irbin < 2*NRING)  //special case for the tabulated radii in 2S disks
+      unsigned int NRING =
+          5;  //number of 2S rings in disks. This is multiplied below by two since we have two halfs of a module
+      if (layerdisk >= N_LAYER && irbin < 2 * NRING)  //special case for the tabulated radii in 2S disks
         r = (layerdisk < N_LAYER + 2) ? settings_.rDSSinner(irbin) : settings_.rDSSouter(irbin);
 
       int bin;
@@ -1160,7 +1161,7 @@ int TrackletLUT::getVMRLookup(unsigned int layerdisk, double z, double r, double
   double z0cut = settings_.z0cut();
 
   if (layerdisk < N_LAYER) {
-    double zcutL2L3 = 52.0; //Stubs closer to IP in z will not be used for L2L3 seeds
+    double zcutL2L3 = 52.0;  //Stubs closer to IP in z will not be used for L2L3 seeds
     if (iseed == Seed::L2L3 && std::abs(z) < zcutL2L3)
       return -1;
 
@@ -1361,7 +1362,7 @@ int TrackletLUT::getphiCorrValue(
   double Delta = (irbin + 0.5) * dr - drmax;
 
   //calculate the phi correction - this is a somewhat approximate formula
-  double drnom = 0.18; //This is the nominal module separation for which bend is referenced
+  double drnom = 0.18;  //This is the nominal module separation for which bend is referenced
   double dphi = (Delta / drnom) * bend * settings_.stripPitch(psmodule) / rmean;
 
   double kphi = psmodule ? settings_.kphi() : settings_.kphi1();
