@@ -479,9 +479,8 @@ void TrackletLUT::initProjectionBend(double k_phider,
 }
 
 void TrackletLUT::initProjectionDiskRadius(int nrbits) {
-
   //When a projection to a disk is considered this offset and added and subtracted to calculate
-  //the bin the projection is pointing to. This is to account for resolution effects such that 
+  //the bin the projection is pointing to. This is to account for resolution effects such that
   //projections that are near a bin boundary will be assigned to both bins. The value (3 cm) should
   //cover the uncertanty in the resolution.
   double roffset = 3.0;
@@ -489,8 +488,10 @@ void TrackletLUT::initProjectionDiskRadius(int nrbits) {
   for (unsigned int ir = 0; ir < (1u << nrbits); ir++) {
     double r = ir * settings_.rmaxdisk() / (1u << nrbits);
 
-    int rbin1 = (1 << N_RZBITS) * (r - roffset - settings_.rmindiskvm()) / (settings_.rmaxdisk() - settings_.rmindiskvm());
-    int rbin2 = (1 << N_RZBITS) * (r + roffset - settings_.rmindiskvm()) / (settings_.rmaxdisk() - settings_.rmindiskvm());
+    int rbin1 =
+        (1 << N_RZBITS) * (r - roffset - settings_.rmindiskvm()) / (settings_.rmaxdisk() - settings_.rmindiskvm());
+    int rbin2 =
+        (1 << N_RZBITS) * (r + roffset - settings_.rmindiskvm()) / (settings_.rmaxdisk() - settings_.rmindiskvm());
 
     if (rbin1 < 0) {
       rbin1 = 0;
@@ -502,8 +503,10 @@ void TrackletLUT::initProjectionDiskRadius(int nrbits) {
 
     int d = rbin1 != rbin2;
 
-    int finer = (1 << (N_RZBITS + NFINERZBITS)) * ((r - settings_.rmindiskvm()) - rbin1 * (settings_.rmaxdisk() - settings_.rmindiskvm()) / (1 << N_RZBITS)) /
-                (settings_.rmaxdisk() - settings_.rmindiskvm());
+    int finer =
+        (1 << (N_RZBITS + NFINERZBITS)) *
+        ((r - settings_.rmindiskvm()) - rbin1 * (settings_.rmaxdisk() - settings_.rmindiskvm()) / (1 << N_RZBITS)) /
+        (settings_.rmaxdisk() - settings_.rmindiskvm());
 
     finer = clamp(finer, 0, ((1 << (NFINERZBITS + 1)) - 1));
 
