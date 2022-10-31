@@ -16,6 +16,7 @@
 #include "L1Trigger/TrackTrigger/interface/SensorModule.h"
 #include "L1Trigger/TrackerDTC/interface/LayerEncoding.h"
 #include "L1Trigger/TrackerDTC/interface/DTC.h"
+#include "L1Trigger/TrackerTFP/interface/DataFormats.h"
 
 #include <numeric>
 #include <algorithm>
@@ -26,6 +27,7 @@
 using namespace std;
 using namespace edm;
 using namespace tt;
+using namespace trackerTFP;
 
 namespace trackerDTC {
 
@@ -45,6 +47,8 @@ namespace trackerDTC {
     void endJob() {}
     // helper class to store configurations
     const Setup* setup_ = nullptr;
+    // helper class to extract structured data from tt::Frames
+    const DataFormats* dataFormats_ = nullptr;
     // class to encode layer ids used between DTC and TFP in Hybrid
     const LayerEncoding* layerEncoding_ = nullptr;
     // ED input token of TTStubs
@@ -55,6 +59,8 @@ namespace trackerDTC {
     EDPutTokenT<TTDTC> edPutTokenLost_;
     // Setup token
     ESGetToken<Setup, SetupRcd> esGetTokenSetup_;
+    // DataFormats token
+    ESGetToken<DataFormats, DataFormatsRcd> esGetTokenDataFormats_;
     // LayerEncoding token
     ESGetToken<LayerEncoding, LayerEncodingRcd> esGetTokenLayerEncoding_;
     // configuration
@@ -71,6 +77,7 @@ namespace trackerDTC {
     edPutTokenLost_ = produces<TTDTC>(branchLost);
     // book ES products
     esGetTokenSetup_ = esConsumes<Setup, SetupRcd, Transition::BeginRun>();
+    esGetTokenDataFormats_ = esConsumes<DataFormats, DataFormatsRcd, Transition::BeginRun>();
     esGetTokenLayerEncoding_ = esConsumes<LayerEncoding, LayerEncodingRcd, Transition::BeginRun>();
   }
 
@@ -81,6 +88,7 @@ namespace trackerDTC {
     // check process history if desired
     if (iConfig_.getParameter<bool>("CheckHistory"))
       setup_->checkHistory(iRun.processHistory());
+    dataFormats_ = &iSetup.getData(esGetTokenDataFormats_);
     layerEncoding_ = &iSetup.getData(esGetTokenLayerEncoding_);
   }
 
@@ -109,7 +117,7 @@ namespace trackerDTC {
       // board level processing
       for (int dtcId = 0; dtcId < setup_->numDTCs(); dtcId++) {
         // create single outer tracker DTC board
-        DTC dtc(iConfig_, setup_, layerEncoding_, dtcId, stubsDTCs.at(dtcId));
+        DTC dtc(iConfig_, setup_, dataFormats_, layerEncoding_, dtcId, stubsDTCs.at(dtcId));
         // route stubs and fill products
         dtc.produce(productAccepted, productLost);
       }

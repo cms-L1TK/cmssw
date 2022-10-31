@@ -176,11 +176,11 @@ namespace trackerTFP {
     int allMatched(0);
     int allTracks(0);
     for (int region = 0; region < setup_->numRegions(); region++) {
-      const int offset = region * dataFormats_->numChannel(Process::kf);
+      const int offset = region * dataFormats_->numChannel(Process::kfin);
       int nStubs(0);
       int nTracks(0);
       int nLost(0);
-      for (int channel = 0; channel < dataFormats_->numChannel(Process::kf); channel++) {
+      for (int channel = 0; channel < dataFormats_->numChannel(Process::kfin); channel++) {
         vector<vector<TTStubRef>> tracks;
         formTracks(acceptedTracks, acceptedStubs, tracks, offset + channel);
         vector<vector<TTStubRef>> lost;

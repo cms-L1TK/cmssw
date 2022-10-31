@@ -70,6 +70,7 @@ namespace trackerTFP {
     edGetTokenStubsOut_ = consumes<StreamsStub>(InputTag(labelOut, branchStubs));
     if (labelIn == "TrackerTFPProducerKFin" || labelIn == "TrackerTFPProducerKF")
       edGetTokenTracksIn_ = consumes<StreamsTrack>(InputTag(labelIn, branchTracks));
+    edGetTokenStubsOut_ = consumes<StreamsStub>(InputTag(labelOut, branchStubs));
     if (labelOut == "TrackerTFPProducerKF" || labelOut == "TrackerTFPProducerDR")
       edGetTokenTracksOut_ = consumes<StreamsTrack>(InputTag(labelOut, branchTracks));
     // book ES products
@@ -85,6 +86,8 @@ namespace trackerTFP {
   }
 
   void AnalyzerDemonstrator::analyze(const Event& iEvent, const EventSetup& iSetup) {
+    Handle<StreamsStub> handle;
+    iEvent.getByToken<StreamsStub>(edGetTokenStubsIn_, handle);
     vector<vector<Frame>> input;
     vector<vector<Frame>> output;
     convert(iEvent, edGetTokenTracksIn_, edGetTokenStubsIn_, input);

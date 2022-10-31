@@ -46,12 +46,13 @@ namespace trackerTFP {
     void analyze(const Event& iEvent, const EventSetup& iSetup) override;
     void endRun(const Run& iEvent, const EventSetup& iSetup) override {}
     void endJob() override;
-
   private:
     //
-    void formTracks(const StreamStub& stream, vector<vector<TTStubRef>>& tracks, int inv2R) const;
+    void formTracks(int channel, const StreamStub& stream, vector<vector<TTStubRef>>& tracks) const;
     //
     void associate(const vector<vector<TTStubRef>>& tracks, const StubAssociation* ass, set<TPPtr>& tps, int& sum) const;
+    //
+    int comb(const vector<TTStubRef>& tracks) const;
 
     // ED input token of stubs
     EDGetTokenT<StreamsStub> edGetTokenAccepted_;
@@ -78,7 +79,9 @@ namespace trackerTFP {
 
     TProfile* prof_;
     TProfile* profChannel_;
+    TProfile* profComb_;
     TH1F* hisChannel_;
+    TH1F* hisComb_;
     TH1F* hisEff_;
     TH1F* hisEffTotal_;
     TEfficiency* eff_;
@@ -133,6 +136,9 @@ namespace trackerTFP {
     const int numChannels = dataFormats_->numChannel(Process::zht);
     hisChannel_ = dir.make<TH1F>("His Channel Occupancy", ";", maxOcc, -.5, maxOcc - .5);
     profChannel_ = dir.make<TProfile>("Prof Channel Occupancy", ";", numChannels, -.5, numChannels - .5);
+    // channel combinatorics
+    hisComb_ = dir.make<TH1F>("His Channel Combinatorics", ";", maxOcc, -.5, maxOcc - .5);
+    profComb_ = dir.make<TProfile>("Prof Channel Combinatorics", ";", numChannels, -.5, numChannels - .5);
     // Efficiencies
     hisEffTotal_ = dir.make<TH1F>("HisTPEtaTotal", ";", 128, -2.5, 2.5);
     hisEff_ = dir.make<TH1F>("HisTPEta", ";", 128, -2.5, 2.5);
@@ -170,8 +176,8 @@ namespace trackerTFP {
       int nStubs(0);
       int nTracks(0);
       int nLost(0);
+      deque<int> combinatorics;
       for (int channel = 0; channel < dataFormats_->numChannel(Process::mht); channel++) {
-        const int inv2R = dataFormats_->format(Variable::inv2R, Process::ht).toSigned(channel);
         const int index = region * dataFormats_->numChannel(Process::mht) + channel;
         const StreamStub& accepted = handleAccepted->at(index);
         hisChannel_->Fill(accepted.size());
@@ -181,11 +187,13 @@ namespace trackerTFP {
         });
         vector<vector<TTStubRef>> tracks;
         vector<vector<TTStubRef>> lost;
-        formTracks(accepted, tracks, inv2R);
-        formTracks(handleLost->at(index), lost, inv2R);
+        formTracks(channel, accepted, tracks);
+        formTracks(channel, handleLost->at(index), lost);
         nTracks += tracks.size();
         allTracks += tracks.size();
         nLost += lost.size();
+        for (const vector<TTStubRef>& track : tracks)
+          combinatorics.emplace_back(comb(track));
         if (!useMCTruth_)
           continue;
         int tmp(0);
@@ -193,6 +201,8 @@ namespace trackerTFP {
         associate(lost, selection, tpPtrsLost, tmp);
         associate(tracks, reconstructable, tpPtrs, allMatched);
       }
+      for (int i : combinatorics)
+        hisComb_->Fill(min(i, setup_->numFrames()));
       prof_->Fill(1, nStubs);
       prof_->Fill(2, nTracks);
       prof_->Fill(3, nLost);
@@ -258,12 +268,12 @@ namespace trackerTFP {
   }
 
   //
-  void AnalyzerZHT::formTracks(const StreamStub& stream, vector<vector<TTStubRef>>& tracks, int inv2R) const {
+  void AnalyzerZHT::formTracks(int channel, const StreamStub& stream, vector<vector<TTStubRef>>& tracks) const {
     vector<StubZHT> stubs;
     stubs.reserve(stream.size());
     for (const FrameStub& frame : stream)
       if (frame.first.isNonnull())
-        stubs.emplace_back(frame, dataFormats_, inv2R);
+        stubs.emplace_back(frame, dataFormats_, channel);
     for (auto it = stubs.begin(); it != stubs.end();) {
       const auto start = it;
       const int id = it->trackId();
@@ -288,6 +298,36 @@ namespace trackerTFP {
       sum++;
       copy(tpPtrs.begin(), tpPtrs.end(), inserter(tps, tps.begin()));
     }
+  }
+
+  //
+  int AnalyzerZHT::comb(const vector<TTStubRef>& track) const {
+    int res(0);
+    vector<vector<const TTStubRef*>> layerStubs(setup_->numLayers(), {nullptr});
+    for (vector<const TTStubRef*>& layer : layerStubs)
+      layer.reserve(track.size());
+    for (const TTStubRef& ttStubRef : track) {
+      const int layerId = setup_->layerId(ttStubRef);
+      const StubDTC stubDTC(ttStubRef, dataFormats_, 0, layerId, 0., 0., 0., {0., 0.}, {0., 0.});
+      layerStubs[stubDTC.layer()].push_back(&ttStubRef);
+    }
+    const int maxCombs = accumulate(layerStubs.begin(), layerStubs.end(), 1, [](int& prod, const auto& stubs){ return prod *= stubs.size(); });
+    vector<vector<const TTStubRef*>> combs(maxCombs, vector<const TTStubRef*>(setup_->numLayers()));
+    int i(0);
+    for (const TTStubRef* tt0 : layerStubs[0])
+      for (const TTStubRef* tt1 : layerStubs[1])
+        for (const TTStubRef* tt2 : layerStubs[2])
+          for (const TTStubRef* tt3 : layerStubs[3])
+            for (const TTStubRef* tt4 : layerStubs[4])
+              for (const TTStubRef* tt5 : layerStubs[5])
+                for (const TTStubRef* tt6 : layerStubs[6])
+                  combs[i++] = {tt0, tt1, tt2, tt3, tt4, tt5, tt6};
+    for (const vector<const TTStubRef*>& comb : combs) {
+      const int nLayer = accumulate(comb.begin(), comb.end(), 0, [](int& sum, const TTStubRef* p){ return sum += (p ? 1 : 0); });
+      if (nLayer >= setup_->zhtMinLayers())
+        res++;
+    }
+    return res;
   }
 
 }  // namespace trackerTFP

@@ -21,7 +21,7 @@ namespace trackerDTC {
     LayerEncoding(const tt::Setup* setup);
     ~LayerEncoding() {}
     // decode layer id for given sensor module
-    int decode(tt::SensorModule* sm) const;
+    int decode(const tt::SensorModule* sm) const;
     // get encoded layers read by given DTC
     const std::vector<int>& layers(int dtcId) const { return encodingsLayerId_.at(dtcId % numDTCsPerRegion_); }
 

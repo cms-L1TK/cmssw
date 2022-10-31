@@ -26,7 +26,7 @@ namespace trackerTFP {
   // track trigger processes
   enum class Process { begin, fe = begin, dtc, pp, gp, ht, mht, zht, kfin, kf, dr, end, x };
   // track trigger variables
-  enum class Variable { begin, r = begin, phi, z, layer, sectorsPhi, sectorPhi, sectorEta, inv2R, phiT, dPhi, dZ, cot, zT, hitPattern, match, phi0, z0, end, x };
+  enum class Variable { begin, r = begin, phi, z, dPhi, dZ, inv2R, phiT, cot, zT, layer, module, hitPattern, match, phi0, z0, end, x };
   // track trigger process order
   constexpr std::initializer_list<Process> Processes = {Process::fe, Process::dtc, Process::pp, Process::gp, Process::ht, Process::mht, Process::zht, Process::kfin, Process::kf, Process::dr};
   // conversion: Process to int
@@ -41,7 +41,7 @@ namespace trackerTFP {
   //Base class representing format of a variable
   class DataFormat {
   public:
-    DataFormat(bool twos) : twos_(twos), width_(0), base_(1.), range_(0.) {}
+    DataFormat(bool twos, bool biased = true) : twos_(twos), width_(0), base_(1.), range_(0.) {}
     ~DataFormat() {}
     // converts int to bitvector
     TTBV ttBV(int i) const { return TTBV(i, width_, twos_); }
@@ -53,6 +53,8 @@ namespace trackerTFP {
     void extract(TTBV& in, double& out) const { out = in.extract(base_, width_, twos_); }
     // extracts double from bitvector, removing these bits from bitvector
     void extract(TTBV& in, TTBV& out) const { out = in.slice(width_, twos_); }
+    // extracts bool from bitvector, removing these bits from bitvector
+    void extract(TTBV& in, bool& out) const { out = in.extract(); }
     // attaches integer to bitvector
     void attach(const int i, TTBV& ttBV) const { ttBV += TTBV(i, width_, twos_); }
     // attaches double to bitvector
@@ -63,6 +65,8 @@ namespace trackerTFP {
     double floating(int i) const { return (i + .5) * base_; }
     // converts double to int
     int integer(double d) const { return std::floor(d / base_ + 1.e-12); }
+    // converts double to int, shifts value to fit into range
+    int integerF(double d) const { return integer(std::max((twos_ ? -limit() : 0), std::min(d, limit()))); }
     // converts double to int and back to double
     double digi(double d) const { return floating(integer(d)); }
     // converts binary integer value to twos complement integer value
@@ -71,6 +75,8 @@ namespace trackerTFP {
     int toUnsigned(int i) const { return i + std::pow(2, width_) / 2; }
     // converts floating point value to binary integer value
     int toUnsigned(double d) const { return this->integer(d) + std::pow(2, width_) / 2; }
+    // biggest representable floating point value
+    double limit() const { return (range_ - base_) / (twos_ ? 2. : 1.); }
     // returns false if data format would oferflow for this double value
     bool inRange(double d, bool digi = false) const {
       const double range = digi ? base_ * pow(2, width_) : range_;
@@ -86,7 +92,6 @@ namespace trackerTFP {
     double base() const { return base_; }
     // covered range
     double range() const { return range_; }
-
   protected:
     // true if twos'complement or false if binary representation is chosen
     bool twos_;
@@ -107,26 +112,6 @@ namespace trackerTFP {
   };
 
   template <>
-  Format<Variable::inv2R, Process::ht>::Format(const tt::Setup* setup);
-  template <>
-  Format<Variable::phiT, Process::ht>::Format(const tt::Setup* setup);
-  template <>
-  Format<Variable::phi, Process::ht>::Format(const tt::Setup* setup);
-  template <>
-  Format<Variable::dPhi, Process::ht>::Format(const tt::Setup* setup);
-  template <>
-  Format<Variable::dZ, Process::ht>::Format(const tt::Setup* setup);
-  
-  template <>
-  Format<Variable::phi, Process::gp>::Format(const tt::Setup* setup);
-  template <>
-  Format<Variable::z, Process::gp>::Format(const tt::Setup* setup);
-  template <>
-  Format<Variable::sectorPhi, Process::gp>::Format(const tt::Setup* setup);
-  template <>
-  Format<Variable::sectorEta, Process::gp>::Format(const tt::Setup* setup);
-  
-  template <>
   Format<Variable::r, Process::dtc>::Format(const tt::Setup* setup);
   template <>
   Format<Variable::phi, Process::dtc>::Format(const tt::Setup* setup);
@@ -134,30 +119,52 @@ namespace trackerTFP {
   Format<Variable::z, Process::dtc>::Format(const tt::Setup* setup);
   template <>
   Format<Variable::layer, Process::dtc>::Format(const tt::Setup* setup);
+  
   template <>
-  Format<Variable::sectorsPhi, Process::dtc>::Format(const tt::Setup* setup);
+  Format<Variable::phi, Process::gp>::Format(const tt::Setup* setup);
+  template <>
+  Format<Variable::z, Process::gp>::Format(const tt::Setup* setup);
+  template <>
+  Format<Variable::phiT, Process::gp>::Format(const tt::Setup* setup);
+  template <>
+  Format<Variable::cot, Process::gp>::Format(const tt::Setup* setup);
+  template <>
+  Format<Variable::zT, Process::gp>::Format(const tt::Setup* setup);
+  template <>
+  Format<Variable::module, Process::gp>::Format(const tt::Setup* setup);
+
+  template <>
+  Format<Variable::phi, Process::ht>::Format(const tt::Setup* setup);
+  template <>
+  Format<Variable::inv2R, Process::ht>::Format(const tt::Setup* setup);
+  template <>
+  Format<Variable::phiT, Process::ht>::Format(const tt::Setup* setup);
 
   template <>
   Format<Variable::inv2R, Process::mht>::Format(const tt::Setup* setup);
   template <>
   Format<Variable::phiT, Process::mht>::Format(const tt::Setup* setup);
-  template <>
-  Format<Variable::phi, Process::mht>::Format(const tt::Setup* setup);
 
   template <>
   Format<Variable::cot, Process::zht>::Format(const tt::Setup* setup);
   template <>
   Format<Variable::zT, Process::zht>::Format(const tt::Setup* setup);
-  template <>
-  Format<Variable::z, Process::zht>::Format(const tt::Setup* setup);
 
   template <>
   Format<Variable::phi, Process::kfin>::Format(const tt::Setup* setup);
   template <>
   Format<Variable::z, Process::kfin>::Format(const tt::Setup* setup);
   template <>
+  Format<Variable::dPhi, Process::kfin>::Format(const tt::Setup* setup);
+  template <>
+  Format<Variable::dZ, Process::kfin>::Format(const tt::Setup* setup);
+  template <>
   Format<Variable::hitPattern, Process::kfin>::Format(const tt::Setup* setup);
 
+  template <>
+  Format<Variable::phi, Process::kf>::Format(const tt::Setup* setup);
+  template <>
+  Format<Variable::z, Process::kf>::Format(const tt::Setup* setup);
   template <>
   Format<Variable::inv2R, Process::kf>::Format(const tt::Setup* setup);
   template <>
@@ -167,18 +174,14 @@ namespace trackerTFP {
   template <>
   Format<Variable::zT, Process::kf>::Format(const tt::Setup* setup);
   template <>
-  Format<Variable::phi, Process::kf>::Format(const tt::Setup* setup);
-  template <>
-  Format<Variable::z, Process::kf>::Format(const tt::Setup* setup);
-  template <>
   Format<Variable::match, Process::kf>::Format(const tt::Setup* setup);
 
-  template <>
-  Format<Variable::cot, Process::dr>::Format(const tt::Setup* setup);
   template <>
   Format<Variable::inv2R, Process::dr>::Format(const tt::Setup* setup);
   template <>
   Format<Variable::phi0, Process::dr>::Format(const tt::Setup* setup);
+  template <>
+  Format<Variable::cot, Process::dr>::Format(const tt::Setup* setup);
   template <>
   Format<Variable::z0, Process::dr>::Format(const tt::Setup* setup);
 
@@ -191,50 +194,48 @@ namespace trackerTFP {
   private:
     // variable flavour mapping, Each row below declares which processing steps use the variable named in the comment at the end of the row
     static constexpr std::array<std::array<Process, +Process::end>, +Variable::end> config_ = {{
-    //  Process::fe  Process::dtc  Process::pp   Process::gp   Process::ht   Process::mht  Process::zht  Process::kfin  Process::kf   Process::dr
-      {{Process::x,  Process::dtc, Process::dtc, Process::dtc, Process::dtc, Process::dtc, Process::dtc, Process::dtc,  Process::dtc, Process::x }},  // Variable::r
-      {{Process::x,  Process::dtc, Process::dtc, Process::gp,  Process::ht,  Process::mht, Process::mht, Process::kfin, Process::kf,  Process::x }},  // Variable::phi
-      {{Process::x,  Process::dtc, Process::dtc, Process::gp,  Process::gp,  Process::gp,  Process::zht, Process::kfin, Process::kf,  Process::x }},  // Variable::z
-      {{Process::x,  Process::dtc, Process::dtc, Process::dtc, Process::dtc, Process::dtc, Process::dtc, Process::x,    Process::x,   Process::x }},  // Variable::layer
-      {{Process::x,  Process::dtc, Process::dtc, Process::x,   Process::x,   Process::x,   Process::x,   Process::x,    Process::x,   Process::x }},  // Variable::sectorsPhi
-      {{Process::x,  Process::x,   Process::x,   Process::gp,  Process::gp,  Process::gp,  Process::gp,  Process::gp,   Process::gp,  Process::x }},  // Variable::sectorPhi
-      {{Process::x,  Process::gp,  Process::gp,  Process::gp,  Process::gp,  Process::gp,  Process::gp,  Process::gp,   Process::gp,  Process::x }},  // Variable::sectorEta
-      {{Process::x,  Process::ht,  Process::ht,  Process::ht,  Process::ht,  Process::mht, Process::mht, Process::mht,  Process::kf,  Process::dr}},  // Variable::inv2R
-      {{Process::x,  Process::x,   Process::x,   Process::x,   Process::ht,  Process::mht, Process::mht, Process::mht,  Process::kf,  Process::x }},  // Variable::phiT
-      {{Process::x,  Process::x,   Process::x,   Process::x,   Process::ht,  Process::ht,  Process::ht,  Process::ht,   Process::ht,  Process::x }},  // Variable::dPhi
-      {{Process::x,  Process::x,   Process::x,   Process::x,   Process::ht,  Process::ht,  Process::ht,  Process::ht,   Process::ht,  Process::x }},  // Variable::dZ
-      {{Process::x,  Process::x,   Process::x,   Process::x,   Process::x,   Process::x,   Process::zht, Process::zht,  Process::kf,  Process::dr}},  // Variable::cot
-      {{Process::x,  Process::x,   Process::x,   Process::x,   Process::x,   Process::x,   Process::zht, Process::zht,  Process::kf,  Process::x }},  // Variable::zT
-      {{Process::x,  Process::x,   Process::x,   Process::x,   Process::x,   Process::x,   Process::x,   Process::kfin, Process::x,   Process::x }},  // Variable::hitPattern
-      {{Process::x,  Process::x,   Process::x,   Process::x,   Process::x,   Process::x,   Process::x,   Process::x,    Process::kf,  Process::x }},  // Variable::match
-      {{Process::x,  Process::x,   Process::x,   Process::x,   Process::x,   Process::x,   Process::x,   Process::x,    Process::x,   Process::dr}},  // Variable::phi0
-      {{Process::x,  Process::x,   Process::x,   Process::x,   Process::x,   Process::x,   Process::x,   Process::x,    Process::x,   Process::dr}}   // Variable::z0
+    //  Process::fe  Process::dtc  Process::pp   Process::gp   Process::ht   Process::mht  Process::zht  Process::kfin  Process::kf    Process::dr
+      {{Process::x,  Process::dtc, Process::dtc, Process::dtc, Process::dtc, Process::dtc, Process::dtc, Process::dtc,  Process::dtc,  Process::x }},  // Variable::r
+      {{Process::x,  Process::dtc, Process::dtc, Process::gp,  Process::ht,  Process::ht,  Process::ht,  Process::kfin, Process::kf,   Process::x }},  // Variable::phi
+      {{Process::x,  Process::dtc, Process::dtc, Process::gp,  Process::gp,  Process::gp,  Process::gp,  Process::kfin, Process::kf,   Process::x }},  // Variable::z
+      {{Process::x,  Process::x,   Process::x,   Process::x,   Process::x,   Process::x,   Process::x,   Process::kfin, Process::kfin, Process::x }},  // Variable::dPhi
+      {{Process::x,  Process::x,   Process::x,   Process::x,   Process::x,   Process::x,   Process::x,   Process::kfin, Process::kfin, Process::x }},  // Variable::dZ
+      {{Process::x,  Process::ht,  Process::ht,  Process::ht,  Process::ht,  Process::mht, Process::mht, Process::ht,   Process::kf,   Process::dr}},  // Variable::inv2R
+      {{Process::x,  Process::gp,  Process::gp,  Process::gp,  Process::ht,  Process::mht, Process::mht, Process::ht,   Process::kf,   Process::x }},  // Variable::phiT
+      {{Process::x,  Process::x,   Process::x,   Process::gp,  Process::x,   Process::x,   Process::zht, Process::x,    Process::kf,   Process::dr}},  // Variable::cot
+      {{Process::x,  Process::x,   Process::gp,  Process::gp,  Process::gp,  Process::gp,  Process::zht, Process::gp,   Process::kf,   Process::x }},  // Variable::zT
+      {{Process::x,  Process::dtc, Process::dtc, Process::dtc, Process::dtc, Process::dtc, Process::dtc, Process::x,    Process::x,    Process::x }},  // Variable::layer
+      {{Process::x,  Process::x,   Process::x,   Process::gp,  Process::gp,  Process::gp,  Process::gp,  Process::x,    Process::x,    Process::x }},  // Variable::module
+      {{Process::x,  Process::x,   Process::x,   Process::x,   Process::x,   Process::x,   Process::x,   Process::kfin, Process::x,    Process::x }},  // Variable::hitPattern
+      {{Process::x,  Process::x,   Process::x,   Process::x,   Process::x,   Process::x,   Process::x,   Process::x,    Process::kf,   Process::x }},  // Variable::match
+      {{Process::x,  Process::x,   Process::x,   Process::x,   Process::x,   Process::x,   Process::x,   Process::x,    Process::x,    Process::dr}},  // Variable::phi0
+      {{Process::x,  Process::x,   Process::x,   Process::x,   Process::x,   Process::x,   Process::x,   Process::x,    Process::x,    Process::dr}}   // Variable::z0
     }};
     // stub word assembly, shows which stub variables are used by each process
     static constexpr std::array<std::initializer_list<Variable>, +Process::end> stubs_ = {{
         {},  // Process::fe
-        {Variable::r, Variable::phi, Variable::z, Variable::layer, Variable::sectorsPhi, Variable::sectorEta, Variable::sectorEta, Variable::inv2R, Variable::inv2R},       // Process::dtc
-        {Variable::r, Variable::phi, Variable::z, Variable::layer, Variable::sectorsPhi, Variable::sectorEta, Variable::sectorEta, Variable::inv2R, Variable::inv2R},       // Process::pp
-        {Variable::r, Variable::phi, Variable::z, Variable::layer, Variable::inv2R, Variable::inv2R},                                                                       // Process::gp
-        {Variable::r, Variable::phi, Variable::z, Variable::layer, Variable::sectorPhi, Variable::sectorEta, Variable::phiT, Variable::inv2R},                              // Process::ht
-        {Variable::r, Variable::phi, Variable::z, Variable::layer, Variable::sectorPhi, Variable::sectorEta, Variable::inv2R, Variable::phiT},                              // Process::mht
-        {Variable::r, Variable::phi, Variable::z, Variable::layer, Variable::sectorPhi, Variable::sectorEta, Variable::inv2R, Variable::phiT, Variable::cot, Variable::zT}, // Process::zht
-        {Variable::r, Variable::phi, Variable::z, Variable::dPhi, Variable::dZ},                                                                                            // Process::kfin
-        {Variable::r, Variable::phi, Variable::z, Variable::dPhi, Variable::dZ},                                                                                            // Process::kf
-        {}                                                                                                                                                                                                // Process::dr
+        {Variable::r, Variable::phi, Variable::z, Variable::layer, Variable::phiT, Variable::phiT, Variable::inv2R, Variable::inv2R}, // Process::dtc
+        {Variable::r, Variable::phi, Variable::z, Variable::layer, Variable::phiT, Variable::phiT, Variable::inv2R, Variable::inv2R}, // Process::pp
+        {Variable::r, Variable::phi, Variable::z, Variable::layer, Variable::module, Variable::inv2R, Variable::inv2R},               // Process::gp
+        {Variable::r, Variable::phi, Variable::z, Variable::layer, Variable::module, Variable::phiT, Variable::zT},                   // Process::ht
+        {Variable::r, Variable::phi, Variable::z, Variable::layer, Variable::module, Variable::phiT, Variable::zT},                   // Process::mht
+        {Variable::r, Variable::phi, Variable::z, Variable::layer, Variable::module, Variable::phiT, Variable::zT},                   // Process::zht
+        {Variable::r, Variable::phi, Variable::z, Variable::dPhi, Variable::dZ},                                                      // Process::kfin
+        {Variable::r, Variable::phi, Variable::z, Variable::dPhi, Variable::dZ},                                                      // Process::kf
+        {}                                                                                                                            // Process::dr
     }};
     // track word assembly, shows which track variables are used by each process
     static constexpr std::array<std::initializer_list<Variable>, +Process::end> tracks_ = {{
-        {},                                                                                                                             // Process::fe
-        {},                                                                                                                             // Process::dtc
-        {},                                                                                                                             // Process::pp
-        {},                                                                                                                             // Process::gp
-        {},                                                                                                                             // Process::ht
-        {},                                                                                                                             // Process::mht
-        {},                                                                                                                             // Process::zht
-        {Variable::hitPattern, Variable::sectorPhi, Variable::sectorEta, Variable::inv2R, Variable::phiT, Variable::cot, Variable::zT}, // Process::kfin
-        {Variable::match, Variable::sectorPhi, Variable::sectorEta, Variable::inv2R, Variable::phiT, Variable::cot, Variable::zT},      // Process::kf
-        {Variable::inv2R, Variable::phi0, Variable::cot, Variable::z0}                                                                  // Process::dr
+        {},                                                                              // Process::fe
+        {},                                                                              // Process::dtc
+        {},                                                                              // Process::pp
+        {},                                                                              // Process::gp
+        {},                                                                              // Process::ht
+        {},                                                                              // Process::mht
+        {},                                                                              // Process::zht
+        {Variable::hitPattern, Variable::inv2R, Variable::phiT, Variable::zT},           // Process::kfin
+        {Variable::match, Variable::inv2R, Variable::phiT, Variable::cot, Variable::zT}, // Process::kf
+        {Variable::inv2R, Variable::phi0, Variable::cot, Variable::z0}                   // Process::dr
     }};
 
   public:
@@ -273,7 +274,6 @@ namespace trackerTFP {
     int numStreamsTracks(Process p) const { return numStreamsTracks_[+p]; }
     // access to spedific format
     const DataFormat& format(Variable v, Process p) const { return *formats_[+v][+p]; }
-
   private:
     // number of unique data formats
     int numDataFormats_;
@@ -347,7 +347,6 @@ namespace trackerTFP {
     const tt::Frame& bv() const { return frame_.second; }
     // id of collection this stub belongs to
     int trackId() const { return trackId_; }
-
   protected:
     // access to run-time constants
     const tt::Setup* setup() const { return dataFormats_->setup(); }
@@ -371,8 +370,32 @@ namespace trackerTFP {
     int trackId_;
   };
 
+  // class to represent stubs generated by process DTC
+  class StubDTC : public Stub<double, double, double, int, int, int, int, int> {
+  public:
+    // construct StubDTC from TTStubRef
+    StubDTC(const TTStubRef& ttStubRef, const DataFormats* dataFormats, int region, int layer, double r, double phi, double z, std::pair<double, double> phiT, std::pair<double, double> inv2R);
+    ~StubDTC() {}
+    // stub radius wrt chosenRofPhi
+    double r() const { return std::get<0>(data_); }
+    // stub phi wrt processing nonant centre
+    double phi() const { return std::get<1>(data_); }
+    // stub z
+    double z() const { return std::get<2>(data_); }
+    // reduced layer id
+    int layer() const { return std::get<3>(data_); }
+    // first phi sector this stub belongs to
+    int phiTMin() const { return std::get<4>(data_); }
+    // last phi sector this stub belongs to
+    int phiTMax() const { return std::get<5>(data_); }
+    // first inv2R bin this stub belongs to
+    int inv2RMin() const { return std::get<6>(data_); }
+    // last inv2R bin this stub belongs to
+    int inv2RMax() const { return std::get<7>(data_); }
+  };
+
   // class to represent stubs generated by process patch pannel
-  class StubPP : public Stub<double, double, double, int, TTBV, int, int, int, int> {
+  class StubPP : public Stub<double, double, double, int, int, int, int, int> {
   public:
     // construct StubPP from Frame
     StubPP(const tt::FrameStub& frame, const DataFormats* dataFormats);
@@ -389,38 +412,35 @@ namespace trackerTFP {
     double z() const { return std::get<2>(data_); }
     // reduced layer id
     int layer() const { return std::get<3>(data_); }
-    // phi sector map to which this stub belongs to
-    TTBV sectorsPhi() const { return std::get<4>(data_); }
-    // first eta sector this stub belongs to
-    int sectorEtaMin() const { return std::get<5>(data_); }
-    // last eta sector this stub belongs to
-    int sectorEtaMax() const { return std::get<6>(data_); }
+    // first phi sector this stub belongs to
+    int phiTMin() const { return std::get<4>(data_); }
+    // last phi sector this stub belongs to
+    int phiTMax() const { return std::get<5>(data_); }
     // first inv2R bin this stub belongs to
-    int inv2RMin() const { return std::get<7>(data_); }
+    int inv2RMin() const { return std::get<6>(data_); }
     // last inv2R bin this stub belongs to
-    int inv2RMax() const { return std::get<8>(data_); }
-
+    int inv2RMax() const { return std::get<7>(data_); }
   private:
     // sectors this stub belongs to
     TTBV sectors_;
   };
 
   // class to represent stubs generated by process geometric processor
-  class StubGP : public Stub<double, double, double, int, int, int> {
+  class StubGP : public Stub<double, double, double, int, TTBV, int, int> {
   public:
     // construct StubGP from Frame
-    StubGP(const tt::FrameStub& frame, const DataFormats* dataFormats, int sectorPhi, int sectorEta);
-    // construct StubGO from StubPP
-    StubGP(const StubPP& stub, int sectorPhi, int sectorEta);
+    StubGP(const tt::FrameStub& frame, const DataFormats* dataFormats, int channel);
+    // construct StubGP from StubPP
+    StubGP(const StubPP& stub, int phiT, int zT);
     ~StubGP() {}
     // true if stub belongs to given inv2R bin
     bool inInv2RBin(int inv2RBin) const { return inv2RBins_[inv2RBin]; }
     // inv2R bins  this stub belongs to
     std::vector<int> inv2RBins() const { return inv2RBins_.ids(); }
     // stub phi sector
-    int sectorPhi() const { return sectorPhi_; }
+    int phiT() const { return phiT_; }
     // stub eta sector
-    int sectorEta() const { return sectorEta_; }
+    int zT() const { return zT_; }
     // stub radius wrt chosenRofPhi
     double r() const { return std::get<0>(data_); }
     // stub phi wrt phi sector centre
@@ -429,27 +449,28 @@ namespace trackerTFP {
     double z() const { return std::get<2>(data_); }
     // reduced layer id
     int layer() const { return std::get<3>(data_); }
+    // module type
+    const TTBV& module() const { return std::get<4>(data_); }
     // first inv2R bin this stub belongs to
-    int inv2RMin() const { return std::get<4>(data_); }
+    int inv2RMin() const { return std::get<5>(data_); }
     // last inv2R bin this stub belongs to
-    int inv2RMax() const { return std::get<5>(data_); }
-
+    int inv2RMax() const { return std::get<6>(data_); }
   private:
     // inv2R bins this stub belongs to
     TTBV inv2RBins_;
     // stub phi sector
-    int sectorPhi_;
+    int phiT_;
     // stub eta sector
-    int sectorEta_;
+    int zT_;
   };
 
   // class to represent stubs generated by process hough transform
-  class StubHT : public Stub<double, double, double, int, int, int, int> {
+  class StubHT : public Stub<double, double, double, int, TTBV, int, int> {
   public:
     // construct StubHT from Frame
-    StubHT(const tt::FrameStub& frame, const DataFormats* dataFormats, int inv2R);
+    StubHT(const tt::FrameStub& frame, const DataFormats* dataFormats, int channel);
     // construct StubHT from StubGP and HT cell assignment
-    StubHT(const StubGP& stub, int phiT, int inv2R);
+    StubHT(const StubGP& stub, int inv2R, int phiT);
     ~StubHT() {}
     // stub radius wrt chosenRofPhi
     double r() const { return std::get<0>(data_); };
@@ -459,36 +480,50 @@ namespace trackerTFP {
     double z() const { return std::get<2>(data_); };
     // reduced layer id
     int layer() const { return std::get<3>(data_); };
-    // phi sector
-    int sectorPhi() const { return std::get<4>(data_); };
+    // module type
+    const TTBV& module() const { return std::get<4>(data_); }
+    // stub phi at radius chosenRofPhi wrt processing nonant centre
+    int phiT() const { return std::get<5>(data_); };
     // eta sector
-    int sectorEta() const { return std::get<5>(data_); };
-    // stub phi at radius chosenRofPhi wrt phi sector centre
-    int phiT() const { return std::get<6>(data_); };
-    // stub inv2R
+    int zT() const { return std::get<6>(data_); };
+    // stub inv2R wrt HT inv2R bin center
     int inv2R() const { return inv2R_; };
+    // stub phiT wrt sector center
+    int phiTlocal() const { return phiT_; }
+    //
+    bool ps() const { return setup()->ps(this->module()); }
+    //
+    bool barrel() const { return setup()->barrel(this->module()); }
+    //
+    bool tilted() const { return setup()->tilted(this->module()); }
     // stub phi uncertainty in rad
     double dPhi() const { return dPhi_; }
-    // ps module
-    bool ps() const { return ps_; }
+    //
+    void mark(int inv2R, int phiT) { array_[inv2R].set(phiT); }
+    //
+    void hit(int inv2R, int phiT) { if (!valid_ && array_[inv2R][phiT]) valid_ = true; }
+    //
+    bool valid() const { return valid_; }
   private:
-    // fills track id
-    void fillTrackId();
-    // stub inv2R
+    // stub inv2R wrt HT inv2R bin center
     int inv2R_;
+    // stub phiT wrt sector center
+    int phiT_;
     // stub phi uncertainty in rad
     double dPhi_;
-    // ps module
-    bool ps_;
+    //
+    bool valid_;
+    //
+    std::vector<TTBV> array_;
   };
 
   // class to represent stubs generated by process mini hough transform
-  class StubMHT : public Stub<double, double, double, int, int, int, int, int> {
+  class StubMHT : public Stub<double, double, double, int, TTBV, int, int> {
   public:
     // construct StubMHT from Frame
     StubMHT(const tt::FrameStub& frame, const DataFormats* dataFormats);
     //
-    StubMHT(const StubHT& stub, double phi, int inv2R, int phiT);
+    StubMHT(const StubHT& stub, bool last);
     ~StubMHT() {}
     // stub radius wrt choenRofPhi
     double r() const { return std::get<0>(data_); }
@@ -498,32 +533,50 @@ namespace trackerTFP {
     double z() const { return std::get<2>(data_); }
     // reduced layer id
     int layer() const { return std::get<3>(data_); }
-    // phi sector
-    int sectorPhi() const { return std::get<4>(data_); }
+    // module type
+    const TTBV& module() const { return std::get<4>(data_); }
+    // stub phi at radius chosenRofPhi wrt processing nonant centre
+    int phiT() const { return std::get<5>(data_); }
     // eta sector
-    int sectorEta() const { return std::get<5>(data_); }
-    // stub inv2R
-    int inv2R() const { return std::get<6>(data_); }
-    // stub phi at radius chosenRofPhi wrt phi sector centre
-    int phiT() const { return std::get<7>(data_); }
+    int zT() const { return std::get<6>(data_); }
+    //
+    bool ps() const { return setup()->ps(this->module()); }
+    //
+    bool barrel() const { return setup()->barrel(this->module()); }
+    //
+    bool tilted() const { return setup()->tilted(this->module()); }
+    // stub phi uncertainty in rad
+    double dPhi() const { return dPhi_; }
     // stub z uncertainty in cm
     double dZ() const { return dZ_; }
-    // ps module
-    bool ps() const { return ps_; }
+    //
+    bool valid() const { return valid_; }
+    //
+    bool last() const { return last_; }
+    //
+    void mark(int cot, int zT) { array_[cot].set(zT); }
+    //
+    void hit(int cot, int zT) { if (!valid_ && array_[cot][zT]) valid_ = true; }
   private:
+    // stub phi uncertainty in rad
+    double dPhi_;
     // stub z uncertainty in cm
     double dZ_;
-    // ps module
-    bool ps_;
+    //
+    bool valid_;
+    //
+    bool last_;
+    //
+    std::vector<TTBV> array_;
   };
 
   // class to represent stubs generated by process z hough transform
-  class StubZHT : public Stub<double, double, double, int, int, int, int, int, int, int> {
+  class StubZHT : public Stub<double, double, double, int, TTBV, int, int> {
   public:
     // construct StubZHT from Frame
-    StubZHT(const tt::FrameStub& frame, const DataFormats* dataFormats, int inv2R);
+    StubZHT(const tt::FrameStub& frame, const DataFormats* dataFormats, int channel);
     //
-    StubZHT(const StubMHT& stub, double z, int cot, int zT);
+    StubZHT(const StubMHT& stub, bool last);
     ~StubZHT() {}
     // stub radius wrt chonseRofPhi
     double r() const { return std::get<0>(data_); }
@@ -533,23 +586,35 @@ namespace trackerTFP {
     double z() const { return std::get<2>(data_); }
     // reduced layer id
     int layer() const { return std::get<3>(data_); }
-    // phi sector
-    int sectorPhi() const { return std::get<4>(data_); }
-    // eta sector
-    int sectorEta() const { return std::get<5>(data_); }
+    // module type
+    const TTBV& module() const { return std::get<4>(data_); }
+    // stub phi at radius chosenRofPhi wrt processing nonant centre
+    int phiT() const { return std::get<5>(data_); }
+    // stub z at radius chosenRofZ
+    int zT() const { return std::get<6>(data_); }
+    //
+    bool ps() const { return setup()->ps(this->module()); }
+    //
+    bool barrel() const { return setup()->barrel(this->module()); }
+    //
+    bool tilted() const { return setup()->tilted(this->module()); }
+    // stub z uncertainty in cm
+    double dZ() const { return dZ_; }
     // stub inv2R
-    int inv2R() const { return std::get<6>(data_); }
-    // stub phi at radius chosenRofPhi wrt phi sector centre
-    int phiT() const { return std::get<7>(data_); }
-    // stub cotTheta wrt eta sector cotTheta
-    int cot() const { return std::get<8>(data_); }
-    // stub z at radius chosenRofZ wrt eta sector centre
-    int zT() const { return std::get<9>(data_); }
-    // full stub inv2R
-    int inv2RFull() const { return inv2R_; }
+    int inv2R() const { return inv2R_; }
+    //
+    bool valid() const { return valid_; }
+    //
+    bool last() const { return last_; }
   private:
-    // full stub inv2R
+    // stub z uncertainty in cm
+    double dZ_;
+    // stub inv2R
     int inv2R_;
+    //
+    bool valid_;
+    //
+    bool last_;
   };
 
   // class to represent stubs generated by process kfin
@@ -581,7 +646,6 @@ namespace trackerTFP {
     double dPhi() const { return std::get<3>(data_); }
     // stub z uncertainty
     double dZ() const { return std::get<4>(data_); }
-
   private:
     // kf layer id
     int layer_;
@@ -607,7 +671,6 @@ namespace trackerTFP {
     double dPhi() const { return std::get<3>(data_); }
     // stub z uncertainty
     double dZ() const { return std::get<4>(data_); }
-
   private:
     // kf layer id
     int layer_;
@@ -622,9 +685,6 @@ namespace trackerTFP {
     // construct Track from other Track
     template <typename... Others>
     Track(const Track<Others...>& track, Ts... data);
-    // construct Track from Stub
-    template <typename... Others>
-    Track(const Stub<Others...>& stub, const TTTrackRef& ttTrackRef, Ts... data);
     // construct Track from TTTrackRef
     Track(const TTTrackRef& ttTrackRef, const DataFormats* dataFormats, Process p, Ts... data);
     ~Track() {}
@@ -640,7 +700,6 @@ namespace trackerTFP {
     const TTTrackRef& ttTrackRef() const { return frame_.first; }
     // access to bitvector
     const tt::Frame& bv() const { return frame_.second; }
-
   protected:
     // access to run-time constants
     const tt::Setup* setup() const { return dataFormats_->setup(); }
@@ -662,37 +721,21 @@ namespace trackerTFP {
     std::tuple<Ts...> data_;
   };
 
-  class TrackKFin : public Track<TTBV, int, int, double, double, double, double> {
+  class TrackKFin : public Track<TTBV, double, double, double> {
   public:
     // construct TrackKFin from Frame
     TrackKFin(const tt::FrameTrack& frame, const DataFormats* dataFormats, const std::vector<StubKFin*>& stubs);
-    // construct TrackKFin from StubKFin
-    TrackKFin(const StubZHT& stub, const TTTrackRef& ttTrackRef, const TTBV& maybePattern);
     // construct TrackKFin from TTTrackRef
-    TrackKFin(const TTTrackRef& ttTrackRef,
-              const DataFormats* dataFormats,
-              const TTBV& maybePattern,
-              int sectorPhi,
-              int sectorEta,
-              double qOverPt,
-              double phiT,
-              double cot,
-              double zT);
+    TrackKFin(const TTTrackRef& ttTrackRef, const DataFormats* dataFormats, const TTBV& maybePattern, int inv2R, int phiT, int zT);
     ~TrackKFin() {}
     // pattern of layers which are only maybe crossed by found candidate
     const TTBV& maybePattern() const { return std::get<0>(data_); }
-    // phi sector
-    int sectorPhi() const { return std::get<1>(data_); }
-    // eta sector
-    int sectorEta() const { return std::get<2>(data_); }
     // track inv2R
-    double inv2R() const { return std::get<3>(data_); }
-    // track phi at radius chosenRofPhi wrt phi sector centre
-    double phiT() const { return std::get<4>(data_); }
-    // track cotTheta wrt seta sector cotTheta
-    double cot() const { return std::get<5>(data_); }
-    // track z at radius chosenRofZ wrt eta sector centre
-    double zT() const { return std::get<6>(data_); }
+    double inv2R() const { return std::get<1>(data_); }
+    // track phi at radius chosenRofPhi wrt pprocessing centre
+    double phiT() const { return std::get<2>(data_); }
+    // track z at radius chosenRofZ
+    double zT() const { return std::get<3>(data_); }
     //
     const TTBV& hitPattern() const { return hitPattern_; }
     // true if given layer has a hit
@@ -707,18 +750,19 @@ namespace trackerTFP {
     std::vector<TTStubRef> ttStubRefs(const TTBV& hitPattern, const std::vector<int>& layerMap) const;
     // stubs organized in layer
     const std::vector<std::vector<StubKFin*>>& stubs() const { return stubs_; }
-    // global cotTheta
-    double cotGlobal() const { return cot() + setup()->sectorCot(sectorEta()); }
-
+    // cotTheta
+    double cot() const { return cot_; }
   private:
     // stubs organized in layer
     std::vector<std::vector<StubKFin*>> stubs_;
     //
     TTBV hitPattern_;
+    // cotTheta
+    double cot_;
   };
 
   // class to represent tracks generated by process kalman filter
-  class TrackKF : public Track<int, int, int, double, double, double, double> {
+  class TrackKF : public Track<bool, double, double, double, double> {
   public:
     // construct TrackKF from Frame
     TrackKF(const tt::FrameTrack& frame, const DataFormats* dataFormats);
@@ -727,24 +771,16 @@ namespace trackerTFP {
     ~TrackKF() {}
     // true if kf prameter consistent with mht parameter
     bool match() const { return std::get<0>(data_); }
-    // phi sector
-    int sectorPhi() const { return std::get<1>(data_); }
-    // eta sector
-    int sectorEta() const { return std::get<2>(data_); }
     // track qOver pt
-    double inv2R() const { return std::get<3>(data_); }
-    // track phi at radius chosenRofPhi wrt phi sector centre
-    double phiT() const { return std::get<4>(data_); }
+    double inv2R() const { return std::get<1>(data_); }
+    // track phi at radius chosenRofPhi wrt processing nonant centre
+    double phiT() const { return std::get<2>(data_); }
     // track cotTheta wrt eta sector cotTheta
-    double cot() const { return std::get<5>(data_); }
-    // track z at radius chosenRofZ wrt eta sector centre
-    double zT() const { return std::get<6>(data_); }
-    // global cotTheta
-    double cotGlobal() const { return cot() + setup()->sectorCot(sectorEta()); }
-    // conversion to TTTrack
-    TTTrack<Ref_Phase2TrackerDigi_> ttTrack() const;
+    double cot() const { return std::get<3>(data_); }
+    // track z at radius chosenRofZ
+    double zT() const { return std::get<4>(data_); }
     // conversion to TTTrack with given stubs
-    TTTrack<Ref_Phase2TrackerDigi_> ttTrack(const std::vector<StubKF>& stubs) const;
+    TTTrack<Ref_Phase2TrackerDigi_> ttTrack(int region, const std::vector<StubKF>& stubs) const;
     // stubs forming this track
     const std::vector<StubKF*>& stubs() const { return stubs_; }
     // Track id
@@ -755,7 +791,8 @@ namespace trackerTFP {
     int numSkippedLayers() const { return numSkippedLayers_; }
     // number of consitent layers
     int numConsistentLayers() const { return numConsistentLayers_; }
-
+    // global cot
+    double cotGlobal() const { return cot_; }
   private:
     // stubs forming this track
     std::vector<StubKF*> stubs_;
@@ -767,6 +804,8 @@ namespace trackerTFP {
     int numSkippedLayers_;
     // number of consitent layers
     int numConsistentLayers_;
+    // global cot
+    double cot_;
   };
 
   //Class to represent KFout 96-bit track for use in distribution server
@@ -790,22 +829,15 @@ namespace trackerTFP {
           trackID_(trackID),
           linkID_(linkID),
           valid_(valid){};
-
     ~TrackKFOut() {}
-
     int sortKey() const { return sortKey_; }
-
     bool dataValid() const { return valid_; }
-
     int trackID() const { return trackID_; }
     int linkID() const { return linkID_; }
-
     TTBV PartialTrack1() const { return PartialTrack1_; }
     TTBV PartialTrack2() const { return PartialTrack2_; }
     TTBV PartialTrack3() const { return PartialTrack3_; }
-
     tt::FrameTrack track() const { return track_; }
-
   private:
     TTBV PartialTrack1_;
     TTBV PartialTrack2_;
@@ -841,7 +873,6 @@ namespace trackerTFP {
     double z0() const { return std::get<3>(data_); }
     // conversion to TTTrack
     TTTrack<Ref_Phase2TrackerDigi_> ttTrack() const;
-
   private:
   };
 

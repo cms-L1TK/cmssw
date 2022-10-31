@@ -29,7 +29,8 @@ namespace trackerTFP {
   public:
     DataFormatKF(const VariableKF& v, bool twos);
     virtual ~DataFormatKF() {}
-    double digi(double val) const { return (std::floor(val / base_ + 1.e-12) + .5) * base_; }
+    //double digi(double val) const { return (std::floor(val / base_ + 1.e-12) + .5) * base_; }
+    double digi(double val) const { return val; }
     bool twos() const { return twos_; }
     int width() const { return width_; }
     double base() const { return base_; }
@@ -39,7 +40,6 @@ namespace trackerTFP {
     bool inRange(double d) const;
     void updateRangeActual(double d);
     int integer(double d) const { return floor(d / base_); }
-
   protected:
     VariableKF v_;
     bool twos_;
@@ -54,7 +54,6 @@ namespace trackerTFP {
   public:
     FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig);
     ~FormatKF() override {}
-
   private:
     void calcRange() { range_ = base_ * pow(2, width_); }
   };
@@ -143,12 +142,9 @@ namespace trackerTFP {
     double base(VariableKF v) const { return formats_[+v].base(); }
     DataFormatKF& format(VariableKF v) { return formats_[+v]; }
     void endJob();
-    bool hybrid() const { return hybrid_; }
-
   private:
     template <VariableKF it = VariableKF::begin>
     void fillFormats();
-    bool hybrid_;
     const edm::ParameterSet iConfig_;
     const DataFormats* dataFormats_;
     const tt::Setup* setup_;

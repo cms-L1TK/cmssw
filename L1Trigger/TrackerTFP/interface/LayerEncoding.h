@@ -21,22 +21,10 @@ namespace trackerTFP {
     LayerEncoding() {}
     LayerEncoding(const DataFormats* dataFormats);
     ~LayerEncoding() {}
-    // Set of layers in each (zT,tanL) digi Bin of each eta sector numbered 0->N
-    const std::vector<int>& layerEncoding(int binEta, int binZT, int binCot) const {
-      return layerEncoding_.at(binEta).at(binZT).at(binCot);
-    }
-    const std::map<int, const tt::SensorModule*>& layerEncodingMap(int binEta, int binZT, int binCot) const {
-      return layerEncodingMap_.at(binEta).at(binZT).at(binCot);
-    }
-    // maybe layers for given ets sector, bin in zT and bin in cotThea
-    const std::vector<int>& maybeLayer(int binEta, int binZT, int binCot) const {
-      return maybeLayer_.at(binEta).at(binZT).at(binCot);
-    }
-    // encoded layer id for given eta sector, bin in zT, bin in cotThea and decoed layer id, returns -1 if layer incositent with track
-    const int layerIdKF(int binEta, int binZT, int binCot, int layerId) const;
-    // pattern of maybe layers for given eta sector, bin in zT and bin in cotThea
-    TTBV maybePattern(int binEta, int binZT, int binCot) const;
-
+    // Set of layers for given bin in zT
+    const std::vector<int>& layerEncoding(int zT) const;
+    // pattern of maybe layers for given bin in zT
+    const TTBV& maybePattern(int zT) const;
   private:
     // helper class providing run-time constants
     const tt::Setup* setup_;
@@ -44,13 +32,10 @@ namespace trackerTFP {
     const DataFormats* dataFormats_;
     // data foramt of variable zT
     const DataFormat* zT_;
-    // data foramt of variable cotTheta
-    const DataFormat* cot_;
-    // outer to inner indices: eta sector, bin in zT, bin in cotTheta, layerId
-    std::vector<std::vector<std::vector<std::vector<int>>>> layerEncoding_;
-    std::vector<std::vector<std::vector<std::map<int, const tt::SensorModule*>>>> layerEncodingMap_;
-    // outer to inner indices: eta sector, bin in zT, bin in cotTheta, layerId of maybe layers
-    std::vector<std::vector<std::vector<std::vector<int>>>> maybeLayer_;
+    // outer to inner indices: bin in zT, layerId
+    std::vector<std::vector<int>> layerEncoding_;
+    // outer to inner indices: bin in zT, maybe patterns
+    std::vector<TTBV> maybePattern_;
   };
 
 }  // namespace trackerTFP

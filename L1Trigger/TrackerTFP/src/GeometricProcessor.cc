@@ -61,9 +61,9 @@ namespace trackerTFP {
     for (int sector = 0; sector < dataFormats_->numChannel(Process::gp); sector++) {
       vector<deque<StubPP*>>& inputs = input_[sector];
       vector<deque<StubGP*>> stacks(dataFormats_->numChannel(Process::pp));
-      const int sectorPhi = sector % setup_->numSectorsPhi();
-      const int sectorEta = sector / setup_->numSectorsPhi();
-      auto size = [](int sum, const deque<StubPP*>& stubs) { return sum + stubs.size(); };
+      const int phiT = sector % setup_->numSectorsPhi() - setup_->numSectorsPhi() / 2;
+      const int zT = sector / setup_->numSectorsPhi() - setup_->numSectorsEta() / 2;
+      auto size = [](int& sum, const deque<StubPP*>& stubs) { return sum += stubs.size(); };
       const int nStubs = accumulate(inputs.begin(), inputs.end(), 0, size);
       vector<StubGP*> acceptedSector;
       vector<StubGP*> lostSector;
@@ -77,7 +77,7 @@ namespace trackerTFP {
           deque<StubGP*>& stack = stacks[channel];
           StubPP* stub = pop_front(inputs[channel]);
           if (stub) {
-            stubsGP_.emplace_back(*stub, sectorPhi, sectorEta);
+            stubsGP_.emplace_back(*stub, phiT, zT);
             if (enableTruncation_ && (int)stack.size() == setup_->gpDepthMemory() - 1)
               lostSector.push_back(pop_front(stack));
             stack.push_back(&stubsGP_.back());

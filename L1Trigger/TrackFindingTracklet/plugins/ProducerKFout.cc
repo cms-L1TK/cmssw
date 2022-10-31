@@ -212,7 +212,7 @@ namespace trklet {
           double temp_z0 = inTrack.zT() - ((inTrack.cot() * setup_->chosenRofZ()));
 
           // Correction to Phi calcuation depending if +ve/-ve phi sector
-          const double baseSectorCorr = inTrack.sectorPhi() ? -setup_->baseSector() : setup_->baseSector();
+          const double baseSectorCorr = 0;//InTrack.sectorPhi() ? -setup_->baseSector() : setup_->baseSector();
 
           double temp_phi0 = InTrack.phiT() - ((InTrack.inv2R()) * setup_->chosenRofPhi()) + baseSectorCorr;
 
@@ -284,31 +284,7 @@ namespace trklet {
                     true);
           invR.resize(TTTrack_TrackWord::TrackBitWidths::kRinvSize);
 
-          // Create input vector for BDT
-          trackQuality_inputs = {
-              (std::trunc(tanL.val() / tqTanlScale_)) / ap_fixed_rescale,
-              (std::trunc(z0.val() / tqZ0Scale_)) / ap_fixed_rescale,
-              0,
-              temp_nstub,
-              temp_ninterior,
-              digitise(TTTrack_TrackWord::chi2RPhiBins, tempchi2rphi, (double)setup_->kfoutchi2rphiConv()),
-              digitise(TTTrack_TrackWord::chi2RZBins, tempchi2rz, (double)setup_->kfoutchi2rzConv())};
-
-          // Run BDT emulation and package output into 3 bits
-
-          tempTQMVA = trackQualityModel_->runEmulatedTQ(trackQuality_inputs);
-          tempTQMVA = std::trunc(tempTQMVA * ap_fixed_rescale);
-          TTBV tqMVA(digitise(tqBins_, tempTQMVA, 1.0), TTTrack_TrackWord::TrackBitWidths::kMVAQualitySize, false);
-
-          // Build 32 bit partial tracks for outputting in 64 bit packets
-          //                  12 +  3       +  7         +  3    +  6
-          TTBV partialTrack3((d0 + bendChi2 + hitPattern + tqMVA + extraMVA), partialTrackWordBits_, false);
-          //                  16   + 12    + 4
-          TTBV partialTrack2((tanL + z0 + chi2rz), partialTrackWordBits_, false);
-          //                    1        + 15   +  12 +    4
-          TTBV partialTrack1((trackValid + invR + phi0 + chi2rphi), partialTrackWordBits_, false);
-
-          int sortKey = (inTrack.sectorEta() < (int)(setup_->numSectorsEta() / 2)) ? 0 : 1;
+          int sortKey = 0;//(InTrack.sectorEta() < (int)(setup_->numSectorsEta() / 2)) ? 0 : 1;
           // Set correct bit to valid for track valid
           TrackKFOut temp_track(partialTrack1.set((partialTrackWordBits_ - 1)),
                                 partialTrack2,

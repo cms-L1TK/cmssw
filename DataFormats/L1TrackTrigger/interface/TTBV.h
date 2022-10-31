@@ -20,16 +20,13 @@
 class TTBV {
 public:
   static constexpr int S_ = 64;  // Frame width of emp infrastructure f/w, max number of bits a TTBV can handle
-
 private:
   bool twos_;           // Two's complement (true) or binary (false)
   int size_;            // number or bits
   std::bitset<S_> bs_;  // underlying storage
-
 public:
   // constructor: default
   TTBV() : twos_(false), size_(0), bs_() {}
-
   // constructor: double precision (IEEE 754); from most to least significant bit: 1 bit sign + 11 bit binary exponent + 52 bit binary mantisse
   TTBV(const double d) : twos_(false), size_(S_) {
     int index(0);
@@ -281,8 +278,15 @@ public:
 
   // maniplulation and conversion: extracts range based to int reinterpret sign and removes these bits
   int extract(int size, bool twos = false) {
-    double val = this->val(size, 0, twos);
+    int val = this->val(size, 0, twos);
     this->operator>>=(size);
+    return val;
+  }
+
+  // maniplulation and conversion: extracts bool and removes this bit
+  bool extract() {
+    bool val = bs_[0];
+    this->operator>>=(1);
     return val;
   }
 

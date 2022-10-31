@@ -26,7 +26,6 @@ TrackTrigger_params = cms.PSet (
     MatchedLayersPS  = cms.int32 (  0       ), # required number of ps layers a found track has to have in common with a TP to consider it matched to it
     UnMatchedStubs   = cms.int32 (  1       ), # allowed number of stubs a found track may have not in common with its matched TP
     UnMatchedStubsPS = cms.int32 (  0       ), # allowed number of PS stubs a found track may have not in common with its matched TP
-    Scattering       = cms.double( 0.131283 ), # additional radial uncertainty in cm used to calculate stub phi residual uncertainty to take multiple scattering into account
     NumLayers        = cms.int32 (  7       ), # TMTT: number of detector layers a reconstructbale particle may cross, reduced to 7, 8th layer almost never corssed
     MinPt            = cms.double(  1.34    ), # min track pt in GeV
     MaxEta           = cms.double(  2.5     ), # cut on stub eta
@@ -81,35 +80,39 @@ TrackTrigger_params = cms.PSet (
 
   # Fimrware specific Parameter
   Firmware = cms.PSet (
-    WidthDSPa           = cms.int32(   27                ), # width of the 'A' port of an DSP slice
-    WidthDSPb           = cms.int32(   18                ), # width of the 'B' port of an DSP slice
-    WidthDSPc           = cms.int32(   48                ), # width of the 'C' port of an DSP slice
-    WidthAddrBRAM36     = cms.int32(    9                ), # smallest address width of an BRAM36 configured as broadest simple dual port memory
-    WidthAddrBRAM18     = cms.int32(   10                ), # smallest address width of an BRAM18 configured as broadest simple dual port memory
-    NumFramesInfra      = cms.int32 (   6                ), # needed gap between events of emp-infrastructure firmware
-    FreqLHC             = cms.double(  40.               ), # LHC bunch crossing rate in MHz
-    FreqBE              = cms.double( 360.               ), # processing Frequency of DTC, KF & TFP in MHz, has to be integer multiple of FreqLHC
-    TMP_FE              = cms.int32 (   8                ), # number of events collected in front-end
-    TMP_TFP             = cms.int32 (  18                ), # time multiplexed period of track finding processor
-    SpeedOfLight        = cms.double(   2.99792458       ), # in e8 m/s
-    BField              = cms.double(   3.81120228767395 ), # in T
-    BFieldError         = cms.double(   1.e-6            ), # accepted difference to EventSetup in T
-    OuterRadius         = cms.double( 112.7              ), # outer radius of outer tracker in cm
-    InnerRadius         = cms.double(  21.8              ), # inner radius of outer tracker in cm
-    HalfLength          = cms.double( 270.               ), # half length of outer tracker in cm
-    TiltApproxSlope     = cms.double(   0.884            ), # In tilted barrel, grad*|z|/r + int approximates |cosTilt| + |sinTilt * cotTheta|
-    TiltApproxIntercept = cms.double(   0.507            ), # In tilted barrel, grad*|z|/r + int approximates |cosTilt| + |sinTilt * cotTheta|
-    TiltUncertaintyR    = cms.double(   0.12             ), # In tilted barrel, constant assumed stub radial uncertainty * sqrt(12) in cm
-    MindPhi             = cms.double(   0.00001          ), # minimum representable stub phi uncertainty * sqrt(12) + additional terms in rad
-    MaxdPhi             = cms.double(   0.02             ), # maximum representable stub phi uncertainty * sqrt(12) + additional terms in rad
-    MindZ               = cms.double(   0.1              ), # minimum representable stub z uncertainty * sqrt(12) + additional terms in cm
-    MaxdZ               = cms.double(  30.               ), # maximum representable stub z uncertainty * sqrt(12) + additional terms in cm
-    Pitch2S             = cms.double(   0.009            ), # strip pitch of outer tracker sensors in cm
-    PitchPS             = cms.double(   0.01             ), # pixel pitch of outer tracker sensors in cm
-    Length2S            = cms.double(   5.025            ), # strip length of outer tracker sensors in cm
-    LengthPS            = cms.double(   0.1467           ), # pixel length of outer tracker sensors in cm
-    TiltedLayerLimitsZ  = cms.vdouble( 15.5, 24.9, 34.3, -1., -1., -1. ), # barrel layer limit |z| value to partition into tilted and untilted region
-    PSDiskLimitsR       = cms.vdouble( 66.4, 66.4, 64.55, 64.55, 64.55 ), # endcap disk limit r value to partition into PS and 2S region
+    WidthDSPa       = cms.int32 (  27          ), # width of the 'A' port of an DSP slice
+    WidthDSPb       = cms.int32 (  18          ), # width of the 'B' port of an DSP slice
+    WidthDSPc       = cms.int32 (  48          ), # width of the 'C' port of an DSP slice
+    WidthAddrBRAM36 = cms.int32 (   9          ), # smallest address width of an BRAM36 configured as broadest simple dual port memory
+    WidthAddrBRAM18 = cms.int32 (  10          ), # smallest address width of an BRAM18 configured as broadest simple dual port memory
+    NumFramesInfra  = cms.int32 (   6          ), # needed gap between events of emp-infrastructure firmware
+    FreqLHC         = cms.double(  40.         ), # LHC bunch crossing rate in MHz
+    FreqBE          = cms.double( 360.         ), # processing Frequency of DTC, KF & TFP in MHz, has to be integer multiple of FreqLHC
+    TMP_FE          = cms.int32 (   8          ), # number of events collected in front-end
+    TMP_TFP         = cms.int32 (  18          ), # time multiplexed period of track finding processor
+    SpeedOfLight    = cms.double(   2.99792458 ), # in e8 m/s
+  ),
+
+  # Parameter specifying outer tracker
+  Tracker = cms.PSet (
+    BField              = cms.double (   3.81120228767395 ), # in T
+    BFieldError         = cms.double (   1.e-6            ), # accepted difference to EventSetup in T
+    OuterRadius         = cms.double ( 112.7              ), # outer radius of outer tracker in cm
+    InnerRadius         = cms.double (  21.8              ), # inner radius of outer tracker in cm
+    HalfLength          = cms.double ( 270.               ), # half length of outer tracker in cm
+    TiltApproxSlope     = cms.double (   0.884            ), # In tilted barrel, grad*|z|/r + int approximates |cosTilt| + |sinTilt * cotTheta|
+    TiltApproxIntercept = cms.double (   0.507            ), # In tilted barrel, grad*|z|/r + int approximates |cosTilt| + |sinTilt * cotTheta|
+    TiltUncertaintyR    = cms.double (   0.12             ), # In tilted barrel, constant assumed stub radial uncertainty * sqrt(12) in cm
+    Scattering          = cms.double (   0.131283         ), # additional radial uncertainty in cm used to calculate stub phi residual uncertainty to take multiple scattering into account
+    PitchRow2S          = cms.double (   0.009            ), # strip pitch of outer tracker sensors in cm
+    PitchRowPS          = cms.double (   0.01             ), # pixel pitch of outer tracker sensors in cm
+    PitchCol2S          = cms.double (   5.025            ), # strip length of outer tracker sensors in cm
+    PitchColPS          = cms.double (   0.1467           ), # pixel length of outer tracker sensors in cm
+    LimitPSBarrel       = cms.double ( 125.0              ), # barrel layer limit r value to partition into PS and 2S region
+    LimitsTiltedR       = cms.vdouble( 30.0, 45.0, 60.0   ), # barrel layer limit r value to partition into tilted and untilted region
+    LimitsTiltedZ       = cms.vdouble( 15.5, 25.0, 34.3   ), # barrel layer limit |z| value to partition into tilted and untilted region
+    LimitsPSDiksZ       = cms.vdouble( 125.0, 150.0, 175.0, 200.0, 250.0 ), # endcap disk limit |z| value to partition into PS and 2S region
+    LimitsPSDiksR       = cms.vdouble(  66.0,  66.0,  63.0,  63.0,  63.0 ), # endcap disk limit r value to partition into PS and 2S region
   ),
 
   # Parmeter specifying front-end
@@ -155,13 +158,15 @@ TrackTrigger_params = cms.PSet (
 
   # Parmeter specifying GeometricProcessor
   GeometricProcessor = cms.PSet (
-    NumSectorsPhi = cms.int32 (   2  ), # number of phi sectors used in hough transform
-    ChosenRofZ    = cms.double(  50. ), # critical radius defining r-z sector shape in cm
-    RangeChiZ     = cms.double( 160. ), # range of stub z residual w.r.t. sector center which needs to be covered
-    DepthMemory   = cms.int32 (  64  ), # fifo depth in stub router firmware
-    #BoundariesEta = cms.vdouble( -2.40, -2.08, -1.68, -1.26, -0.90, -0.62, -0.41, -0.20, 0.0, 0.20, 0.41, 0.62, 0.90, 1.26, 1.68, 2.08, 2.40 ) # defining r-z sector shape
-    BoundariesEta = cms.vdouble( -2.50, -2.23, -1.88, -1.36, -0.90, -0.62, -0.41, -0.20, 0.0, 0.20, 0.41, 0.62, 0.90, 1.36, 1.88, 2.23, 2.50 ), # defining r-z sector shape
-    Quantiles = cms.vint32( 4, 4, 4, 4, 2, 1, 1, 1, 1, 1, 1, 2, 4, 4, 4, 4 )
+    NumSectorsPhi = cms.int32 (   2    ), # number of phi sectors used in hough transform
+    NumSectorsEta = cms.int32 (  32    ), # number of eta sectors used in hough transform
+    ChosenRofZ    = cms.double(  57.76 ), # critical radius defining r-z sector shape in cm
+    #ChosenRofZ    = cms.double(  90.37 ), # critical radius defining r-z sector shape in cm
+    DepthMemory   = cms.int32 (  32    ), # fifo depth in stub router firmware
+    WidthModule   = cms.int32 (   3    ), #
+    PosPS         = cms.int32 (   2    ), #
+    PosBarrel     = cms.int32 (   1    ), #
+    PosTilted     = cms.int32 (   0    )  #
   ),
 
   # Parmeter specifying HoughTransform
@@ -176,16 +181,15 @@ TrackTrigger_params = cms.PSet (
   MiniHoughTransform = cms.PSet (
     NumBinsInv2R = cms.int32( 4 ), # number of inv2R bins
     NumBinsPhiT  = cms.int32( 4 ), # number of phiT bins
-    MinLayers    = cms.int32( 4 ), # required number of stub layers to form a candidate
-    MinLayersPS  = cms.int32( 2 )  # required number of stub PS layers to form a candidate
+    MinLayers    = cms.int32( 4 )  # required number of stub layers to form a candidate
   ),
 
   # Parmeter specifying ZHoughTransform
   ZHoughTransform = cms.PSet (
-    NumBinsCot  = cms.int32( 16 ), # number of cot bins
-    NumBinsZT   = cms.int32( 16 ), # number of zT bins
-    MinLayers   = cms.int32(  4 ), # required number of stub layers to form a candidate
-    MinLayersPS = cms.int32(  2 )  # required number of stub PS layers to form a candidate
+    NumBinsCot  = cms.int32( 4 ), # number of cot bins
+    NumBinsZT   = cms.int32( 4 ), # number of zT bins
+    MinLayers   = cms.int32( 4 ), # required number of stub layers to form a candidate
+    MinLayersPS = cms.int32( 2 )  # required number of stub PS layers to form a candidate
   ),
 
   # Parmeter specifying KalmanFilter Input Formatter
@@ -201,8 +205,9 @@ TrackTrigger_params = cms.PSet (
   KalmanFilter = cms.PSet (
     NumWorker       = cms.int32 (  2   ), # number of kf worker
     RangeFactor     = cms.double(  2.0 ), # search window of each track parameter in initial uncertainties
+    BaseShift       = cms.int32 ( -1   ), # bases get shifted by this power of two wrt tfp output bases
     MinLayers       = cms.int32 (  4   ), # required number of stub layers to form a track
-    MaxLayers       = cms.int32 (  4   ), # maximum number of  layers added to a track
+    MaxLayers       = cms.int32 (  7   ), # maximum number of  layers added to a track
     ShiftInitialC00 = cms.int32 (  0   ), # initial C00 is given by inv2R uncertainty squared times this power of 2
     ShiftInitialC11 = cms.int32 (  0   ), # initial C11 is given by phiT uncertainty squared times this power of 2
     ShiftInitialC22 = cms.int32 ( -1   ), # initial C22 is given by cot uncertainty squared times this power of 2

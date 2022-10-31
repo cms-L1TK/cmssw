@@ -36,7 +36,7 @@ namespace trackerDTC {
   }
 
   // decode layer id for given sensor module
-  int LayerEncoding::decode(SensorModule* sm) const {
+  int LayerEncoding::decode(const SensorModule* sm) const {
     const vector<int>& encoding = encodingsLayerId_.at(sm->dtcId() % setup_->numDTCsPerRegion());
     const auto pos = find(encoding.begin(), encoding.end(), sm->layerId());
     return distance(encoding.begin(), pos);

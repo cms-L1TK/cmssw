@@ -32,12 +32,10 @@ namespace trackerTFP {
   public:
     explicit ProducerTTTrackFitted(const ParameterSet&);
     ~ProducerTTTrackFitted() override {}
-
   private:
     void beginRun(const Run&, const EventSetup&) override;
     void produce(Event&, const EventSetup&) override;
     void endJob() {}
-
     // ED input token of kf stubs
     EDGetTokenT<StreamsStub> edGetTokenStubs_;
     // ED input token of kf tracks
@@ -99,6 +97,7 @@ namespace trackerTFP {
         });
       ttTracks.reserve(nTracks);
       for (int channel = 0; channel < dataFormats_->numStreamsTracks(Process::kf); channel++) {
+        const int region = channel / dataFormats_->numChannel(Process::kf);
         int iTrk(0);
         const int offset = channel * setup_->numLayers();
         for (const FrameTrack& frameTrack : streamsTracks[channel]) {
@@ -110,7 +109,7 @@ namespace trackerTFP {
               stubs.emplace_back(frameStub, dataFormats_, layer);
           }
           TrackKF track(frameTrack, dataFormats_);
-          ttTracks.emplace_back(track.ttTrack(stubs));
+          ttTracks.emplace_back(track.ttTrack(region, stubs));
           iTrk++;
         }
       }

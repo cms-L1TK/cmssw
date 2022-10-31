@@ -80,10 +80,9 @@ namespace trackerTFP {
   }
 
   void ProducerTTTrackFound::produce(Event& iEvent, const EventSetup& iSetup) {
-    const DataFormat& dfCot = dataFormats_->format(Variable::cot, Process::zht);
-    const DataFormat& dfZT = dataFormats_->format(Variable::zT, Process::zht);
-    const DataFormat& dfPhiT = dataFormats_->format(Variable::phiT, Process::zht);
-    const DataFormat& dfinv2R = dataFormats_->format(Variable::inv2R, Process::zht);
+    const DataFormat& dfZT = dataFormats_->format(Variable::zT, Process::gp);
+    const DataFormat& dfPhiT = dataFormats_->format(Variable::phiT, Process::ht);
+    const DataFormat& dfinv2R = dataFormats_->format(Variable::inv2R, Process::ht);
     // empty SFout product
     deque<TTTrack<Ref_Phase2TrackerDigi_>> ttTracks;
     // read in SF Product and produce SFout product
@@ -93,7 +92,6 @@ namespace trackerTFP {
       const StreamsStub& streams = *handle.product();
       for (int region = 0; region < setup_->numRegions(); region++) {
         for (int channel = 0; channel < dataFormats_->numChannel(Process::zht); channel++) {
-          const int inv2R = dataFormats_->format(Variable::inv2R, Process::ht).toSigned(channel);
           const int index = region * dataFormats_->numChannel(Process::zht) + channel;
           // convert stream to stubs
           const StreamStub& stream = streams[index];
@@ -101,7 +99,7 @@ namespace trackerTFP {
           stubs.reserve(stream.size());
           for (const FrameStub& frame : stream)
             if (frame.first.isNonnull())
-              stubs.emplace_back(frame, dataFormats_, inv2R);
+              stubs.emplace_back(frame, dataFormats_, channel);
           // form tracks
           int i(0);
           for (auto it = stubs.begin(); it != stubs.end();) {
@@ -113,13 +111,12 @@ namespace trackerTFP {
             ttStubRefs.reserve(distance(start, it));
             transform(start, it, back_inserter(ttStubRefs), [](const StubZHT& stub) { return stub.ttStubRef(); });
             const double zT = dfZT.floating(start->zT());
-            const double cot = dfCot.floating(start->cot());
+            const double cot = zT / setup_->chosenRofZ();
             const double phiT = dfPhiT.floating(start->phiT());
             const double inv2R = dfinv2R.floating(start->inv2R());
             ttTracks.emplace_back(inv2R, phiT, cot, zT, 0., 0., 0., 0., 0., 0, 0, 0.);
             ttTracks.back().setStubRefs(ttStubRefs);
-            ttTracks.back().setPhiSector(start->sectorPhi() + region * setup_->numSectorsPhi());
-            ttTracks.back().setEtaSector(start->sectorEta());
+            ttTracks.back().setPhiSector(region);
             ttTracks.back().setTrackSeedType(start->trackId());
             if (i++ == setup_->kfinMaxTracks())
               break;

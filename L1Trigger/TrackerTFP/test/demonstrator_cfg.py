@@ -13,13 +13,15 @@ from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:phase2_realistic', '')
 
 # load code that produces DTCStubs
-process.load( 'L1Trigger.TrackerDTC.ProducerED_cff' )
+process.load( 'L1Trigger.TrackerDTC.DTC_cff' )
 # cosutmize TT algorithm
-#from L1Trigger.TrackerDTC.Customize_cff import *
-#producerUseTMTT(process)
-#analyzerUseTMTT(process)
+from L1Trigger.TrackerDTC.Customize_cff import *
+producerUseTMTT(process)
+analyzerUseTMTT(process)
 #--- Load code that produces tfp Stubs
 process.load( 'L1Trigger.TrackerTFP.Producer_cff' )
+from L1Trigger.TrackerTFP.Customize_cff import *
+setupUseTMTT( process )
 #--- Load code that demonstrates tfp Stubs
 process.load( 'L1Trigger.TrackerTFP.Demonstrator_cff' )
 
@@ -28,10 +30,6 @@ process.tt = cms.Sequence (  process.TrackerDTCProducer
                            + process.TrackerTFPProducerGP
                            + process.TrackerTFPProducerHT
                            + process.TrackerTFPProducerMHT
-                           + process.TrackerTFPProducerZHT
-                           + process.TrackerTFPProducerZHTout
-                           + process.TrackerTFPProducerKFin
-                           + process.TrackerTFPProducerKF
                           )
 process.demo = cms.Path( process.tt + process.TrackerTFPDemonstrator )
 process.schedule = cms.Schedule( process.demo )
@@ -53,7 +51,7 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(options.Even
 process.source = cms.Source(
   "PoolSource",
   fileNames = cms.untracked.vstring( options.inputMC ),
-  #skipEvents = cms.untracked.uint32( 914 ),
+  #skipEvents = cms.untracked.uint32( 10 + 19 ),
   secondaryFileNames = cms.untracked.vstring(),
   duplicateCheckMode = cms.untracked.string( 'noDuplicateCheck' )
 )

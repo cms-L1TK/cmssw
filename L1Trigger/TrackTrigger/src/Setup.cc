@@ -56,7 +56,6 @@ namespace tt {
         matchedLayersPS_(pSetTF_.getParameter<int>("MatchedLayersPS")),
         unMatchedStubs_(pSetTF_.getParameter<int>("UnMatchedStubs")),
         unMatchedStubsPS_(pSetTF_.getParameter<int>("UnMatchedStubsPS")),
-        scattering_(pSetTF_.getParameter<double>("Scattering")),
         minPt_(pSetTF_.getParameter<double>("MinPt")),
         maxEta_(pSetTF_.getParameter<double>("MaxEta")),
         chosenRofPhi_(pSetTF_.getParameter<double>("ChosenRofPhi")),
@@ -108,24 +107,26 @@ namespace tt {
         tmpFE_(pSetFW_.getParameter<int>("TMP_FE")),
         tmpTFP_(pSetFW_.getParameter<int>("TMP_TFP")),
         speedOfLight_(pSetFW_.getParameter<double>("SpeedOfLight")),
-        bField_(pSetFW_.getParameter<double>("BField")),
-        bFieldError_(pSetFW_.getParameter<double>("BFieldError")),
-        outerRadius_(pSetFW_.getParameter<double>("OuterRadius")),
-        innerRadius_(pSetFW_.getParameter<double>("InnerRadius")),
-        halfLength_(pSetFW_.getParameter<double>("HalfLength")),
-        tiltApproxSlope_(pSetFW_.getParameter<double>("TiltApproxSlope")),
-        tiltApproxIntercept_(pSetFW_.getParameter<double>("TiltApproxIntercept")),
-        tiltUncertaintyR_(pSetFW_.getParameter<double>("TiltUncertaintyR")),
-        mindPhi_(pSetFW_.getParameter<double>("MindPhi")),
-        maxdPhi_(pSetFW_.getParameter<double>("MaxdPhi")),
-        mindZ_(pSetFW_.getParameter<double>("MindZ")),
-        maxdZ_(pSetFW_.getParameter<double>("MaxdZ")),
-        pitch2S_(pSetFW_.getParameter<double>("Pitch2S")),
-        pitchPS_(pSetFW_.getParameter<double>("PitchPS")),
-        length2S_(pSetFW_.getParameter<double>("Length2S")),
-        lengthPS_(pSetFW_.getParameter<double>("LengthPS")),
-        tiltedLayerLimitsZ_(pSetFW_.getParameter<vector<double>>("TiltedLayerLimitsZ")),
-        psDiskLimitsR_(pSetFW_.getParameter<vector<double>>("PSDiskLimitsR")),
+        // Tracker specific Paramter
+        pSetOT_(iConfig.getParameter<ParameterSet>("Tracker")),
+        bField_(pSetOT_.getParameter<double>("BField")),
+        bFieldError_(pSetOT_.getParameter<double>("BFieldError")),
+        outerRadius_(pSetOT_.getParameter<double>("OuterRadius")),
+        innerRadius_(pSetOT_.getParameter<double>("InnerRadius")),
+        halfLength_(pSetOT_.getParameter<double>("HalfLength")),
+        tiltApproxSlope_(pSetOT_.getParameter<double>("TiltApproxSlope")),
+        tiltApproxIntercept_(pSetOT_.getParameter<double>("TiltApproxIntercept")),
+        tiltUncertaintyR_(pSetOT_.getParameter<double>("TiltUncertaintyR")),
+        scattering_(pSetOT_.getParameter<double>("Scattering")),
+        pitchRow2S_(pSetOT_.getParameter<double>("PitchRow2S")),
+        pitchRowPS_(pSetOT_.getParameter<double>("PitchRowPS")),
+        pitchCol2S_(pSetOT_.getParameter<double>("PitchCol2S")),
+        pitchColPS_(pSetOT_.getParameter<double>("PitchColPS")),
+        limitPSBarrel_(pSetOT_.getParameter<double>("LimitPSBarrel")),
+        limitsTiltedR_(pSetOT_.getParameter<vector<double>>("LimitsTiltedR")),
+        limitsTiltedZ_(pSetOT_.getParameter<vector<double>>("LimitsTiltedZ")),
+        limitsPSDiksZ_(pSetOT_.getParameter<vector<double>>("LimitsPSDiksZ")),
+        limitsPSDiksR_(pSetOT_.getParameter<vector<double>>("LimitsPSDiksR")),
         // Parmeter specifying front-end
         pSetFE_(iConfig.getParameter<ParameterSet>("FrontEnd")),
         widthBend_(pSetFE_.getParameter<int>("WidthBend")),
@@ -164,11 +165,13 @@ namespace tt {
         // Parmeter specifying GeometricProcessor
         pSetGP_(iConfig.getParameter<ParameterSet>("GeometricProcessor")),
         numSectorsPhi_(pSetGP_.getParameter<int>("NumSectorsPhi")),
+        numSectorsEta_(pSetGP_.getParameter<int>("NumSectorsEta")),
         chosenRofZ_(pSetGP_.getParameter<double>("ChosenRofZ")),
-        neededRangeChiZ_(pSetGP_.getParameter<double>("RangeChiZ")),
         gpDepthMemory_(pSetGP_.getParameter<int>("DepthMemory")),
-        boundariesEta_(pSetGP_.getParameter<vector<double>>("BoundariesEta")),
-        gpQuantiles_(pSetGP_.getParameter<vector<int>>("Quantiles")),
+        gpWidthModule_(pSetGP_.getParameter<int>("WidthModule")),
+        gpPosPS_(pSetGP_.getParameter<int>("PosPS")),
+        gpPosBarrel_(pSetGP_.getParameter<int>("PosBarrel")),
+        gpPosTilted_(pSetGP_.getParameter<int>("PosTilted")),
         // Parmeter specifying HoughTransform
         pSetHT_(iConfig.getParameter<ParameterSet>("HoughTransform")),
         htNumBinsInv2R_(pSetHT_.getParameter<int>("NumBinsInv2R")),
@@ -180,7 +183,6 @@ namespace tt {
         mhtNumBinsInv2R_(pSetMHT_.getParameter<int>("NumBinsInv2R")),
         mhtNumBinsPhiT_(pSetMHT_.getParameter<int>("NumBinsPhiT")),
         mhtMinLayers_(pSetMHT_.getParameter<int>("MinLayers")),
-        mhtMinLayersPS_(pSetMHT_.getParameter<int>("MinLayersPS")),
         // Parmeter specifying ZHoughTransform
         pSetZHT_(iConfig.getParameter<ParameterSet>("ZHoughTransform")),
         zhtNumBinsCot_(pSetZHT_.getParameter<int>("NumBinsCot")),
@@ -199,6 +201,7 @@ namespace tt {
         kfMinLayers_(pSetKF_.getParameter<int>("MinLayers")),
         kfMaxLayers_(pSetKF_.getParameter<int>("MaxLayers")),
         kfRangeFactor_(pSetKF_.getParameter<double>("RangeFactor")),
+        kfBaseShift_(pSetKF_.getParameter<int>("BaseShift")),
         kfShiftInitialC00_(pSetKF_.getParameter<int>("ShiftInitialC00")),
         kfShiftInitialC11_(pSetKF_.getParameter<int>("ShiftInitialC11")),
         kfShiftInitialC22_(pSetKF_.getParameter<int>("ShiftInitialC22")),
@@ -585,15 +588,7 @@ namespace tt {
   double Setup::dPhi(const TTStubRef& ttStubRef, double inv2R) const {
     const DetId& detId = ttStubRef->getDetId();
     SensorModule* sm = sensorModule(detId + 1);
-    const double dPhi = sm->dPhi(inv2R);
-    if (dPhi >= maxdPhi_ || dPhi < mindPhi_) {
-      cms::Exception exception("out_of_range");
-      exception.addContext("tt::Setup::dPhi");
-      exception << "Stub phi uncertainty " << dPhi << " "
-                << "is out of range " << mindPhi_ << " to " << maxdPhi_ << ".";
-      throw exception;
-    }
-    return dPhi;
+    return sm->dPhi(inv2R);
   }
 
   // stub projected z uncertainty
@@ -601,13 +596,6 @@ namespace tt {
     const DetId& detId = ttStubRef->getDetId();
     SensorModule* sm = sensorModule(detId + 1);
     const double dZ = sm->dZ();
-    if (dZ >= maxdZ_ || dZ < mindZ_) {
-      cms::Exception exception("out_of_range");
-      exception.addContext("tt::Setup::dZ");
-      exception << "Stub z uncertainty " << dZ << " "
-                << "is out of range " << mindZ_ << " to " << maxdZ_ << ".";
-      throw exception;
-    }
     return dZ;
   }
 
@@ -652,6 +640,58 @@ namespace tt {
     return selected && (abs(d0) < tpMaxD0_) && (abs(z0) < tpMaxVertZ_);
   }
 
+  //
+  TTBV Setup::module(double r, double z) const {
+    static constexpr int layer1 = 0;
+    static constexpr int layer2 = 1;
+    static constexpr int layer3 = 2;
+    static constexpr int disk1 = 0;
+    static constexpr int disk2 = 1;
+    static constexpr int disk3 = 2;
+    static constexpr int disk4 = 3;
+    static constexpr int disk5 = 4;
+    bool ps(false);
+    bool barrel(false);
+    bool tilted(false);
+    if (abs(z) < limitPSBarrel_) {
+      barrel = true;
+      if (r < limitsTiltedR_[layer3])
+        ps = true;
+      if (r < limitsTiltedR_[layer1])
+        tilted = abs(z) > limitsTiltedZ_[layer1];
+      else if (r < limitsTiltedR_[layer2])
+        tilted = abs(z) > limitsTiltedZ_[layer2];
+      else if (r < limitsTiltedR_[layer3])
+        tilted = abs(z) > limitsTiltedZ_[layer3];
+    }
+    else if (abs(z) > limitsPSDiksZ_[disk5])
+      ps = r < limitsPSDiksR_[disk5];
+    else if (abs(z) > limitsPSDiksZ_[disk4])
+      ps = r < limitsPSDiksR_[disk4];
+    else if (abs(z) > limitsPSDiksZ_[disk3])
+      ps = r < limitsPSDiksR_[disk3];
+    else if (abs(z) > limitsPSDiksZ_[disk2])
+      ps = r < limitsPSDiksR_[disk2];
+    else if (abs(z) > limitsPSDiksZ_[disk1])
+      ps = r < limitsPSDiksR_[disk1];
+    TTBV module(0, gpWidthModule_);
+    if (ps)
+      module.set(gpPosPS_);
+    if (barrel)
+      module.set(gpPosBarrel_);
+    if (tilted)
+      module.set(gpPosTilted_);
+    return module;
+  }
+
+  // stub projected phi uncertainty for given module type, stub radius and track curvature
+  double Setup::dPhi(const TTBV& module, double r, double inv2R) const {
+    const double sigma = (ps(module) ? pitchRowPS_ : pitchRow2S_) / r;
+    const double dR = scattering_ + (barrel(module) ? (tilted(module) ? tiltUncertaintyR_ : 0.0) : (ps(module) ? pitchColPS_ : pitchCol2S_));
+    const double dPhi = sigma + dR * abs(inv2R) + tmttBasePhi_;
+    return dPhi;
+  }
+
   // derive constants
   void Setup::calculateConstants() {
     // emp
@@ -667,35 +707,23 @@ namespace tt {
     widthDSPcb_ = widthDSPc_ - 1;
     widthDSPcu_ = widthDSPcb_ - 1;
     // firmware
-    maxPitch_ = max(pitchPS_, pitch2S_);
-    maxLength_ = max(lengthPS_, length2S_);
+    maxPitchRow_ = max(pitchRowPS_, pitchRow2S_);
+    maxPitchCol_ = max(pitchColPS_, pitchCol2S_);
     // common track finding
     invPtToDphi_ = speedOfLight_ * bField_ / 2000.;
     baseRegion_ = 2. * M_PI / numRegions_;
+    maxCot_ = beamWindowZ_ / chosenRofZ_ + sinh(maxEta_);
     // gp
     baseSector_ = baseRegion_ / numSectorsPhi_;
-    maxCot_ = sinh(maxEta_);
-    maxZT_ = maxCot_ * chosenRofZ_;
-    numSectorsEta_ = gpQuantiles_.size();
-    numQuantile_ = accumulate(gpQuantiles_.begin(), gpQuantiles_.end(), 0);
-    baseQuantile_ = 2. * maxZT_ / (double)numQuantile_;
+    maxRphi_ = max(abs(outerRadius_ - chosenRofPhi_), abs(innerRadius_ - chosenRofPhi_));
+    maxRz_ = max(abs(outerRadius_ - chosenRofZ_), abs(innerRadius_ - chosenRofZ_));
     numSectors_ = numSectorsPhi_ * numSectorsEta_;
-    sectorCots_.reserve(numSectorsEta_);
-    double left = -maxZT_;
-    int sectorEta = 0;
-    quantileToSectorEta_.reserve(numQuantile_);
-    for (int numQuantiles : gpQuantiles_) {
-      const double dZT = numQuantiles * baseQuantile_;
-      sectorCots_.emplace_back((left + dZT / 2.) / chosenRofZ_);
-      left += dZT;
-      quantileToSectorEta_.insert(quantileToSectorEta_.end(), numQuantiles, sectorEta++);
-    }
     // tmtt
     const double rangeInv2R = 2. * invPtToDphi_ / minPt_;
     tmttBaseInv2R_ = rangeInv2R / htNumBinsInv2R_;
     tmttBasePhiT_ = baseSector_ / htNumBinsPhiT_;
     const double baseRgen = tmttBasePhiT_ / tmttBaseInv2R_;
-    const double rangeR = 2. * max(abs(outerRadius_ - chosenRofPhi_), abs(innerRadius_ - chosenRofPhi_));
+    const double rangeR = 2. * maxRphi_;
     const int baseShiftR = ceil(log2(rangeR / baseRgen / pow(2., tmttWidthR_)));
     tmttBaseR_ = baseRgen * pow(2., baseShiftR);
     const double rangeZ = 2. * halfLength_;
@@ -748,8 +776,8 @@ namespace tt {
     dtcBaseInv2R_ = tmttBaseInv2R_ * pow(2., baseShiftInv2R);
     const int baseDiffM = dtcWidthRowLUT_ - widthRow_;
     dtcBaseM_ = tmttBasePhi_ * pow(2., baseDiffM);
-    const double x1 = pow(2, widthRow_) * baseRow_ * maxPitch_ / 2.;
-    const double x0 = x1 - pow(2, dtcWidthRowLUT_) * baseRow_ * maxPitch_;
+    const double x1 = pow(2, widthRow_) * baseRow_ * maxPitchRow_ / 2.;
+    const double x0 = x1 - pow(2, dtcWidthRowLUT_) * baseRow_ * maxPitchRow_;
     const double maxM = atan2(x1, innerRadius_) - atan2(x0, innerRadius_);
     dtcWidthM_ = ceil(log2(maxM / dtcBaseM_));
     dtcNumStreams_ = numDTCs_ * numOverlappingRegions_;
@@ -757,7 +785,9 @@ namespace tt {
     mhtNumCells_ = mhtNumBinsInv2R_ * mhtNumBinsPhiT_;
     // zht
     zhtNumCells_ = zhtNumBinsCot_ * zhtNumBinsZT_;
-    //
+    // kfin
+    kfinNumMuxedChannel_ = htNumBinsInv2R_ / kfNumWorker_;
+    // kf
     kfWidthLayerCount_ = ceil(log2(kfinMaxStubsPerLayer_));
   }
 
