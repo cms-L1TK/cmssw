@@ -102,7 +102,7 @@ namespace trklet {
           if (barrel) {
             const double posZ = (r + digi(setup_->chosenRofPhi(), baseUr_)) * cot + z0 + z;
             const int indexLayerId = setup_->indexLayerId(ttStubRef);
-            const double limit = setup_->tiltedLayerLimitZ(indexLayerId);
+            const double limit = setup_->limitsTiltedZ(indexLayerId);
             psTilt = abs(posZ) < limit;
           } else
             psTilt = setup_->psModule(ttStubRef);
@@ -140,7 +140,7 @@ namespace trklet {
             const double posZ =
                 digi(digi(setup_->hybridLayerR(layerId - setup_->offsetLayerId()), baseUr_) * cot + z0, baseUz_);
             const int indexLayerId = setup_->indexLayerId(ttStubRef);
-            const double limit = digi(setup_->tiltedLayerLimitZ(indexLayerId), baseUz_);
+            const double limit = digi(setup_->limitsTiltedZ(indexLayerId), baseUz_);
             psTilt = abs(posZ) < limit;
           } else
             psTilt = true;
@@ -201,16 +201,15 @@ namespace trklet {
     for (Track& track : tracks_) {
       const int sectorPhi = track.phiT_ < 0. ? 0 : 1;
       track.phiT_ -= (sectorPhi - .5) * setup_->baseSector();
-      int sectorEta(-1);
-      for (; sectorEta < setup_->numSectorsEta(); sectorEta++)
-        if (track.zT_ < digi(setup_->chosenRofZ() * sinh(setup_->boundarieEta(sectorEta + 1)), baseHzT_))
-          break;
-      if (sectorEta >= setup_->numSectorsEta() || sectorEta <= -1) {
+      const int sectorEta = floor(track.zT_ / dataFormats_->format(Variable::zT, Process::zht).range()) + setup_->numSectorsEta() / 2;
+      if (sectorEta > setup_->numSectorsEta() - 1 || sectorEta < 0) {
         track.valid_ = false;
         continue;
       }
-      track.cot_ = track.cot_ - digi(setup_->sectorCot(sectorEta), baseHcot_);
-      track.zT_ = track.zT_ - digi(setup_->chosenRofZ() * setup_->sectorCot(sectorEta), baseHzT_);
+      const double sectorCot = (sectorEta - setup_->numSectorsEta() / 2 + .5) * dataFormats_->format(Variable::cot, Process::zht).range();
+      const double sectorZT = setup_->chosenRofZ() * sectorCot;
+      track.cot_ = track.cot_ - digi(sectorCot, baseHcot_);
+      track.zT_ = track.zT_ - digi(sectorZT, baseHzT_);
       track.sector_ = sectorPhi * setup_->numSectorsEta() + sectorEta;
     }
     // base transform into TMTT format
@@ -256,32 +255,20 @@ namespace trklet {
     for (Track& track : tracks_) {
       if (!track.valid_)
         continue;
-      const int sectorEta = track.sector_ % setup_->numSectorsEta();
-      const int zT = dataFormats_->format(Variable::zT, Process::kfin).toUnsigned(track.zT_);
-      const int cot = dataFormats_->format(Variable::cot, Process::kfin).toUnsigned(track.cot_);
-      track.maybe_ = TTBV(0, setup_->numLayers());
+      // lookup maybe layers
+      track.maybe_ = layerEncoding_->maybePattern(track.zT_);
+      // lookup layerEncoding
+      const vector<int>& layerEncoding = layerEncoding_->layerEncoding(track.zT_);
       for (Stub* stub : track.stubs_) {
         if (!stub->valid_)
           continue;
         // replace layerId by encoded layerId
-        stub->layer_ = layerEncoding_->layerIdKF(sectorEta, zT, cot, stub->layer_);
+        const auto it = find(layerEncoding.begin(), layerEncoding.end(), stub->layer_);
+        stub->layer_ = min((int)distance(layerEncoding.begin(), it), setup_->numLayers() - 1);
         // kill stubs from layers which can't be crossed by track
-        if (stub->layer_ == -1)
+        if (it == layerEncoding.end())
           stub->valid_ = false;
-        if (stub->valid_) {
-          if (track.maybe_[stub->layer_]) {
-            for (Stub* s : track.stubs_) {
-              if (s == stub)
-                break;
-              if (s->layer_ == stub->layer_)
-                s->valid_ = false;
-            }
-          } else
-            track.maybe_.set(stub->layer_);
-        }
       }
-      // lookup maybe layers
-      track.maybe_ &= layerEncoding_->maybePattern(sectorEta, zT, cot);
     }
     // kill tracks with not enough layer
     for (Track& track : tracks_) {
@@ -298,19 +285,20 @@ namespace trklet {
     for (Track& track : tracks_) {
       if (!track.valid_)
         continue;
-      const int sectorEta = track.sector_ % setup_->numSectorsEta();
+      const double zTSector = dataFormats_->format(Variable::cot, Process::gp).digi(track.zT_);
+      const double cotSector = zTSector / setup_->chosenRofZ();
       const double inv2R = abs(track.inv2R_);
       for (Stub* stub : track.stubs_) {
         const bool barrel = setup_->barrel(stub->ttStubRef_);
         const bool ps = barrel ? setup_->psModule(stub->ttStubRef_) : stub->psTilt_;
         const bool tilt = barrel ? (ps && !stub->psTilt_) : false;
-        const double length = ps ? setup_->lengthPS() : setup_->length2S();
-        const double pitch = ps ? setup_->pitchPS() : setup_->pitch2S();
+        const double length = ps ? setup_->pitchColPS() : setup_->pitchCol2S();
+        const double pitch = ps ? setup_->pitchRowPS() : setup_->pitchRow2S();
         const double pitchOverR = digi(pitch / (digi(stub->r_, baseR) + setup_->chosenRofPhi()), basePhi);
         const double r = digi(stub->r_, baseRinvR) + setup_->chosenRofPhi();
         const double sumdz = track.zT_ + stub->z_;
-        const double dZ = digi(sumdz - digi(setup_->chosenRofZ(), baseR) * track.cot_, baseCot * baseR);
-        const double sumcot = track.cot_ + digi(setup_->sectorCot(sectorEta), baseCot);
+        const double dZ = digi(sumdz - digi(setup_->chosenRofZ(), baseLr_) * track.cot_, baseLcot_ * baseLr_);
+        const double sumcot = track.cot_ + digi(cotSector, baseHcot_);
         const double cot = digi(abs(dZ * digi(1. / r, baseInvR) + sumcot), baseCotLut);
         double lengthZ = length;
         double lengthR = 0.;
@@ -330,17 +318,11 @@ namespace trklet {
     // fill products StreamsStub& accpetedStubs, StreamsTrack& acceptedTracks, StreamsStub& lostStubs, StreamsTrack& lostTracks
     auto frameTrack = [this](Track* track) {
       const TTBV maybe(track->maybe_);
-      const TTBV sectorPhi(
-          dataFormats_->format(Variable::sectorPhi, Process::kfin).ttBV(track->sector_ / setup_->numSectorsEta()));
-      const TTBV sectorEta(
-          dataFormats_->format(Variable::sectorEta, Process::kfin).ttBV(track->sector_ % setup_->numSectorsEta()));
       const TTBV inv2R(dataFormats_->format(Variable::inv2R, Process::kfin).ttBV(track->inv2R_));
       const TTBV phiT(dataFormats_->format(Variable::phiT, Process::kfin).ttBV(track->phiT_));
       const TTBV cot(dataFormats_->format(Variable::cot, Process::kfin).ttBV(track->cot_));
       const TTBV zT(dataFormats_->format(Variable::zT, Process::kfin).ttBV(track->zT_));
-      return FrameTrack(track->ttTrackRef_,
-                        Frame("1" + maybe.str() + sectorPhi.str() + sectorEta.str() + inv2R.str() + phiT.str() +
-                              cot.str() + zT.str()));
+      return FrameTrack(track->ttTrackRef_, "1" + maybe.str() + inv2R.str() + phiT.str() + cot.str() + zT.str());
     };
     auto frameStub = [this](Track* track, int layer) {
       auto equal = [layer](Stub* stub) { return stub->channel_ == layer; };

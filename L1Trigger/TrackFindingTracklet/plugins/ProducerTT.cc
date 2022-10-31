@@ -101,6 +101,7 @@ namespace trklet {
       ttTracks.reserve(nTracks);
       // convert kf track frames per channel and stub frames per channel and layer to TTTracks
       for (int channel = 0; channel < (int)streamsTracks.size(); channel++) {
+        const int region = channel / dataFormats_->numChannel(Process::kf);
         const int offset = channel * setup_->numLayers();
         int iTrk(0);
         for (const FrameTrack& frameTrack : streamsTracks[channel]) {
@@ -117,7 +118,7 @@ namespace trklet {
           // convert track frame to kf track
           TrackKF track(frameTrack, dataFormats_);
           // convert kf track and kf stubs to TTTrack
-          ttTracks.emplace_back(track.ttTrack(stubs));
+          ttTracks.emplace_back(track.ttTrack(region, stubs));
           iTrk++;
         }
       }

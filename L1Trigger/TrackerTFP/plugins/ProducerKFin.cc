@@ -14,6 +14,7 @@
 #include "L1Trigger/TrackTrigger/interface/Setup.h"
 #include "L1Trigger/TrackerTFP/interface/DataFormats.h"
 #include "L1Trigger/TrackerTFP/interface/LayerEncoding.h"
+#include "L1Trigger/TrackerTFP/interface/KFin.h"
 
 #include <string>
 #include <vector>
@@ -110,14 +111,11 @@ namespace trackerTFP {
   }
 
   void ProducerKFin::produce(Event& iEvent, const EventSetup& iSetup) {
-    const double dPhiT = setup_->baseRegion() / setup_->kfNumWorker();
-    const DataFormat& dfcot = dataFormats_->format(Variable::cot, Process::kfin);
-    const DataFormat& dfzT = dataFormats_->format(Variable::zT, Process::kfin);
     // empty KFin products
-    StreamsStub streamAcceptedStubs(dataFormats_->numStreamsStubs(Process::kf));
-    StreamsTrack streamAcceptedTracks(dataFormats_->numStreamsTracks(Process::kf));
-    StreamsStub streamLostStubs(dataFormats_->numStreamsStubs(Process::kf));
-    StreamsTrack streamLostTracks(dataFormats_->numStreamsTracks(Process::kf));
+    StreamsStub acceptedStubs(dataFormats_->numStreamsStubs(Process::kfin));
+    StreamsTrack acceptedTracks(dataFormats_->numStreamsTracks(Process::kfin));
+    StreamsStub lostStubs(dataFormats_->numStreamsStubs(Process::kfin));
+    StreamsTrack lostTracks(dataFormats_->numStreamsTracks(Process::kfin));
     // read in SFout Product and produce KFin product
     if (setup_->configurationSupported()) {
       Handle<StreamsStub> handleStubs;
@@ -125,96 +123,27 @@ namespace trackerTFP {
       const StreamsStub& streams = *handleStubs.product();
       Handle<vector<TTTrack<Ref_Phase2TrackerDigi_>>> handleTTTracks;
       iEvent.getByToken<vector<TTTrack<Ref_Phase2TrackerDigi_>>>(edGetTokenTTTracks_, handleTTTracks);
-      const vector<TTTrack<Ref_Phase2TrackerDigi_>>& ttTracks = *handleTTTracks.product();
+      vector<TTTrackRef> ttTrackRefs;
+      const int nTTTracks = handleTTTracks->size();
+      ttTrackRefs.reserve(nTTTracks);
+      for (int i = nTTTracks - 1; i > -1; i--)
+        ttTrackRefs.emplace_back(handleTTTracks, i);
       for (int region = 0; region < setup_->numRegions(); region++) {
-        // Unpack input SF data into vector
-        int nStubsZHT(0);
-        for (int channel = 0; channel < dataFormats_->numChannel(Process::zht); channel++) {
-          const int index = region * dataFormats_->numChannel(Process::zht) + channel;
-          const StreamStub& stream = streams[index];
-          nStubsZHT += accumulate(stream.begin(), stream.end(), 0, [](int& sum, const FrameStub& frame) {
-            return sum += frame.first.isNonnull() ? 1 : 0;
-          });
-        }
-        vector<StubZHT> stubsZHT;
-        stubsZHT.reserve(nStubsZHT);
-        for (int channel = 0; channel < dataFormats_->numChannel(Process::zht); channel++) {
-          const int inv2R = dataFormats_->format(Variable::inv2R, Process::ht).toSigned(channel);
-          const int index = region * dataFormats_->numChannel(Process::zht) + channel;
-          for (const FrameStub& frame : streams[index])
-            if (frame.first.isNonnull())
-              stubsZHT.emplace_back(frame, dataFormats_, inv2R);
-        }
-        vector<deque<FrameStub>> dequesStubs(dataFormats_->numChannel(Process::kf) * setup_->numLayers());
-        vector<deque<FrameTrack>> dequesTracks(dataFormats_->numChannel(Process::kf));
-        int i(-1);
-        for (const TTTrack<Ref_Phase2TrackerDigi_>& ttTrack : ttTracks) {
-          i++;
-          if ((int)ttTrack.phiSector() / setup_->numSectorsPhi() != region)
-            continue;
-          const int sectorPhi = ttTrack.phiSector() % setup_->numSectorsPhi();
-          const double phiT = ttTrack.phi() + (sectorPhi - .5) * setup_->baseSector();
-          const int channel = floor((phiT + setup_->baseRegion() / 2.) / dPhiT);
-          deque<FrameTrack>& tracks = dequesTracks[channel];
-          const int binEta = ttTrack.etaSector();
-          const int binZT = dfzT.toUnsigned(dfzT.integer(ttTrack.z0()));
-          const int binCot = dfcot.toUnsigned(dfcot.integer(ttTrack.tanL()));
-          StubZHT* stubZHT = nullptr;
-          vector<int> layerCounts(setup_->numLayers(), 0);
-          for (const TTStubRef& ttStubRef : ttTrack.getStubRefs()) {
-            const int layerId = setup_->layerId(ttStubRef);
-            int layerIdKF = layerEncoding_->layerIdKF(binEta, binZT, binCot, layerId);
-            if (layerIdKF == -1)
-              layerIdKF = 6;
-            if (layerCounts[layerIdKF] == setup_->kfinMaxStubsPerLayer())
-              continue;
-            layerCounts[layerIdKF]++;
-            deque<FrameStub>& stubs = dequesStubs[channel * setup_->numLayers() + layerIdKF];
-            auto identical = [ttStubRef, ttTrack](const StubZHT& stub) {
-              return (int)ttTrack.trackSeedType() == stub.trackId() && ttStubRef == stub.ttStubRef();
-            };
-            stubZHT = &*find_if(stubsZHT.begin(), stubsZHT.end(), identical);
-            const StubKFin stubKFin(*stubZHT, layerIdKF);
-            stubs.emplace_back(stubKFin.frame());
-          }
-          const int size = *max_element(layerCounts.begin(), layerCounts.end());
-          int layerIdKF(0);
-          for (int layerCount : layerCounts) {
-            deque<FrameStub>& stubs = dequesStubs[channel * setup_->numLayers() + layerIdKF++];
-            const int nGaps = size - layerCount;
-            stubs.insert(stubs.end(), nGaps, FrameStub());
-          }
-          const TTBV& maybePattern = layerEncoding_->maybePattern(binEta, binZT, binCot);
-          const TrackKFin track(*stubZHT, TTTrackRef(handleTTTracks, i), maybePattern);
-          tracks.emplace_back(track.frame());
-          const int nGaps = size - 1;
-          tracks.insert(tracks.end(), nGaps, FrameTrack());
-        }
-        // transform deques to vectors & emulate truncation
-        for (int channel = 0; channel < dataFormats_->numChannel(Process::kf); channel++) {
-          const int index = region * dataFormats_->numChannel(Process::kf) + channel;
-          deque<FrameTrack>& tracks = dequesTracks[channel];
-          auto limitTracks = next(tracks.begin(), min(setup_->numFrames(), (int)tracks.size()));
-          if (!enableTruncation_)
-            limitTracks = tracks.end();
-          streamAcceptedTracks[index] = StreamTrack(tracks.begin(), limitTracks);
-          streamLostTracks[index] = StreamTrack(limitTracks, tracks.end());
-          for (int l = 0; l < setup_->numLayers(); l++) {
-            deque<FrameStub>& stubs = dequesStubs[channel * setup_->numLayers() + l];
-            auto limitStubs = next(stubs.begin(), min(setup_->numFrames(), (int)stubs.size()));
-            if (!enableTruncation_)
-              limitStubs = stubs.end();
-            streamAcceptedStubs[index * setup_->numLayers() + l] = StreamStub(stubs.begin(), limitStubs);
-            streamLostStubs[index * setup_->numLayers() + l] = StreamStub(limitStubs, stubs.end());
-          }
-        }
+        // object to connect track candidates with track fit
+        KFin kfin(iConfig_, setup_, dataFormats_, layerEncoding_, region);
+        // read in and organize input product
+        kfin.consume(streams);
+        // read in TTTrack Refs
+        kfin.consume(ttTrackRefs);
+        // fill output products
+        kfin.produce(acceptedTracks, acceptedStubs, lostTracks, lostStubs);
       }
     }
     // store products
-    iEvent.emplace(edPutTokenAcceptedStubs_, std::move(streamAcceptedStubs));
-    iEvent.emplace(edPutTokenAcceptedTracks_, std::move(streamAcceptedTracks));
-    iEvent.emplace(edPutTokenLostStubs_, std::move(streamLostStubs));
-    iEvent.emplace(edPutTokenLostTracks_, std::move(streamLostTracks));
+    iEvent.emplace(edPutTokenAcceptedStubs_, move(acceptedStubs));
+    iEvent.emplace(edPutTokenAcceptedTracks_, move(acceptedTracks));
+    iEvent.emplace(edPutTokenLostStubs_, move(lostStubs));
+    iEvent.emplace(edPutTokenLostTracks_, move(lostTracks));
   }
 
 }  // namespace trackerTFP

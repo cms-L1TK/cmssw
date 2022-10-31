@@ -116,7 +116,7 @@ namespace tt {
     std::vector<int> layerMap(const TTBV& hitPattern, const TTBV& ttBV) const;
     //
     std::vector<int> layerMap(const TTBV& ttBV) const;
-    // stub projected phi uncertainty
+  // stub projected phi uncertainty
     double dPhi(const TTStubRef& ttStubRef, double inv2R) const;
     // stub projected z uncertainty
     double dZ(const TTStubRef& ttStubRef) const;
@@ -127,7 +127,15 @@ namespace tt {
     //
     const std::vector<SensorModule>& sensorModules() const { return sensorModules_; }
     //
-    int sectorEta(double cot) const { return quantileToSectorEta_.at(floor(cot * chosenRofZ_ / baseQuantile_) + numQuantile_ / 2); }
+    TTBV module(double r, double z) const;
+    //
+    bool ps(const TTBV& module) const { return module[gpPosPS_]; }
+    //
+    bool barrel(const TTBV& module) const { return module[gpPosBarrel_]; }
+    //
+    bool tilted(const TTBV& module) const { return module[gpPosTilted_]; }
+    // stub projected phi uncertainty for given module type, stub radius and track curvature
+    double dPhi(const TTBV& module, double r, double inv2R) const;
 
     // Firmware specific Parameter
 
@@ -161,22 +169,37 @@ namespace tt {
     int numFramesIO() const { return numFramesIO_; }
     // number of valid frames per 8 BX packet
     int numFramesFE() const { return numFramesFE_; }
-    // maximum representable stub phi uncertainty
-    double maxdPhi() const { return maxdPhi_; }
-    // maximum representable stub z uncertainty
-    double maxdZ() const { return maxdZ_; }
-    // barrel layer limit z value to partition into tilted and untilted region
-    double tiltedLayerLimitZ(int layer) const { return tiltedLayerLimitsZ_.at(layer); }
-    // endcap disk limit r value to partition into PS and 2S region
-    double psDiskLimitR(int layer) const { return psDiskLimitsR_.at(layer); }
+
+    // Tracker specific Parameter
+
     // strip pitch of outer tracker sensors in cm
-    double pitch2S() const { return pitch2S_; }
+    double pitchRow2S() const { return pitchRow2S_; }
     // pixel pitch of outer tracker sensors in cm
-    double pitchPS() const { return pitchPS_; }
+    double pitchRowPS() const { return pitchRowPS_; }
     // strip length of outer tracker sensors in cm
-    double length2S() const { return length2S_; }
+    double pitchCol2S() const { return pitchCol2S_; }
     // pixel length of outer tracker sensors in cm
-    double lengthPS() const { return lengthPS_; }
+    double pitchColPS() const { return pitchColPS_; }
+    // BField used in fw in T
+    double bField() const { return bField_; }
+    // outer radius of outer tracker in cm
+    double outerRadius() const { return outerRadius_; }
+    // inner radius of outer tracker in cm
+    double innerRadius() const { return innerRadius_; }
+    // half length of outer tracker in cm
+    double halfLength() const { return halfLength_; }
+    // max strip/pixel length of outer tracker sensors in cm
+    double maxPitchCol() const { return maxPitchCol_; }
+    // In tilted barrel, grad*|z|/r + int approximates |cosTilt| + |sinTilt * cotTheta|
+    double tiltApproxSlope() const { return tiltApproxSlope_; }
+    // In tilted barrel, grad*|z|/r + int approximates |cosTilt| + |sinTilt * cotTheta|
+    double tiltApproxIntercept() const { return tiltApproxIntercept_; }
+    // In tilted barrel, constant assumed stub radial uncertainty * sqrt(12) in cm
+    double tiltUncertaintyR() const { return tiltUncertaintyR_; }
+    // scattering term used to add stub phi uncertainty depending on assumed track inv2R
+    double scattering() const { return scattering_; }
+    // barrel layer limit |z| value to partition into tilted and untilted region
+    double limitsTiltedZ(int index) const { return limitsTiltedZ_[index]; }
 
     // Common track finding parameter
 
@@ -186,6 +209,8 @@ namespace tt {
     double invPtToDphi() const { return invPtToDphi_; }
     // region size in rad
     double baseRegion() const { return baseRegion_; }
+    // max cot(theta) of found tracks
+    double maxCot() const { return maxCot_; }
     // pt cut
     double tpMinPt() const { return tpMinPt_; }
     // TP eta cut
@@ -204,24 +229,6 @@ namespace tt {
     int tpMaxBadStubs2S() const { return tpMaxBadStubs2S_; }
     // max number of unassociated PS stubs allowed to still associate TTTrack with TP
     int tpMaxBadStubsPS() const { return tpMaxBadStubsPS_; }
-    // BField used in fw in T
-    double bField() const { return bField_; }
-    // outer radius of outer tracker in cm
-    double outerRadius() const { return outerRadius_; }
-    // inner radius of outer tracker in cm
-    double innerRadius() const { return innerRadius_; }
-    // half length of outer tracker in cm
-    double halfLength() const { return halfLength_; }
-    // max strip/pixel length of outer tracker sensors in cm
-    double maxLength() const { return maxLength_; }
-    // In tilted barrel, grad*|z|/r + int approximates |cosTilt| + |sinTilt * cotTheta|
-    double tiltApproxSlope() const { return tiltApproxSlope_; }
-    // In tilted barrel, grad*|z|/r + int approximates |cosTilt| + |sinTilt * cotTheta|
-    double tiltApproxIntercept() const { return tiltApproxIntercept_; }
-    // In tilted barrel, constant assumed stub radial uncertainty * sqrt(12) in cm
-    double tiltUncertaintyR() const { return tiltUncertaintyR_; }
-    // scattering term used to add stub phi uncertainty depending on assumed track inv2R
-    double scattering() const { return scattering_; }
     // cut on stub and TP pt, also defines region overlap shape in GeV
     double minPt() const { return minPt_; }
     // cut on stub eta
@@ -415,25 +422,16 @@ namespace tt {
     double chosenRofZ() const { return chosenRofZ_; }
     // fifo depth in stub router firmware
     int gpDepthMemory() const { return gpDepthMemory_; }
-    // defining r-z sector shape
-    double boundarieEta(int eta) const { return boundariesEta_.at(eta); }
-    const std::vector<double>& boundarieEta() const { return boundariesEta_; }
+    //
+    int gpWidthModule() const { return gpWidthModule_; }
     // phi sector size in rad
     double baseSector() const { return baseSector_; }
-    // cut on zT
-    double maxZT() const { return maxZT_; }
-    // cut on stub cot theta
-    double maxCot() const { return maxCot_; }
     // total number of sectors
     int numSectors() const { return numSectors_; }
-    // cot(theta) of given eta sector
-    double sectorCot(int eta) const { return sectorCots_.at(eta); }
     //
-    double neededRangeChiZ() const { return neededRangeChiZ_; }
+    double maxRphi() const { return maxRphi_; }
     //
-    const std::vector<int>& gpQuantiles() const { return gpQuantiles_; }
-    //
-    double baseQuantile() const { return baseQuantile_; }
+    double maxRz() const { return maxRz_; }
 
     // Parameter specifying HoughTransform
 
@@ -454,8 +452,6 @@ namespace tt {
     int mhtNumBinsPhiT() const { return mhtNumBinsPhiT_; }
     // required number of stub layers to form a candidate
     int mhtMinLayers() const { return mhtMinLayers_; }
-    // required number of stub PS layers to form a candidate
-    int mhtMinLayersPS() const { return mhtMinLayersPS_; }
     // number of mht cells
     int mhtNumCells() const { return mhtNumCells_; }
 
@@ -482,6 +478,8 @@ namespace tt {
     int kfinMaxTracks() const { return kfinMaxTracks_; }
     // cut on number of stub per layer for input candidates
     int kfinMaxStubsPerLayer() const { return kfinMaxStubsPerLayer_; }
+    // number of merged zht channel to one
+    int kfinNumMuxedChannel() const { return kfinNumMuxedChannel_; }
 
     // Parameter specifying KalmanFilter
 
@@ -493,15 +491,8 @@ namespace tt {
     int kfMaxLayers() const { return kfMaxLayers_; }
     // search window of each track parameter in initial uncertainties
     double kfRangeFactor() const { return kfRangeFactor_; }
-<<<<<<< HEAD
-    //
-    int kfShiftInitialC00() const { return kfShiftInitialC00_; }
-    //
-    int kfShiftInitialC11() const { return kfShiftInitialC11_; }
-    //
-    int kfShiftInitialC22() const { return kfShiftInitialC22_; }
-    //
-=======
+    // bases get shifted by this power of two wrt tfp output bases
+    int kfBaseShift() const { return kfBaseShift_; }
     // initial C00 is given by inv2R uncertainty squared times this power of 2
     int kfShiftInitialC00() const { return kfShiftInitialC00_; }
     // initial C11 is given by phiT uncertainty squared times this power of 2
@@ -509,7 +500,6 @@ namespace tt {
     // initial C22 is given by cot uncertainty squared times this power of 2
     int kfShiftInitialC22() const { return kfShiftInitialC22_; }
     // initial C33 is given by zT uncertainty squared times this power of 2
->>>>>>> 27f125d2c17 (mini ht done.)
     int kfShiftInitialC33() const { return kfShiftInitialC33_; }
 
     // Parameter specifying KalmanFilter Output Formatter
@@ -618,8 +608,6 @@ namespace tt {
     int unMatchedStubs_;
     // allowed number of PS stubs a found track may have not in common with its matched TP
     int unMatchedStubsPS_;
-    // scattering term used to add stub phi uncertainty depending on assumed track inv2R
-    double scattering_;
     // cut on stub and TP pt, also defines region overlap shape in GeV
     double minPt_;
     // cut on stub eta
@@ -732,6 +720,9 @@ namespace tt {
     int tmpTFP_;
     // speed of light used in FW in e8 m/s
     double speedOfLight_;
+
+    // Tracker specific Parameter
+    edm::ParameterSet pSetOT_;
     // BField used in fw in T
     double bField_;
     // accepted BField difference between FW to EventSetup in T
@@ -743,35 +734,35 @@ namespace tt {
     // half length of outer tracker in cm
     double halfLength_;
     // max strip/pixel pitch of outer tracker sensors in cm
-    double maxPitch_;
+    double maxPitchRow_;
     // max strip/pixel length of outer tracker sensors in cm
-    double maxLength_;
+    double maxPitchCol_;
     // approximated tilt correction parameter used to project r to z uncertainty
     double tiltApproxSlope_;
     // approximated tilt correction parameter used to project r to z uncertainty
     double tiltApproxIntercept_;
     // In tilted barrel, constant assumed stub radial uncertainty * sqrt(12) in cm
     double tiltUncertaintyR_;
-    // minimum representable stub phi uncertainty
-    double mindPhi_;
-    // maximum representable stub phi uncertainty
-    double maxdPhi_;
-    // minimum representable stub z uncertainty
-    double mindZ_;
-    // maximum representable stub z uncertainty
-    double maxdZ_;
+    // scattering term used to add stub phi uncertainty depending on assumed track inv2R
+    double scattering_;
     // strip pitch of outer tracker sensors in cm
-    double pitch2S_;
+    double pitchRow2S_;
     // pixel pitch of outer tracker sensors in cm
-    double pitchPS_;
+    double pitchRowPS_;
     // strip length of outer tracker sensors in cm
-    double length2S_;
+    double pitchCol2S_;
     // pixel length of outer tracker sensors in cm
-    double lengthPS_;
+    double pitchColPS_;
+    // barrel layer limit r value to partition into PS and 2S region
+    double limitPSBarrel_;
+    // barrel layer limit r value to partition into tilted and untilted region
+    std::vector<double> limitsTiltedR_;
     // barrel layer limit |z| value to partition into tilted and untilted region
-    std::vector<double> tiltedLayerLimitsZ_;
+    std::vector<double> limitsTiltedZ_;
+    // endcap disk limit |z| value to partition into PS and 2S region
+    std::vector<double> limitsPSDiksZ_;
     // endcap disk limit r value to partition into PS and 2S region
-    std::vector<double> psDiskLimitsR_;
+    std::vector<double> limitsPSDiksR_;
 
     // Parameter specifying front-end
     edm::ParameterSet pSetFE_;
@@ -850,14 +841,16 @@ namespace tt {
     int numSectorsEta_;
     // # critical radius defining r-z sector shape in cm
     double chosenRofZ_;
-    // range of stub z residual w.r.t. sector center which needs to be covered
-    double neededRangeChiZ_;
     // fifo depth in stub router firmware
     int gpDepthMemory_;
-    // defining r-z sector shape
-    std::vector<double> boundariesEta_;
     //
-    std::vector<int> gpQuantiles_;
+    int gpWidthModule_;
+    //
+    int gpPosPS_;
+    //
+    int gpPosBarrel_;
+    //
+    int gpPosTilted_;
 
     // Parameter specifying HoughTransform
     edm::ParameterSet pSetHT_;
@@ -878,8 +871,6 @@ namespace tt {
     int mhtNumBinsPhiT_;
     // required number of stub layers to form a candidate
     int mhtMinLayers_;
-    // required number of stub PS layers to form a candidate
-    int mhtMinLayersPS_;
 
     // Parameter specifying ZHoughTransform
     edm::ParameterSet pSetZHT_;
@@ -902,6 +893,8 @@ namespace tt {
     int kfinMaxTracks_;
     // cut on number of stub per layer for input candidates
     int kfinMaxStubsPerLayer_;
+    // number of merged zht channel to one
+    int kfinNumMuxedChannel_;
 
     // Parameter specifying KalmanFilter
     edm::ParameterSet pSetKF_;
@@ -913,6 +906,8 @@ namespace tt {
     int kfMaxLayers_;
     // search window of each track parameter in initial uncertainties
     double kfRangeFactor_;
+    // bases get shifted by this power of two wrt tfp output bases
+    int kfBaseShift_;
     // initial C00 is given by inv2R uncertainty squared times this power of 2
     int kfShiftInitialC00_;
     // initial C11 is given by phiT uncertainty squared times this power of 2
@@ -980,6 +975,8 @@ namespace tt {
     double invPtToDphi_;
     // region size in rad
     double baseRegion_;
+    // max cot(theta) of found tracks
+    double maxCot_;
 
     // TMTT
 
@@ -1064,22 +1061,12 @@ namespace tt {
 
     // phi sector size in rad
     double baseSector_;
-    // cut on zT
-    double maxZT_;
-    // cut on stub cot theta
-    double maxCot_;
+    //
+    double maxRphi_;
+    //
+    double maxRz_;
     // total number of sectors
     int numSectors_;
-    // number of unused bits in GP output format
-    int gpNumUnusedBits_;
-    // cot(theta) of eta sectors
-    std::vector<double> sectorCots_;
-    //
-    int numQuantile_;
-    //
-    double baseQuantile_;
-    // 
-    std::vector<int> quantileToSectorEta_;
 
     // MHT
 

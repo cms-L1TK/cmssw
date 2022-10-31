@@ -39,6 +39,8 @@ namespace trackerTFP {
     template <class T>
     T* pop_front(std::vector<T*>& ts) const;
 
+    // Transform States into Tracks
+    void conv(const std::deque<State*>& states, std::vector<TrackKF>& tracksKF, std::vector<StubKF>& stubsKF, std::vector<TrackKF*>& tracks) const;
     // adds a layer to states
     void addLayer(std::deque<State*>& stream);
     // Assign next combinatoric (i.e. not first in layer) stub to state

@@ -63,10 +63,10 @@ namespace trackerTFP {
         C22_(&kalmanFilterFormats_->format(VariableKF::C22)),
         C23_(&kalmanFilterFormats_->format(VariableKF::C23)),
         C33_(&kalmanFilterFormats_->format(VariableKF::C33)) {
-    C00_->updateRangeActual(pow(dataFormats_->base(Variable::inv2R, Process::kfin), 2) - 1.e-12);
-    C11_->updateRangeActual(pow(dataFormats_->base(Variable::phiT, Process::kfin), 2) - 1.e-12);
-    C22_->updateRangeActual(pow(dataFormats_->base(Variable::cot, Process::kfin), 2) - 1.e-12);
-    C33_->updateRangeActual(pow(dataFormats_->base(Variable::zT, Process::kfin), 2) - 1.e-12);
+    C00_->updateRangeActual(pow(dataFormats_->base(Variable::inv2R, Process::ht), 2) * pow(2, setup_->kfShiftInitialC00()) - 1.e-12);
+    C11_->updateRangeActual(pow(dataFormats_->base(Variable::phiT, Process::ht), 2) * pow(2, setup_->kfShiftInitialC11()) - 1.e-12);
+    C22_->updateRangeActual(pow(dataFormats_->base(Variable::cot, Process::gp), 2) * pow(2, setup_->kfShiftInitialC22()) - 1.e-12);
+    C33_->updateRangeActual(pow(dataFormats_->base(Variable::zT, Process::gp), 2) * pow(2, setup_->kfShiftInitialC33()) - 1.e-12);
   }
 
   // read in and organize input product (fill vector input_)
@@ -75,14 +75,14 @@ namespace trackerTFP {
     auto acc = [](int sum, const auto& frame) { return sum + (frame.first.isNonnull() ? 1 : 0); };
     int nTracks(0);
     int nStubs(0);
-    const int offset = region_ * dataFormats_->numChannel(Process::kf);
+    const int offsetTrack = region_ * dataFormats_->numChannel(Process::kf);
     for (int channel = 0; channel < dataFormats_->numChannel(Process::kf); channel++) {
-      const int channelTrack = offset + channel;
+      const int channelTrack = offsetTrack + channel;
+      const int offsetStub = channelTrack * setup_->numLayers();
       const StreamTrack& streamTracks = streamsTrack[channelTrack];
       nTracks += accumulate(streamTracks.begin(), streamTracks.end(), 0, acc);
       for (int layer = 0; layer < setup_->numLayers(); layer++) {
-        const int channelStub = channelTrack * setup_->numLayers() + layer;
-        const StreamStub& streamStubs = streamsStub[channelStub];
+        const StreamStub& streamStubs = streamsStub[offsetStub + layer];
         nStubs += accumulate(streamStubs.begin(), streamStubs.end(), 0, acc);
       }
     }
@@ -90,7 +90,8 @@ namespace trackerTFP {
     stubs_.reserve(nStubs);
     // N.B. One input stream for track & one for its stubs in each layer. If a track has N stubs in one layer, and fewer in all other layers, then next valid track will be N frames later
     for (int channel = 0; channel < dataFormats_->numChannel(Process::kf); channel++) {
-      const int channelTrack = offset + channel;
+      const int channelTrack = offsetTrack + channel;
+      const int offsetStub = channelTrack * setup_->numLayers();
       const StreamTrack& streamTracks = streamsTrack[channelTrack];
       vector<TrackKFin*>& tracks = input_[channel];
       tracks.reserve(streamTracks.size());
@@ -98,20 +99,19 @@ namespace trackerTFP {
         const FrameTrack& frameTrack = streamTracks[frame];
         // Select frames with valid track
         if (frameTrack.first.isNull()) {
-          if (kalmanFilterFormats_->hybrid())
-            tracks.push_back(nullptr);
+          //if (kalmanFilterFormats_->hybrid())
+            //tracks.push_back(nullptr);
           continue;
         }
         auto endOfTrk = find_if(next(streamTracks.begin(), frame + 1), streamTracks.end(), valid);
-        if (kalmanFilterFormats_->hybrid())
-          endOfTrk = next(streamTracks.begin(), frame + 1);
+        //if (kalmanFilterFormats_->hybrid())
+          //endOfTrk = next(streamTracks.begin(), frame + 1);
         // No. of frames before next track indicates gives max. no. of stubs this track had in any layer
         const int maxStubsPerLayer = distance(next(streamTracks.begin(), frame), endOfTrk);
         tracks.insert(tracks.end(), maxStubsPerLayer - 1, nullptr);
         deque<StubKFin*> stubs;
         for (int layer = 0; layer < setup_->numLayers(); layer++) {
-          const int channelStub = channelTrack * setup_->numLayers() + layer;
-          const StreamStub& streamStubs = streamsStub[channelStub];
+          const StreamStub& streamStubs = streamsStub[offsetStub + layer];
           // Get stubs on this track
           for (int i = frame; i < frame + maxStubsPerLayer; i++) {
             const FrameStub& frameStub = streamStubs[i];
@@ -136,21 +136,20 @@ namespace trackerTFP {
                              StreamsTrack& lostTracks,
                              int& numAcceptedStates,
                              int& numLostStates) {
-    auto put = [this](
-                   const vector<TrackKF*>& stream, StreamsStub& streamsStubs, StreamsTrack& streamsTracks, int channel) {
+    auto put = [this](const vector<TrackKF*>& stream, StreamsStub& stubs, StreamsTrack& streamsTracks, int channel) {
       const int streamId = region_ * dataFormats_->numChannel(Process::kf) + channel;
       const int offset = streamId * setup_->numLayers();
       StreamTrack& tracks = streamsTracks[streamId];
       tracks.reserve(stream.size());
       for (int layer = 0; layer < setup_->numLayers(); layer++)
-        streamsStubs[offset + layer].reserve(stream.size());
+        stubs[offset + layer].reserve(stream.size());
       for (TrackKF* track : stream) {
         tracks.emplace_back(track->frame());
         for (StubKF* stub : track->stubs())
-          streamsStubs[offset + stub->layer()].emplace_back(stub->frame());
+          stubs[offset + stub->layer()].emplace_back(stub->frame());
         // adding a gap to all layer without a stub
         for (int layer : track->hitPattern().ids(false))
-          streamsStubs[offset + layer].emplace_back(FrameStub());
+          stubs[offset + layer].emplace_back(FrameStub());
       }
     };
     for (int channel = 0; channel < dataFormats_->numChannel(Process::kf); channel++) {
@@ -161,7 +160,7 @@ namespace trackerTFP {
         State* state = nullptr;
         if (track) {
           // Store states, so remainder of KF algo can work with pointers to them (saves CPU)
-          states_.emplace_back(dataFormats_, track, trackId++);
+          states_.emplace_back(kalmanFilterFormats_, track, trackId++);
           state = &states_.back();
         }
         stream.push_back(state);
@@ -169,59 +168,31 @@ namespace trackerTFP {
       // Propagate state to each layer in turn, updating it with all viable stub combinations there, using KF maths
       for (layer_ = 0; layer_ < setup_->numLayers(); layer_++)
         addLayer(stream);
-      // kill states with not enough layer
-      int numUntruncatedTracks(0);
-      int numUntruncatedStubs(0);
-      int numTruncatedTracks(0);
-      int frame(-1);
-      for (auto& state : stream) {
-        frame++;
-        const int nStubs = state ? state->hitPattern().count() : 0;
-        if (nStubs < setup_->kfMinLayers())
-          state = nullptr;
-        if (!state)
-          continue;
-        numUntruncatedTracks++;
-        numUntruncatedStubs += nStubs;
-        if (!enableTruncation_ || frame < setup_->numFrames())
-          numTruncatedTracks++;
-      }
-      // Transform Stream into TracksKF
-      vector<StubKF> stubsKF;
-      stubsKF.reserve(numUntruncatedStubs);
+      // Transform States into Tracks
       vector<TrackKF> tracksKF;
-      tracksKF.reserve(numUntruncatedTracks);
+      vector<StubKF> stubsKF;
       vector<TrackKF*> tracks;
-      tracks.reserve(stream.size());
-      for (State* state : stream) {
-        if (!state) {
-          tracks.push_back(nullptr);
-          continue;
-        }
-        vector<StubKF*> stubs;
-        stubs.reserve(state->hitPattern().count());
-        State* s = state;
-        while ((s = s->parent())) {
-          stubsKF.emplace_back(*(s->stub()), state->x0(), state->x1(), state->x2(), state->x3());
-          stubs.push_back(&stubsKF.back());
-        }
-        tracksKF.emplace_back(*state->track(), stubs, state->trackId(), state->x0(), state->x1(), state->x2(), state->x3());
-        tracks.push_back(&tracksKF.back());
-      }
-      // untruncated best state selection
+      conv(stream, tracksKF, stubsKF, tracks);
+      // save copy of untruncated tracks
       vector<TrackKF*> untruncatedTracks = tracks;
-      accumulator(untruncatedTracks);
       // apply truncation
       if (enableTruncation_ && (int)tracks.size() > setup_->numFrames())
         tracks.resize(setup_->numFrames());
-      // best state per candidate selection
+      // store number of states which got taken into account
+      numAcceptedStates += (int)tracks.size();
+      // store number of states which got not taken into account due to truncation
+      numLostStates += (int)untruncatedTracks.size() - (int)tracks.size();
+      // best track per candidate selection
       accumulator(tracks);
-      // storing of best states missed due to truncation
+      // save copy of truncated best track per candidate selection
       vector<TrackKF*> truncatedTracks = tracks;
+      // untruncated best state selection
+      accumulator(untruncatedTracks);
+      // storing of best states missed due to truncation
       sort(untruncatedTracks.begin(), untruncatedTracks.end());
       sort(truncatedTracks.begin(), truncatedTracks.end());
       vector<TrackKF*> lost;
-      lost.reserve(tracks.size());
+      lost.reserve(untruncatedTracks.size());
       set_difference(untruncatedTracks.begin(),
                      untruncatedTracks.end(),
                      truncatedTracks.begin(),
@@ -231,10 +202,47 @@ namespace trackerTFP {
       put(tracks, acceptedStubs, acceptedTracks, channel);
       // store lost tracks
       put(lost, lostStubs, lostTracks, channel);
-      // store number of states which got taken into account
-      numAcceptedStates += numTruncatedTracks;
-      // store number of states which got not taken into account due to truncation
-      numLostStates += numUntruncatedTracks - numTruncatedTracks;
+    }
+  }
+
+  // Transform States into Tracks
+  void KalmanFilter::conv(const deque<State*>& states, vector<TrackKF>& tracksKF, vector<StubKF>& stubsKF, vector<TrackKF*>& tracks) const {
+    const DataFormat& dfInv2R = dataFormats_->format(Variable::inv2R, Process::ht);
+    const DataFormat& dfPhiT = dataFormats_->format(Variable::phiT, Process::gp);
+    const DataFormat& dfZT = dataFormats_->format(Variable::zT, Process::gp);
+    const int nMax = accumulate(states.begin(), states.end(), 0, [](int& sum, State* s){ return sum += (s ? 1 : 0); });
+    tracksKF.reserve(nMax);
+    stubsKF.reserve(nMax * setup_->kfMaxLayers());
+    tracks.reserve(states.size());
+    for (State* state : states) {
+      if (!state || state->hitPattern().count() < setup_->kfMinLayers()) {
+        tracks.push_back(nullptr);
+        continue;
+      }
+      // min pt cut
+      const bool valid0 = dfInv2R.inRange(state->track()->inv2R() + state->x0());
+      // phi sector cut
+      //const bool valid1 = abs(state->x1()) / dfPhiT.base() + 1.e-12 < .5;
+      const bool valid1 = dfPhiT.integer(state->track()->phiT()) == dfPhiT.integer(state->track()->phiT() + state->x1());
+      // z0 cut
+      const bool valid2 = abs(state->x3() - setup_->chosenRofZ() * state->x2()) < setup_->beamWindowZ();
+      // eta sector cut
+      //const bool valid3 = abs(state->x3()) / dfZT.base() + 1.e-12 < .5;
+      const bool valid3 = dfZT.integer(state->track()->zT()) == dfZT.integer(state->track()->zT() + state->x3());
+      //cout << valid0 << valid1 << valid2 << valid3 << endl;
+      TrackKF* track = nullptr;
+      if (valid0 && valid1 && valid2 && valid3) {
+        vector<StubKF*> stubs;
+        stubs.reserve(state->hitPattern().count());
+        State* s = state;
+        while ((s = s->parent())) {
+          stubsKF.emplace_back(*(s->stub()), state->x0(), state->x1(), state->x2(), state->x3());
+          stubs.push_back(&stubsKF.back());
+        }
+        tracksKF.emplace_back(*state->track(), stubs, state->trackId(), state->x0(), state->x1(), state->x2(), state->x3());
+        track = &tracksKF.back();
+      }
+      tracks.push_back(track);
     }
   }
 
@@ -258,9 +266,7 @@ namespace trackerTFP {
         state = pop_front(stack);
       streamOutput.push_back(state);
       // The remainder of the code in this loop deals with combinatoric states.
-      if (state)
-        // Assign next combinatoric stub to state
-        comb(state);
+      comb(state);
       delay.push_back(state);
       state = pop_front(delay);
       if (state)
@@ -268,48 +274,36 @@ namespace trackerTFP {
     }
     stream = streamOutput;
     // Update state with next stub using KF maths
-    for (State*& state : stream)
-      if (state && state->stub() && state->layer() == layer_)
+    for (State*& state : stream) {
+      if (state && state->layer() == layer_)
         update(state);
+    }
   }
 
   // Assign next combinatoric (i.e. not first in layer) stub to state
   void KalmanFilter::comb(State*& state) {
+    if (!state || state->layer() != layer_) {
+      state = nullptr;
+      return;
+    }
     const TrackKFin* track = state->track();
-    const StubKFin* stub = state->stub();
-    const vector<StubKFin*>& stubs = track->layerStubs(layer_);
     const TTBV& hitPattern = state->hitPattern();
     StubKFin* stubNext = nullptr;
-    bool valid = state->stub() && state->layer() == layer_;
-    if (valid) {
-      // Get next unused stub on this layer
-      const int pos = distance(stubs.begin(), find(stubs.begin(), stubs.end(), stub)) + 1;
-      if (pos != (int)stubs.size())
-        stubNext = stubs[pos];
-      // picks next stub on different layer, nullifies state if skipping layer is not valid
-      else {
-        // having already maximum number of added layers
-        if (hitPattern.count() == setup_->kfMaxLayers())
-          valid = false;
-        // Impossible for this state to ever get enough layers to form valid track
-        if (hitPattern.count() + track->hitPattern().count(stub->layer() + 1, setup_->numLayers()) <
-            setup_->kfMinLayers())
-          valid = false;
-        // not diffrent layers left
-        if (layer_ == setup_->numLayers() - 1)
-          valid = false;
-        if (valid) {
-          // pick next stub on next populated layer
-          for (int nextLayer = layer_ + 1; nextLayer < setup_->numLayers(); nextLayer++) {
-            if (track->hitPattern(nextLayer)) {
-              stubNext = track->layerStub(nextLayer);
-              break;
-            }
-          }
+    // Get next unused stub on this layer
+    const vector<StubKFin*>& stubs = track->layerStubs(layer_);
+    const int pos = distance(stubs.begin(), find(stubs.begin(), stubs.end(), state->stub())) + 1;
+    if (pos != (int)stubs.size())
+      stubNext = stubs[pos];
+    else if (layer_ < setup_->numLayers() && hitPattern.count() < setup_->kfMaxLayers() && hitPattern.count() + track->hitPattern().count(layer_ + 1, setup_->numLayers()) >= setup_->kfMinLayers()) {
+      // pick next stub on next populated layer
+      for (int nextLayer = layer_ + 1; nextLayer < setup_->numLayers(); nextLayer++) {
+        if (track->hitPattern(nextLayer)) {
+          stubNext = track->layerStub(nextLayer);
+          break;
         }
       }
     }
-    if (valid) {
+    if (stubNext || hitPattern.count() >= setup_->kfMinLayers()) {
       // create combinatoric state
       states_.emplace_back(state, stubNext);
       state = &states_.back();
@@ -342,32 +336,32 @@ namespace trackerTFP {
   void KalmanFilter::update(State*& state) {
     // All variable names & equations come from Fruhwirth KF paper http://dx.doi.org/10.1016/0168-9002%2887%2990887-4", where F taken as unit matrix. Stub uncertainties projected onto (phi,z), assuming no correlations between r-phi & r-z planes.
     // stub phi residual wrt input helix
-    const double m0 = m0_->digi(state->m0());
+    const double m0 = state->m0();
     // stub z residual wrt input helix
-    const double m1 = m1_->digi(state->m1());
+    const double m1 = state->m1();
     // stub projected phi uncertainty squared);
-    const double v0 = v0_->digi(state->v0());
+    const double v0 = state->v0();
     // stub projected z uncertainty squared
-    const double v1 = v1_->digi(state->v1());
+    const double v1 = state->v1();
     // helix inv2R wrt input helix
-    double x0 = x0_->digi(state->x0());
+    double x0 = state->x0();
     // helix phi at radius ChosenRofPhi wrt input helix
-    double x1 = x1_->digi(state->x1());
+    double x1 = state->x1();
     // helix cot(Theta) wrt input helix
-    double x2 = x2_->digi(state->x2());
+    double x2 = state->x2();
     // helix z at radius chosenRofZ wrt input helix
-    double x3 = x3_->digi(state->x3());
+    double x3 = state->x3();
     // Derivative of predicted stub coords wrt helix params: stub radius minus chosenRofPhi
-    const double H00 = H00_->digi(state->H00());
+    const double H00 = state->H00();
     // Derivative of predicted stub coords wrt helix params: stub radius minus chosenRofZ
-    const double H12 = H12_->digi(state->H12());
+    const double H12 = state->H12();
     // cov. matrix
-    double C00 = C00_->digi(state->C00());
-    double C01 = C01_->digi(state->C01());
-    double C11 = C11_->digi(state->C11());
-    double C22 = C22_->digi(state->C22());
-    double C23 = C23_->digi(state->C23());
-    double C33 = C33_->digi(state->C33());
+    double C00 = state->C00();
+    double C01 = state->C01();
+    double C11 = state->C11();
+    double C22 = state->C22();
+    double C23 = state->C23();
+    double C33 = state->C33();
     // stub phi residual wrt current state
     const double r0C = x1_->digi(m0 - x1);
     const double r0 = r0_->digi(r0C - x0 * H00);
@@ -384,7 +378,7 @@ namespace trackerTFP {
     const double R00 = R00_->digi(R00C + H00 * S00);
     const double R11C = S13_->digi(v1 + S13);
     const double R11 = R11_->digi(R11C + H12 * S12);
-    // imrpoved dynamic cancelling
+    // improved dynamic cancelling
     const int msb0 = max(0, (int)ceil(log2(R00 / R00_->base())));
     const int msb1 = max(0, (int)ceil(log2(R11 / R11_->base())));
     const double R00Rough = R00Rough_->digi(R00 * pow(2., 16 - msb0));
@@ -411,16 +405,6 @@ namespace trackerTFP {
     C22 = C22_->digi(C22 - S12 * K21);
     C23 = C23_->digi(C23 - S13 * K21);
     C33 = C33_->digi(C33 - S13 * K31);
-    // range check
-    const bool valid0 = dataFormats_->format(Variable::inv2R, Process::kf).inRange(state->track()->inv2R() + x0);
-    const bool valid1 = dataFormats_->format(Variable::phiT, Process::kf).inRange(state->track()->phiT() + x1);
-    const bool valid2 = dataFormats_->format(Variable::cot, Process::kf).inRange(state->track()->cot() + x2);
-    const bool valid3 = dataFormats_->format(Variable::zT, Process::kf).inRange(state->track()->zT() + x3);
-    const bool valid = valid0 && valid1 && valid2 && valid3;
-    if (!valid) {
-      state = nullptr;
-      return;
-    }
     // create updated state
     states_.emplace_back(State(state, (initializer_list<double>){x0, x1, x2, x3, C00, C11, C22, C33, C01, C23}));
     state = &states_.back();

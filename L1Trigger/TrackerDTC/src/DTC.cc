@@ -8,11 +8,13 @@
 using namespace std;
 using namespace edm;
 using namespace tt;
+using namespace trackerTFP;
 
 namespace trackerDTC {
 
   DTC::DTC(const ParameterSet& iConfig,
            const Setup* setup,
+           const DataFormats* dataFormats,
            const LayerEncoding* layerEncoding,
            int dtcId,
            const std::vector<std::vector<TTStubRef>>& stubsDTC)
@@ -33,7 +35,7 @@ namespace trackerDTC {
       if (ttStubRefs.empty())
         continue;
       // Module which produced this ttStubRefs
-      SensorModule* module = modules_.at(modId);
+      const SensorModule* module = modules_.at(modId);
       // DTC routing block id [0-1]
       const int blockId = modId / setup->dtcNumModulesPerRoutingBlock();
       // DTC routing blockc  channel id [0-35]
@@ -41,7 +43,7 @@ namespace trackerDTC {
       // convert TTStubs and fill input channel
       Stubs& stubs = input_[blockId][channelId];
       for (const TTStubRef& ttStubRef : ttStubRefs) {
-        stubs_.emplace_back(iConfig, setup, layerEncoding, module, ttStubRef);
+        stubs_.emplace_back(iConfig, setup, dataFormats, layerEncoding, module, ttStubRef);
         Stub& stub = stubs_.back();
         if (stub.valid())
           // passed pt and eta cut

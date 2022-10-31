@@ -41,8 +41,7 @@ namespace trackerTFP {
   }
 
   KalmanFilterFormats::KalmanFilterFormats(const ParameterSet& iConfig, const DataFormats* dataFormats)
-      : hybrid_(iConfig.getParameter<bool>("UseHybrid")),
-        iConfig_(iConfig.getParameter<ParameterSet>(hybrid_ ? "hybrid" : "tmtt")),
+      : iConfig_(iConfig),
         dataFormats_(dataFormats),
         setup_(dataFormats_->setup()) {
     formats_.reserve(+VariableKF::end);
@@ -73,7 +72,7 @@ namespace trackerTFP {
 
   void DataFormatKF::updateRangeActual(double d) {
     rangeActual_ = make_pair(min(rangeActual_.first, d), max(rangeActual_.second, d));
-    if (!inRange(d)) {
+    /*if (!inRange(d)) {
       string v = *next(variableKFstrs_.begin(), +v_);
       cms::Exception exception("out_of_range");
       exception.addContext("trackerTFP:DataFormatKF::updateRangeActual");
@@ -82,7 +81,7 @@ namespace trackerTFP {
       if (twos_ || d >= 0.)
         exception.addAdditionalInfo("Consider raising BaseShift" + v + " in KalmnaFilterFormats_cfi.py.");
       throw exception;
-    }
+    }*/
   }
 
   template <>
@@ -140,7 +139,7 @@ namespace trackerTFP {
     const Setup* setup = dataFormats->setup();
     const DataFormat& kfin = dataFormats->format(Variable::r, Process::kfin);
     base_ = kfin.base();
-    range_ = 2. * max(abs(setup->outerRadius() - setup->chosenRofZ()), abs(setup->innerRadius() - setup->chosenRofZ()));
+    range_ = 2. * setup->maxRz();
     width_ = ceil(log2(range_ / base_));
   }
 

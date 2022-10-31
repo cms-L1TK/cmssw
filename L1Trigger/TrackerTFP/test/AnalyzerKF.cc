@@ -48,7 +48,6 @@ namespace trackerTFP {
     void analyze(const Event& iEvent, const EventSetup& iSetup) override;
     void endRun(const Run& iEvent, const EventSetup& iSetup) override {}
     void endJob() override;
-
   private:
     //
     void associate(const TTTracks& ttTracks,
@@ -56,8 +55,7 @@ namespace trackerTFP {
                    set<TPPtr>& tps,
                    int& sum,
                    const vector<TH1F*>& his,
-                   TProfile* prof) const;
-
+                   const vector<TProfile*>& prof) const;
     // ED input token of accepted Tracks
     EDGetTokenT<StreamsStub> edGetTokenAcceptedStubs_;
     // ED input token of accepted Stubs
@@ -97,7 +95,7 @@ namespace trackerTFP {
     TProfile* profChannel_;
     TH1F* hisChannel_;
     vector<TH1F*> hisRes_;
-    TProfile* profResZ0_;
+    vector<TProfile*> profRes_;
     TH1F* hisEffEta_;
     TH1F* hisEffEtaTotal_;
     TEfficiency* effEta_;
@@ -112,7 +110,7 @@ namespace trackerTFP {
   };
 
   AnalyzerKF::AnalyzerKF(const ParameterSet& iConfig)
-      : useMCTruth_(iConfig.getParameter<bool>("UseMCTruth")), hisRes_(4) {
+      : useMCTruth_(iConfig.getParameter<bool>("UseMCTruth")), nEvents_(0), hisRes_(4), profRes_(4) {
     usesResource("TFileService");
     // book in- and output ED products
     const string& label = iConfig.getParameter<string>("LabelKF");
@@ -170,17 +168,17 @@ namespace trackerTFP {
     hisChannel_ = dir.make<TH1F>("His Channel Occupancy", ";", maxOcc, -.5, maxOcc - .5);
     profChannel_ = dir.make<TProfile>("Prof Channel Occupancy", ";", numChannels, -.5, numChannels - .5);
     // resoultions
-    static const vector<string> names = {"phiT", "inv2R", "zT", "cot"};
-    static const vector<double> ranges = {.01, .1, 5, .1};
+    static const vector<string> names = {"phi0", "inv2R", "z0", "cot"};
+    static const vector<double> ranges = {.01, .004, 5., .4};
     for (int i = 0; i < 4; i++) {
       const double range = ranges[i];
       hisRes_[i] = dir.make<TH1F>(("HisRes" + names[i]).c_str(), ";", 100, -range, range);
+      profRes_[i] = dir.make<TProfile>(("ProfRes" + names[i]).c_str(), ";", 32, 0, 2.4);
     }
-    profResZ0_ = dir.make<TProfile>("ProfResZ0", ";", 32, 0, 2.5);
     // Efficiencies
-    hisEffEtaTotal_ = dir.make<TH1F>("HisTPEtaTotal", ";", 128, -2.5, 2.5);
-    hisEffEta_ = dir.make<TH1F>("HisTPEta", ";", 128, -2.5, 2.5);
-    effEta_ = dir.make<TEfficiency>("EffEta", ";", 128, -2.5, 2.5);
+    hisEffEtaTotal_ = dir.make<TH1F>("HisTPEtaTotal", ";", 128, -2.4, 2.4);
+    hisEffEta_ = dir.make<TH1F>("HisTPEta", ";", 128, -2.4, 2.4);
+    effEta_ = dir.make<TEfficiency>("EffEta", ";", 128, -2.4, 2.4);
     const double rangeInv2R = dataFormats_->format(Variable::inv2R, Process::dr).range();
     hisEffInv2R_ = dir.make<TH1F>("HisTPInv2R", ";", 32, -rangeInv2R / 2., rangeInv2R / 2.);
     hisEffInv2RTotal_ = dir.make<TH1F>("HisTPInv2RTotal", ";", 32, -rangeInv2R / 2., rangeInv2R / 2.);
@@ -232,6 +230,7 @@ namespace trackerTFP {
     int allMatched(0);
     int allTracks(0);
     auto consume = [this](const StreamTrack& tracks, const StreamsStub& streams, int channel, TTTracks& ttTracks) {
+      const int region = channel / dataFormats_->numChannel(Process::kf);
       const int offset = channel * setup_->numLayers();
       int pos(0);
       for (const FrameTrack& frameTrack : tracks) {
@@ -243,7 +242,7 @@ namespace trackerTFP {
             stubs.emplace_back(frameStub, dataFormats_, layer);
         }
         TrackKF track(frameTrack, dataFormats_);
-        ttTracks.emplace_back(track.ttTrack(stubs));
+        ttTracks.emplace_back(track.ttTrack(region, stubs));
         pos++;
       }
     };
@@ -264,10 +263,11 @@ namespace trackerTFP {
         nTracksRegion += nTracks;
         tracks.reserve(nTracks);
         consume(accepted, acceptedStubs, index, tracks);
-        for (const TTTrack<Ref_Phase2TrackerDigi_>& ttTrack : tracks)
-          hisPhi_->Fill(ttTrack.momentum().phi());
-        nStubsRegion += accumulate(tracks.begin(), tracks.end(), 0, [](int sum, const auto& ttTrack) {
-          return sum + (int)ttTrack.getStubRefs().size();
+        for (const TTTrack<Ref_Phase2TrackerDigi_>& ttTrack : tracks) {
+          hisPhi_->Fill(ttTrack.localPhi());
+        }
+        nStubsRegion += accumulate(tracks.begin(), tracks.end(), 0, [](int& sum, const auto& ttTrack) {
+          return sum += (int)ttTrack.getStubRefs().size();
         });
         TTTracks tracksLost;
         const int nLost = accumulate(lost.begin(), lost.end(), 0, [](int sum, const FrameTrack& frame) {
@@ -280,9 +280,9 @@ namespace trackerTFP {
         if (!useMCTruth_)
           continue;
         int tmp(0);
-        associate(tracks, selection, tpPtrsSelection, tmp, hisRes_, profResZ0_);
-        associate(tracksLost, selection, tpPtrsLost, tmp, vector<TH1F*>(), nullptr);
-        associate(tracks, reconstructable, tpPtrs, allMatched, vector<TH1F*>(), nullptr);
+        associate(tracks, selection, tpPtrsSelection, tmp, hisRes_, profRes_);
+        associate(tracksLost, selection, tpPtrsLost, tmp, vector<TH1F*>(), vector<TProfile*>());
+        associate(tracks, reconstructable, tpPtrs, allMatched, vector<TH1F*>(), vector<TProfile*>());
       }
       prof_->Fill(1, nStubsRegion);
       prof_->Fill(2, nTracksRegion);
@@ -357,7 +357,7 @@ namespace trackerTFP {
                              set<TPPtr>& tps,
                              int& sum,
                              const vector<TH1F*>& his,
-                             TProfile* prof) const {
+                             const vector<TProfile*>& prof) const {
     for (const TTTrack<Ref_Phase2TrackerDigi_>& ttTrack : ttTracks) {
       const vector<TTStubRef>& ttStubRefs = ttTrack.getStubRefs();
       const vector<TPPtr>& tpPtrs = ass->associateFinal(ttStubRefs);
@@ -378,9 +378,10 @@ namespace trackerTFP {
         const double dInv2R = inv2R - ttTrack.rInv();
         const double dPhi0 = deltaPhi(phi0 - ttTrack.phi());
         const vector<double> ds = {dPhi0, dInv2R, dZ0, dCot};
-        for (int i = 0; i < (int)ds.size(); i++)
+        for (int i = 0; i < (int)ds.size(); i++) {
           his[i]->Fill(ds[i]);
-        prof->Fill(abs(tpPtr->eta()), abs(dZ0));
+          prof[i]->Fill(abs(tpPtr->eta()), abs(ds[i]));
+        }
       }
     }
   }

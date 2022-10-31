@@ -5,6 +5,7 @@
 #include "L1Trigger/TrackTrigger/interface/Setup.h"
 #include "L1Trigger/TrackerDTC/interface/LayerEncoding.h"
 #include "L1Trigger/TrackerDTC/interface/Stub.h"
+#include "L1Trigger/TrackerTFP/interface/DataFormats.h"
 
 #include <vector>
 #include <deque>
@@ -25,6 +26,7 @@ namespace trackerDTC {
   public:
     DTC(const edm::ParameterSet& iConfig,
         const tt::Setup* setup,
+        const trackerTFP::DataFormats* dataFormats,
         const LayerEncoding* layerEncoding,
         int dtcId,
         const std::vector<std::vector<TTStubRef>>& stubsDTC);

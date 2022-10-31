@@ -6,7 +6,6 @@
 #include "DataFormats/L1TrackTrigger/interface/TTTypes.h"
 
 #include <vector>
-#include <set>
 #include <deque>
 
 namespace trackerTFP {
@@ -16,31 +15,21 @@ namespace trackerTFP {
   public:
     HoughTransform(const edm::ParameterSet& iConfig, const tt::Setup* setup, const DataFormats* dataFormats, int region);
     ~HoughTransform() {}
-
     // read in and organize input product
     void consume(const tt::StreamsStub& streams);
     // fill output products
     void produce(tt::StreamsStub& accepted, tt::StreamsStub& lost);
-
   private:
     // remove and return first element of deque, returns nullptr if empty
     template <class T>
     T* pop_front(std::deque<T*>& ts) const;
+    // remove and return last element of vector, returns nullptr if empty
+    template <class T>
+    T* pop_back(std::vector<T*>& ts) const;
     // associate stubs with phiT bins in this inv2R column
-    void fillIn(int inv2R,
-                std::deque<StubGP*>& inputSector,
-                std::vector<StubHT*>& acceptedSector,
-                std::vector<StubHT*>& lostSector);
+    void fillIn(int inv2R, std::vector<StubGP*>& input, std::deque<StubHT*>& accepted, std::deque<StubHT*>& lost);
     // identify tracks
-    void readOut(const std::vector<StubHT*>& acceptedSector,
-                 const std::vector<StubHT*>& lostSector,
-                 std::deque<StubHT*>& acceptedAll,
-                 std::deque<StubHT*>& lostAll) const;
-    // identify lost tracks
-    void analyze();
-    // store tracks
-    void put() const;
-
+    void readOut(const std::deque<StubHT*>& input, std::deque<StubHT*>& output ) const;
     // true if truncation is enbaled
     bool enableTruncation_;
     // provides run-time constants
@@ -58,7 +47,7 @@ namespace trackerTFP {
     // container of output stubs
     std::vector<StubHT> stubsHT_;
     // h/w liked organized pointer to input stubs
-    std::vector<std::vector<std::deque<StubGP*>>> input_;
+    std::vector<std::vector<std::vector<StubGP*>>> input_;
   };
 
 }  // namespace trackerTFP
