@@ -995,7 +995,7 @@ namespace trklet {
     double overlapSize_{0.0002};
     //Maximum number of tracks accepted per rinv bin
     int numTracksPerBin_{108};
-    //The maximum number of tracks that are compared to all the other tracks
+    //The maximum number of tracks that are compared to all the other tracks per rinv bin
     int numTracksComparedPerBin_{32};
   };
 
