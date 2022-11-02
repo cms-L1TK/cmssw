@@ -1037,7 +1037,6 @@ namespace trklet {
     double stripLength_PS_{0.1467};
     double stripLength_2S_{5.0250};
 
-<<<<<<< HEAD
     //Following values are used for duplicate removal
     //Variable bin edges for 12 bins.
     std::vector<double> varRInvBins_{-rinvcut(),
@@ -1059,9 +1058,8 @@ namespace trklet {
     int numTracksPerBin_{108};
     //The maximum number of tracks that are compared to all the other tracks
     int numTracksComparedPerBin_{32};
-=======
+
     double sensorSpacing_2S_{0.18};
->>>>>>> dce85111254 (Atownse2 calc bend cuts (#178))
   };
 
   constexpr unsigned int N_TILTED_RINGS = 12;  // # of tilted rings per half-layer in TBPS layers
