@@ -289,10 +289,13 @@ namespace trklet {
     void setStripLength_PS(double stripLength_PS) { stripLength_PS_ = stripLength_PS; }
     void setStripLength_2S(double stripLength_2S) { stripLength_2S_ = stripLength_2S; }
 
+    //Following functions are used for duplicate removal
+    //Function which gets the value corresponding to the overlap size for the overlap rinv bins in DR
     double overlapSize() const { return overlapSize_; }
+    //Function which gets the value corresponding to the number of tracks accepted per rinv bin
     long unsigned int numTracksPerBin() const { return numTracksPerBin_; }
+    //Function which gets the value corresponding to the number of tracks that are compared to all the other tracks per rinv bin
     unsigned int numTracksComparedPerBin() const { return numTracksComparedPerBin_; }
-
     //Grabs the bin edges you need for duplicate removal bins
     const std::vector<double> varRInvBins() const { return varRInvBins_; }
 
