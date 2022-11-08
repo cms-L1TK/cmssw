@@ -1,8 +1,11 @@
+<<<<<<< HEAD
 //////////////////////////////////////////////////////////////////
 // TrackletLUT
 // This class writes out the variuos look up tables
 // for all modules.
 //////////////////////////////////////////////////////////////////
+=======
+>>>>>>> 641a95215dda84fadef167de9c1690d2cd11462e
 //
 // This class has methods to build the LUT (LookUp Tables) used by the track finding
 // It also provides a method to write out the file for use by the firmware implementation
