@@ -9,7 +9,6 @@
 using namespace std;
 using namespace trklet;
 
-<<<<<<< HEAD
 TrackletLUT::TrackletLUT(const Settings& settings) : settings_(settings), setup_(settings.setup()) {}
 
 std::vector<const tt::SensorModule*> TrackletLUT::getSensorModules(
@@ -184,9 +183,6 @@ std::vector<std::array<double, 2>> TrackletLUT::getBendCut(unsigned int layerdis
 
   return bendpars;
 }
-=======
-TrackletLUT::TrackletLUT(const Settings& settings) : settings_(settings) { nbits_ = 1; }
->>>>>>> 641a95215dda84fadef167de9c1690d2cd11462e
 
 void TrackletLUT::initmatchcut(unsigned int layerdisk, MatchType type, unsigned int region) {
   char cregion = 'A' + region;
@@ -309,14 +305,10 @@ void TrackletLUT::initTPlut(bool fillInner,
     isPSouter = true;
   }
 
-<<<<<<< HEAD
   unsigned int nbendbitsinner = isPSinner ? N_BENDBITS_PS : N_BENDBITS_2S;
   unsigned int nbendbitsouter = isPSouter ? N_BENDBITS_PS : N_BENDBITS_2S;
 
   double z0 = settings_.z0cut();
-=======
-  nbits_ = 10;
->>>>>>> 641a95215dda84fadef167de9c1690d2cd11462e
 
   int nbinsfinephidiff = (1 << nbitsfinephidiff);
 
