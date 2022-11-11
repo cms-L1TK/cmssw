@@ -1041,26 +1041,14 @@ namespace trklet {
     double stripLength_2S_{5.0250};
 
     //Following values are used for duplicate removal
-    //Variable bin edges for 12 bins.
-    std::vector<double> varRInvBins_{-rinvcut(),
-                                     -0.005433,
-                                     -0.004968,
-                                     -0.004459,
-                                     -0.003828,
-                                     -0.002911,
-                                     0,
-                                     0.002911,
-                                     0.003828,
-                                     0.004459,
-                                     0.004968,
-                                     0.005433,
-                                     rinvcut()};
+    //Variable bin edges for 6 bins.
+    std::vector<double> varRInvBins_{-rinvcut(), -0.004968, -0.003828, 0, 0.003828, 0.004968, rinvcut()};
     //Overlap size for the overlap rinv bins in DR
-    double overlapSize_{0.0002};
+    double overlapSize_{0.0004};
     //Maximum number of tracks accepted per rinv bin
     int numTracksPerBin_{108};
     //The maximum number of tracks that are compared to all the other tracks per rinv bin
-    int numTracksComparedPerBin_{32};
+    int numTracksComparedPerBin_{64};
 
     double sensorSpacing_2S_{0.18};
   };
