@@ -101,7 +101,6 @@ namespace trackerTFP {
             if (frame.first.isNonnull())
               stubs.emplace_back(frame, dataFormats_, channel);
           // form tracks
-          int i(0);
           for (auto it = stubs.begin(); it != stubs.end();) {
             const auto start = it;
             const int id = it->trackId();
@@ -118,8 +117,6 @@ namespace trackerTFP {
             ttTracks.back().setStubRefs(ttStubRefs);
             ttTracks.back().setPhiSector(region);
             ttTracks.back().setTrackSeedType(start->trackId());
-            if (i++ == setup_->kfinMaxTracks())
-              break;
           }
         }
       }

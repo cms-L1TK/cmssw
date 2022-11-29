@@ -263,9 +263,8 @@ namespace trackerTFP {
         nTracksRegion += nTracks;
         tracks.reserve(nTracks);
         consume(accepted, acceptedStubs, index, tracks);
-        for (const TTTrack<Ref_Phase2TrackerDigi_>& ttTrack : tracks) {
+        for (const TTTrack<Ref_Phase2TrackerDigi_>& ttTrack : tracks)
           hisPhi_->Fill(ttTrack.localPhi());
-        }
         nStubsRegion += accumulate(tracks.begin(), tracks.end(), 0, [](int& sum, const auto& ttTrack) {
           return sum += (int)ttTrack.getStubRefs().size();
         });
