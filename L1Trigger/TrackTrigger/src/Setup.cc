@@ -195,6 +195,7 @@ namespace tt {
         kfinShiftRangeZ_(pSetKFin_.getParameter<int>("ShiftRangeZ")),
         kfinMaxTracks_(pSetKFin_.getParameter<int>("MaxTracks")),
         kfinMaxStubsPerLayer_(pSetKFin_.getParameter<int>("MaxStubsPerLayer")),
+        kfinDepthMemory_(pSetKFin_.getParameter<int>("DepthMemory")),
         // Parmeter specifying KalmanFilter
         pSetKF_(iConfig.getParameter<ParameterSet>("KalmanFilter")),
         kfNumWorker_(pSetKF_.getParameter<int>("NumWorker")),
@@ -549,7 +550,7 @@ namespace tt {
     TTBV ttBV;
     for (int layer = numLayers_ - 1; layer >= 0; layer--) {
       const int i = ints[layer];
-      ttBV += TTBV(i, kfWidthLayerCount_);
+      ttBV += TTBV(i, kfinWidthLayerCount_);
     }
     return ttBV;
   }
@@ -559,7 +560,7 @@ namespace tt {
     TTBV ttBV;
     for (int layer = numLayers_ - 1; layer >= 0; layer--) {
       const int i = ints[layer];
-      ttBV += TTBV((hitPattern[layer] ? i - 1 : 0), kfWidthLayerCount_);
+      ttBV += TTBV((hitPattern[layer] ? i - 1 : 0), kfinWidthLayerCount_);
     }
     return ttBV;
   }
@@ -569,7 +570,7 @@ namespace tt {
     TTBV bv(ttBV);
     vector<int> ints(numLayers_, 0);
     for (int layer = 0; layer < numLayers_; layer++) {
-      const int i = bv.extract(kfWidthLayerCount_);
+      const int i = bv.extract(kfinWidthLayerCount_);
       ints[layer] = i + (hitPattern[layer] ? 1 : 0);
     }
     return ints;
@@ -580,7 +581,7 @@ namespace tt {
     TTBV bv(ttBV);
     vector<int> ints(numLayers_, 0);
     for (int layer = 0; layer < numLayers_; layer++)
-      ints[layer] = bv.extract(kfWidthLayerCount_);
+      ints[layer] = bv.extract(kfinWidthLayerCount_);
     return ints;
   }
 
@@ -787,8 +788,8 @@ namespace tt {
     zhtNumCells_ = zhtNumBinsCot_ * zhtNumBinsZT_;
     // kfin
     kfinNumMuxedChannel_ = htNumBinsInv2R_ / kfNumWorker_;
+    kfinWidthLayerCount_ = ceil(log2(kfinMaxStubsPerLayer_));
     // kf
-    kfWidthLayerCount_ = ceil(log2(kfinMaxStubsPerLayer_));
   }
 
   // returns bit accurate hybrid stub radius for given TTStubRef and h/w bit word

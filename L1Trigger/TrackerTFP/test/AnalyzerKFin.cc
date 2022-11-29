@@ -85,7 +85,9 @@ namespace trackerTFP {
 
     TProfile* prof_;
     TProfile* profChannel_;
+    TProfile* profTracks_;
     TH1F* hisChannel_;
+    TH1F* hisTracks_;
 
     // printout
     stringstream log_;
@@ -141,6 +143,9 @@ namespace trackerTFP {
     const int numChannels = dataFormats_->numChannel(Process::kfin);
     hisChannel_ = dir.make<TH1F>("His Channel Occupancy", ";", maxOcc, -.5, maxOcc - .5);
     profChannel_ = dir.make<TProfile>("Prof Channel Occupancy", ";", numChannels, -.5, numChannels - .5);
+    // track occupancy
+    hisTracks_ = dir.make<TH1F>("His Track Occupancy", ";", maxOcc, -.5, maxOcc - .5);
+    profTracks_ = dir.make<TProfile>("Prof Track Occupancy", ";", numChannels, -.5, numChannels - .5);
   }
 
   void AnalyzerKFin::analyze(const Event& iEvent, const EventSetup& iSetup) {
@@ -183,6 +188,8 @@ namespace trackerTFP {
       for (int channel = 0; channel < dataFormats_->numChannel(Process::kfin); channel++) {
         vector<vector<TTStubRef>> tracks;
         formTracks(acceptedTracks, acceptedStubs, tracks, offset + channel);
+        hisTracks_->Fill(tracks.size());
+        profTracks_->Fill(channel, tracks.size());
         vector<vector<TTStubRef>> lost;
         formTracks(lostTracks, lostStubs, lost, offset + channel);
         nTracks += tracks.size();

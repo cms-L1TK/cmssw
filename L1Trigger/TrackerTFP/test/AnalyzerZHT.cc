@@ -79,8 +79,10 @@ namespace trackerTFP {
 
     TProfile* prof_;
     TProfile* profChannel_;
+    TProfile* profTracks_;
     TProfile* profComb_;
     TH1F* hisChannel_;
+    TH1F* hisTracks_;
     TH1F* hisComb_;
     TH1F* hisEff_;
     TH1F* hisEffTotal_;
@@ -136,6 +138,9 @@ namespace trackerTFP {
     const int numChannels = dataFormats_->numChannel(Process::zht);
     hisChannel_ = dir.make<TH1F>("His Channel Occupancy", ";", maxOcc, -.5, maxOcc - .5);
     profChannel_ = dir.make<TProfile>("Prof Channel Occupancy", ";", numChannels, -.5, numChannels - .5);
+    // number of tracks
+    hisTracks_ = dir.make<TH1F>("His Channel Track Occupancy", ";", maxOcc / 4., -.5, maxOcc / 4. - .5);
+    profTracks_ = dir.make<TProfile>("Prof Channel Track Occupancy", ";", numChannels, -.5, numChannels - .5);
     // channel combinatorics
     hisComb_ = dir.make<TH1F>("His Channel Combinatorics", ";", maxOcc, -.5, maxOcc - .5);
     profComb_ = dir.make<TProfile>("Prof Channel Combinatorics", ";", numChannels, -.5, numChannels - .5);
@@ -200,6 +205,8 @@ namespace trackerTFP {
         associate(tracks, selection, tpPtrsSelection, tmp);
         associate(lost, selection, tpPtrsLost, tmp);
         associate(tracks, reconstructable, tpPtrs, allMatched);
+        hisTracks_->Fill(tracks.size());
+        profTracks_->Fill(channel, tracks.size());
       }
       for (int i : combinatorics)
         hisComb_->Fill(min(i, setup_->numFrames()));

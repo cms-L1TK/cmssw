@@ -124,6 +124,8 @@ namespace trackerTFP {
         }
         // Store input tracks, so remainder of KF algo can work with pointers to them (saves CPU)
         tracks_.emplace_back(frameTrack, dataFormats_, vector<StubKFin*>(stubs.begin(), stubs.end()));
+        if (tracks_.back().hitPattern().count() < setup_->kfMinLayers())
+          continue;
         tracks.push_back(&tracks_.back());
       }
     }

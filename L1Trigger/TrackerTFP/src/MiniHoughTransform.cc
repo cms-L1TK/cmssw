@@ -25,7 +25,10 @@ namespace trackerTFP {
         input_(dataFormats_->numChannel(Process::ht)),
         basePhi_(dataFormats_->base(Variable::phi, Process::mht)),
         baseInv2R_(dataFormats_->base(Variable::inv2R, Process::mht)),
-        basePhiT_(dataFormats_->base(Variable::phiT, Process::mht)) {}
+        basePhiT_(dataFormats_->base(Variable::phiT, Process::mht)) {
+    baseInv2R_ = dataFormats_->base(Variable::inv2R, Process::ht) / setup_->mhtNumBinsInv2R();
+    basePhiT_ = dataFormats_->base(Variable::phiT, Process::ht) / setup_->mhtNumBinsPhiT();
+  }
 
   // read in and organize input product (fill vector input_)
   void MiniHoughTransform::consume(const StreamsStub& streams) {
@@ -69,7 +72,7 @@ namespace trackerTFP {
       // identify tracks in input container
       int id;
       auto different = [&id](StubHT* stub) { return id != stub->trackId(); };
-      auto last = [](StubMHT* stub) { return stub && stub->last(); };
+      auto last = [](StubMHT* stub) { return stub && stub->newTrk(); };
       auto invalid = [](StubMHT* stub){ return !stub || !stub->valid(); };
       deque<StubMHT*> stubsArray;
       int sumSize = -setup_->mhtMinLayers();

@@ -480,6 +480,10 @@ namespace tt {
     int kfinMaxStubsPerLayer() const { return kfinMaxStubsPerLayer_; }
     // number of merged zht channel to one
     int kfinNumMuxedChannel() const { return kfinNumMuxedChannel_; }
+    // internal memory depth
+    int kfinDepthMemory() const { return kfinDepthMemory_; }
+    // number of bits used to count stubs per layer
+    int kfinWidthLayerCount() const { return kfinWidthLayerCount_; }
 
     // Parameter specifying KalmanFilter
 
@@ -895,6 +899,8 @@ namespace tt {
     int kfinMaxStubsPerLayer_;
     // number of merged zht channel to one
     int kfinNumMuxedChannel_;
+    // internal memory depth
+    int kfinDepthMemory_;
 
     // Parameter specifying KalmanFilter
     edm::ParameterSet pSetKF_;
@@ -1078,9 +1084,10 @@ namespace tt {
     // number of zht cells
     int zhtNumCells_;
 
-    // KF
+    // KFin
 
-    int kfWidthLayerCount_;
+    // number of bits used to count stubs per layer
+    int kfinWidthLayerCount_;
 
     // KFout
 

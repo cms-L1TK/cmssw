@@ -23,8 +23,17 @@ namespace trackerTFP {
     // fill output products
     void produce(tt::StreamsTrack& acceptedTracks, tt::StreamsStub& acceptedStubs, tt::StreamsTrack& lostTracks, tt::StreamsStub& lostStubs);
   private:
+    //
+    void prepare(std::vector<std::deque<TrackKFin*>>& streamsTracks, std::vector<std::deque<StubKFin*>>& streamsStubs);
+    //
+    void route(std::vector<std::deque<TrackKFin*>>& inputs, std::deque<TrackKFin*>& output) const;
+    //
+    void route(std::vector<std::deque<StubKFin*>>& input, std::vector<std::deque<StubKFin*>>& outputs) const;
     // remove and return last element of vector, returns nullRef if empty
     TTTrackRef pop_back(std::vector<TTTrackRef>& ttTrackRefs) const;
+    // remove and return first element of deque, returns nullptr if empty
+    template <class T>
+    T* pop_front(std::deque<T*>& ts) const;
     // true if truncation is enbaled
     bool enableTruncation_;
     // provides run-time constants

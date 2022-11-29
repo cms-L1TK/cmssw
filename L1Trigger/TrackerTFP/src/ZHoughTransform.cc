@@ -24,9 +24,13 @@ namespace trackerTFP {
         region_(region),
         input_(dataFormats->numChannel(Process::mht)),
         baseZ_(dataFormats_->base(Variable::z, Process::zht)),
-        baseCot_(dataFormats_->base(Variable::cot, Process::zht)),
-        baseZT_(dataFormats_->base(Variable::zT, Process::zht)),
         validZ0_(setup_->zhtNumBinsCot(), TTBV(0, setup_->zhtNumBinsZT())) {
+    const Format<Variable::zT, Process::gp> gp(setup);
+    const double dCot = (gp.base() + 2. * setup->beamWindowZ()) / setup->chosenRofZ();
+    baseCot_ = dataFormats_->base(Variable::z, Process::dtc) / dataFormats_->base(Variable::r, Process::dtc);
+    const int shiftCot = ceil(log2(dCot / setup->zhtNumBinsCot() / baseCot_));
+    baseCot_ *= pow(2., shiftCot);
+    baseZT_ = gp.base() / setup->zhtNumBinsZT();
     // prepare cut on z0 boundaries
     const double limitZ0 = setup_->beamWindowZ() + (baseZT_ + setup_->chosenRofZ() * baseCot_) / 2.;
     for (int um = 0; um < setup_->zhtNumBinsCot(); um++) {
@@ -83,7 +87,7 @@ namespace trackerTFP {
       // identify tracks in input container
       int id;
       auto different = [&id](StubMHT* stub) { return !stub || id != stub->trackId(); };
-      auto last = [](StubZHT* stub) { return stub && stub->last(); };
+      auto last = [](StubZHT* stub) { return stub && stub->newTrk(); };
       auto invalid = [](StubZHT* stub){ return !stub || !stub->valid(); };
       deque<StubZHT*> stubsArray;
       int sumSize = -setup_->zhtMinLayers();
@@ -98,7 +102,7 @@ namespace trackerTFP {
         if (delta > 0)
           stubsArray.insert(stubsArray.end(), delta, nullptr);
         track.erase(remove(track.begin(), track.end(), nullptr), track.end());
-        // run single track through r-z hough trasnform ans store result
+        // run single track through r-z hough trasnform and store result
         array(track, stubsArray);
         // set begin of next track
         it = end;
@@ -132,10 +136,10 @@ namespace trackerTFP {
           if (*it)
             streamLost.emplace_back((*it)->frame());
         stubsCell.erase(limit, stubsCell.end());
-        // cosmetics -- remove gaps at the end of stream
-        for (auto it = stubsCell.end(); it != stubsCell.begin();)
-          it = (*--it) == nullptr ? stubsCell.erase(it) : stubsCell.begin();
       }
+      // cosmetics -- remove gaps at the end of stream
+      for (auto it = stubsCell.end(); it != stubsCell.begin();)
+        it = (*--it) == nullptr ? stubsCell.erase(it) : stubsCell.begin();
       // store final tracks
       stream.reserve(stubsCell.size());
       auto toFrame = [](StubZHT* stub) { return stub ? stub->frame() : FrameStub(); };

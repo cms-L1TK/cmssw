@@ -32,7 +32,9 @@ namespace trackerTFP {
     auto equalRZ = [](const SensorModule* lhs, const SensorModule* rhs) {
       return abs(lhs->r() - rhs->r()) < delta && abs(lhs->z() - rhs->z()) < delta;
     };
+    stable_sort(sensorModules.begin(), sensorModules.end(), smallerZ);
     stable_sort(sensorModules.begin(), sensorModules.end(), smallerR);
+    sensorModules.erase(unique(sensorModules.begin(), sensorModules.end(), equalRZ), sensorModules.end());
     stable_sort(sensorModules.begin(), sensorModules.end(), smallerZ);
     sensorModules.erase(unique(sensorModules.begin(), sensorModules.end(), equalRZ), sensorModules.end());
     // find set of moudles for each set of rough r-z track parameter
@@ -43,7 +45,7 @@ namespace trackerTFP {
       // cotTheta of eta sector centre
       const double cot = zT / setup_->chosenRofZ();
       // cot uncertainty
-      const double dCot = setup_->beamWindowZ() / setup_->chosenRofZ();
+      const double dCot = (zT_->base() / 2. + setup_->beamWindowZ()) / setup_->chosenRofZ();
       // z at radius chosenRofZ wrt zT of sectorZT of this bin boundaries
       const vector<double> zTs = {zT - zT_->base() / 2., zT + zT_->base() / 2.};
       // cotTheta wrt sectorCot of this bin boundaries
@@ -54,15 +56,15 @@ namespace trackerTFP {
       for (const SensorModule* sm : sensorModules) {
         // check if module is crossed by left and right rough r-z parameter shape boundaries
         for (int i = 0; i < boundaries; i++) {
-          const int j = boundaries - i - 1;
-          const double zTi = zTs[sm->r() > setup_->chosenRofZ() ? i : j];
-          const double coti = cots[sm->r() > setup_->chosenRofZ() ? j : i];
-          // distance between module and boundary in moudle tilt angle direction
-          const double d =
-              (zTi - sm->z() + (sm->r() - setup_->chosenRofZ()) * coti) / (sm->cosTilt() - sm->sinTilt() * coti);
-          // compare distance with module size and add module layer id to layers if module is crossed
-          if (abs(d) < sm->numColumns() * sm->pitchCol() / 2.)
-            layers[i].insert(sm->layerId());
+          const double zTi = zTs[i];
+          for (double coti : cots) {
+            // distance between module and boundary in moudle tilt angle direction
+            const double d =
+                (zTi - sm->z() + (sm->r() - setup_->chosenRofZ()) * coti) / (sm->cosTilt() - sm->sinTilt() * coti);
+            // compare distance with module size and add module layer id to layers if module is crossed
+            if (abs(d) < sm->numColumns() * sm->pitchCol() / 2.)
+              layers[i].insert(sm->layerId());
+          }
         }
       }
       // mayber layers are given by layer ids crossed by only one booundary
@@ -86,7 +88,63 @@ namespace trackerTFP {
       TTBV& mp = maybePattern_[binZT];
       for (int m : maybeLayer)
         mp.set(min((int)distance(le.begin(), find(le.begin(), le.end(), m)), setup_->numLayers() - 1));
+      if (zT_->toSigned(binZT) == 4) {
+        cout << mp << endl;
+        for (int i : le)
+          cout << i << " ";
+        cout << endl;
+      }
     }
+    const bool print = true;
+    if (!print)
+      return;
+    static constexpr int widthLayer = 3;
+    stringstream ssLE;
+    stringstream ssMP;
+    for (int binZT = 0; binZT < pow(2, zT_->width()); binZT++) {
+      const vector<int>& le = layerEncoding_[binZT];
+      const TTBV& mp = maybePattern_[binZT];
+      ssMP << mp << endl;
+      for (int layer = 0; layer < setup_->numLayers(); layer++) {
+        vector<int> layerIds;
+        if (layer == 0)
+          layerIds = {1, 16};
+        else if (layer == 1)
+          layerIds = {2, 16};
+        else if (layer == 2)
+          layerIds = {6, 11};
+        else if (layer == 3)
+          layerIds = {5, 12};
+        else if (layer == 4)
+          layerIds = {4, 13};
+        else if (layer == 5)
+          layerIds = {0, 14};
+        else if (layer == 6)
+          layerIds = {3, 15};
+        for (int layerId : layerIds) {
+          const auto it = find(le.begin(), le.end(), layerId);
+          const bool valid = it != le.end();
+          const int kfLayerId = min((int)distance(le.begin(), it), setup_->numLayers());
+          if (zT_->toSigned(binZT) == 4) {
+            cout << layer << " " << valid << " " << kfLayerId << endl;
+          }
+          if (valid)
+            ssLE << "1" << TTBV(kfLayerId, widthLayer);
+          else
+            ssLE << "0" << string(widthLayer, '-');
+        }
+      }
+      //if (zT_->toSigned(binZT) == 4)
+        //throw cms::Exception("...");
+      ssLE << endl;
+    }
+    fstream file;
+    file.open("layerEncoding.mem", ios::out);
+    file << ssLE.rdbuf();
+    file.close();
+    file.open("maybePatterns.mem", ios::out);
+    file << ssMP.rdbuf();
+    file.close();
   }
 
   // Set of layers for given bin in zT
