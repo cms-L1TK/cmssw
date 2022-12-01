@@ -88,14 +88,14 @@ namespace trackerTFP {
       TTBV& mp = maybePattern_[binZT];
       for (int m : maybeLayer)
         mp.set(min((int)distance(le.begin(), find(le.begin(), le.end(), m)), setup_->numLayers() - 1));
-      if (zT_->toSigned(binZT) == 4) {
+      /*if (zT_->toSigned(binZT) == 4) {
         cout << mp << endl;
         for (int i : le)
           cout << i << " ";
         cout << endl;
-      }
+      }*/
     }
-    const bool print = true;
+    const bool print = false;
     if (!print)
       return;
     static constexpr int widthLayer = 3;
@@ -103,6 +103,11 @@ namespace trackerTFP {
     stringstream ssMP;
     for (int binZT = 0; binZT < pow(2, zT_->width()); binZT++) {
       const vector<int>& le = layerEncoding_[binZT];
+      /*if (zT_->toSigned(binZT) == 11) {
+        for (int i : le)
+          cout << i << " ";
+        cout << endl;
+      }*/
       const TTBV& mp = maybePattern_[binZT];
       ssMP << mp << endl;
       for (int layer = 0; layer < setup_->numLayers(); layer++) {
@@ -125,9 +130,9 @@ namespace trackerTFP {
           const auto it = find(le.begin(), le.end(), layerId);
           const bool valid = it != le.end();
           const int kfLayerId = min((int)distance(le.begin(), it), setup_->numLayers());
-          if (zT_->toSigned(binZT) == 4) {
+          /*if (zT_->toSigned(binZT) == 11) {
             cout << layer << " " << valid << " " << kfLayerId << endl;
-          }
+          }*/
           if (valid)
             ssLE << "1" << TTBV(kfLayerId, widthLayer);
           else

@@ -54,9 +54,9 @@ namespace trackerTFP {
             ss << "   ";
         stubs.push_back(stub);
       }
-      for (const stringstream& ss: sss)
+      /*for (const stringstream& ss: sss)
         cout << ss.str() << endl;
-      throw cms::Exception("...");
+      throw cms::Exception("...");*/
     }
     stubsKFin_.reserve(nStubsZHT);
   }
@@ -233,7 +233,7 @@ namespace trackerTFP {
 
   // peprare input data, associate stub collections with TTTrackRefs
   void KFin::prepare(vector<deque<TrackKFin*>>& streamsTracks, vector<deque<StubKFin*>>& streamsStubs) {
-    vector<stringstream> sss(4);
+    vector<stringstream> sss(6);
     for (int channel = 0; channel < dataFormats_->numChannel(Process::zht); channel++) {
       const int offset = channel / dataFormats_->numChannel(Process::kfin) * setup_->kfinMaxTracks();
       const vector<StubZHT*>& input = input_[channel];
@@ -273,16 +273,6 @@ namespace trackerTFP {
           const int layerId = setup_->layerId(stub->ttStubRef());
           const auto it = find(le.begin(), le.end(), layerId);
           const int kfLayerId = min((int)distance(le.begin(), it), setup_->numLayers() - 1);
-          if (it == le.end()) {
-            for (int i : le)
-              cout << i << " ";
-            cout << endl;
-            cout << stubZHT.zT() << endl;
-            for (StubZHT* stub : track)
-              cout << setup_->layerId(stub->ttStubRef()) << " ";
-            cout << endl;
-            throw cms::Exception("...");
-          }
           hitPattern.set(kfLayerId);
           if (layerCounts[kfLayerId] + 1 < setup_->kfinMaxStubsPerLayer()) {
             stubsKFin_.emplace_back(*stub, kfLayerId, offset + trackId, layerCounts[kfLayerId]++);
@@ -290,6 +280,8 @@ namespace trackerTFP {
             sss[1] << setw(7) << dataFormats_->format(Variable::phi, Process::zht).integer(stubsKFin_.back().phi()) << " ";
             sss[2] << setw(7) << dataFormats_->format(Variable::z, Process::zht).integer(stubsKFin_.back().z()) << " ";
             sss[3] << setw(7) << stubsKFin_.back().layer() << " ";
+            sss[4] << setw(7) << dataFormats_->format(Variable::phi, Process::zht).integer(stubsKFin_.back().dPhi()) << " ";
+            sss[5] << setw(7) << dataFormats_->format(Variable::z, Process::zht).integer(stubsKFin_.back().dZ()) << " ";
           }
         }
         const TTBV& maybePattern = layerEncoding_->maybePattern(stubZHT.zT());
@@ -305,9 +297,9 @@ namespace trackerTFP {
           stubs.push_back(&*sit);
       }
     }
-    for (const stringstream& ss : sss)
+    /*for (const stringstream& ss : sss)
       cout << ss.str() << endl;
-    throw cms::Exception("....");
+    throw cms::Exception("....");*/
   }
 
   // remove and return last element of vector, returns nullRef if empty

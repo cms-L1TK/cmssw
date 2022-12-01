@@ -40,9 +40,9 @@ namespace trklet {
       seedTypesProjectionLayers_.emplace_back(pSetSeedTypesProjectionLayers.getParameter<vector<int>>(s));
     }
     // consistency check
-    const int offsetBarrel = setup_->offsetLayerId();
-    const int numBarrelLayer = setup_->numBarrelLayer();
-    const int offsetDisk = setup_->offsetLayerDisks() + offsetBarrel;
+    static constexpr int offsetBarrel = 1;
+    static constexpr int numBarrelLayer = 6;
+    static constexpr int offsetDisk = 11;
     static constexpr int invalidSeedLayer = -1;
     static constexpr int invalidLayerDisk = 0;
     const Settings settings;
@@ -164,6 +164,13 @@ namespace trklet {
     }
     layerId = distance(projectingLayers.begin(), pos);
     return true;
+  }
+
+  // return tracklet layerId (barrel: [0-5], endcap: [6-10]) for given TTStubRef
+  int ChannelAssignment::trackletLayerId(const TTStubRef& ttStubRef) const {
+    static constexpr int offsetBarrel = 1;
+    static constexpr int offsetDisks = 5;
+    return setup_->layerId(ttStubRef) - (setup_->barrel(ttStubRef) ? offsetBarrel : offsetDisks);
   }
 
   // index of first stub channel belonging to given track channel

@@ -69,6 +69,10 @@ namespace tt {
     int windowSize() const { return windowSize_; }
     //
     double tiltCorrection(double cot) const { return std::abs(tiltCorrectionSlope_ * cot) + tiltCorrectionIntercept_; }
+    //
+    double dPhi(double inv2R) const { return dPhi_ + (dR_ + scattering_) * abs(inv2R); }
+    //
+    double dZ() const { return dZ_; }
 
     unsigned int ringId(const Setup* setup) const;
 

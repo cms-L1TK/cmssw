@@ -15,6 +15,7 @@
 
 #include <vector>
 #include <map>
+#include <utility>
 #include <set>
 #include <algorithm>
 #include <iterator>
@@ -43,7 +44,7 @@ namespace tt {
     void produce(Event&, const EventSetup&) override;
     void endJob() {}
     // helper classe to store configurations
-    const Setup* setup_ = nullptr;
+    const Setup* setup_;
     // ED input token of TTStubs
     EDGetTokenT<TTStubDetSetVec> getTokenTTStubDetSetVec_;
     // ED input token of TTClusterAssociation
@@ -97,8 +98,8 @@ namespace tt {
     // associate reconstructable TrackingParticles with TTStubs
     StubAssociation reconstructable(setup_);
     StubAssociation selection(setup_);
-    for (const auto& p : mapTPPtrsTTStubRefs) {
-      if (!setup_->useForReconstructable(*p.first) || !setup_->reconstructable(p.second))
+    for (const pair<TPPtr, vector<TTStubRef>>& p : mapTPPtrsTTStubRefs) {
+      if (!setup_->reconstructable(p.second))
         continue;
       reconstructable.insert(p.first, p.second);
       if (setup_->useForAlgEff(*p.first))
