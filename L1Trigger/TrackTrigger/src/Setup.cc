@@ -152,7 +152,6 @@ namespace tt {
         offsetDetIdTP_(pSetDTC_.getParameter<int>("OffsetDetIdTP")),
         offsetLayerDisks_(pSetDTC_.getParameter<int>("OffsetLayerDisks")),
         offsetLayerId_(pSetDTC_.getParameter<int>("OffsetLayerId")),
-        numBarrelLayer_(pSetDTC_.getParameter<int>("NumBarrelLayer")),
         slotLimitPS_(pSetDTC_.getParameter<int>("SlotLimitPS")),
         slotLimit10gbps_(pSetDTC_.getParameter<int>("SlotLimit10gbps")),
         // Parmeter specifying TFP
@@ -523,12 +522,16 @@ namespace tt {
 
   // return tracklet layerId (barrel: [0-5], endcap: [6-10]) for given TTStubRef
   int Setup::trackletLayerId(const TTStubRef& ttStubRef) const {
-    return this->layerId(ttStubRef) - (this->barrel(ttStubRef) ? offsetLayerId_ : numBarrelLayer_ - offsetLayerId_);
+    static constexpr int offsetBarrel = 1;
+    static constexpr int offsetDisks = 5;
+    return this->layerId(ttStubRef) - (this->barrel(ttStubRef) ? offsetBarrel : offsetDisks);
   }
 
   // return index layerId (barrel: [0-5], endcap: [0-6]) for given TTStubRef
   int Setup::indexLayerId(const TTStubRef& ttStubRef) const {
-    return this->layerId(ttStubRef) - (this->barrel(ttStubRef) ? offsetLayerId_ : offsetLayerId_ + offsetLayerDisks_);
+    static constexpr int offsetBarrel = 1;
+    static constexpr int offsetDisks = 11;
+    return this->layerId(ttStubRef) - (this->barrel(ttStubRef) ? offsetBarrel : offsetDisks);
   }
 
   // true if stub from barrel module

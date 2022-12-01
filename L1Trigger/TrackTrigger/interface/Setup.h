@@ -330,6 +330,8 @@ namespace tt {
     double baseWindowSize() const { return baseWindowSize_; }
     // index = encoded bend, value = decoded bend for given window size and module type
     const std::vector<double>& encodingBend(int windowSize, bool psModule) const;
+    //getBendCut
+    const StubAlgorithmOfficial* stubAlgorithm() const { return stubAlgorithm_; }
 
     // Parameter specifying front-end
 
@@ -376,8 +378,6 @@ namespace tt {
     int offsetLayerDisks() const { return offsetLayerDisks_; }
     // offset between 0 and smallest layer id (barrel layer 1)
     int offsetLayerId() const { return offsetLayerId_; }
-    //
-    int numBarrelLayer() const { return numBarrelLayer_; }
     // total number of outer tracker DTCs
     int numDTCs() const { return numDTCs_; }
     // number of DTCs connected to one TFP (48)
@@ -527,9 +527,6 @@ namespace tt {
 
     // internal memory depth
     int drDepthMemory() const { return drDepthMemory_; }
-
-    //getBendCut
-    const StubAlgorithmOfficial* stubAlgorithm() const { return stubAlgorithm_; }
 
   private:
     // checks consitency between history and current configuration for a specific module
@@ -815,8 +812,6 @@ namespace tt {
     int offsetLayerDisks_;
     // offset between 0 and smallest layer id (barrel layer 1)
     int offsetLayerId_;
-    //
-    int numBarrelLayer_;
     // total number of output channel
     int dtcNumStreams_;
     // slot number changing from PS to 2S (default: 6)

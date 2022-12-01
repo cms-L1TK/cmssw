@@ -27,7 +27,7 @@ namespace hph {
         hphDebug_(iConfig.getParameter<bool>("hphDebug")),
         useNewKF_(iConfig.getParameter<bool>("useNewKF")),
         chosenRofZNewKF_(setupTT_.chosenRofZ()),
-        etaRegionsNewKF_(setupTT_.boundarieEta()),
+        //etaRegionsNewKF_(setupTT_.boundarieEta()),
         layermap_(),
         nEtaRegions_(tmtt::KFbase::nEta_ / 2),
         nKalmanLayers_(tmtt::KFbase::nKFlayer_) {
@@ -259,14 +259,16 @@ namespace hph {
   }
 
   int Setup::digiCot(double cot, int binEta) const {
-    double cotLocal = dfcot_.digi(cot - setupTT_.sectorCot(binEta));
-    return dfcot_.toUnsigned(dfcot_.integer(cotLocal));
+    //double cotLocal = dfcot_.digi(cot - setupTT_.sectorCot(binEta));
+    //return dfcot_.toUnsigned(dfcot_.integer(cotLocal));
+    return int();
   }
 
   int Setup::digiZT(double z0, double cot, int binEta) const {
-    double zT = z0 + setupTT_.chosenRofZ() * cot;
-    double zTLocal = dfzT_.digi(zT - setupTT_.sectorCot(binEta) * setupTT_.chosenRofZ());
-    return dfzT_.toUnsigned(dfzT_.integer(zTLocal));
+    //double zT = z0 + setupTT_.chosenRofZ() * cot;
+    //double zTLocal = dfzT_.digi(zT - setupTT_.sectorCot(binEta) * setupTT_.chosenRofZ());
+    //return dfzT_.toUnsigned(dfzT_.integer(zTLocal));
+    return int();
   }
 
   int HitPatternHelper::reducedId(int layerId) {
