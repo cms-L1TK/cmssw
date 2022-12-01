@@ -352,7 +352,7 @@ void MatchProcessor::execute(unsigned int iSector, double phimin) {
 
         unsigned int iphi = (fpgaphi.value() >> (fpgaphi.nbits() - nvmbits_)) & (nvmbins_ - 1);
 
-        int nextrabits = 2;
+        constexpr int nextrabits = 2;
         int overlapbits = nvmbits_ + nextrabits;
 
         unsigned int extrabits = fpgaphi.bits(fpgaphi.nbits() - overlapbits - nextrabits, nextrabits);
@@ -434,8 +434,8 @@ void MatchProcessor::execute(unsigned int iSector, double phimin) {
 
         VMStubsMEMemory* stubmem = vmstubs_[0];
         bool usefirstMinus = stubmem->nStubsBin(ivmMinus * nbins + slot) != 0;
-        bool usesecondMinus = (second && (stubmem->nStubsBin(ivmMinus * nbins + slot + 1) != 0));
-        bool usefirstPlus = ivmPlus != ivmMinus && stubmem->nStubsBin(ivmPlus * nbins + slot) != 0;
+        bool usesecondMinus = second && (stubmem->nStubsBin(ivmMinus * nbins + slot + 1) != 0);
+        bool usefirstPlus = ivmPlus != ivmMinus && (stubmem->nStubsBin(ivmPlus * nbins + slot) != 0);
         bool usesecondPlus = ivmPlus != ivmMinus && (second && (stubmem->nStubsBin(ivmPlus * nbins + slot + 1) != 0));
 
         good_ = usefirstPlus || usesecondPlus || usefirstMinus || usesecondMinus;
@@ -580,11 +580,6 @@ bool MatchProcessor::matchCalculator(Tracklet* tracklet, const Stub* fpgastub, b
 
     bool imatch = (std::abs(ideltaphi) <= best_ideltaphi_barrel && (ideltaz << dzshift_ < best_ideltaz_barrel) &&
                    (ideltaz << dzshift_ >= -best_ideltaz_barrel));
-    // Update the "best" values
-    if (imatch) {
-      best_ideltaphi_barrel = std::abs(ideltaphi);
-      best_ideltaz_barrel = std::abs(ideltaz);
-    }
 
     if (settings_.debugTracklet()) {
       edm::LogVerbatim("Tracklet") << getName() << " imatch = " << imatch << " ideltaphi cut " << ideltaphi << " "
@@ -609,6 +604,11 @@ bool MatchProcessor::matchCalculator(Tracklet* tracklet, const Stub* fpgastub, b
       }
     }
 
+    // Update the "best" values
+    if (imatch) {
+      best_ideltaphi_barrel = std::abs(ideltaphi);
+      best_ideltaz_barrel = std::abs(ideltaz << dzshift_);
+    }
     if (imatch) {
       tracklet->addMatch(layerdisk_,
                          ideltaphi,
@@ -671,7 +671,8 @@ bool MatchProcessor::matchCalculator(Tracklet* tracklet, const Stub* fpgastub, b
       }
     }
 
-    int ideltar = (irstub * settings_.kr()) / settings_.krprojshiftdisk() - ir;
+    //int ideltar = (irstub * settings_.kr()) / settings_.krprojshiftdisk() - ir;
+    int ideltar = (irstub>>1) - ir;
 
     if (!stub->isPSmodule()) {
       int ialpha = fpgastub->alpha().value();
