@@ -583,7 +583,7 @@ bool MatchProcessor::matchCalculator(Tracklet* tracklet, const Stub* fpgastub, b
     // Update the "best" values
     if (imatch) {
       best_ideltaphi_barrel = std::abs(ideltaphi);
-      best_ideltaz_barrel = std::abs(ideltaz);
+      best_ideltaz_barrel = std::abs(ideltaz << dzshift_);
     }
 
     if (settings_.debugTracklet()) {
@@ -671,7 +671,7 @@ bool MatchProcessor::matchCalculator(Tracklet* tracklet, const Stub* fpgastub, b
       }
     }
 
-    int ideltar = (irstub * settings_.kr()) / settings_.krprojshiftdisk() - ir;
+    int ideltar = (irstub>>1) - ir;
 
     if (!stub->isPSmodule()) {
       int ialpha = fpgastub->alpha().value();
