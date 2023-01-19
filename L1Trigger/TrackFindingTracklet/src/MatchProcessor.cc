@@ -352,7 +352,7 @@ void MatchProcessor::execute(unsigned int iSector, double phimin) {
 
         unsigned int iphi = (fpgaphi.value() >> (fpgaphi.nbits() - nvmbits_)) & (nvmbins_ - 1);
 
-        int nextrabits = 2;
+        constexpr int nextrabits = 2;
         int overlapbits = nvmbits_ + nextrabits;
 
         unsigned int extrabits = fpgaphi.bits(fpgaphi.nbits() - overlapbits - nextrabits, nextrabits);
@@ -435,7 +435,7 @@ void MatchProcessor::execute(unsigned int iSector, double phimin) {
         VMStubsMEMemory* stubmem = vmstubs_[0];
         bool usefirstMinus = stubmem->nStubsBin(ivmMinus * nbins + slot) != 0;
         bool usesecondMinus = (second && (stubmem->nStubsBin(ivmMinus * nbins + slot + 1) != 0));
-        bool usefirstPlus = ivmPlus != ivmMinus && stubmem->nStubsBin(ivmPlus * nbins + slot) != 0;
+        bool usefirstPlus = ivmPlus != ivmMinus && (stubmem->nStubsBin(ivmPlus * nbins + slot) != 0);
         bool usesecondPlus = ivmPlus != ivmMinus && (second && (stubmem->nStubsBin(ivmPlus * nbins + slot + 1) != 0));
 
         good_ = usefirstPlus || usesecondPlus || usefirstMinus || usesecondMinus;
@@ -608,7 +608,6 @@ bool MatchProcessor::matchCalculator(Tracklet* tracklet, const Stub* fpgastub, b
         imatch = keep;
       }
     }
-
     if (imatch) {
       tracklet->addMatch(layerdisk_,
                          ideltaphi,
