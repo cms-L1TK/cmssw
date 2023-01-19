@@ -608,6 +608,7 @@ bool MatchProcessor::matchCalculator(Tracklet* tracklet, const Stub* fpgastub, b
         imatch = keep;
       }
     }
+
     if (imatch) {
       tracklet->addMatch(layerdisk_,
                          ideltaphi,
@@ -670,7 +671,8 @@ bool MatchProcessor::matchCalculator(Tracklet* tracklet, const Stub* fpgastub, b
       }
     }
 
-    int ideltar = (irstub>>1) - ir;
+    constexpr int diff_bits = 1;
+    int ideltar = (irstub >> diff_bits) - ir;
 
     if (!stub->isPSmodule()) {
       int ialpha = fpgastub->alpha().value();
