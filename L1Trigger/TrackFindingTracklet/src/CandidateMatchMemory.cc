@@ -9,7 +9,8 @@
 #include <filesystem>
 
 using namespace std;
-using namespace trklet;
+
+namespace trklet {
 
 CandidateMatchMemory::CandidateMatchMemory(string name, Settings const& settings) : MemoryBase(name, settings) {}
 
@@ -56,4 +57,6 @@ void CandidateMatchMemory::writeCM(bool first, unsigned int iSector) {
   event_++;
   if (bx_ > 7)
     bx_ = 0;
+}
+
 }

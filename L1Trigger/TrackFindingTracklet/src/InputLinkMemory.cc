@@ -9,8 +9,9 @@
 
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
-using namespace trklet;
 using namespace std;
+
+namespace trklet {
 
 InputLinkMemory::InputLinkMemory(string name, Settings const& settings, double, double) : MemoryBase(name, settings) {}
 
@@ -29,3 +30,5 @@ void InputLinkMemory::writeStubs(bool first, unsigned int iSector) {
 }
 
 void InputLinkMemory::clean() { stubs_.clear(); }
+
+}

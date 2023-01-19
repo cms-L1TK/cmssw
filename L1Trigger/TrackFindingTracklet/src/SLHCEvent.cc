@@ -2,7 +2,8 @@
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
 using namespace std;
-using namespace trklet;
+
+namespace trklet {
 
 void SLHCEvent::addL1SimTrack(
     int eventid, int trackid, int type, double pt, double eta, double phi, double vx, double vy, double vz) {
@@ -213,4 +214,6 @@ unsigned int SLHCEvent::layersHit(int tpid, int& nlayers, int& ndisks) {
   ndisks = d1 + d2 + d3 + d4 + d5;
 
   return l1 + 2 * l2 + 4 * l3 + 8 * l4 + 16 * l5 + 32 * l6 + 64 * d1 + 128 * d2 + 256 * d3 + 512 * d4 + 1024 * d5;
+}
+
 }

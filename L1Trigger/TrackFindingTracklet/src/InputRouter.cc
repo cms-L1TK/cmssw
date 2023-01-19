@@ -10,7 +10,8 @@
 #include "FWCore/Utilities/interface/Exception.h"
 
 using namespace std;
-using namespace trklet;
+
+namespace trklet {
 
 InputRouter::InputRouter(string name, Settings const& settings, Globals* global)
     : ProcessBase(name, settings, global) {}
@@ -77,4 +78,6 @@ void InputRouter::execute() {
     if (!(settings_.reduced()))
       assert(iadd == 1);
   }
+}
+
 }

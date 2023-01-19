@@ -11,7 +11,8 @@
 #include "DataFormats/Math/interface/deltaPhi.h"
 
 using namespace std;
-using namespace trklet;
+
+namespace trklet {
 
 TrackletCalculatorDisplaced::TrackletCalculatorDisplaced(string name, Settings const& settings, Globals* global)
     : ProcessBase(name, settings, global) {
@@ -1943,4 +1944,6 @@ void TrackletCalculatorDisplaced::approxtracklet(double r1,
   if (settings_.debugTracklet())
     edm::LogVerbatim("Tracklet") << "TCD approx tracklet: " << rinv << " " << phi0 << " " << t << " " << z0 << " " << d0
                                  << endl;
+}
+
 }

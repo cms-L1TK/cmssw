@@ -47,7 +47,8 @@
 #include <deque>
 
 using namespace std;
-using namespace trklet;
+
+namespace trklet {
 
 Sector::Sector(Settings const& settings, Globals* globals) : isector_(-1), settings_(settings), globals_(globals) {}
 
@@ -489,4 +490,6 @@ std::unordered_set<int> Sector::seedMatch(int itp) const {
     }
   }
   return tmpSeeds;
+}
+
 }

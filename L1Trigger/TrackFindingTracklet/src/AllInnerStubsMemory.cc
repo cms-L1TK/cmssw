@@ -4,7 +4,8 @@
 #include <iomanip>
 
 using namespace std;
-using namespace trklet;
+
+namespace trklet {
 
 AllInnerStubsMemory::AllInnerStubsMemory(string name, Settings const& settings) : MemoryBase(name, settings) {}
 
@@ -18,4 +19,6 @@ void AllInnerStubsMemory::writeStubs(bool first, unsigned int iSector) {
     out_ << hexstr(j) << " " << stub << " " << hexFormat(stub) << endl;
   }
   out_.close();
+}
+
 }

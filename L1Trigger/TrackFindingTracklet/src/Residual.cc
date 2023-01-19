@@ -2,7 +2,8 @@
 #include "L1Trigger/TrackFindingTracklet/interface/Settings.h"
 
 using namespace std;
-using namespace trklet;
+
+namespace trklet {
 
 void Residual::init(Settings const& settings,
                     unsigned int layerdisk,
@@ -41,4 +42,6 @@ void Residual::init(Settings const& settings,
   rzresidapprox_ = rzresidapprox;
 
   stubptr_ = stubptr;
+}
+
 }

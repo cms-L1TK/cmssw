@@ -1,7 +1,7 @@
 #include "L1Trigger/TrackFindingTracklet/interface/imath.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
-using namespace trklet;
+namespace trklet {
 
 bool VarBase::calculate(int debug_level) {
   bool ok1 = true;
@@ -195,4 +195,6 @@ void VarDSPPostadd::local_calculate() {
 void VarInv::local_calculate() {
   fval_ = 1. / (offset_ + p1_->fval());
   ival_ = LUT[ival_to_addr(p1_->ival())];
+}
+
 }

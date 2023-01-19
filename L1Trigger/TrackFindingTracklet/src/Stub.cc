@@ -10,7 +10,8 @@
 #include <bitset>
 
 using namespace std;
-using namespace trklet;
+
+namespace trklet {
 
 Stub::Stub(Settings const& settings) : settings_(settings) {}
 
@@ -186,4 +187,6 @@ unsigned int Stub::layerdisk() const {
   if (layer_.value() == -1)
     return N_LAYER - 1 + abs(disk_.value());
   return layer_.value();
+}
+
 }

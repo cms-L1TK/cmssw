@@ -10,8 +10,9 @@
 
 #include <filesystem>
 
-using namespace trklet;
 using namespace std;
+
+namespace trklet {
 
 TrackletEngine::TrackletEngine(string name, Settings const& settings, Globals* global)
     : ProcessBase(name, settings, global), innerptlut_(settings), outerptlut_(settings) {
@@ -227,4 +228,6 @@ void TrackletEngine::setVMPhiBin() {
 
   innervmstubs_->setbendtable(innertememlut);
   outervmstubs_->setbendtable(outertememlut);
+}
+
 }

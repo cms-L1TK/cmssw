@@ -9,7 +9,8 @@
 #include "L1Trigger/TrackFindingTracklet/interface/HistBase.h"
 
 using namespace std;
-using namespace trklet;
+
+namespace trklet {
 
 Globals::Globals(Settings const& settings) {
   imathGlobals* imathGlobs = new imathGlobals();
@@ -48,4 +49,6 @@ std::ofstream& Globals::ofstream(std::string fname) {
   std::ofstream* outptr = new std::ofstream(fname.c_str());
   ofstreams_[fname] = outptr;
   return *outptr;
+}
+
 }

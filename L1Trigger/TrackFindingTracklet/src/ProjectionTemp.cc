@@ -1,7 +1,8 @@
 #include "L1Trigger/TrackFindingTracklet/interface/ProjectionTemp.h"
 
 using namespace std;
-using namespace trklet;
+
+namespace trklet {
 
 ProjectionTemp::ProjectionTemp(Tracklet* proj,
                                unsigned int slot,
@@ -42,4 +43,6 @@ ProjectionTemp::ProjectionTemp() {
   use_[1][0] = false;
   use_[1][1] = false;
   isPSseed_ = false;
+}
+
 }

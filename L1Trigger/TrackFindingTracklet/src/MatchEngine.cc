@@ -13,7 +13,8 @@
 #include <filesystem>
 
 using namespace std;
-using namespace trklet;
+
+namespace trklet {
 
 MatchEngine::MatchEngine(string name, Settings const& settings, Globals* global)
     : ProcessBase(name, settings, global), luttable_(settings) {
@@ -299,4 +300,6 @@ void MatchEngine::execute(unsigned int iSector) {
   if (settings_.writeMonitorData("ME")) {
     globals_->ofstream("matchengine.txt") << getName() << " " << countall << " " << countpass << endl;
   }
+}
+
 }

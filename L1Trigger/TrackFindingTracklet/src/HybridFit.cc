@@ -8,7 +8,8 @@
 #include "DataFormats/Math/interface/deltaPhi.h"
 
 using namespace std;
-using namespace trklet;
+
+namespace trklet {
 
 HybridFit::HybridFit(unsigned int iSector, Settings const& settings, Globals* globals) : settings_(settings) {
   iSector_ = iSector;
@@ -260,5 +261,7 @@ void HybridFit::Fit(Tracklet* tracklet, std::vector<const Stub*>& trackstublist)
   for (const tmtt::Stub* s : TMTTstubs) {
     delete s;
   }
+}
+
 }
 #endif

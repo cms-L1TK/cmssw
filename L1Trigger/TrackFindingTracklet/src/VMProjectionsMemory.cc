@@ -5,7 +5,8 @@
 #include <filesystem>
 
 using namespace std;
-using namespace trklet;
+
+namespace trklet {
 
 VMProjectionsMemory::VMProjectionsMemory(string name, Settings const& settings) : MemoryBase(name, settings) {
   initLayerDisk(7, layer_, disk_);
@@ -49,4 +50,6 @@ void VMProjectionsMemory::writeVMPROJ(bool first, unsigned int iSector) {
   event_++;
   if (bx_ > 7)
     bx_ = 0;
+}
+
 }

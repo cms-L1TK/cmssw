@@ -14,8 +14,9 @@
 #include <iomanip>
 #include <filesystem>
 
-using namespace trklet;
 using namespace std;
+
+namespace trklet {
 
 TrackletEventProcessor::TrackletEventProcessor() : settings_(nullptr) {}
 
@@ -455,4 +456,6 @@ void TrackletEventProcessor::printSummary() {
                                << "PurgeDuplicate        " << setw(10) << PDTimer_.ntimes() << setw(20)
                                << setprecision(3) << PDTimer_.avgtime() * 1000.0 << setw(20) << setprecision(3)
                                << PDTimer_.tottime();
+}
+
 }

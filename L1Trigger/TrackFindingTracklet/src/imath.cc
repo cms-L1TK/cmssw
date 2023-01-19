@@ -11,7 +11,7 @@
 
 #include <cmath>
 
-using namespace trklet;
+namespace trklet {
 
 std::string VarBase::itos(int i) { return std::to_string(i); }
 
@@ -436,4 +436,6 @@ bool VarFlag::passes() {
   }
 
   return passes;
+}
+
 }

@@ -11,8 +11,9 @@
 
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
-using namespace trklet;
 using namespace std;
+
+namespace trklet {
 
 DTCLinkMemory::DTCLinkMemory(string name, Settings const& settings, double, double) : MemoryBase(name, settings) {}
 
@@ -66,4 +67,6 @@ void DTCLinkMemory::clean() {
     delete stub;
   }
   stubs_.clear();
+}
+
 }

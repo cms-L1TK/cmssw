@@ -14,7 +14,8 @@
 #include <tuple>
 
 using namespace std;
-using namespace trklet;
+
+namespace trklet {
 
 TrackletProcessor::TrackletProcessor(string name, Settings const& settings, Globals* globals)
     : TrackletCalculatorBase(name, settings, globals),
@@ -535,4 +536,6 @@ void TrackletProcessor::execute(unsigned int iSector, double phimin, double phim
                                                 << " " << countsel                   //# tracklets found
                                                 << endl;
   }
+}
+
 }

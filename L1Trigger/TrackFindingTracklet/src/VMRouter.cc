@@ -11,7 +11,8 @@
 #include "FWCore/Utilities/interface/Exception.h"
 
 using namespace std;
-using namespace trklet;
+
+namespace trklet {
 
 VMRouter::VMRouter(string name, Settings const& settings, Globals* global)
     : ProcessBase(name, settings, global),
@@ -382,4 +383,6 @@ void VMRouter::execute() {
       }
     }
   }
+}
+
 }

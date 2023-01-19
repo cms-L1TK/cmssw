@@ -7,7 +7,8 @@
 #include <filesystem>
 
 using namespace std;
-using namespace trklet;
+
+namespace trklet {
 
 FullMatchMemory::FullMatchMemory(string name, Settings const& settings) : MemoryBase(name, settings) {
   size_t pos = find_nth(name, 0, "_", 1);
@@ -61,4 +62,6 @@ void FullMatchMemory::writeMC(bool first, unsigned int iSector) {
   event_++;
   if (bx_ > 7)
     bx_ = 0;
+}
+
 }

@@ -3,7 +3,8 @@
 #include "L1Trigger/TrackFindingTracklet/interface/Settings.h"
 
 using namespace std;
-using namespace trklet;
+
+namespace trklet {
 
 MatchEngineUnit::MatchEngineUnit(const Settings& settings,
                                  bool barrel,
@@ -203,4 +204,6 @@ int MatchEngineUnit::TCID() const {
   }
 
   return proj_->TCID();
+}
+
 }

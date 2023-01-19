@@ -13,7 +13,8 @@
 #include "L1Trigger/L1TCommon/interface/BitShift.h"
 
 using namespace std;
-using namespace trklet;
+
+namespace trklet {
 
 TrackletCalculatorBase::TrackletCalculatorBase(string name, Settings const& settings, Globals* global)
     : ProcessBase(name, settings, global) {}
@@ -1466,4 +1467,6 @@ bool TrackletCalculatorBase::overlapSeeding(const Stub* innerFPGAStub,
   }
 
   return true;
+}
+
 }

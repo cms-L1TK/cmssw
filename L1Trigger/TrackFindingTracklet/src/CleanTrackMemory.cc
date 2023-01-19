@@ -5,7 +5,8 @@
 #include <filesystem>
 
 using namespace std;
-using namespace trklet;
+
+namespace trklet {
 
 CleanTrackMemory::CleanTrackMemory(string name, Settings const& settings, double phimin, double phimax)
     : MemoryBase(name, settings) {
@@ -59,4 +60,6 @@ void CleanTrackMemory::writeCT(bool first, unsigned int iSector) {
   event_++;
   if (bx_ > 7)
     bx_ = 0;
+}
+
 }

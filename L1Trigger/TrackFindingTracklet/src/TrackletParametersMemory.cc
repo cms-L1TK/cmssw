@@ -6,7 +6,8 @@
 #include <filesystem>
 
 using namespace std;
-using namespace trklet;
+
+namespace trklet {
 
 TrackletParametersMemory::TrackletParametersMemory(string name, Settings const& settings)
     : MemoryBase(name, settings) {}
@@ -41,4 +42,6 @@ void TrackletParametersMemory::writeTPAR(bool first, unsigned int iSector) {
   event_++;
   if (bx_ > 7)
     bx_ = 0;
+}
+
 }

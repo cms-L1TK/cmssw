@@ -23,7 +23,8 @@
 #include <filesystem>
 
 using namespace std;
-using namespace trklet;
+
+namespace trklet {
 
 MatchProcessor::MatchProcessor(string name, Settings const& settings, Globals* global)
     : ProcessBase(name, settings, global),
@@ -822,4 +823,6 @@ bool MatchProcessor::matchCalculator(Tracklet* tracklet, const Stub* fpgastub, b
       return false;
     }
   }
+}
+
 }

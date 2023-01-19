@@ -1,6 +1,6 @@
 #include "L1Trigger/TrackFindingTracklet/interface/Timer.h"
 
-using namespace trklet;
+namespace trklet {
 
 void Timer::start() { tstart_ = std::chrono::high_resolution_clock::now(); }
 void Timer::stop() {
@@ -9,4 +9,6 @@ void Timer::stop() {
   ttot_ += tmp;
   ttotsq_ += tmp * tmp;
   ntimes_++;
+}
+
 }

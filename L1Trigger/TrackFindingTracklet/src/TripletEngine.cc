@@ -8,7 +8,8 @@
 #include <algorithm>
 
 using namespace std;
-using namespace trklet;
+
+namespace trklet {
 
 TripletEngine::TripletEngine(string name, Settings const &settings, Globals *global)
     : ProcessBase(name, settings, global) {
@@ -482,4 +483,6 @@ void TripletEngine::writeTables() {
     }
     fout.close();
   }
+}
+
 }

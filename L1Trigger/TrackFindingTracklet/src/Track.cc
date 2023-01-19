@@ -5,7 +5,8 @@
 #include <algorithm>
 
 using namespace std;
-using namespace trklet;
+
+namespace trklet {
 
 Track::Track(TrackPars<int> ipars,
              int ichisqrphi,
@@ -51,4 +52,6 @@ double Track::phi0(Settings const& settings) const {
   double phi0 = ipars_.phi0() * settings.kphi0pars() + phioffset;
   phi0 = reco::reduceRange(phi0);
   return phi0;
+}
+
 }

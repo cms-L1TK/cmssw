@@ -6,7 +6,8 @@
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
 using namespace std;
-using namespace trklet;
+
+namespace trklet {
 
 TrackDerTable::TrackDerTable(Settings const& settings) : settings_(settings) {
   Nlay_ = N_LAYER;
@@ -1073,4 +1074,6 @@ double TrackDerTable::tpar(Settings const& settings, int diskmask, int layermask
   }
 
   return 0.5 * (tmax + tmin) * 1.07;
+}
+
 }

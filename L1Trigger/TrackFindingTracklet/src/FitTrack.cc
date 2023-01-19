@@ -11,7 +11,8 @@
 #include "FWCore/Utilities/interface/Exception.h"
 
 using namespace std;
-using namespace trklet;
+
+namespace trklet {;
 
 FitTrack::FitTrack(string name, Settings const& settings, Globals* global)
     : ProcessBase(name, settings, global), trackfit_(nullptr) {}
@@ -1085,4 +1086,6 @@ void FitTrack::execute(deque<string>& streamTrackRaw,
   if (settings_.writeMonitorData("FT")) {
     globals_->ofstream("fittrack.txt") << getName() << " " << countAll << " " << countFit << endl;
   }
+}
+
 }

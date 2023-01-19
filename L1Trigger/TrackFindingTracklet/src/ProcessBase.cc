@@ -8,8 +8,9 @@
 
 #include <unordered_map>
 
-using namespace trklet;
 using namespace std;
+
+namespace trklet {
 
 ProcessBase::ProcessBase(string name, Settings const& settings, Globals* global)
     : name_(name), settings_(settings), globals_(global) {}
@@ -133,4 +134,6 @@ unsigned int ProcessBase::getISeed(const std::string& name) {
   throw cms::Exception("LogicError") << __FILE__ << " " << __LINE__ << " " << getName() << " name name1 name2 " << name
                                      << " - " << name1 << " - " << name2;
   return 0;
+}
+
 }

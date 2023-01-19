@@ -9,7 +9,8 @@
 #include "FWCore/Utilities/interface/Exception.h"
 
 using namespace std;
-using namespace trklet;
+
+namespace trklet {
 
 ProjectionRouter::ProjectionRouter(string name, Settings const& settings, Globals* global)
     : ProcessBase(name, settings, global), rinvbendlut_(settings) {
@@ -149,4 +150,6 @@ void ProjectionRouter::execute() {
       }
     }
   }
+}
+
 }

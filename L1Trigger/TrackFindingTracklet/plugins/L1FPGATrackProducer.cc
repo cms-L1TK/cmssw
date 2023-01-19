@@ -113,7 +113,6 @@
 using namespace edm;
 using namespace std;
 using namespace tt;
-using namespace trklet;
 
 //////////////////////////////
 //                          //
@@ -124,6 +123,9 @@ using namespace trklet;
 /////////////////////////////////////
 // this class is needed to make a map
 // between different types of stubs
+
+namespace trklet {
+
 struct L1TStubCompare {
 public:
   bool operator()(const trklet::L1TStub& a, const trklet::L1TStub& b) const {
@@ -777,6 +779,8 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
 
 }  /// End of produce()
 
+}
+
 // ///////////////////////////
 // // DEFINE THIS AS A PLUG-IN
-DEFINE_FWK_MODULE(L1FPGATrackProducer);
+DEFINE_FWK_MODULE(trklet::L1FPGATrackProducer);

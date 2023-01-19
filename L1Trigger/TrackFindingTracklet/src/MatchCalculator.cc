@@ -27,7 +27,8 @@
 #include <algorithm>
 
 using namespace std;
-using namespace trklet;
+
+namespace trklet {
 
 MatchCalculator::MatchCalculator(string name, Settings const& settings, Globals* global)
     : ProcessBase(name, settings, global),
@@ -584,4 +585,6 @@ std::vector<std::pair<std::pair<Tracklet*, int>, const Stub*> > MatchCalculator:
   }
 
   return tmp;
+}
+
 }

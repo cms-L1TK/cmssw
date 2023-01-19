@@ -5,7 +5,8 @@
 #include <filesystem>
 
 using namespace std;
-using namespace trklet;
+
+namespace trklet {
 
 TrackFitMemory::TrackFitMemory(string name, Settings const& settings, double phimin, double phimax)
     : MemoryBase(name, settings) {
@@ -35,4 +36,6 @@ void TrackFitMemory::writeTF(bool first, unsigned int iSector) {
   event_++;
   if (bx_ > 7)
     bx_ = 0;
+}
+
 }

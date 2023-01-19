@@ -16,7 +16,8 @@
 #include <tuple>
 
 using namespace std;
-using namespace trklet;
+
+namespace trklet {
 
 TrackletProcessorDisplaced::TrackletProcessorDisplaced(string name, Settings const& settings, Globals* globals)
     : TrackletCalculatorDisplaced(name, settings, globals),
@@ -683,4 +684,6 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
       }
     }
   }
+}
+
 }

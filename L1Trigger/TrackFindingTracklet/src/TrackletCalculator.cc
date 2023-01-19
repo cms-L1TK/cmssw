@@ -12,7 +12,8 @@
 #include "FWCore/Utilities/interface/Exception.h"
 
 using namespace std;
-using namespace trklet;
+
+namespace trklet {
 
 TrackletCalculator::TrackletCalculator(string name, Settings const& settings, Globals* globals)
     : TrackletCalculatorBase(name, settings, globals) {
@@ -469,4 +470,6 @@ void TrackletCalculator::writeFirmwareDesign(void (*writeDesign)(const vector<Va
       }
       break;
   }
+}
+
 }

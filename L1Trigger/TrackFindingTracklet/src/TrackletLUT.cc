@@ -7,7 +7,8 @@
 #include <filesystem>
 
 using namespace std;
-using namespace trklet;
+
+namespace trklet {
 
 TrackletLUT::TrackletLUT(const Settings& settings) : settings_(settings), setup_(settings.setup()) {}
 
@@ -1431,4 +1432,6 @@ void TrackletLUT::writeTable() const {
 int TrackletLUT::lookup(unsigned int index) const {
   assert(index < table_.size());
   return table_[index];
+}
+
 }

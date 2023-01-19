@@ -5,7 +5,8 @@
 #include <filesystem>
 
 using namespace std;
-using namespace trklet;
+
+namespace trklet {
 
 VMStubsTEMemory::VMStubsTEMemory(string name, Settings const& settings)
     : MemoryBase(name, settings), bendtable_(settings) {
@@ -272,3 +273,5 @@ void VMStubsTEMemory::getPhiRange(double& phimin, double& phimax, unsigned int i
 }
 
 void VMStubsTEMemory::setbendtable(const TrackletLUT& bendtable) { bendtable_ = bendtable; }
+
+}

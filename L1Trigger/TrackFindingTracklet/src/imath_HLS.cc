@@ -1,6 +1,6 @@
 #include "L1Trigger/TrackFindingTracklet/interface/imath.h"
 
-using namespace trklet;
+namespace trklet {
 
 void VarInv::writeLUT(std::ofstream& fs, HLS) const {
   for (int i = 0; i < Nelements_ - 1; ++i)
@@ -401,4 +401,6 @@ void VarBase::design_print(const std::vector<VarBase*>& v, std::ofstream& fs, HL
   }
 
   fs << "}\n";
+}
+
 }

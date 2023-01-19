@@ -3,7 +3,8 @@
 #include "L1Trigger/TrackFindingTracklet/interface/Settings.h"
 
 using namespace std;
-using namespace trklet;
+
+namespace trklet {
 
 TrackletEngineUnit::TrackletEngineUnit(const Settings* const settings,
                                        unsigned int nbitsfinephi,
@@ -126,4 +127,6 @@ void TrackletEngineUnit::step(bool, int, int) {
       std::tie(next_, ireg_, nstub_) = tedata_.regions_[nreg_];
     }
   }
+}
+
 }

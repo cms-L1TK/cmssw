@@ -8,8 +8,9 @@
 #include <filesystem>
 #include <sstream>
 
-using namespace trklet;
 using namespace std;
+
+namespace trklet {
 
 MemoryBase::MemoryBase(string name, Settings const& settings) : name_(name), settings_(settings) {
   iSector_ = 0;
@@ -112,4 +113,6 @@ std::string MemoryBase::hexstr(unsigned int index) {
   std::ostringstream oss;
   oss << "0x" << std::setfill('0') << std::setw(2) << hex << index << dec;
   return oss.str();
+}
+
 }

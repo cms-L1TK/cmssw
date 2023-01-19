@@ -11,7 +11,8 @@
 #include <sstream>
 
 using namespace std;
-using namespace trklet;
+
+namespace trklet {
 
 Tracklet::Tracklet(Settings const& settings,
                    unsigned int iSeed,
@@ -816,3 +817,5 @@ void Tracklet::setTrackIndex(int index) {
 }
 
 int Tracklet::trackIndex() const { return trackIndex_; }
+
+}

@@ -6,7 +6,8 @@
 #include <algorithm>
 
 using namespace std;
-using namespace trklet;
+
+namespace trklet {
 
 void Projection::init(Settings const& settings,
                       unsigned int layerdisk,
@@ -129,4 +130,6 @@ void Projection::init(Settings const& settings,
   rzprojapprox_ = rzprojapprox;
   phiprojderapprox_ = phiprojderapprox;
   rzprojderapprox_ = rzprojderapprox;
+}
+
 }

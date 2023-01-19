@@ -1,7 +1,8 @@
 #include "L1Trigger/TrackFindingTracklet/interface/TrackDer.h"
 
 using namespace std;
-using namespace trklet;
+
+namespace trklet {
 
 TrackDer::TrackDer() {
   for (unsigned int i = 0; i < N_FITSTUB; i++) {
@@ -85,4 +86,6 @@ void TrackDer::fill(int t, double MinvDt[N_FITPARAM][N_FITSTUB * 2], int iMinvDt
       iMinvDt[3][2 * i + 1] *= sign;
     }
   }
+}
+
 }

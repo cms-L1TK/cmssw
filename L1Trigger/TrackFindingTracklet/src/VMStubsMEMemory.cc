@@ -4,7 +4,8 @@
 #include <filesystem>
 
 using namespace std;
-using namespace trklet;
+
+namespace trklet {
 
 VMStubsMEMemory::VMStubsMEMemory(string name, Settings const& settings) : MemoryBase(name, settings) {
   unsigned int layerdisk = initLayerDisk(6);
@@ -52,4 +53,6 @@ void VMStubsMEMemory::writeStubs(bool first, unsigned int iSector) {
   event_++;
   if (bx_ > 7)
     bx_ = 0;
+}
+
 }

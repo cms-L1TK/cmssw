@@ -10,7 +10,8 @@
 #include "FWCore/Utilities/interface/Exception.h"
 
 using namespace std;
-using namespace trklet;
+
+namespace trklet {
 
 TrackletEngineDisplaced::TrackletEngineDisplaced(string name, Settings const& settings, Globals* global)
     : ProcessBase(name, settings, global) {
@@ -419,4 +420,6 @@ short TrackletEngineDisplaced::memNameToIndex(const string& name) {
     if (stubpairs_.at(isp)->getName() == name)
       return isp;
   return -1;
+}
+
 }

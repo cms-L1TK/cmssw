@@ -7,8 +7,9 @@
 #include <iomanip>
 #include <filesystem>
 
-using namespace trklet;
 using namespace std;
+
+namespace trklet {
 
 AllProjectionsMemory::AllProjectionsMemory(string name, Settings const& settings) : MemoryBase(name, settings) {
   initLayerDisk(3, layer_, disk_);
@@ -37,4 +38,5 @@ void AllProjectionsMemory::writeAP(bool first, unsigned int iSector) {
   event_++;
   if (bx_ > 7)
     bx_ = 0;
+}
 }

@@ -20,7 +20,8 @@
 #include <algorithm>
 
 using namespace std;
-using namespace trklet;
+
+namespace trklet {
 
 PurgeDuplicate::PurgeDuplicate(std::string name, Settings const& settings, Globals* global)
     : ProcessBase(name, settings, global) {}
@@ -782,4 +783,6 @@ bool PurgeDuplicate::isTrackInBin(const std::vector<unsigned int>& vec, unsigned
   auto result = std::find(vec.begin(), vec.end(), num);
   bool found = (result != vec.end());
   return found;
+}
+
 }

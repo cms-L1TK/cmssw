@@ -2,7 +2,8 @@
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
 using namespace std;
-using namespace trklet;
+
+namespace trklet {
 
 L1SimTrack::L1SimTrack() {
   eventid_ = -1;
@@ -34,4 +35,6 @@ void L1SimTrack::write(ostream& out) {
     out << "SimTrack: " << eventid_ << "\t" << trackid_ << "\t" << type_ << "\t" << pt_ << "\t" << eta_ << "\t" << phi_
         << "\t" << vx_ << "\t" << vy_ << "\t" << vz_ << "\t" << endl;
   }
+}
+
 }

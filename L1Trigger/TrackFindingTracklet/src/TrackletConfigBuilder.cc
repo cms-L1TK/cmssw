@@ -17,7 +17,8 @@
 #endif
 
 using namespace std;
-using namespace trklet;
+
+namespace trklet {
 
 TrackletConfigBuilder::TrackletConfigBuilder(const Settings& settings, const tt::Setup* setup) : settings_(settings) {
   NSector_ = N_SECTOR;
@@ -1363,4 +1364,6 @@ void TrackletConfigBuilder::writeAll(std::ostream& wires, std::ostream& memories
   writeFMMemories(wires, memories, modules);
   writeTFMemories(wires, memories, modules);
   writeCTMemories(wires, memories, modules);
+}
+
 }

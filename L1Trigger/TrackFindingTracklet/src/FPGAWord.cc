@@ -3,7 +3,8 @@
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
 using namespace std;
-using namespace trklet;
+
+namespace trklet {
 
 FPGAWord::FPGAWord() {}
 
@@ -86,3 +87,6 @@ bool FPGAWord::atExtreme() const {
 bool FPGAWord::operator==(const FPGAWord& other) const {
   return (value_ == other.value_) && (nbits_ == other.nbits_) && (positive_ == other.positive_);
 }
+
+}
+
