@@ -783,4 +783,7 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
 
 // ///////////////////////////
 // // DEFINE THIS AS A PLUG-IN
-DEFINE_FWK_MODULE(trklet::L1FPGATrackProducer);
+// workaround for bug in framework dealing with namespaces?
+//DEFINE_FWK_MODULE(trklet::L1FPGATrackProducer);
+using namespace trklet;
+DEFINE_FWK_MODULE(L1FPGATrackProducer);
