@@ -7,18 +7,18 @@ using namespace std;
 
 namespace trklet {
 
-AllInnerStubsMemory::AllInnerStubsMemory(string name, Settings const& settings) : MemoryBase(name, settings) {}
+  AllInnerStubsMemory::AllInnerStubsMemory(string name, Settings const& settings) : MemoryBase(name, settings) {}
 
-void AllInnerStubsMemory::writeStubs(bool first, unsigned int iSector) {
-  iSector_ = iSector;
-  const string dirS = settings_.memPath() + "Stubs/";
-  openFile(first, dirS, "AllInnerStubs_");
+  void AllInnerStubsMemory::writeStubs(bool first, unsigned int iSector) {
+    iSector_ = iSector;
+    const string dirS = settings_.memPath() + "Stubs/";
+    openFile(first, dirS, "AllInnerStubs_");
 
-  for (unsigned int j = 0; j < stubs_.size(); j++) {
-    string stub = stubs_[j]->strinner();
-    out_ << hexstr(j) << " " << stub << " " << hexFormat(stub) << endl;
+    for (unsigned int j = 0; j < stubs_.size(); j++) {
+      string stub = stubs_[j]->strinner();
+      out_ << hexstr(j) << " " << stub << " " << hexFormat(stub) << endl;
+    }
+    out_.close();
   }
-  out_.close();
-}
 
-}
+}  // namespace trklet
