@@ -129,7 +129,7 @@ namespace trackerTFP {
         for (int layerId : layerIds) {
           const auto it = find(le.begin(), le.end(), layerId);
           const bool valid = it != le.end();
-          const int kfLayerId = min((int)distance(le.begin(), it), setup_->numLayers());
+          const int kfLayerId = min((int)distance(le.begin(), it), setup_->numLayers() - 1);
           /*if (zT_->toSigned(binZT) == 11) {
             cout << layer << " " << valid << " " << kfLayerId << endl;
           }*/

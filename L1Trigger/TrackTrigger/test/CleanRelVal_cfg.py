@@ -36,7 +36,7 @@ import FWCore.ParameterSet.VarParsing as VarParsing
 options = VarParsing.VarParsing( 'analysis' )
 # specify input MC
 Samples = [
-  '/store/relvalOrig/CMSSW_12_6_0_pre4/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU_125X_mcRun4_realistic_v2_2026D88PU200-v1/2590000/e77dffdb-1db3-4a23-9869-1900b9b7809f.root'
+  '/store/relvalOrig/CMSSW_12_6_0_pre4/RelValSingleMuPt100/GEN-SIM-DIGI-RAW/125X_mcRun4_realistic_v2_2026D88noPU-v1/2580000/b46f31f3-ba67-421f-8ad8-c9ff53f487ed.root'
 ]
 options.register( 'inputMC', Samples, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.string, "Files to be processed" )
 # specify number of events to process.
@@ -61,7 +61,7 @@ if True :
     splitLevel = cms.untracked.int32(0),
     eventAutoFlushCompressedSize = cms.untracked.int32(5242880),
     outputCommands = process.RAWSIMEventContent.outputCommands,
-    fileName = cms.untracked.string('/heplnw039/store/relvalTrimmed/CMSSW_12_6_0_pre4/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU_125X_mcRun4_realistic_v2_2026D88PU200-v1/2590000/e77dffdb-1db3-4a23-9869-1900b9b7809f.root'),
+    fileName = cms.untracked.string('/heplnw039/store/relvalTrimmed/CMSSW_12_6_0_pre4/RelValSingleMuPt100/GEN-SIM-DIGI-RAW/125X_mcRun4_realistic_v2_2026D88noPU-v1/2580000/b46f31f3-ba67-421f-8ad8-c9ff53f487ed.root'),
     dataset = cms.untracked.PSet(
       filterName = cms.untracked.string(''),
       dataTier = cms.untracked.string('GEN-SIM')

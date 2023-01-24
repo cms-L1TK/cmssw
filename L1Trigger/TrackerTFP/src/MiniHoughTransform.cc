@@ -105,6 +105,8 @@ namespace trackerTFP {
         if (delta > 0)
           stubsCell.insert(stubsCell.end(), delta, nullptr);
         track.erase(remove_if(track.begin(), track.end(), invalid), track.end());
+        if (!track.empty())
+          track.back()->setNewTrk();
         // run single track through final r-phi cell and store result
         cell(track, stubsCell);
         // set begin of next track
@@ -120,10 +122,12 @@ namespace trackerTFP {
           if (*it)
             streamLost.emplace_back((*it)->frame());
         stubsCell.erase(limit, stubsCell.end());
-        // cosmetics -- remove gaps at the end of stream
-        for (auto it = stubsCell.end(); it != stubsCell.begin();)
-          it = (*--it) == nullptr ? stubsCell.erase(it) : stubsCell.begin();
       }
+      // cosmetics -- remove gaps at the end of stream
+      for (auto it = stubsCell.end(); it != stubsCell.begin();)
+        it = (*--it) == nullptr ? stubsCell.erase(it) : stubsCell.begin();
+      if (!stubsCell.empty())
+        stubsCell.back()->setNewTrk();
       // store final tracks
       stream.reserve(stubsCell.size());
       auto toFrame = [](StubMHT* stub) { return stub ? stub->frame() : FrameStub(); };

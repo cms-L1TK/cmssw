@@ -121,6 +121,8 @@ namespace trackerTFP {
         if (delta > 0)
           stubsCell.insert(stubsCell.end(), delta, nullptr);
         track.erase(remove_if(track.begin(), track.end(), invalid), track.end());
+        if (!track.empty())
+          track.back()->setNewTrk();
         // run single track through final r-phi cell and store result
         cell(track, stubsCell);
         // set begin of next track
@@ -140,7 +142,26 @@ namespace trackerTFP {
       // cosmetics -- remove gaps at the end of stream
       for (auto it = stubsCell.end(); it != stubsCell.begin();)
         it = (*--it) == nullptr ? stubsCell.erase(it) : stubsCell.begin();
+      if (!stubsCell.empty())
+        stubsCell.back()->setNewTrk();
       // store final tracks
+      if (region_ == 7 && channel == 11) {
+        vector<stringstream> sss(4);
+        for (StubZHT* stub : stubsCell) {
+          if (!stub) {
+            for (stringstream& ss : sss)
+              ss << setw(7) << "x" << " ";
+            continue;
+          }
+          sss[0] << setw(7) << stub->newTrk() << " ";
+          sss[1] << setw(7) << dataFormats_->format(Variable::r, Process::zht).integer(stub->r()) << " ";
+          sss[2] << setw(7) << dataFormats_->format(Variable::phi, Process::zht).integer(stub->phi()) << " ";
+          sss[3] << setw(7) << dataFormats_->format(Variable::z, Process::zht).integer(stub->z()) << " ";
+        }
+        cout << "ZHT" << endl;
+        for (const stringstream& ss : sss)
+          cout << ss.str() << endl;
+      }
       stream.reserve(stubsCell.size());
       auto toFrame = [](StubZHT* stub) { return stub ? stub->frame() : FrameStub(); };
       transform(stubsCell.begin(), stubsCell.end(), back_inserter(stream), toFrame);
