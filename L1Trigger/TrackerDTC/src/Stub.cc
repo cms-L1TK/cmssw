@@ -175,7 +175,7 @@ namespace trackerDTC {
   }
 
   Frame Stub::formatTMTT(int region) const {
-    return StubDTC(ttStubRef_, dataFormats_, region, sm_->layerId(), r_, phi_, z_, phiT_, inv2R_).frame().second;
+    return StubDTC(ttStubRef_, dataFormats_, region, sm_->layerId(), r_, phi_, z_, phiT_, inv2R_).bv();
   }
 
 }  // namespace trackerDTC

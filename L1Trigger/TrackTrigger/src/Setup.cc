@@ -195,6 +195,7 @@ namespace tt {
         kfinMaxTracks_(pSetKFin_.getParameter<int>("MaxTracks")),
         kfinMaxStubsPerLayer_(pSetKFin_.getParameter<int>("MaxStubsPerLayer")),
         kfinDepthMemory_(pSetKFin_.getParameter<int>("DepthMemory")),
+        kfinWidthAddrDPhi_(pSetKFin_.getParameter<int>("WidthAddrDPhi")),
         // Parmeter specifying KalmanFilter
         pSetKF_(iConfig.getParameter<ParameterSet>("KalmanFilter")),
         kfNumWorker_(pSetKF_.getParameter<int>("NumWorker")),

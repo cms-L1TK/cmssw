@@ -484,6 +484,8 @@ namespace tt {
     int kfinDepthMemory() const { return kfinDepthMemory_; }
     // number of bits used to count stubs per layer
     int kfinWidthLayerCount() const { return kfinWidthLayerCount_; }
+    //
+    int kfinWidthAddrDPhi() const { return kfinWidthAddrDPhi_; }
 
     // Parameter specifying KalmanFilter
 
@@ -896,6 +898,8 @@ namespace tt {
     int kfinNumMuxedChannel_;
     // internal memory depth
     int kfinDepthMemory_;
+    //
+    int kfinWidthAddrDPhi_;
 
     // Parameter specifying KalmanFilter
     edm::ParameterSet pSetKF_;

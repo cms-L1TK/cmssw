@@ -88,7 +88,7 @@ namespace trackerTFP {
         // cosmetics -- remove gaps at the end of stream
         for (auto it = stubsAccepted.end(); it != stubsAccepted.begin();)
           it = (*--it) == nullptr ? stubsAccepted.erase(it) : stubsAccepted.begin();
-        stubsAccepted.back()->newTrk();
+        stubsAccepted.back()->setNewTrk();
       }
       // store found tracks
       put(stubsAccepted, accepted[channel]);
@@ -179,7 +179,7 @@ namespace trackerTFP {
     // read out found tracks ordered as found
     for (int phiT : phiTs) {
       copy_if(input.begin(), input.end(), back_inserter(output), [phiT](StubHT* stub){ return stub->phiTlocal() == phiT; });
-      output.back()->newTrk();
+      output.back()->setNewTrk();
     }
   }
 

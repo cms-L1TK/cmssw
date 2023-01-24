@@ -199,7 +199,8 @@ TrackTrigger_params = cms.PSet (
     ShiftRangeZ      = cms.int32(  1 ), # power of 2 multiplier of stub z residual range
     MaxTracks        = cms.int32( 16 ), # max number of output tracks per node
     MaxStubsPerLayer = cms.int32(  4 ), # cut on number of stub per layer for input candidates
-    DepthMemory      = cms.int32( 16 )  # internal fifo depth
+    DepthMemory      = cms.int32( 16 ), # internal fifo depth
+    WidthAddrDPhi    = cms.int32(  8 )  # 
   ),
 
   # Parmeter specifying KalmanFilter

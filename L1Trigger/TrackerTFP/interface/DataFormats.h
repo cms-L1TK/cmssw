@@ -26,7 +26,7 @@ namespace trackerTFP {
   // track trigger processes
   enum class Process { begin, fe = begin, dtc, pp, gp, ht, mht, zht, kfin, kf, dr, end, x };
   // track trigger variables
-  enum class Variable { begin, r = begin, phi, z, dPhi, dZ, inv2R, phiT, cot, zT, layer, module, bit, pattern ,lmap, phi0, z0, end, x };
+  enum class Variable { begin, r = begin, phi, z, dPhi, dZ, inv2R, phiT, cot, zT, layer, module, bit, phi0, z0, end, x };
   // track trigger process order
   constexpr std::initializer_list<Process> Processes = {Process::fe, Process::dtc, Process::pp, Process::gp, Process::ht, Process::mht, Process::zht, Process::kfin, Process::kf, Process::dr};
   // conversion: Process to int
@@ -144,10 +144,6 @@ namespace trackerTFP {
   Format<Variable::dPhi, Process::kfin>::Format(const tt::Setup* setup);
   template <>
   Format<Variable::dZ, Process::kfin>::Format(const tt::Setup* setup);
-  template <>
-  Format<Variable::pattern, Process::kfin>::Format(const tt::Setup* setup);
-  template <>
-  Format<Variable::lmap, Process::kfin>::Format(const tt::Setup* setup);
 
   template <>
   Format<Variable::phi, Process::kf>::Format(const tt::Setup* setup);
@@ -193,8 +189,6 @@ namespace trackerTFP {
       {{Process::x,  Process::dtc, Process::dtc, Process::dtc, Process::dtc, Process::dtc, Process::dtc, Process::x,    Process::x,    Process::x }},  // Variable::layer
       {{Process::x,  Process::x,   Process::x,   Process::gp,  Process::gp,  Process::gp,  Process::gp,  Process::x,    Process::x,    Process::x }},  // Variable::module
       {{Process::x,  Process::x,   Process::x,   Process::x,   Process::ht,  Process::ht,  Process::ht,  Process::x,    Process::ht,   Process::x }},  // Variable::bit
-      {{Process::x,  Process::x,   Process::x,   Process::x,   Process::x,   Process::x,   Process::x,   Process::kfin, Process::x,    Process::x }},  // Variable::pattern
-      {{Process::x,  Process::x,   Process::x,   Process::x,   Process::x,   Process::x,   Process::x,   Process::kfin, Process::x,    Process::x }},  // Variable::lmap
       {{Process::x,  Process::x,   Process::x,   Process::x,   Process::x,   Process::x,   Process::x,   Process::x,    Process::x,    Process::dr}},  // Variable::phi0
       {{Process::x,  Process::x,   Process::x,   Process::x,   Process::x,   Process::x,   Process::x,   Process::x,    Process::x,    Process::dr}}   // Variable::z0
     }};
@@ -213,16 +207,16 @@ namespace trackerTFP {
     }};
     // track word assembly, shows which track variables are used by each process
     static constexpr std::array<std::initializer_list<Variable>, +Process::end> tracks_ = {{
-        {},                                                                                                    // Process::fe
-        {},                                                                                                    // Process::dtc
-        {},                                                                                                    // Process::pp
-        {},                                                                                                    // Process::gp
-        {},                                                                                                    // Process::ht
-        {},                                                                                                    // Process::mht
-        {},                                                                                                    // Process::zht
-        {Variable::inv2R, Variable::phiT, Variable::zT, Variable::pattern, Variable::pattern, Variable::lmap}, // Process::kfin
-        {Variable::bit, Variable::inv2R, Variable::phiT, Variable::cot, Variable::zT},                         // Process::kf
-        {Variable::inv2R, Variable::phi0, Variable::cot, Variable::z0}                                         // Process::dr
+        {},                                                                            // Process::fe
+        {},                                                                            // Process::dtc
+        {},                                                                            // Process::pp
+        {},                                                                            // Process::gp
+        {},                                                                            // Process::ht
+        {},                                                                            // Process::mht
+        {},                                                                            // Process::zht
+        {Variable::inv2R, Variable::phiT, Variable::zT},                               // Process::kfin
+        {Variable::bit, Variable::inv2R, Variable::phiT, Variable::cot, Variable::zT}, // Process::kf
+        {Variable::inv2R, Variable::phi0, Variable::cot, Variable::z0}                 // Process::dr
     }};
 
   public:
@@ -234,13 +228,21 @@ namespace trackerTFP {
     void convertStub(Process p, const tt::Frame& bv, std::tuple<Ts...>& data) const;
     // converts ntuple of variables to bits
     template <typename... Ts>
-    void convertStub(Process p, const std::tuple<Ts...>& data, tt::Frame& bv) const;
+    void convertStub(Process p, const std::tuple<Ts...>& data, tt::Frame& bv) const  {
+      TTBV ttBV(1, numUnusedBitsStubs_[+p]);
+      attachStub(p, data, ttBV);
+      bv = ttBV.bs();
+    }
     // converts bits to ntuple of variables
     template <typename... Ts>
     void convertTrack(Process p, const tt::Frame& bv, std::tuple<Ts...>& data) const;
     // converts ntuple of variables to bits
     template <typename... Ts>
-    void convertTrack(Process p, const std::tuple<Ts...>& data, tt::Frame& bv) const;
+    void convertTrack(Process p, const std::tuple<Ts...>& data, tt::Frame& bv) const {
+      TTBV ttBV(1, numUnusedBitsTracks_[+p]);
+      attachTrack(p, data, ttBV);
+      bv = ttBV.bs();
+    }
     // access to run-time constants
     const tt::Setup* setup() const { return setup_; }
     // number of bits being used for specific variable flavour
@@ -281,10 +283,20 @@ namespace trackerTFP {
     void extractTrack(Process p, TTBV& ttBV, std::tuple<Ts...>& data) const;
     // helper (loop) to convert ntuple of variables to bits
     template <int it = 0, typename... Ts>
-    void attachStub(Process p, const std::tuple<Ts...>& data, TTBV& ttBV) const;
+    void attachStub(Process p, const std::tuple<Ts...>& data, TTBV& ttBV) const {
+      Variable v = *std::next(stubs_[+p].begin(), it);
+      formats_[+v][+p]->attach(std::get<it>(data), ttBV);
+      if constexpr (it + 1 != sizeof...(Ts))
+        attachStub<it + 1>(p, data, ttBV);
+    }
     // helper (loop) to convert ntuple of variables to bits
     template <int it = 0, typename... Ts>
-    void attachTrack(Process p, const std::tuple<Ts...>& data, TTBV& ttBV) const;
+    void attachTrack(Process p, const std::tuple<Ts...>& data, TTBV& ttBV) const {
+      Variable v = *std::next(tracks_[+p].begin(), it);
+      formats_[+v][+p]->attach(std::get<it>(data), ttBV);
+      if constexpr (it + 1 != sizeof...(Ts))
+        attachTrack<it + 1>(p, data, ttBV);
+    }
     // configuration during construction
     edm::ParameterSet iConfig_;
     // stored run-time constants
@@ -329,11 +341,15 @@ namespace trackerTFP {
     // stub flavour
     Process p() const { return p_; }
     // acess to frame
-    const tt::FrameStub& frame() const { return frame_; }
+    const tt::FrameStub& frame() {
+      if (frame_.second.to_ulong() == 0)
+        dataFormats_->convertStub(p_, data_, frame_.second);
+      return frame_;
+    }
     // access to TTStubRef
     const TTStubRef& ttStubRef() const { return frame_.first; }
     // access to bitvector
-    const tt::Frame& bv() const { return frame_.second; }
+    const tt::Frame& bv() { return frame().second; }
     // id of collection this stub belongs to
     int trackId() const { return trackId_; }
   protected:
@@ -496,7 +512,7 @@ namespace trackerTFP {
     //
     bool valid() const { return valid_; }
     //
-    void newTrk() { std::get<0>(data_) = true; }
+    void setNewTrk() { std::get<0>(data_) = true; }
   private:
     // stub inv2R wrt HT inv2R bin center
     int inv2R_;
@@ -550,6 +566,8 @@ namespace trackerTFP {
     void mark(int cot, int zT) { array_[cot].set(zT); }
     //
     void hit(int cot, int zT) { if (!valid_ && array_[cot][zT]) valid_ = true; }
+    //
+    void setNewTrk() { std::get<0>(data_) = true; }
   private:
     // stub phi uncertainty in rad
     double dPhi_;
@@ -597,6 +615,8 @@ namespace trackerTFP {
     int inv2R() const { return inv2R_; }
     //
     bool valid() const { return valid_; }
+    //
+    void setNewTrk() { std::get<0>(data_) = true; }
   private:
     // stub z uncertainty in cm
     double dZ_;
@@ -688,11 +708,15 @@ namespace trackerTFP {
     // track flavour
     Process p() const { return p_; }
     // acces to frame
-    const tt::FrameTrack& frame() const { return frame_; }
+    const tt::FrameTrack& frame() {
+      if (frame_.second.to_ulong() == 0)
+        dataFormats_->convertTrack(p_, data_, frame_.second);
+      return frame_;
+    }
     // access to TTTrackRef
     const TTTrackRef& ttTrackRef() const { return frame_.first; }
     // access to bitvector
-    const tt::Frame& bv() const { return frame_.second; }
+    const tt::Frame& bv() { return frame().second; }
   protected:
     // access to run-time constants
     const tt::Setup* setup() const { return dataFormats_->setup(); }
@@ -714,7 +738,7 @@ namespace trackerTFP {
     std::tuple<Ts...> data_;
   };
 
-  class TrackKFin : public Track<double, double, double, TTBV, TTBV, TTBV> {
+  class TrackKFin : public Track<double, double, double> {
   public:
     // construct TrackKFin from Frame
     TrackKFin(const tt::FrameTrack& frame, const DataFormats* dataFormats, const std::vector<StubKFin*>& stubs);
@@ -728,15 +752,15 @@ namespace trackerTFP {
     // track z at radius chosenRofZ
     double zT() const { return std::get<2>(data_); }
     // pattern of layers which are only maybe crossed by found candidate
-    const TTBV& maybePattern() const { return std::get<3>(data_); }
+    const TTBV& maybePattern() const { return maybePattern_; }
     // pattern of layers which are hit
-    const TTBV& hitPattern() const { return std::get<4>(data_); }
+    const TTBV& hitPattern() const { return hitPattern_; }
     // number of stubs per layer
-    const TTBV& lmap() const { return std::get<5>(data_); }
+    const TTBV& lmap() const { return lmap_; }
     // true if given layer has a hit
-    bool hitPattern(int index) const { return this->hitPattern()[index]; }
+    bool hitPattern(int index) const { return hitPattern_[index]; }
     // true if given layer has a hit or is a maybe layer
-    bool maybePattern(int index) const { return this->hitPattern(index) || maybePattern()[index]; }
+    bool maybePattern(int index) const { return hitPattern_[index] || maybePattern_[index]; }
     // stubs on a given layer
     const std::vector<StubKFin*>& layerStubs(int layer) const { return stubs_[layer]; }
     // firts stub on a given layer
@@ -745,6 +769,8 @@ namespace trackerTFP {
     std::vector<TTStubRef> ttStubRefs(const TTBV& hitPattern, const std::vector<int>& layerMap) const;
     // stubs organized in layer
     const std::vector<std::vector<StubKFin*>>& stubs() const { return stubs_; }
+    //
+    void kill(StubKFin* stub);
     // cotTheta
     double cot() const { return cot_; }
     // track id
@@ -760,6 +786,12 @@ namespace trackerTFP {
     int trackId_;
     // size: number of stubs on most occupied layer
     int size_;
+    // pattern of layers which are only maybe crossed by found candidate
+    TTBV maybePattern_;
+    // pattern of layers which are hit
+    TTBV hitPattern_;
+    // number of stubs per layer
+    TTBV lmap_;
   };
 
   // class to represent tracks generated by process kalman filter

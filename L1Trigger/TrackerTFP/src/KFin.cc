@@ -32,8 +32,8 @@ namespace trackerTFP {
       nStubsZHT += accumulate(stream.begin(), stream.end(), 0, validFrame);
     }
     stubsZHT_.reserve(nStubsZHT);
-    vector<stringstream> sss(8);
     for (int channel = 0; channel < dataFormats_->numChannel(Process::zht); channel++) {
+      vector<stringstream> sss(8);
       vector<StubZHT*>& stubs = input_[channel];
       for (const FrameStub& frame : streams[channel + offset]) {
         // Store input stubs in vector, so rest of KFin algo can work with pointers to them (saves CPU)
@@ -47,16 +47,19 @@ namespace trackerTFP {
           sss[3] << setw(7) << dataFormats_->format(Variable::z, Process::zht).integer(stub->z()) << " ";
           sss[4] << setw(7) << stub->layer() << " ";
           sss[5] << setw(7) << stub->module() << " ";
-          sss[6] << setw(7) << dataFormats_->format(Variable::phiT, Process::zht).integer(stub->phiT()) << " ";
-          sss[7] << setw(7) << dataFormats_->format(Variable::zT, Process::zht).integer(stub->zT()) << " ";
+          sss[6] << setw(7) << stub->phiT() << " ";
+          sss[7] << setw(7) << stub->zT() << " ";
         } else
           for (stringstream& ss : sss)
-            ss << "   ";
+            ss << setw(7) << "x" << " ";
         stubs.push_back(stub);
       }
-      /*for (const stringstream& ss: sss)
-        cout << ss.str() << endl;
-      throw cms::Exception("...");*/
+      if (region_ == 7 && channel == 11) {
+        cout << "KFin consume" << endl;
+        for (const stringstream& ss: sss)
+          cout << ss.str() << endl;
+        //throw cms::Exception("...");
+      }
     }
     stubsKFin_.reserve(nStubsZHT);
   }
@@ -82,14 +85,14 @@ namespace trackerTFP {
 
   // fill output products
   void KFin::produce(StreamsTrack& acceptedTracks, StreamsStub& acceptedStubs, StreamsTrack& lostTracks, StreamsStub& lostStubs) {
-    const int offsetTracks = region_ * dataFormats_->numChannel(Process::kfin);
-    const int offsetStubs = offsetTracks * setup_->numLayers();
     // prepare input data
     vector<deque<TrackKFin*>> inputTracks(dataFormats_->numChannel(Process::zht));
     vector<deque<StubKFin*>> inputStubs(dataFormats_->numChannel(Process::zht));
     prepare(inputTracks, inputStubs);
     // loop over worker
     for (int channelOut = 0; channelOut < dataFormats_->numChannel(Process::kfin); channelOut++) {
+      const int indexTracks = region_ * dataFormats_->numChannel(Process::kfin) + channelOut;
+      const int offsetStubs = indexTracks * setup_->numLayers();
       deque<TrackKFin*> tracks;
       vector<deque<StubKFin*>> stubs(setup_->numLayers());
       vector<deque<TrackKFin*>> streamsTracks;
@@ -101,8 +104,28 @@ namespace trackerTFP {
         streamsTracks.push_back(inputTracks[index]);
         streamsStubs.push_back(inputStubs[index]);
       }
+      vector<stringstream> sssT(7);
       // route
       route(streamsTracks, tracks);
+      /*for (TrackKFin* track : tracks) {
+        if (!track) {
+          for (stringstream& ss : sssT)
+            ss << "x ";
+          continue;
+        }
+        sssT[0] << setw(7) << track->trackId() / setup_->kfinMaxTracks() << " ";
+        sssT[1] << setw(7) << track->trackId() % setup_->kfinMaxTracks() << " ";
+        sssT[2] << setw(7) << track->hitPattern() << " ";
+        sssT[3] << setw(7) << track->lmap().val() << " ";
+        sssT[4] << setw(7) << track->maybePattern() << " ";
+        sssT[5] << setw(7) << dataFormats_->format(Variable::phiT, Process::kfin).integer(track->phiT()) << " ";
+        sssT[6] << setw(7) << dataFormats_->format(Variable::zT, Process::kfin).integer(track->zT()) << " ";
+      }*/
+      /*if (region_ == 1) {
+        for (const stringstream& ss : sssT)
+          cout << ss.str() << endl;
+        throw cms::Exception("...");
+      }*/
       route(streamsStubs, stubs);
       // aplly truncation
       if (enableTruncation_) {
@@ -112,6 +135,27 @@ namespace trackerTFP {
           if ((int)stream.size() > setup_->numFrames())
             stream.resize(setup_->numFrames());
       }
+      vector<stringstream> sssS(8);
+      for (StubKFin* stub : stubs[1]) {
+        if (!stub) {
+          for (stringstream& ss : sssS)
+            ss << "x ";
+          continue;
+        }
+        sssS[0] << setw(7) << stub->trackId() / setup_->kfinMaxTracks() << " ";
+        sssS[1] << setw(7) << stub->trackId() % setup_->kfinMaxTracks() << " ";
+        sssS[2] << setw(7) << stub->stubId() << " ";
+        sssS[3] << setw(7) << dataFormats_->format(Variable::r, Process::kfin).integer(stub->r()) << " ";
+        sssS[4] << setw(7) << dataFormats_->format(Variable::phi, Process::kfin).integer(stub->phi()) << " ";
+        sssS[5] << setw(7) << dataFormats_->format(Variable::z, Process::kfin).integer(stub->z()) << " ";
+        sssS[6] << setw(7) << dataFormats_->format(Variable::phi, Process::kfin).integer(stub->dPhi()) << " ";
+        sssS[7] << setw(7) << dataFormats_->format(Variable::z, Process::kfin).integer(stub->dZ()) << " ";
+      }
+      /*if (region_ == 8 && channelOut == 0) {
+        for (const stringstream& ss : sssS)
+          cout << ss.str() << endl;
+        throw cms::Exception("...");
+      }*/
       // cycle event, remove all gaps
       tracks.erase(remove(tracks.begin(), tracks.end(), nullptr), tracks.end());
       for (deque<StubKFin*>& stream : stubs)
@@ -142,6 +186,45 @@ namespace trackerTFP {
         }
         frame += length;
       }
+      // remove all invalidated tracks due to truncation
+      vector<stringstream> sssT0(4);
+      for (TrackKFin* track : tracks) {
+        if (!track) {
+          for (stringstream& ss : sssT0)
+            ss << setw(7) << "x" << " ";
+          continue;
+        }
+        sssT0[0] << setw(7) << dataFormats_->format(Variable::inv2R, Process::kfin).integer(track->inv2R()) << " ";
+        sssT0[1] << setw(7) << dataFormats_->format(Variable::phiT, Process::kfin).integer(track->phiT()) << " ";
+        sssT0[2] << setw(7) << dataFormats_->format(Variable::zT, Process::kfin).integer(track->zT()) << " ";
+        sssT0[3] << setw(7) << track->maybePattern().val() << " ";
+      }
+      if (region_ == 7 && channelOut == 1) {
+        cout << "T0" << endl;
+        for (const stringstream& ss : sssT0)
+          cout << ss.str() << endl;
+        //throw cms::Exception("...");
+      }
+      for (int frame = 0; frame < size;) {
+        const int trackId = tracks[frame]->trackId();
+        const int size = tracks[frame]->size();
+        TTBV hitPattern(0, setup_->numLayers());
+        for (const deque<StubKFin*>& stream : stubs) {
+          for (StubKFin* stub : stream) {
+            if (!stub || stub->trackId() != trackId)
+              continue;
+            hitPattern.set(stub->layer());
+            break;
+          }
+        }
+        if (hitPattern.count() < setup_->kfMinLayers()) {
+          tracks[frame] = nullptr;
+          for (int layer = 0; layer < setup_->numLayers(); layer++)
+            for (int sFrame = frame; sFrame < frame + size; sFrame++)
+              stubs[layer][sFrame] = nullptr;
+        }
+        frame += size;
+      }
       // truncate if desired
       if (enableTruncation_ && size > setup_->numFrames()) {
         tracks.resize(setup_->numFrames());
@@ -149,10 +232,28 @@ namespace trackerTFP {
           stream.resize(setup_->numFrames());
       }
       // store
-      acceptedTracks[offsetTracks].reserve(size);
+      vector<stringstream> sssT1(4);
+      for (TrackKFin* track : tracks) {
+        if (!track) {
+          for (stringstream& ss : sssT1)
+            ss << setw(7) << "x" << " ";
+          continue;
+        }
+        sssT1[0] << setw(7) << dataFormats_->format(Variable::inv2R, Process::kfin).integer(track->inv2R()) << " ";
+        sssT1[1] << setw(7) << dataFormats_->format(Variable::phiT, Process::kfin).integer(track->phiT()) << " ";
+        sssT1[2] << setw(7) << dataFormats_->format(Variable::zT, Process::kfin).integer(track->zT()) << " ";
+        sssT1[3] << setw(7) << track->maybePattern().val() << " ";
+      }
+      if (region_ == 7 && channelOut == 1) {
+        cout << "T1" << endl;
+        for (const stringstream& ss : sssT1)
+          cout << ss.str() << endl;
+        throw cms::Exception("...");
+      }
+      acceptedTracks[indexTracks].reserve(size);
       for (int layer = 0; layer < setup_->numLayers(); layer++)
         acceptedStubs[offsetStubs + layer].reserve(size);
-      transform(tracks.begin(), tracks.end(), back_inserter(acceptedTracks[offsetTracks]), [](TrackKFin* track){ return (track ? track->frame() : FrameTrack()); });
+      transform(tracks.begin(), tracks.end(), back_inserter(acceptedTracks[indexTracks]), [](TrackKFin* track){ return (track ? track->frame() : FrameTrack()); });
       for (int layer = 0; layer < setup_->numLayers(); layer++)
         transform(stubs[layer].begin(), stubs[layer].end(), back_inserter(acceptedStubs[offsetStubs + layer]), [](StubKFin* stub){ return (stub ? stub->frame() : FrameStub()); });
     }
@@ -233,15 +334,13 @@ namespace trackerTFP {
 
   // peprare input data, associate stub collections with TTTrackRefs
   void KFin::prepare(vector<deque<TrackKFin*>>& streamsTracks, vector<deque<StubKFin*>>& streamsStubs) {
-    vector<stringstream> sss(6);
     for (int channel = 0; channel < dataFormats_->numChannel(Process::zht); channel++) {
       const int offset = channel / dataFormats_->numChannel(Process::kfin) * setup_->kfinMaxTracks();
       const vector<StubZHT*>& input = input_[channel];
       deque<TrackKFin*>& tracks = streamsTracks[channel];
       deque<StubKFin*>& stubs = streamsStubs[channel];
       // identify tracks in input container
-      int id;
-      auto different = [&id](StubZHT* stub) { return stub && id != stub->trackId(); };
+      auto newTrk = [](StubZHT* stub) { return stub && stub->newTrk(); };
       const auto begin = find_if(input.begin(), input.end(), [](StubZHT* stub){ return stub; });
       const int startGap = distance(input.begin(), begin);
       tracks.insert(tracks.end(), startGap, nullptr);
@@ -249,9 +348,12 @@ namespace trackerTFP {
       int sumSize = startGap - setup_->zhtMinLayers();
       int trackId(0);
       for (auto it = begin; it != input.end();) {
-        id = (*it)->trackId();
-        const auto end = find_if(it, input.end(), different);
+        auto end = find_if(it, input.end(), newTrk);
+        if (end != input.end())
+          end = next(end, 1);
         vector<StubZHT*> track(it, end);
+        if (all_of(track.begin(), track.end(), [](StubZHT* s){ return !s; }))
+          break;
         // set begin of next track
         it = end;
         // restore clock accurancy
@@ -274,15 +376,8 @@ namespace trackerTFP {
           const auto it = find(le.begin(), le.end(), layerId);
           const int kfLayerId = min((int)distance(le.begin(), it), setup_->numLayers() - 1);
           hitPattern.set(kfLayerId);
-          if (layerCounts[kfLayerId] + 1 < setup_->kfinMaxStubsPerLayer()) {
+          if (layerCounts[kfLayerId] < setup_->kfinMaxStubsPerLayer())
             stubsKFin_.emplace_back(*stub, kfLayerId, offset + trackId, layerCounts[kfLayerId]++);
-            sss[0] << setw(7) << dataFormats_->format(Variable::r, Process::zht).integer(stubsKFin_.back().r()) << " ";
-            sss[1] << setw(7) << dataFormats_->format(Variable::phi, Process::zht).integer(stubsKFin_.back().phi()) << " ";
-            sss[2] << setw(7) << dataFormats_->format(Variable::z, Process::zht).integer(stubsKFin_.back().z()) << " ";
-            sss[3] << setw(7) << stubsKFin_.back().layer() << " ";
-            sss[4] << setw(7) << dataFormats_->format(Variable::phi, Process::zht).integer(stubsKFin_.back().dPhi()) << " ";
-            sss[5] << setw(7) << dataFormats_->format(Variable::z, Process::zht).integer(stubsKFin_.back().dZ()) << " ";
-          }
         }
         const TTBV& maybePattern = layerEncoding_->maybePattern(stubZHT.zT());
         tracksKFin_.emplace_back(pop_back(ttTrackRefs_), dataFormats_, maybePattern, hitPattern, layerCounts, stubZHT.inv2R(), stubZHT.phiT(), stubZHT.zT(), offset + trackId);
@@ -296,10 +391,27 @@ namespace trackerTFP {
         for (auto sit = start; sit != stubsKFin_.end(); sit++)
           stubs.push_back(&*sit);
       }
+      vector<stringstream> sss(7);
+      for (StubKFin* stub : stubs) {
+          if (!stub) {
+            for (stringstream& ss : sss)
+              ss << setw(7) << "x" << " ";
+            continue;
+          }
+          sss[0] << setw(7) << stub->trackId() << " ";
+          sss[1] << setw(7) << stub->layer() << " ";
+          sss[2] << setw(7) << dataFormats_->format(Variable::r, Process::zht).integer(stub->r()) << " ";
+          sss[3] << setw(7) << dataFormats_->format(Variable::phi, Process::zht).integer(stub->phi()) << " ";
+          sss[4] << setw(7) << dataFormats_->format(Variable::z, Process::zht).integer(stub->z()) << " ";
+          sss[5] << setw(7) << dataFormats_->format(Variable::phi, Process::zht).integer(stub->dPhi()) << " ";
+          sss[6] << setw(7) << dataFormats_->format(Variable::z, Process::zht).integer(stub->dZ()) << " ";
+      }
+      /*if (region_ == 0 && channel == 2*1+0) {
+        for (const stringstream& ss : sss)
+          cout << ss.str() << endl;
+        throw cms::Exception("....");
+      }*/
     }
-    /*for (const stringstream& ss : sss)
-      cout << ss.str() << endl;
-    throw cms::Exception("....");*/
   }
 
   // remove and return last element of vector, returns nullRef if empty
