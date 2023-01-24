@@ -581,6 +581,12 @@ bool MatchProcessor::matchCalculator(Tracklet* tracklet, const Stub* fpgastub, b
     bool imatch = (std::abs(ideltaphi) <= best_ideltaphi_barrel && (ideltaz << dzshift_ < best_ideltaz_barrel) &&
                    (ideltaz << dzshift_ >= -best_ideltaz_barrel));
 
+    // Update the "best" values
+    if (imatch) {
+      best_ideltaphi_barrel = std::abs(ideltaphi);
+      best_ideltaz_barrel = std::abs(ideltaz << dzshift_);
+    }
+
     if (settings_.debugTracklet()) {
       edm::LogVerbatim("Tracklet") << getName() << " imatch = " << imatch << " ideltaphi cut " << ideltaphi << " "
                                    << phimatchcuttable_.lookup(seedindex) << " ideltaz<<dzshift cut "
@@ -604,11 +610,6 @@ bool MatchProcessor::matchCalculator(Tracklet* tracklet, const Stub* fpgastub, b
       }
     }
 
-    // Update the "best" values
-    if (imatch) {
-      best_ideltaphi_barrel = std::abs(ideltaphi);
-      best_ideltaz_barrel = std::abs(ideltaz << dzshift_);
-    }
     if (imatch) {
       tracklet->addMatch(layerdisk_,
                          ideltaphi,
