@@ -201,6 +201,10 @@ namespace tt {
         kfMinLayers_(pSetKF_.getParameter<int>("MinLayers")),
         kfMaxLayers_(pSetKF_.getParameter<int>("MaxLayers")),
         kfRangeFactor_(pSetKF_.getParameter<double>("RangeFactor")),
+        kfShiftInitialC00_(pSetKF_.getParameter<int>("ShiftInitialC00")),
+        kfShiftInitialC11_(pSetKF_.getParameter<int>("ShiftInitialC11")),
+        kfShiftInitialC22_(pSetKF_.getParameter<int>("ShiftInitialC22")),
+        kfShiftInitialC33_(pSetKF_.getParameter<int>("ShiftInitialC33")),
         // Parmeter specifying KalmanFilter Output Formatter
         pSetKFOut_(iConfig.getParameter<ParameterSet>("KalmanFilterOut")),
         kfoutchi2rphiBins_(pSetKFOut_.getParameter<vector<double>>("chi2rphiBins")),

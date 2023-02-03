@@ -1070,8 +1070,9 @@ void FitTrack::execute(deque<string>& streamTrackRaw,
           bool disk2S = (stub->disk() != 0) && (stub->isPSmodule() == 0);
           if (disk2S)
             r = string(widthDisk2Sidentifier, '0') + r;
+          const string& stubId = resid.fpgastubid().str();
           // store seed, L1TStub, and bit accurate 64 bit word in clock accurate output
-          streamsStubRaw[ihit++].emplace_back(seedType, *stub, valid + r + phi + rz);
+          streamsStubRaw[ihit++].emplace_back(seedType, *stub, valid + stubId + r + phi + rz);
         }
       }
       // fill all layers that have no stubs with gaps

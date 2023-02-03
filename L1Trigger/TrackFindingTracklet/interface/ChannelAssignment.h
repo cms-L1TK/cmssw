@@ -22,12 +22,28 @@ namespace trklet {
     ChannelAssignment() {}
     ChannelAssignment(const edm::ParameterSet& iConfig, const tt::Setup* setup);
     ~ChannelAssignment() {}
-    // sets channelId of given TTTrackRef from TrackBuilder or PurgeDuplicate (if enabled), return false if track outside pt range
-    bool channelId(const TTTrackRef& ttTrackRef, int& channelId);
-    // number of used channels for tracks
+    // returns channelId of given TTTrackRef from TrackBuilder
+    int channelId(const TTTrackRef& ttTrackRef) const;
+    // number of used TB channels for tracks
     int numChannelsTrack() const { return numChannelsTrack_; }
-    // number of used channels for stubs
+    // number of used TB channels for stubs
     int numChannelsStub() const { return numChannelsStub_; }
+    // 
+    int widthLayerId() const { return widthLayerId_; }
+    // 
+    int widthStubId() const { return widthStubId_; }
+    // 
+    int widthPSTilt() const { return widthPSTilt_; }
+    //
+    int drinDepthMemory() const { return drinDepthMemory_; }
+    //
+    int drNumComparisonModules() const { return drNumComparisonModules_; }
+    //
+    int drMinIdenticalStubs() const { return drMinIdenticalStubs_; }
+    //
+    int kfinDepthMemory() const { return kfinDepthMemory_; }
+    // number of DR nodes
+    int numNodesDR() const { return numNodesDR_; }
     // number of used seed types in tracklet algorithm
     int numSeedTypes() const { return numSeedTypes_; }
     // sets layerId (0-7 in sequence the seed type projects to) of given TTStubRef and seedType, returns false if seeed stub
@@ -50,21 +66,36 @@ namespace trklet {
     int channelId(int seedType, int layerId) const;
     // max number of seeding layers
     int numSeedingLayers() const { return numSeedingLayers_; }
-
+    //
+    int nodeDR(const TTTrackRef& ttTrackRef) const;
   private:
     // helper class to store configurations
     const tt::Setup* setup_;
-    // use tracklet seed type as channel id if False, binned track pt used if True
-    bool useDuplicateRemoval_;
-    // pt Boundaries in GeV, last boundary is infinity
-    std::vector<double> boundaries_;
+    // 
+    int widthLayerId_;
+    // 
+    int widthStubId_;
+    // 
+    int widthPSTilt_;
+    // positive pt Boundaries in GeV (symmetric negatives are assumed), first boundary is pt cut, last boundary is infinity, defining ot bins used by DR
+    std::vector<double> ptBoundaries_;
+    //
+    int drinDepthMemory_;
+    //
+    int drNumComparisonModules_;
+    //
+    int drMinIdenticalStubs_;
+    //
+    int kfinDepthMemory_;
+    // number of DR nodes
+    int numNodesDR_;
     // seed type names
     std::vector<std::string> seedTypeNames_;
     // number of used seed types in tracklet algorithm
     int numSeedTypes_;
-    // number of used channels for tracks
+    // number of used TB channels for tracks
     int numChannelsTrack_;
-    // number of used channels for stubs
+    // number of used TB channels for stubs
     int numChannelsStub_;
     // seeding layers of seed types using default layer id [barrel: 1-6, discs: 11-15]
     std::vector<std::vector<int>> seedTypesSeedLayers_;

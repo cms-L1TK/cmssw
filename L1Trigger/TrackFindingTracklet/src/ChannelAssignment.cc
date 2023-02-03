@@ -16,11 +16,18 @@ namespace trklet {
 
   ChannelAssignment::ChannelAssignment(const edm::ParameterSet& iConfig, const Setup* setup)
       : setup_(setup),
-        useDuplicateRemoval_(iConfig.getParameter<bool>("UseDuplicateRemoval")),
-        boundaries_(iConfig.getParameter<vector<double>>("PtBoundaries")),
+        widthLayerId_(iConfig.getParameter<int>("WidthLayerId")),
+        widthStubId_(iConfig.getParameter<int>("WidthStubId")),
+        widthPSTilt_(iConfig.getParameter<int>("WidthPSTilt")),
+        ptBoundaries_(iConfig.getParameter<vector<double>>("PtBoundaries")),
+        drinDepthMemory_(iConfig.getParameter<int>("DRinDepthMemory")),
+        drNumComparisonModules_(iConfig.getParameter<int>("DRNumComparisonModules")),
+        drMinIdenticalStubs_(iConfig.getParameter<int>("DRMinIdenticalStubs")),
+        kfinDepthMemory_(iConfig.getParameter<int>("KFinDepthMemory")),
+        numNodesDR_(2 * (ptBoundaries_.size() + 1)),
         seedTypeNames_(iConfig.getParameter<vector<string>>("SeedTypes")),
         numSeedTypes_(seedTypeNames_.size()),
-        numChannelsTrack_(useDuplicateRemoval_ ? 2 * boundaries_.size() : numSeedTypes_),
+        numChannelsTrack_(numSeedTypes_),
         channelEncoding_(iConfig.getParameter<vector<int>>("IRChannelsIn")) {
     const ParameterSet& pSetSeedTypesSeedLayers = iConfig.getParameter<ParameterSet>("SeedTypesSeedLayers");
     const ParameterSet& pSetSeedTypesProjectionLayers = iConfig.getParameter<ParameterSet>("SeedTypesProjectionLayers");
@@ -114,35 +121,19 @@ namespace trklet {
         max_element(seedTypesProjectionLayers_.begin(), seedTypesProjectionLayers_.end(), bigger)->size();
   }
 
-  // sets channelId of given TTTrackRef, return false if track outside pt range
-  bool ChannelAssignment::channelId(const TTTrackRef& ttTrackRef, int& channelId) {
-    if (!useDuplicateRemoval_) {
-      const int seedType = ttTrackRef->trackSeedType();
-      if (seedType >= numSeedTypes_) {
-        cms::Exception exception("logic_error");
-        exception << "TTTracks form seed type" << seedType << " not in supported list: (";
-        for (const auto& s : seedTypeNames_)
-          exception << s << " ";
-        exception << ").";
-        exception.addContext("trklet:ChannelAssignment:channelId");
-        throw exception;
-      }
-      channelId = ttTrackRef->phiSector() * numSeedTypes_ + seedType;
-      return true;
+  // returns channelId of given TTTrackRef
+  int ChannelAssignment::channelId(const TTTrackRef& ttTrackRef) const {
+    const int seedType = ttTrackRef->trackSeedType();
+    if (seedType >= numSeedTypes_) {
+      cms::Exception exception("logic_error");
+      exception << "TTTracks form seed type" << seedType << " not in supported list: (";
+      for (const auto& s : seedTypeNames_)
+        exception << s << " ";
+      exception << ").";
+      exception.addContext("trklet:ChannelAssignment:channelId");
+      throw exception;
     }
-    const double pt = ttTrackRef->momentum().perp();
-    channelId = -1;
-    for (double boundary : boundaries_) {
-      if (pt < boundary)
-        break;
-      else
-        channelId++;
-    }
-    if (channelId == -1)
-      return false;
-    channelId = ttTrackRef->rInv() < 0. ? channelId : numChannelsTrack_ - channelId - 1;
-    channelId += ttTrackRef->phiSector() * numChannelsTrack_;
-    return true;
+    return ttTrackRef->phiSector() * numSeedTypes_ + seedType;
   }
 
   // sets layerId of given TTStubRef and seedType, returns false if seeed stub
@@ -188,6 +179,22 @@ namespace trklet {
     if (itp != projections.end())
       return distance(projections.begin(), itp);
     return -1;
+  }
+
+  //
+  int ChannelAssignment::nodeDR(const TTTrackRef& ttTrackRef) const {
+    const double pt = ttTrackRef->momentum().perp();
+    int bin(0);
+    for (double b : ptBoundaries_) {
+      if (pt < b)
+        break;
+      bin++;
+    }
+    if (ttTrackRef->rInv() >= 0.)
+      bin += numNodesDR_ / 2;
+    else
+      bin = numNodesDR_ / 2 - 1 - bin;
+    return bin;
   }
 
 }  // namespace trklet

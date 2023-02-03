@@ -491,6 +491,14 @@ namespace tt {
     int kfMaxLayers() const { return kfMaxLayers_; }
     // search window of each track parameter in initial uncertainties
     double kfRangeFactor() const { return kfRangeFactor_; }
+    //
+    int kfShiftInitialC00() const { return kfShiftInitialC00_; }
+    //
+    int kfShiftInitialC11() const { return kfShiftInitialC11_; }
+    //
+    int kfShiftInitialC22() const { return kfShiftInitialC22_; }
+    //
+    int kfShiftInitialC33() const { return kfShiftInitialC33_; }
 
     // Parameter specifying KalmanFilter Output Formatter
 
@@ -897,6 +905,14 @@ namespace tt {
     int kfMaxLayers_;
     // search window of each track parameter in initial uncertainties
     double kfRangeFactor_;
+    //
+    int kfShiftInitialC00_;
+    //
+    int kfShiftInitialC11_;
+    //
+    int kfShiftInitialC22_;
+    //
+    int kfShiftInitialC33_;
 
     // Parameter specifying KalmanFilter Output Formatter
     edm::ParameterSet pSetKFOut_;
