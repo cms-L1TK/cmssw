@@ -35,6 +35,7 @@ namespace trklet {
                  tt::StreamsTrack& acceptedTracks,
                  tt::StreamsStub& lostStubs,
                  tt::StreamsTrack& lostTracks);
+
   private:
     // truncates double precision of val into base precision, +1.e-12 restores robustness of addition of 2 digitised values
     double digi(double val, double base) const { return (floor(val / base + 1.e-12) + .5) * base; }
@@ -42,7 +43,15 @@ namespace trklet {
     double redigi(double val, double baseLow, double baseHigh, int widthMultiplier) const;
     struct Stub {
       Stub(const TTStubRef& ttStubRef, int layer, int layerDet, int stubId, double r, double phi, double z, bool psTilt)
-          : valid_(true), ttStubRef_(ttStubRef), layer_(layer), layerDet_(layerDet), stubId_(stubId), r_(r), phi_(phi), z_(z), psTilt_(psTilt) {}
+          : valid_(true),
+            ttStubRef_(ttStubRef),
+            layer_(layer),
+            layerDet_(layerDet),
+            stubId_(stubId),
+            r_(r),
+            phi_(phi),
+            z_(z),
+            psTilt_(psTilt) {}
       bool valid_;
       TTStubRef ttStubRef_;
       //

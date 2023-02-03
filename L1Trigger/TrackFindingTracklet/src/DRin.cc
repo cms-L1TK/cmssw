@@ -343,7 +343,9 @@ namespace trklet {
       const TTBV r(dataFormats_->format(Variable::r, Process::kfin).ttBV(stub->r_));
       const TTBV phi(dataFormats_->format(Variable::phi, Process::kfin).ttBV(stub->phi_));
       const TTBV z(dataFormats_->format(Variable::z, Process::kfin).ttBV(stub->z_));
-      return FrameStub(stub->ttStubRef_, Frame("1" + to_string(stub->psTilt_) + layerId.str() + stubId.str() + r.str() + phi.str() + z.str()));
+      return FrameStub(
+          stub->ttStubRef_,
+          Frame("1" + to_string(stub->psTilt_) + layerId.str() + stubId.str() + r.str() + phi.str() + z.str()));
     };
     // route tracks into pt bins and store result
     const int offsetTrack = region_ * channelAssignment_->numNodesDR();
@@ -361,7 +363,7 @@ namespace trklet {
         }
       }
       // remove all gaps between end and last track
-      for (deque<Track*>& input: inputs)
+      for (deque<Track*>& input : inputs)
         for (auto it = input.end(); it != input.begin();)
           it = (*--it) ? input.begin() : input.erase(it);
       // clock accurate firmware emulation, each while trip describes one clock tick, one stub in and one stub out per tick

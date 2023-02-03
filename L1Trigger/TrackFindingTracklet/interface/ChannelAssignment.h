@@ -28,11 +28,11 @@ namespace trklet {
     int numChannelsTrack() const { return numChannelsTrack_; }
     // number of used TB channels for stubs
     int numChannelsStub() const { return numChannelsStub_; }
-    // 
+    //
     int widthLayerId() const { return widthLayerId_; }
-    // 
+    //
     int widthStubId() const { return widthStubId_; }
-    // 
+    //
     int widthPSTilt() const { return widthPSTilt_; }
     //
     int drinDepthMemory() const { return drinDepthMemory_; }
@@ -68,14 +68,15 @@ namespace trklet {
     int numSeedingLayers() const { return numSeedingLayers_; }
     //
     int nodeDR(const TTTrackRef& ttTrackRef) const;
+
   private:
     // helper class to store configurations
     const tt::Setup* setup_;
-    // 
+    //
     int widthLayerId_;
-    // 
+    //
     int widthStubId_;
-    // 
+    //
     int widthPSTilt_;
     // positive pt Boundaries in GeV (symmetric negatives are assumed), first boundary is pt cut, last boundary is infinity, defining ot bins used by DR
     std::vector<double> ptBoundaries_;

@@ -29,9 +29,11 @@ namespace trklet {
                  tt::StreamsTrack& acceptedTracks,
                  tt::StreamsStub& lostStubs,
                  tt::StreamsTrack& lostTracks);
+
   private:
     struct Stub {
-      Stub(const tt::FrameStub& frame, int layerId, int stubId, int channel) : frame_(frame), layerId_(layerId), stubId_(stubId), channel_(channel) {}
+      Stub(const tt::FrameStub& frame, int layerId, int stubId, int channel)
+          : frame_(frame), layerId_(layerId), stubId_(stubId), channel_(channel) {}
       bool operator==(const Stub& s) const {
         // we ignore fake seed stubs for the moment, to be romved when real seed stubs are available at TrackBuilder output
         if (s.stubId_ == -1 || stubId_ == -1)
@@ -48,7 +50,7 @@ namespace trklet {
     };
     struct Track {
       static constexpr int max_ = 7;
-      Track(){ stubs_.reserve(max_); }
+      Track() { stubs_.reserve(max_); }
       Track(const tt::FrameTrack& frame, const std::vector<Stub*>& stubs) : frame_(frame), stubs_(stubs) {}
       tt::FrameTrack frame_;
       std::vector<Stub*> stubs_;

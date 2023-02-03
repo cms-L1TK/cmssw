@@ -47,6 +47,7 @@ namespace trklet {
     void analyze(const Event& iEvent, const EventSetup& iSetup) override;
     void endRun(const Run& iEvent, const EventSetup& iSetup) override {}
     void endJob() override;
+
   private:
     //
     void formTracks(const StreamsTrack& streamsTrack,
@@ -204,7 +205,8 @@ namespace trklet {
         associate(lost, selection, tpPtrsLost, tmp);
         associate(tracks, reconstructable, tpPtrs, allMatched);
         const StreamTrack& stream = acceptedTracks[offset + channel];
-        const auto end = find_if(stream.rbegin(), stream.rend(), [](const FrameTrack& frame){ return frame.first.isNonnull(); });
+        const auto end =
+            find_if(stream.rbegin(), stream.rend(), [](const FrameTrack& frame) { return frame.first.isNonnull(); });
         const int size = distance(stream.begin(), end.base()) - 1;
         hisChannel_->Fill(size);
         profChannel_->Fill(channel, size);

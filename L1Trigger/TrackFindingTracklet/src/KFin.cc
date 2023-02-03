@@ -26,8 +26,8 @@ namespace trklet {
   // read in and organize input tracks and stubs
   void KFin::consume(const StreamsTrack& streamsTrack, const StreamsStub& streamsStub) {
     const int offsetTrack = region_ * channelAssignment_->numNodesDR();
-    auto nonNullTrack = [](int& sum, const FrameTrack& frame){ return sum += (frame.first.isNonnull() ? 1 : 0 ); };
-    auto nonNullStub = [](int& sum, const FrameStub& frame){ return sum += (frame.first.isNonnull() ? 1 : 0); };
+    auto nonNullTrack = [](int& sum, const FrameTrack& frame) { return sum += (frame.first.isNonnull() ? 1 : 0); };
+    auto nonNullStub = [](int& sum, const FrameStub& frame) { return sum += (frame.first.isNonnull() ? 1 : 0); };
     // count tracks and stubs and reserve corresponding vectors
     int sizeTracks(0);
     int sizeStubs(0);
@@ -107,10 +107,18 @@ namespace trklet {
                      StreamsTrack& lostTracks) {
     // calculate stub uncertainties
     static constexpr int usedMSBpitchOverRaddr = 1;
-    static const double baseRlut = dataFormats_->base(Variable::r, Process::kfin) * pow(2, dataFormats_->width(Variable::r, Process::zht) - setup_->widthAddrBRAM18() + usedMSBpitchOverRaddr);
-    static const double baseRinvR = dataFormats_->base(Variable::r, Process::kfin) * pow(2, dataFormats_->width(Variable::r, Process::zht) - setup_->widthAddrBRAM18());
-    static const double basePhi = dataFormats_->base(Variable::inv2R, Process::kfin) * dataFormats_->base(Variable::r, Process::kfin);
-    static const double baseInvR = pow(2., ceil(log2(dataFormats_->base(Variable::r, Process::kfin) / setup_->tbInnerRadius())) - setup_->widthDSPbu()) / dataFormats_->base(Variable::r, Process::kfin);
+    static const double baseRlut =
+        dataFormats_->base(Variable::r, Process::kfin) *
+        pow(2, dataFormats_->width(Variable::r, Process::zht) - setup_->widthAddrBRAM18() + usedMSBpitchOverRaddr);
+    static const double baseRinvR = dataFormats_->base(Variable::r, Process::kfin) *
+                                    pow(2, dataFormats_->width(Variable::r, Process::zht) - setup_->widthAddrBRAM18());
+    static const double basePhi =
+        dataFormats_->base(Variable::inv2R, Process::kfin) * dataFormats_->base(Variable::r, Process::kfin);
+    static const double baseInvR =
+        pow(2.,
+            ceil(log2(dataFormats_->base(Variable::r, Process::kfin) / setup_->tbInnerRadius())) -
+                setup_->widthDSPbu()) /
+        dataFormats_->base(Variable::r, Process::kfin);
     static const double maxCot = sinh(setup_->maxEta()) + setup_->beamWindowZ() / setup_->chosenRofZ();
     static constexpr int usedMSBCotLutaddr = 3;
     static const double baseCotLut = pow(2., ceil(log2(maxCot)) - setup_->widthAddrBRAM18() + usedMSBCotLutaddr);
@@ -148,9 +156,7 @@ namespace trklet {
       }
     }
     // store helper
-    auto frameTrack = [this](Track* track) {
-      return track->frame_;
-    };
+    auto frameTrack = [this](Track* track) { return track->frame_; };
     auto frameStub = [this](Track* track, int layer) {
       auto equal = [layer](Stub* stub) { return stub->channel_ == layer; };
       const auto it = find_if(track->stubs_.begin(), track->stubs_.end(), equal);
