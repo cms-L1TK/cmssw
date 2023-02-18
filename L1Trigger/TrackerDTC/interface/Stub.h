@@ -29,6 +29,7 @@ namespace trackerDTC {
     tt::Frame frame(int region) const;
     // checks stubs region assignment
     bool inRegion(int region) const;
+
   private:
     // truncates double precision to f/w integer equivalent
     double digi(double value, double precision) const;
