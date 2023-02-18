@@ -38,12 +38,10 @@ namespace tt {
   public:
     explicit StubAssociator(const ParameterSet&);
     ~StubAssociator() override {}
-
   private:
     void beginRun(const Run&, const EventSetup&) override;
     void produce(Event&, const EventSetup&) override;
     void endJob() {}
-
     // helper classe to store configurations
     const Setup* setup_ = nullptr;
     // ED input token of TTStubs

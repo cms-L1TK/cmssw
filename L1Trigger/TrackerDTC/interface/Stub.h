@@ -19,7 +19,6 @@ namespace trackerDTC {
   public:
     Stub(const edm::ParameterSet&, const tt::Setup*, const LayerEncoding*, tt::SensorModule*, const TTStubRef&);
     ~Stub() {}
-
     // underlying TTStubRef
     TTStubRef ttStubRef() const { return ttStubRef_; }
     // did pass pt and eta cut
@@ -30,7 +29,6 @@ namespace trackerDTC {
     tt::Frame frame(int region) const;
     // checks stubs region assignment
     bool inRegion(int region) const;
-
   private:
     // truncates double precision to f/w integer equivalent
     double digi(double value, double precision) const;
@@ -38,7 +36,6 @@ namespace trackerDTC {
     tt::Frame formatHybrid(int region) const;
     // 64 bit stub in tmtt data format
     tt::Frame formatTMTT(int region) const;
-
     // stores, calculates and provides run-time constants
     const tt::Setup* setup_;
     // class to encode layer ids used between DTC and TFP in Hybrid

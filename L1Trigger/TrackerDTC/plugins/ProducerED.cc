@@ -38,7 +38,6 @@ namespace trackerDTC {
   public:
     explicit ProducerED(const ParameterSet&);
     ~ProducerED() override {}
-
   private:
     void beginRun(const Run&, const EventSetup&) override;
     void produce(Event&, const EventSetup&) override;

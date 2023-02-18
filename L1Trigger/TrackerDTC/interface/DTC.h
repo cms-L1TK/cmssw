@@ -21,7 +21,6 @@ namespace trackerDTC {
     typedef std::deque<Stub*> Stubs;
     typedef std::vector<Stubs> Stubss;
     typedef std::vector<Stubss> Stubsss;
-
   public:
     DTC(const edm::ParameterSet& iConfig,
         const tt::Setup* setup,
@@ -31,7 +30,6 @@ namespace trackerDTC {
     ~DTC() {}
     // board level routing in two steps and products filling
     void produce(TTDTC& accepted, TTDTC& lost);
-
   private:
     // router step 1: merges stubs of all modules connected to one routing block into one stream
     void merge(Stubss& inputs, Stubs& output, Stubs& lost);
@@ -41,7 +39,6 @@ namespace trackerDTC {
     void produce(const Stubss& stubss, TTDTC& product);
     // pop_front function which additionally returns copy of deleted front
     Stub* pop_front(Stubs& stubs);
-
     // helper class to store configurations
     const tt::Setup* setup_;
     // enables emulation of truncation

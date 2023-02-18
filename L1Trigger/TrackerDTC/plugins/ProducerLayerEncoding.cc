@@ -24,7 +24,6 @@ namespace trackerDTC {
     ProducerLayerEncoding(const ParameterSet& iConfig);
     ~ProducerLayerEncoding() override {}
     unique_ptr<LayerEncoding> produce(const LayerEncodingRcd& rcd);
-
   private:
     const ParameterSet iConfig_;
     ESGetToken<Setup, SetupRcd> esGetToken_;

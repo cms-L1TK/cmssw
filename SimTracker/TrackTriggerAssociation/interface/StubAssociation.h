@@ -21,7 +21,6 @@ namespace tt {
     StubAssociation() { setup_ = nullptr; }
     StubAssociation(const Setup* setup) : setup_(setup) {}
     ~StubAssociation() {}
-
     // insert a TPPtr and its associated collection of TTstubRefs into the underlayering maps
     void insert(const TPPtr& tpPtr, const std::vector<TTStubRef>& ttSTubRefs);
     // returns map containing TTStubRef and their associated collection of TPPtrs
@@ -44,7 +43,6 @@ namespace tt {
     std::vector<TPPtr> associate(const std::vector<TTStubRef>& ttStubRefs) const;
     // Get all TPs that are matched to these stubs in at least 'tpMinLayers' layers and 'tpMinLayersPS' ps layers with not more then 'tpMaxBadStubs2S' not associated 2S stubs and not more then 'tpMaxBadStubsPS' associated PS stubs
     std::vector<TPPtr> associateFinal(const std::vector<TTStubRef>& ttStubRefs) const;
-
   private:
     // stores, calculates and provides run-time constants
     const Setup* setup_;
