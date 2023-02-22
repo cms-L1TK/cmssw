@@ -406,6 +406,7 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
   const TrackerGeometry* const theTrackerGeom = &iSetup.getData(esGetTokenTGeom_);
 
   // check killing stubs for detector degradation studies
+  // if failType = 0, StubKiller does not kill any modules
   int failType = 0;
   if(failScenario_ < 0 || failScenario_ > 9) {
     std::cout << "Invalid fail scenario! Ignoring input" << std::endl;
