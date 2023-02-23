@@ -9,31 +9,27 @@
 #include "TRandom3.h"
 #include "TMath.h"
 
-
 using namespace std;
 
-
 class StubKiller {
-
 public:
-
   StubKiller();
   ~StubKiller() {}
 
-  void initialise(unsigned int killScenario, const TrackerTopology* trackerTopology, const TrackerGeometry* trackerGeometry);
+  void initialise(unsigned int killScenario,
+                  const TrackerTopology* trackerTopology,
+                  const TrackerGeometry* trackerGeometry);
 
-  bool killStub(
-    const TTStub<Ref_Phase2TrackerDigi_>* stub,
-    const vector<int> layersToKill,
-    const double minPhiToKill,
-    const double maxPhiToKill,
-    const double minZToKill,
-    const double maxZToKill,
-    const double minRToKill,
-    const double maxRToKill,
-    const double fractionOfStubsToKillInLayers,
-    const double fractionOfStubsToKillEverywhere
-  );
+  bool killStub(const TTStub<Ref_Phase2TrackerDigi_>* stub,
+                const vector<int> layersToKill,
+                const double minPhiToKill,
+                const double maxPhiToKill,
+                const double minZToKill,
+                const double maxZToKill,
+                const double minRToKill,
+                const double maxRToKill,
+                const double fractionOfStubsToKillInLayers,
+                const double fractionOfStubsToKillEverywhere);
 
   bool killStub(const TTStub<Ref_Phase2TrackerDigi_>* stub);
 
@@ -41,9 +37,7 @@ public:
 
   map<DetId, float> getListOfDeadModules() { return deadModules_; }
 
-
 private:
-
   void chooseModulesToKill();
   void addDeadLayerModulesToDeadModuleList();
 
@@ -64,6 +58,5 @@ private:
 
   map<DetId, float> deadModules_;
 };
-
 
 #endif

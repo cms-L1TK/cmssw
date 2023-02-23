@@ -408,10 +408,10 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
   // check killing stubs for detector degradation studies
   // if failType = 0, StubKiller does not kill any modules
   int failType = 0;
-  if(failScenario_ < 0 || failScenario_ > 9) {
+  if (failScenario_ < 0 || failScenario_ > 9) {
     std::cout << "Invalid fail scenario! Ignoring input" << std::endl;
-  }
-  else failType = failScenario_;
+  } else
+    failType = failScenario_;
 
   stubKiller_ = new StubKiller();
   stubKiller_->initialise(failType, tTopo, theTrackerGeom);
@@ -621,10 +621,10 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
         const unsigned int intDetId = innerDetId.rawId();
 
         // check killing stubs for detector degredation studies
-        const TTStub<Ref_Phase2TrackerDigi_> *theStub = &(*stubRef);
+        const TTStub<Ref_Phase2TrackerDigi_>* theStub = &(*stubRef);
         bool killThisStub = stubKiller_->killStub(theStub);
 
-        if(!killThisStub) {
+        if (!killThisStub) {
           ev.addStub(dtcname,
                      region,
                      layerdisk,
