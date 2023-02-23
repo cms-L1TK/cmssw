@@ -621,33 +621,33 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
         const unsigned int intDetId = innerDetId.rawId();
 
         // check killing stubs for detector degredation studies
-        const TTStub<Ref_Phase2TrackerDigi_>* theStub = &(*stubRef);
-        bool killThisStub = stubKiller_->killStub(theStub);
-
-        if (!killThisStub) {
-          ev.addStub(dtcname,
-                     region,
-                     layerdisk,
-                     stubwordhex,
-                     setup_->psModule(dtcId),
-                     isFlipped,
-                     tiltedBarrel,
-                     tiltedRingId,
-                     endcapRingId,
-                     intDetId,
-                     ttPos.x(),
-                     ttPos.y(),
-                     ttPos.z(),
-                     stubbend,
-                     stubRef->innerClusterPosition(),
-                     assocTPs,
-                     theStubIndex);
-
-          const trklet::L1TStub& lastStub = ev.lastStub();
-          stubMap[lastStub] = stubRef;
-          stubIndexMap[lastStub.uniqueIndex()] = stub.first;
-          theStubIndex++;
-        }
+        // const TTStub<Ref_Phase2TrackerDigi_>* theStub = &(*stubRef);
+        // bool killThisStub = stubKiller_->killStub(theStub);
+        // 
+        // if (!killThisStub) {
+        //   ev.addStub(dtcname,
+        //              region,
+        //              layerdisk,
+        //              stubwordhex,
+        //              setup_->psModule(dtcId),
+        //              isFlipped,
+        //              tiltedBarrel,
+        //              tiltedRingId,
+        //              endcapRingId,
+        //              intDetId,
+        //              ttPos.x(),
+        //              ttPos.y(),
+        //              ttPos.z(),
+        //              stubbend,
+        //              stubRef->innerClusterPosition(),
+        //              assocTPs,
+        //              theStubIndex);
+        // 
+        //   const trklet::L1TStub& lastStub = ev.lastStub();
+        //   stubMap[lastStub] = stubRef;
+        //   stubIndexMap[lastStub.uniqueIndex()] = stub.first;
+        //   theStubIndex++;
+        // }
 
         ev.addStub(dtcname,
                    region,
