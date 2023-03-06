@@ -59,6 +59,11 @@ void MatchEngineUnit::init(VMStubsMEMemory* vmstubsmemory,
   else if (disk_test < N_DISK && layerdisk_ >= N_LAYER && abs(disk) == disk_test)
   std::cout << std::hex << "proj=" << trklet::hexFormat(proj->trackletprojstrdisk(disk)) << std::endl;
   }
+  std::cout << "Initializing rzbin=" << rzbin_ << " for ";
+  if (layerdisk_ < N_LAYER)
+    std::cout << std::hex << "proj=" << trklet::hexFormat(proj->trackletprojstr(layerdisk_+1)) << std::endl;
+  else
+    std::cout << std::hex << "proj=" << trklet::hexFormat(proj->trackletprojstrdisk(disk)) << std::endl;
   if (usefirstMinus) {
     use_.emplace_back(0, 0);
     std::cout << "HERE usefirstMinus" << std::endl;
@@ -139,6 +144,7 @@ void MatchEngineUnit::step(unsigned int istep) {
   }
 
   vmstub__ = vmstubsmemory_->getVMStubMEBin(slot, istub_);
+  rzbin__ = rzbin_;
   if (disk_test< N_DISK && (abs(disk) == disk_test || layerdisk_ == barrel_test)) {
   if (barrel_test<N_LAYER && layerdisk_ < N_LAYER)
     std::cout << std::hex << "proj=" << trklet::hexFormat(proj_->trackletprojstr(layerdisk_+1)) << std::endl;
@@ -178,7 +184,6 @@ void MatchEngineUnit::step(unsigned int istep) {
   isPSseed__ = isPSseed_;
   projrinv__ = projrinv_;
   proj__ = proj_;
-  rzbin__ = rzbin_;
 
   istub_++;
   if (istub_ >= vmstubsmemory_->nStubsBin(slot)) {
@@ -202,7 +207,7 @@ void MatchEngineUnit::processPipeline() {
     if (barrel_) {
       isPSmodule = layerdisk_ < N_PSLAYER;
     } else {
-      const int absz = (1 << (settings_.MEBinsBits()+1)) - 1;
+      const int absz = (1 << settings_.MEBinsBits()) - 1;
       std::cout << "absz=" << absz << std::endl;
       if (layerdisk_ < N_LAYER + 2) {
         isPSmodule = ((rzbin___ & absz) < 3) || ((rzbin___ & absz) == 3 && stubfinerz <= 3);
@@ -212,8 +217,14 @@ void MatchEngineUnit::processPipeline() {
     }
     isPSmodule = barrel_ ? isPSmodule : stubbend < (1<<N_BENDBITS_2S)-1;
 
+    int sign = (proj___->t() > 0.0) ? 1 : -1;
+    int disk = sign * (layerdisk_ - N_LAYER + 1);
     if(!barrel_)
-    std::cout << "rzbin=" << rzbin___ << " " << std::bitset<4>(rzbin___) << " r=" << std::dec << vmstub___.stub()->r().value() << std::hex << " stubfinerz=" << stubfinerz << " " << std::bitset<trklet::NFINERZBITS>(stubfinerz) << " stubfinephi=" << stubfinephi << " " << std::bitset<trklet::NFINEPHIBITS>(stubfinephi) << " stubindex=" << vmstub___.stubindex().value() << " bend=" << stubbend << " " << std::bitset<N_BENDBITS_2S>(stubbend) << " isPS=" << isPSmodule << " true isPS=" << vmstub___.isPSmodule() << " matches=" << (isPSmodule == vmstub___.isPSmodule()) << " DISK=" << layerdisk_ - N_LAYER + 1 << std::endl;
+    std::cout << "rzbin=" << rzbin___ << " " << std::bitset<4>(rzbin___) << " r=" << std::dec << vmstub___.stub()->r().value() << std::hex << " stubfinerz=" << stubfinerz << " " << std::bitset<trklet::NFINERZBITS>(stubfinerz) << " stubfinephi=" << stubfinephi << " " << std::bitset<trklet::NFINEPHIBITS>(stubfinephi) << " stubindex=" << vmstub___.stubindex().value() << " bend=" << stubbend << " " << std::bitset<N_BENDBITS_2S>(stubbend) << " isPS=" << isPSmodule << " true isPS=" << vmstub___.isPSmodule() << " matches=" << (isPSmodule == vmstub___.isPSmodule()) << " DISK=" << layerdisk_ - N_LAYER + 1 << " for ";
+    if (layerdisk_ < N_LAYER)
+      std::cout << std::hex << "proj=" << trklet::hexFormat(proj___->trackletprojstr(layerdisk_+1)) << std::endl;
+    else
+      std::cout << std::hex << "proj=" << trklet::hexFormat(proj___->trackletprojstrdisk(disk)) << std::endl;
     //isPSmodule = vmstub___.isPSmodule();
     assert(isPSmodule == vmstub___.isPSmodule());
     /*
@@ -256,8 +267,6 @@ void MatchEngineUnit::processPipeline() {
     }
 
     bool goodpair = (pass && dphicut) && luttable_.lookup(index);
-    int sign = (proj___->t() > 0.0) ? 1 : -1;
-    int disk = sign * (layerdisk_ - N_LAYER + 1);
     std::cout << proj___ << std::endl;
     if (disk_test< N_DISK && (abs(disk) == disk_test || layerdisk_ == barrel_test)) {
       int drzcut = 0;
