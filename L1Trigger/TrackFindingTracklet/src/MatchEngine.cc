@@ -236,6 +236,8 @@ void MatchEngine::execute(unsigned int iSector) {
         }
       }
 
+      if(!barrel_)
+      std::cout << "rzbin=" << rzbin << " " << std::bitset<4>(rzbin) << " r=" << std::dec << vmstub.stub()->r().value() << std::hex << " stubfinerz=" << stubfinerz << " " << std::bitset<trklet::NFINERZBITS>(stubfinerz) << " stubindex=" << vmstub.stubindex().value() << std::bitset<7>(vmstub.stubindex().value()) << " isPS=" << isPSmodule << " true isPS=" << vmstub.isPSmodule() << " matches=" << (isPSmodule == vmstub.isPSmodule()) << " DISK=" << layerdisk_ - N_LAYER + 1 << std::endl;
       assert(isPSmodule == vmstub.isPSmodule());
 
       int nbits = isPSmodule ? N_BENDBITS_PS : N_BENDBITS_2S;

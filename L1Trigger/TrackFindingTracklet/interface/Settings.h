@@ -19,8 +19,8 @@ namespace tt {
 }
 
 namespace trklet {
-  constexpr unsigned barrel_test = 0;
-  constexpr unsigned disk_test = 3;
+  constexpr unsigned int barrel_test = 9;
+  constexpr unsigned int disk_test = 1;
 
   constexpr unsigned int N_SECTOR = 9;  // # of phi sectors for L1TK processing
 

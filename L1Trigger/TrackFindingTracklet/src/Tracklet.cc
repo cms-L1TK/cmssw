@@ -303,6 +303,14 @@ void Tracklet::addMatch(unsigned int layerdisk,
                         const trklet::Stub* stubptr) {
   assert(layerdisk < N_LAYER + N_DISK);
   resid_[layerdisk].init(settings_, layerdisk, ideltaphi, ideltarz, stubid, dphi, drz, dphiapprox, drzapprox, stubptr);
+  if(barrel_test<trklet::N_DISK && layerdisk==int(barrel_test))
+  std::cout << "Adding FullMatch=" << trklet::hexFormat(fullmatchstr(layerdisk+1)) << std::endl;
+  /*
+  int sign = (t() > 0.0) ? 1 : -1;
+  int disk = sign * (layerdisk - N_LAYER + 1);
+  if(disk==int(disk_test))
+  std::cout << "Adding FullMatch=" << trklet::hexFormat(fullmatchdiskstr(disk)) << std::endl;
+  */
 }
 
 std::string Tracklet::fullmatchstr(int layer) {

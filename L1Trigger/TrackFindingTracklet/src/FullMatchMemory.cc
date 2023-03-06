@@ -20,6 +20,12 @@ void FullMatchMemory::addMatch(Tracklet* tracklet, const Stub* stub) {
     // When allowing only one stub per track per layer (or no KF implying same).
     for (auto& match : matches_) {
       if (match.first == tracklet) {  //Better match: replace existing one
+        std::cout << "Replacing stub=" << trklet::hexFormat(match.second->str()) << " with " << trklet::hexFormat(stub->str()) << std::endl;
+        std::pair<Tracklet*, const Stub*> tmp(tracklet, stub);
+        if(barrel_test<trklet::N_LAYER && layer_==(int)barrel_test+1)
+        std::cout << "FullMatch=" << trklet::hexFormat(tmp.first->fullmatchstr(layer_)) << std::endl;
+        if(disk_test<trklet::N_LAYER+N_DISK && disk_==(int)disk_test)
+        std::cout << "FullMatch=" << trklet::hexFormat(tmp.first->fullmatchdiskstr(disk_)) << std::endl;
         match.second = stub;
         return;
       }
@@ -37,6 +43,10 @@ void FullMatchMemory::addMatch(Tracklet* tracklet, const Stub* stub) {
     }
   }
   matches_.push_back(tmp);
+  if(barrel_test<trklet::N_LAYER && layer_==(int)barrel_test+1)
+  std::cout << "FullMatch=" << trklet::hexFormat(tmp.first->fullmatchstr(layer_)) << std::endl;
+  if(disk_test<trklet::N_LAYER+N_DISK && disk_==(int)disk_test)
+  std::cout << "FullMatch=" << trklet::hexFormat(tmp.first->fullmatchdiskstr(disk_)) << std::endl;
 }
 
 void FullMatchMemory::writeMC(bool first, unsigned int iSector) {
@@ -54,6 +64,7 @@ void FullMatchMemory::writeMC(bool first, unsigned int iSector) {
   for (unsigned int j = 0; j < matches_.size(); j++) {
     string match = (layer_ > 0) ? matches_[j].first->fullmatchstr(layer_) : matches_[j].first->fullmatchdiskstr(disk_);
     out_ << hexstr(j) << " " << match << " " << trklet::hexFormat(match) << endl;
+    std::cout << "Wrote FullMatch=" << trklet::hexFormat(match) << std::endl;
   }
   out_.close();
 

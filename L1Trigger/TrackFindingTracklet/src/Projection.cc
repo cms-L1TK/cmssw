@@ -105,7 +105,7 @@ void Projection::init(Settings const& settings,
 
     int diff = rbin1 != rbin2;
     if (irzder < 0)
-      rbin1 += 8;
+      rbin1 += 1 << settings.MEBinsBits();
 
     fpgarzbin1projvm_.set(rbin1, 4, true, __LINE__, __FILE__);  // first r bin
     fpgarzbin2projvm_.set(diff, 1, true, __LINE__, __FILE__);   // need to check adjacent r bin

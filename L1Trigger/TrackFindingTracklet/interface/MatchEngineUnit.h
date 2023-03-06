@@ -32,6 +32,7 @@ namespace trklet {
     ~MatchEngineUnit() = default;
 
     void init(VMStubsMEMemory* vmstubsmemory,
+              unsigned int istep,
               unsigned int nrzbin,
               unsigned int rzbin,
               unsigned int iphi,
@@ -54,6 +55,8 @@ namespace trklet {
 
     std::pair<Tracklet*, const Stub*> peek() const { return candmatches_.peek(); }
 
+    void print();
+
     bool idle() const { return idle_; }
 
     bool active() const { return !idle_ || good__ || good___ || !empty(); }
@@ -69,7 +72,7 @@ namespace trklet {
     unsigned int rptr() const { return candmatches_.rptr(); }
     unsigned int wptr() const { return candmatches_.wptr(); }
 
-    void step();
+    void step(unsigned int istep);
 
     void processPipeline();
 
@@ -80,7 +83,7 @@ namespace trklet {
     VMStubsMEMemory* vmstubsmemory_;
 
     unsigned int nrzbins_;
-    unsigned int rzbin_;
+    unsigned int rzbin_, rzbin__, rzbin___, rzbin__t;
     unsigned int phibin_;
     int shift_;
 
@@ -115,6 +118,7 @@ namespace trklet {
     int projfinephi__, projfinephi__t, projfinephi___;
     int projrinv__, projrinv__t, projrinv___;
     Tracklet *proj__, *proj__t, *proj___;
+    unsigned int istep_;
 
     //save the candidate matches
     CircularBuffer<std::pair<Tracklet*, const Stub*>> candmatches_;

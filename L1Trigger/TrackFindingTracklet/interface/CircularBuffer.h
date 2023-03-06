@@ -58,6 +58,8 @@ namespace trklet {
     //these are needed for comparison of emulation with HLS FW
     unsigned int rptr() const { return rptr_; }
     unsigned int wptr() const { return wptr_; }
+    inline auto operator[](unsigned int i) { return buffer_[i]; }
+    inline size_t size() { return wptr_; }
 
   private:
     std::vector<T> buffer_;
