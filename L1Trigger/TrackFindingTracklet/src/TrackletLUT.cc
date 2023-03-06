@@ -9,7 +9,8 @@
 using namespace std;
 using namespace trklet;
 
-TrackletLUT::TrackletLUT(const Settings& settings) : settings_(settings), setup_(settings.setup()), nbits_(0), positive_(true) {}
+TrackletLUT::TrackletLUT(const Settings& settings)
+    : settings_(settings), setup_(settings.setup()), nbits_(0), positive_(true) {}
 
 std::vector<const tt::SensorModule*> TrackletLUT::getSensorModules(
     unsigned int layerdisk, bool isPS, std::array<double, 2> tan_range, unsigned int nzbins, unsigned int zbin) {
@@ -1142,7 +1143,7 @@ void TrackletLUT::initVMRTable(unsigned int layerdisk, VMRTableType type, int re
       //This if a hack where the same memory is used in both ME and TE modules
       if (layerdisk == LayerDisk::L2 || layerdisk == LayerDisk::L3 || layerdisk == LayerDisk::L4 ||
           layerdisk == LayerDisk::L6) {
-	nbits_ = 6;
+        nbits_ = 6;
         positive_ = false;
         name_ = "VMTableOuter" + TrackletConfigBuilder::LayerName(layerdisk) + ".tab";
         writeTable();
@@ -1453,10 +1454,10 @@ void TrackletLUT::writeTable() const {
 }
 
 int TrackletLUT::lookup(unsigned int index) const {
-  if (index >= table_.size() ){
-    throw cms::Exception("LogicError") << "Error in " << __FILE__ << " index >= size " 
-				       << index << " " << table_.size() << " in " << name_;
-  } 
+  if (index >= table_.size()) {
+    throw cms::Exception("LogicError") << "Error in " << __FILE__ << " index >= size " << index << " " << table_.size()
+                                       << " in " << name_;
+  }
   assert(index < table_.size());
   return table_[index];
 }
