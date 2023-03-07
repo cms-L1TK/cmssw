@@ -89,6 +89,7 @@ void MatchEngineUnit::step() {
   }
 
   vmstub__ = vmstubsmemory_->getVMStubMEBin(slot, istub_);
+  rzbin__ = rzbin_ + use_[iuse_].first;
 
   isPSseed__ = isPSseed_;
   projrinv__ = projrinv_;
@@ -107,9 +108,22 @@ void MatchEngineUnit::step() {
 
 void MatchEngineUnit::processPipeline() {
   if (good___) {
-    bool isPSmodule = vmstub___.isPSmodule();
     int stubfinerz = vmstub___.finerz().value();
     int stubfinephi = vmstub___.finephi().value();
+    bool isPSmodule = false;
+
+    if (barrel_) {
+      isPSmodule = layerdisk_ < N_PSLAYER;
+    } else {
+      const int absz = (1 << settings_.MEBinsBits()) - 1;
+      std::cout << "absz=" << absz << std::endl;
+      if (layerdisk_ < N_LAYER + 2) {
+        isPSmodule = ((rzbin___ & absz) < 3) || ((rzbin___ & absz) == 3 && stubfinerz <= 3);
+      } else {
+        isPSmodule = ((rzbin___ & absz) < 3) || ((rzbin___ & absz) == 3 && stubfinerz <= 2);
+      }
+    }
+    assert(isPSmodule == vmstub___.isPSmodule());
 
     int deltaphi = stubfinephi - projfinephi___;
 
@@ -162,6 +176,7 @@ void MatchEngineUnit::processPipeline() {
   isPSseed___ = isPSseed__t;
   good___ = good__t;
   vmstub___ = vmstub__t;
+  rzbin___ = rzbin__t;
 
   proj__t = proj__;
   projfinephi__t = projfinephi__;
@@ -170,6 +185,7 @@ void MatchEngineUnit::processPipeline() {
   isPSseed__t = isPSseed__;
   good__t = good__;
   vmstub__t = vmstub__;
+  rzbin__t = rzbin__;
 }
 
 void MatchEngineUnit::reset() {
