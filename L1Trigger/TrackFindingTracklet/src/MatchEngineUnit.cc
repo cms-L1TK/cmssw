@@ -116,7 +116,6 @@ void MatchEngineUnit::processPipeline() {
       isPSmodule = layerdisk_ < N_PSLAYER;
     } else {
       const int absz = (1 << settings_.MEBinsBits()) - 1;
-      std::cout << "absz=" << absz << std::endl;
       if (layerdisk_ < N_LAYER + 2) {
         isPSmodule = ((rzbin___ & absz) < 3) || ((rzbin___ & absz) == 3 && stubfinerz <= 3);
       } else {
