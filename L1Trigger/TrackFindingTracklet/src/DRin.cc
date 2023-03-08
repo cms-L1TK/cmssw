@@ -282,29 +282,27 @@ namespace trklet {
       const int sectorEta = track.sector_ % setup_->numSectorsEta();
       const int zT = dataFormats_->format(Variable::zT, Process::kfin).toUnsigned(track.zT_);
       const int cot = dataFormats_->format(Variable::cot, Process::kfin).toUnsigned(track.cot_);
-      track.maybe_ = TTBV(0, setup_->numLayers());
       for (Stub* stub : track.stubs_) {
         if (!stub->valid_)
           continue;
-        // replace layerId by encoded layerId
-        stub->layer_ = layerEncoding_->layerIdKF(sectorEta, zT, cot, stub->layer_);
+        // store encoded layerId
+        stub->layerKF_ = layerEncoding_->layerIdKF(sectorEta, zT, cot, stub->layer_);
         // kill stubs from layers which can't be crossed by track
-        if (stub->layer_ == -1)
+        if (stub->layerKF_ == -1)
           stub->valid_ = false;
-        if (stub->valid_) {
-          if (track.maybe_[stub->layer_]) {
-            for (Stub* s : track.stubs_) {
-              if (s == stub)
-                break;
-              if (s->layer_ == stub->layer_)
-                s->valid_ = false;
-            }
-          } else
-            track.maybe_.set(stub->layer_);
-        }
+      }
+      TTBV hitPattern(0, setup_->numLayers());
+      // kill multiple stubs from same kf layer
+      for (Stub* stub : track.stubs_) {
+        if (!stub->valid_)
+          continue;
+        if (hitPattern[stub->layerKF_])
+          stub->valid_ = false;
+        else
+          hitPattern.set(stub->layerKF_);
       }
       // lookup maybe layers
-      track.maybe_ &= layerEncoding_->maybePattern(sectorEta, zT, cot);
+      track.maybe_ = layerEncoding_->maybePattern(sectorEta, zT, cot);
     }
     // kill tracks with not enough layer
     for (Track& track : tracks_) {
@@ -313,7 +311,7 @@ namespace trklet {
       TTBV hits(0, setup_->numLayers());
       for (const Stub* stub : track.stubs_)
         if (stub->valid_)
-          hits.set(stub->layer_);
+          hits.set(stub->layerKF_);
       if (hits.count() < setup_->kfMinLayers())
         track.valid_ = false;
     }
@@ -333,7 +331,7 @@ namespace trklet {
                               zT.str() + cot.str()));
     };
     auto frameStub = [this](Track* track, int layer) {
-      auto equal = [layer](Stub* stub) { return stub->valid_ && stub->layer_ == layer; };
+      auto equal = [layer](Stub* stub) { return stub->valid_ && stub->layerKF_ == layer; };
       const auto it = find_if(track->stubs_.begin(), track->stubs_.end(), equal);
       if (it == track->stubs_.end() || !(*it)->valid_)
         return FrameStub();
@@ -374,7 +372,7 @@ namespace trklet {
           deque<Track*>& stack = stacks[channel];
           Track* track = pop_front(inputs[channel]);
           if (track) {
-            if (enableTruncation_ && (int)stack.size() == channelAssignment_->drinDepthMemory() - 1)
+            if (enableTruncation_ && (int)stack.size() == channelAssignment_->depthMemory() - 1)
               lost.push_back(pop_front(stack));
             stack.push_back(track);
           }

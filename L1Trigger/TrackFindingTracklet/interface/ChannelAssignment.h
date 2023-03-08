@@ -28,20 +28,18 @@ namespace trklet {
     int numChannelsTrack() const { return numChannelsTrack_; }
     // number of used TB channels for stubs
     int numChannelsStub() const { return numChannelsStub_; }
-    //
+    // number of bits used to represent layer id [barrel: 0-5, discs: 6-10]
     int widthLayerId() const { return widthLayerId_; }
-    //
+    // number of bits used to represent stub id
     int widthStubId() const { return widthStubId_; }
-    //
+    // number of bits used to distinguish between tilted and untilded barrel modules or 2S and PS endcap modules
     int widthPSTilt() const { return widthPSTilt_; }
-    //
-    int drinDepthMemory() const { return drinDepthMemory_; }
-    //
-    int drNumComparisonModules() const { return drNumComparisonModules_; }
-    //
-    int drMinIdenticalStubs() const { return drMinIdenticalStubs_; }
-    //
-    int kfinDepthMemory() const { return kfinDepthMemory_; }
+    // depth of fifos within systolic array
+    int depthMemory() const { return depthMemory_; }
+    // number of comparison modules used in each DR node
+    int numComparisonModules() const { return numComparisonModules_; }
+    // min number of shared stubs to identify duplicates
+    int minIdenticalStubs() const { return minIdenticalStubs_; }
     // number of DR nodes
     int numNodesDR() const { return numNodesDR_; }
     // number of used seed types in tracklet algorithm
@@ -58,36 +56,38 @@ namespace trklet {
     int offsetStub(int channelTrack) const;
     // seed layers for given seed type id
     const std::vector<int>& seedingLayers(int seedType) const { return seedTypesSeedLayers_.at(seedType); }
-    //
+    // returns SensorModule::Type for given TTStubRef
     tt::SensorModule::Type type(const TTStubRef& ttStubRef) const { return setup_->type(ttStubRef); }
-    //
+    // layers a seed types can project to using default layer id [barrel: 1-6, discs: 11-15]
     int layerId(int seedType, int channel) const { return seedTypesProjectionLayers_.at(seedType).at(channel); }
-    //
+    // returns TBout channel Id
     int channelId(int seedType, int layerId) const;
     // max number of seeding layers
     int numSeedingLayers() const { return numSeedingLayers_; }
-    //
+    // return DR node for given ttTrackRef
     int nodeDR(const TTTrackRef& ttTrackRef) const;
 
   private:
     // helper class to store configurations
     const tt::Setup* setup_;
-    //
+    // DRin parameter
+    edm::ParameterSet pSetDRin_;
+    // number of bits used to represent layer id [barrel: 0-5, discs: 6-10]
     int widthLayerId_;
-    //
+    // number of bits used to represent stub id
     int widthStubId_;
-    //
+    // number of bits used to distinguish between tilted and untilded barrel modules or 2S and PS endcap modules
     int widthPSTilt_;
+    // depth of fifos within systolic array
+    int depthMemory_;
     // positive pt Boundaries in GeV (symmetric negatives are assumed), first boundary is pt cut, last boundary is infinity, defining ot bins used by DR
     std::vector<double> ptBoundaries_;
-    //
-    int drinDepthMemory_;
-    //
-    int drNumComparisonModules_;
-    //
-    int drMinIdenticalStubs_;
-    //
-    int kfinDepthMemory_;
+    // DRin parameter
+    edm::ParameterSet pSetDR_;
+    // number of comparison modules used in each DR node
+    int numComparisonModules_;
+    // min number of shared stubs to identify duplicates [default: 3]
+    int minIdenticalStubs_;
     // number of DR nodes
     int numNodesDR_;
     // seed type names

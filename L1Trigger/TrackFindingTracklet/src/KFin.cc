@@ -190,11 +190,8 @@ namespace trklet {
         for (int channel = 0; channel < nMux; channel++) {
           deque<Track*>& stack = stacks[channel];
           Track* track = pop_front(inputs[channel]);
-          if (track) {
-            if (enableTruncation_ && (int)stack.size() == channelAssignment_->kfinDepthMemory() - 1)
-              lost.push_back(pop_front(stack));
+          if (track)
             stack.push_back(track);
-          }
         }
         // merge input fifos to one stream, prioritizing higher input channel over lower channel
         bool nothingToRoute(true);

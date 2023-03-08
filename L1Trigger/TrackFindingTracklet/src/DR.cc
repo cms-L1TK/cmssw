@@ -91,7 +91,7 @@ namespace trklet {
       const int channelTrack = offsetTrack + node;
       const int offsetStub = channelTrack * setup_->numLayers();
       // remove duplicated tracks, no merge of stubs, one stub per layer expected
-      vector<Track*> cms(channelAssignment_->drNumComparisonModules(), nullptr);
+      vector<Track*> cms(channelAssignment_->numComparisonModules(), nullptr);
       vector<Track*>& tracks = input_[node];
       for (Track*& track : tracks) {
         if (!track)
@@ -157,7 +157,7 @@ namespace trklet {
       if (s0 != t0->stubs_.end() && s0 != t0->stubs_.end() && **s0 == **s1)
         same++;
     }*/
-    return same >= channelAssignment_->drMinIdenticalStubs();
+    return same >= channelAssignment_->minIdenticalStubs();
   }
 
 }  // namespace trklet

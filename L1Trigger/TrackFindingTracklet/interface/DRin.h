@@ -47,6 +47,7 @@ namespace trklet {
             ttStubRef_(ttStubRef),
             layer_(layer),
             layerDet_(layerDet),
+            layerKF_(-1),
             stubId_(stubId),
             r_(r),
             phi_(phi),
@@ -54,10 +55,12 @@ namespace trklet {
             psTilt_(psTilt) {}
       bool valid_;
       TTStubRef ttStubRef_;
-      //
+      // layers a seed types can project to using default layer id [barrel: 1-6, discs: 11-15]
       int layer_;
       // layer id [0-5] barrel [6-10] end cap discs
       int layerDet_;
+      // layer id [0-6] counted from inside-out along track
+      int layerKF_;
       // traclet stub id
       int stubId_;
       // radius w.r.t. chosenRofPhi in cm

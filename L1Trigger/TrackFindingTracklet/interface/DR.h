@@ -10,7 +10,7 @@
 namespace trklet {
 
   /*! \class  trklet::DR
-   *  \brief  Class to emulate Duplicate Removal f/w
+   *  \brief  Class to bit- and clock-accurate emulate duplicate removal
    *  \author Thomas Schuh
    *  \date   2023, Feb
    */
@@ -49,6 +49,7 @@ namespace trklet {
       int channel_;
     };
     struct Track {
+      // max number of stubs a track may formed of (we allow only one stub per layer)
       static constexpr int max_ = 7;
       Track() { stubs_.reserve(max_); }
       Track(const tt::FrameTrack& frame, const std::vector<Stub*>& stubs) : frame_(frame), stubs_(stubs) {}

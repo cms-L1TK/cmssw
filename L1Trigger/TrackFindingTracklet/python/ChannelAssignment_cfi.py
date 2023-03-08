@@ -3,14 +3,20 @@ import FWCore.ParameterSet.Config as cms
 
 ChannelAssignment_params = cms.PSet (
 
-  WidthLayerId = cms.int32(4),
-  WidthStubId = cms.int32(10),
-  WidthPSTilt = cms.int32(1),
-  PtBoundaries = cms.vdouble( 3.0, 5.0, 8.0, 12.0, 24.0 ), # positive pt Boundaries in GeV (symmetric negatives are assumed), first boundary is pt cut, last boundary is infinity, defining ot bins used by DR
-  DRinDepthMemory = cms.int32(32),
-  DRNumComparisonModules = cms.int32(16),
-  DRMinIdenticalStubs = cms.int32(3),
-  KFinDepthMemory = cms.int32(128),
+  # DRin parameter
+  DRin = cms.PSet (
+    WidthLayerId = cms.int32(  4 ), # number of bits used to represent layer id [barrel: 0-5, discs: 6-10]
+    WidthStubId  = cms.int32( 10 ), # number of bits used to represent stub id
+    WidthPSTilt  = cms.int32(  1 ), # number of bits used to distinguish between tilted and untilded barrel modules or 2S and PS endcap modules
+    DepthMemory  = cms.int32( 32 ), # depth of fifos within systolic array
+    PtBoundaries = cms.vdouble( 3.0, 5.0, 8.0, 12.0, 24.0 )  # positive pt Boundaries in GeV (symmetric negatives are assumed), first boundary is pt cut, last boundary is infinity, defining pt bins used by DR
+  ),
+
+  # DR parameter
+  DR = cms.PSet (
+    NumComparisonModules = cms.int32( 16 ), # number of comparison modules used in each DR node
+    MinIdenticalStubs    = cms.int32(  3 )  # min number of shared stubs to identify duplicates
+  ),
 
   SeedTypes = cms.vstring( "L1L2", "L2L3", "L3L4", "L5L6", "D1D2", "D3D4", "L1D1", "L2D1" ), # seed types used in tracklet algorithm (position gives int value)
 

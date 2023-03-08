@@ -16,14 +16,15 @@ namespace trklet {
 
   ChannelAssignment::ChannelAssignment(const edm::ParameterSet& iConfig, const Setup* setup)
       : setup_(setup),
-        widthLayerId_(iConfig.getParameter<int>("WidthLayerId")),
-        widthStubId_(iConfig.getParameter<int>("WidthStubId")),
-        widthPSTilt_(iConfig.getParameter<int>("WidthPSTilt")),
-        ptBoundaries_(iConfig.getParameter<vector<double>>("PtBoundaries")),
-        drinDepthMemory_(iConfig.getParameter<int>("DRinDepthMemory")),
-        drNumComparisonModules_(iConfig.getParameter<int>("DRNumComparisonModules")),
-        drMinIdenticalStubs_(iConfig.getParameter<int>("DRMinIdenticalStubs")),
-        kfinDepthMemory_(iConfig.getParameter<int>("KFinDepthMemory")),
+        pSetDRin_(iConfig.getParameter<ParameterSet>("DRin")),
+        widthLayerId_(pSetDRin_.getParameter<int>("WidthLayerId")),
+        widthStubId_(pSetDRin_.getParameter<int>("WidthStubId")),
+        widthPSTilt_(pSetDRin_.getParameter<int>("WidthPSTilt")),
+        depthMemory_(pSetDRin_.getParameter<int>("DepthMemory")),
+        ptBoundaries_(pSetDRin_.getParameter<vector<double>>("PtBoundaries")),
+        pSetDR_(iConfig.getParameter<ParameterSet>("DR")),
+        numComparisonModules_(pSetDR_.getParameter<int>("NumComparisonModules")),
+        minIdenticalStubs_(pSetDR_.getParameter<int>("MinIdenticalStubs")),
         numNodesDR_(2 * (ptBoundaries_.size() + 1)),
         seedTypeNames_(iConfig.getParameter<vector<string>>("SeedTypes")),
         numSeedTypes_(seedTypeNames_.size()),
@@ -168,7 +169,7 @@ namespace trklet {
     return channelTrack / numChannelsTrack_ * numChannelsStub_ + offsetsStubs_[channelTrack % numChannelsTrack_];
   }
 
-  //
+  // returns TBout channel Id
   int ChannelAssignment::channelId(int seedType, int layerId) const {
     const vector<int>& projections = seedTypesProjectionLayers_.at(seedType);
     const vector<int>& seeds = seedTypesSeedLayers_.at(seedType);
@@ -181,7 +182,7 @@ namespace trklet {
     return -1;
   }
 
-  //
+  // return DR node for given ttTrackRef
   int ChannelAssignment::nodeDR(const TTTrackRef& ttTrackRef) const {
     const double pt = ttTrackRef->momentum().perp();
     int bin(0);
