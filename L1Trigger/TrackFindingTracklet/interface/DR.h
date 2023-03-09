@@ -32,15 +32,14 @@ namespace trklet {
 
   private:
     struct Stub {
-      Stub(const tt::FrameStub& frame, int layerId, int stubId, int channel)
-          : frame_(frame), layerId_(layerId), stubId_(stubId), channel_(channel) {}
-      bool operator==(const Stub& s) const {
-        // we ignore fake seed stubs for the moment, to be romved when real seed stubs are available at TrackBuilder output
-        if (s.stubId_ == -1 || stubId_ == -1)
-          return false;
-        return s.layerId_ == layerId_ && s.stubId_ == stubId_;
-      }
+      // take only 7 lsb of stubId into account
+      static constexpr int lsbMod = pow(2, 7);
+      Stub(const tt::FrameStub& frame, bool seed, int layerId, int stubId, int channel)
+          : frame_(frame), seed_(seed), layerId_(layerId), stubId_(stubId), channel_(channel) {}
+      bool operator==(const Stub& s) const { return (s.stubId_ % lsbMod) == (stubId_ % lsbMod); }
       tt::FrameStub frame_;
+      // true if stub was part of the seed
+      bool seed_;
       // det layer id [0-5] barrel [6-10] endcap discs
       int layerId_;
       // all stubs id

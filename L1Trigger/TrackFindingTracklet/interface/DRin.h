@@ -42,12 +42,21 @@ namespace trklet {
     // basetransformation of val from baseLow into baseHigh using widthMultiplier bit multiplication
     double redigi(double val, double baseLow, double baseHigh, int widthMultiplier) const;
     struct Stub {
-      Stub(const TTStubRef& ttStubRef, int layer, int layerDet, int stubId, double r, double phi, double z, bool psTilt)
+      Stub(const TTStubRef& ttStubRef,
+           int layer,
+           int layerDet,
+           bool seed,
+           int stubId,
+           double r,
+           double phi,
+           double z,
+           bool psTilt)
           : valid_(true),
             ttStubRef_(ttStubRef),
             layer_(layer),
             layerDet_(layerDet),
             layerKF_(-1),
+            seed_(seed),
             stubId_(stubId),
             r_(r),
             phi_(phi),
@@ -61,6 +70,8 @@ namespace trklet {
       int layerDet_;
       // layer id [0-6] counted from inside-out along track
       int layerKF_;
+      // true if stub was part of the seed
+      bool seed_;
       // traclet stub id
       int stubId_;
       // radius w.r.t. chosenRofPhi in cm

@@ -66,6 +66,7 @@ TrackTrigger_params = cms.PSet (
       cms.PSet( Disk2SRs = cms.vdouble( 63.9903, 68.9903, 74.2750, 79.2750, 81.9562, 86.9562, 92.4920, 97.4920, 99.8160, 104.8160 ) )  # disk 5
     ),
     InnerRadius = cms.double( 19.6 ), # smallest stub radius after TrackBuilder in cm
+    WidthsRTB    = cms.vint32 (   7,     7,    12,     12   ), # number of bits used for stub r w.r.t layer/disk centre for module types (barrelPS, barrel2S, diskPS, disk2S) at TB output
   ),
 
   # Parameter specifying TrackingParticle used for Efficiency measurements

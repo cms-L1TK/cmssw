@@ -131,7 +131,16 @@ namespace trklet {
           hw >>= widthRZ;
           const TTBV hwPhi(hw, settings_->phiresidbits(), 0, true);
           hw >>= settings_->phiresidbits();
-          const double r = digi(setup_->stubR(hw, ttStubRef) - dataFormats_->chosenRofPhi(), baseUr_);
+          const int indexLayerId = setup_->indexLayerId(ttStubRef);
+          const SensorModule::Type type = setup_->type(ttStubRef);
+          const int widthR = setup_->tbWidthR(type);
+          const double baseR = setup_->hybridBaseR(type);
+          const TTBV hwR(hw, widthR, 0, barrel);
+          hw >>= widthR;
+          double r = hwR.val(baseR) + (barrel ? setup_->hybridLayerR(indexLayerId) : 0.);
+          if (type == SensorModule::Disk2S)
+            r = setup_->disk2SR(indexLayerId, r);
+          r = digi(r - dataFormats_->chosenRofPhi(), baseUr_);
           double phi = hwPhi.val(basePhi);
           if (basePhi > baseUphi_)
             phi += baseUphi_ / 2.;
@@ -151,20 +160,21 @@ namespace trklet {
             const GlobalPoint gp = setup_->stubPos(ttStubRef);
             const double ttR = r;
             const double ttZ = gp.z() - (z0 + (ttR + dataFormats_->chosenRofPhi()) * cot);
-            stubs_.emplace_back(ttStubRef, layerId, layerIdTracklet, stubId, ttR, phi, ttZ, psTilt);
+            stubs_.emplace_back(ttStubRef, layerId, layerIdTracklet, false, stubId, ttR, phi, ttZ, psTilt);
           } else
-            stubs_.emplace_back(ttStubRef, layerId, layerIdTracklet, stubId, r, phi, z, psTilt);
+            stubs_.emplace_back(ttStubRef, layerId, layerIdTracklet, false, stubId, r, phi, z, psTilt);
           stubs.push_back(&stubs_.back());
         }
         // create fake seed stubs, since TrackBuilder doesn't output these stubs, required by the KF.
-        for (int layerId : channelAssignment_->seedingLayers(channel)) {
-          const vector<TTStubRef>& ttStubRefs = ttTrackRef->getStubRefs();
-          auto sameLayer = [this, layerId](const TTStubRef& ttStubRef) {
-            return setup_->layerId(ttStubRef) == layerId;
-          };
-          const TTStubRef& ttStubRef = *find_if(ttStubRefs.begin(), ttStubRefs.end(), sameLayer);
+        for (int seedingLayer = 0; seedingLayer < channelAssignment_->numSeedingLayers(); seedingLayer++) {
+          const int channelStub = channelAssignment_->numProjectionLayers(channel) + seedingLayer;
+          const FrameStub& frameStub = streamsStub[offsetStub + channelStub][frame];
+          const TTStubRef& ttStubRef = frameStub.first;
+          if (ttStubRef.isNull())
+            continue;
+          const int layerId = channelAssignment_->layerId(channel, channelStub);
           const int layerIdTracklet = setup_->trackletLayerId(ttStubRef);
-          static const int stubId = -1;
+          const int stubId = TTBV(frameStub.second).val(channelAssignment_->widthSeedStubId());
           const bool barrel = setup_->barrel(ttStubRef);
           double r;
           if (barrel)
@@ -191,9 +201,9 @@ namespace trklet {
           const double ttR = gp.perp() - dataFormats_->chosenRofPhi();
           const double ttZ = gp.z() - (z0 + (ttR + dataFormats_->chosenRofPhi()) * cot);
           if (useTTStubResiduals_)
-            stubs_.emplace_back(ttStubRef, layerId, layerIdTracklet, stubId, ttR, phi, ttZ, psTilt);
+            stubs_.emplace_back(ttStubRef, layerId, layerIdTracklet, true, stubId, ttR, phi, ttZ, psTilt);
           else
-            stubs_.emplace_back(ttStubRef, layerId, layerIdTracklet, stubId, r, phi, z, psTilt);
+            stubs_.emplace_back(ttStubRef, layerId, layerIdTracklet, true, stubId, r, phi, z, psTilt);
           stubs.push_back(&stubs_.back());
         }
         const bool valid = frame < setup_->numFrames() ? true : enableTruncation_;
@@ -341,9 +351,9 @@ namespace trklet {
       const TTBV r(dataFormats_->format(Variable::r, Process::kfin).ttBV(stub->r_));
       const TTBV phi(dataFormats_->format(Variable::phi, Process::kfin).ttBV(stub->phi_));
       const TTBV z(dataFormats_->format(Variable::z, Process::kfin).ttBV(stub->z_));
-      return FrameStub(
-          stub->ttStubRef_,
-          Frame("1" + to_string(stub->psTilt_) + layerId.str() + stubId.str() + r.str() + phi.str() + z.str()));
+      return FrameStub(stub->ttStubRef_,
+                       Frame("1" + to_string(stub->psTilt_) + to_string(stub->seed_) + layerId.str() + stubId.str() +
+                             r.str() + phi.str() + z.str()));
     };
     // route tracks into pt bins and store result
     const int offsetTrack = region_ * channelAssignment_->numNodesDR();

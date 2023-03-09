@@ -1056,12 +1056,12 @@ void FitTrack::execute(deque<string>& streamTrackRaw,
       const string valid("1");
       streamTrackRaw.emplace_back(valid + seed + rinv + phi0 + z0 + t);
 
+      // convert projected stubs
       unsigned int ihit(0);
       for (unsigned int ilayer = 0; ilayer < N_LAYER + N_DISK; ilayer++) {
         if (bestTracklet->match(ilayer)) {
           const Residual& resid = bestTracklet->resid(ilayer);
           // create bit accurate 64 bit word
-          const string valid("1");
           string r = resid.stubptr()->r().str();
           const string& phi = resid.fpgaphiresid().str();
           const string& rz = resid.fpgarzresid().str();
@@ -1075,6 +1075,13 @@ void FitTrack::execute(deque<string>& streamTrackRaw,
           streamsStubRaw[ihit++].emplace_back(seedType, *stub, valid + stubId + r + phi + rz);
         }
       }
+      // convert seed stubs
+      const string& stubId0 = bestTracklet->innerFPGAStub()->stubindex().str();
+      const L1TStub* stub0 = bestTracklet->innerFPGAStub()->l1tstub();
+      streamsStubRaw[ihit++].emplace_back(seedType, *stub0, valid + stubId0);
+      const string& stubId1 = bestTracklet->outerFPGAStub()->stubindex().str();
+      const L1TStub* stub1 = bestTracklet->outerFPGAStub()->l1tstub();
+      streamsStubRaw[ihit++].emplace_back(seedType, *stub1, valid + stubId1);
       // fill all layers that have no stubs with gaps
       while (ihit < streamsStubRaw.size()) {
         streamsStubRaw[ihit++].emplace_back();

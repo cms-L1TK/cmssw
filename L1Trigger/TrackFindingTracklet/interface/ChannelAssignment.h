@@ -30,8 +30,10 @@ namespace trklet {
     int numChannelsStub() const { return numChannelsStub_; }
     // number of bits used to represent layer id [barrel: 0-5, discs: 6-10]
     int widthLayerId() const { return widthLayerId_; }
-    // number of bits used to represent stub id
+    // number of bits used to represent stub id for projected stubs
     int widthStubId() const { return widthStubId_; }
+    // number of bits used to represent stub id for seed stubs
+    int widthSeedStubId() const { return widthSeedStubId_; }
     // number of bits used to distinguish between tilted and untilded barrel modules or 2S and PS endcap modules
     int widthPSTilt() const { return widthPSTilt_; }
     // depth of fifos within systolic array
@@ -59,8 +61,8 @@ namespace trklet {
     // returns SensorModule::Type for given TTStubRef
     tt::SensorModule::Type type(const TTStubRef& ttStubRef) const { return setup_->type(ttStubRef); }
     // layers a seed types can project to using default layer id [barrel: 1-6, discs: 11-15]
-    int layerId(int seedType, int channel) const { return seedTypesProjectionLayers_.at(seedType).at(channel); }
-    // returns TBout channel Id
+    int layerId(int seedType, int channel) const;
+    // returns TBout channel Id for given seed type and default layer id [barrel: 1-6, discs: 11-15], returns -1 if layerId and seedType are inconsistent
     int channelId(int seedType, int layerId) const;
     // max number of seeding layers
     int numSeedingLayers() const { return numSeedingLayers_; }
@@ -74,8 +76,10 @@ namespace trklet {
     edm::ParameterSet pSetDRin_;
     // number of bits used to represent layer id [barrel: 0-5, discs: 6-10]
     int widthLayerId_;
-    // number of bits used to represent stub id
+    // number of bits used to represent stub id for projected stubs
     int widthStubId_;
+    // number of bits used to represent stub id for seed stubs
+    int widthSeedStubId_;
     // number of bits used to distinguish between tilted and untilded barrel modules or 2S and PS endcap modules
     int widthPSTilt_;
     // depth of fifos within systolic array

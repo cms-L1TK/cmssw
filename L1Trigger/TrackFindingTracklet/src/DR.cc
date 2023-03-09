@@ -66,10 +66,12 @@ namespace trklet {
           ttBV >>= dataFormats_->format(Variable::z, Process::kfin).width();
           ttBV >>= dataFormats_->format(Variable::phi, Process::kfin).width();
           ttBV >>= dataFormats_->format(Variable::r, Process::kfin).width();
-          const TTBV stubId(ttBV, channelAssignment_->widthStubId(), 0, true);
+          const TTBV stubId(ttBV, channelAssignment_->widthStubId(), 0);
           ttBV >>= channelAssignment_->widthStubId();
           const TTBV layerId(ttBV, channelAssignment_->widthLayerId(), 0);
-          stubs_.emplace_back(frameStub, layerId.val(), stubId.val(), layer);
+          ttBV >>= channelAssignment_->widthLayerId();
+          const TTBV seed(ttBV, 1, 0);
+          stubs_.emplace_back(frameStub, (seed.val() == 1), layerId.val(), stubId.val(), layer);
           stubs.push_back(&stubs_.back());
         }
         tracks_.emplace_back(frameTrack, stubs);
@@ -140,23 +142,13 @@ namespace trklet {
   // compares two tracks, returns true if those are considered duplicates
   bool DR::equalEnough(Track* t0, Track* t1) const {
     int same(0);
-    // expensive but most correct
-    for (Stub* s0 : t0->stubs_) {
-      for (Stub* s1 : t1->stubs_) {
-        if (*s0 == *s1) {
-          same++;
-          break;
-        }
-      }
-    }
-    // cheaper alternative -- to be compared in s/w (performance) and f/w (resources)
-    /*for (int layer = 0; layer < setup_->numLayers(); layer++) {
-      auto onLayer = [layer](Stub* stub){ return stub->channel_ == layer; };
+    for (int layer = 0; layer < setup_->numLayers(); layer++) {
+      auto onLayer = [layer](Stub* stub) { return stub->channel_ == layer; };
       const auto s0 = find_if(t0->stubs_.begin(), t0->stubs_.end(), onLayer);
       const auto s1 = find_if(t1->stubs_.begin(), t1->stubs_.end(), onLayer);
-      if (s0 != t0->stubs_.end() && s0 != t0->stubs_.end() && **s0 == **s1)
+      if (s0 != t0->stubs_.end() && s1 != t1->stubs_.end() && **s0 == **s1)
         same++;
-    }*/
+    }
     return same >= channelAssignment_->minIdenticalStubs();
   }
 
