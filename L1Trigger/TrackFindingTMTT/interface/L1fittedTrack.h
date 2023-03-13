@@ -336,8 +336,7 @@ namespace tmtt {
       if (settings_->hybrid()) {
         float phiCentre = 2. * M_PI * iPhiSec() / settings_->numPhiSectors();
         float sectorHalfWidth = M_PI / settings_->numPhiSectors();
-        bool insidePhi =
-            (reco::reduceRange(std::abs(reco::deltaPhi(this->phiAtChosenR(done_bcon_), phiCentre))) < sectorHalfWidth);
+        bool insidePhi = (std::abs(reco::deltaPhi(this->phiAtChosenR(done_bcon_), phiCentre)) < sectorHalfWidth);
         return insidePhi;
       } else {
         bool insidePhi = (std::abs(reco::deltaPhi(this->phiAtChosenR(done_bcon_), secTmp_->phiCentre())) <

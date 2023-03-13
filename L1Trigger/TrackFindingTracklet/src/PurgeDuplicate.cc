@@ -797,8 +797,10 @@ unsigned int PurgeDuplicate::findPhiBin(const Tracklet* trk) const {
 // Tells us the overlap rinv bin(s) to which a track belongs
 std::vector<unsigned int> PurgeDuplicate::findOverlapRinvBins(const Tracklet* trk) const {
   double rinv = trk->rinv();
+
   const double rinvOverlapSize = settings_.rinvOverlapSize();
   const std::vector<double>& rinvBins = settings_.rinvBins();
+
   std::vector<unsigned int> chosenBins;
   for (long unsigned int i = 0; i < rinvBins.size() - 1; i++) {
     if ((rinv < rinvBins[i + 1] + rinvOverlapSize) && (rinv > rinvBins[i] - rinvOverlapSize)) {
@@ -814,8 +816,10 @@ std::vector<unsigned int> PurgeDuplicate::findOverlapPhiBins(const Tracklet* trk
   double rcrit = settings_.rcrit();
   double rinv = trk->rinv();
   double phi = phi0 - asin(0.5 * rinv * rcrit);
+
   const double phiOverlapSize = settings_.phiOverlapSize();
   const std::vector<double>& phiBins = settings_.phiBins();
+
   std::vector<unsigned int> chosenBins;
   for (long unsigned int i = 0; i < phiBins.size() - 1; i++) {
     if ((phi < phiBins[i + 1] + phiOverlapSize) && (phi > phiBins[i] - phiOverlapSize)) {
