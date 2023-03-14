@@ -297,9 +297,9 @@ namespace trklet {
     //Function which returns the value corresponding to the number of tracks that are compared to all the other tracks per rinv bin
     unsigned int numTracksComparedPerBin() const { return numTracksComparedPerBin_; }
     //Returns the rinv bin edges you need for duplicate removal bins
-    const std::vector<double> rinvBins() const { return rinvBins_; }
+    const std::vector<double>& rinvBins() const { return rinvBins_; }
     //Returns the phi bin edges you need for duplicate removal bins
-    const std::vector<double> phiBins() const { return phiBins_; }
+    const std::vector<double>& phiBins() const { return phiBins_; }
 
     std::string skimfile() const { return skimfile_; }
     void setSkimfile(std::string skimfile) { skimfile_ = skimfile; }

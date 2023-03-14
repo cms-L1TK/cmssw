@@ -33,7 +33,7 @@ namespace trklet {
     void addOutput(MemoryBase* memory, std::string output) override;
     void addInput(MemoryBase* memory, std::string input) override;
 
-    void execute(std::vector<Track>& outputtracks_, unsigned int iSector);
+    void execute(std::vector<Track>& outputtracks, unsigned int iSector);
 
   private:
     double getPhiRes(Tracklet* curTracklet, const Stub* curStub) const;

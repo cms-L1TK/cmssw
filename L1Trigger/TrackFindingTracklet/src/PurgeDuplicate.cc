@@ -78,7 +78,7 @@ void PurgeDuplicate::addInput(MemoryBase* memory, std::string input) {
   throw cms::Exception("BadConfig") << __FILE__ << " " << __LINE__ << " could not find input: " << input;
 }
 
-void PurgeDuplicate::execute(std::vector<Track>& outputtracks_, unsigned int iSector) {
+void PurgeDuplicate::execute(std::vector<Track>& outputtracks, unsigned int iSector) {
   inputtracklets_.clear();
   inputtracks_.clear();
 
@@ -429,7 +429,7 @@ void PurgeDuplicate::execute(std::vector<Track>& outputtracks_, unsigned int iSe
         // Add all tracks to standalone root file output
         outtrack->setStubIDpremerge(inputstubidslistsall[itrk]);
         outtrack->setStubIDprefit(mergedstubidslistsall[itrk]);
-        outputtracks_.push_back(*outtrack);
+        outputtracks.push_back(*outtrack);
       }
     }
   }
@@ -558,7 +558,7 @@ void PurgeDuplicate::execute(std::vector<Track>& outputtracks_, unsigned int iSe
           outputtracklets_[i]->addTrack(inputtrackfits_[i]->getTrack(j));
         }
         //For root file:
-        outputtracks_.push_back(*inputtrackfits_[i]->getTrack(j)->getTrack());
+        outputtracks.push_back(*inputtrackfits_[i]->getTrack(j)->getTrack());
       }
     }
   }
@@ -659,7 +659,7 @@ std::vector<double> PurgeDuplicate::getInventedCoords(unsigned int iSector,
     stub_r = 2 / tracklet_rinv * std::sin((stub_z - tracklet->z0()) * tracklet_rinv / 2 / tracklet->t());
   }
 
-  std::vector invented_coords{stub_r, stub_z, stub_phi};
+  std::vector<double> invented_coords{stub_r, stub_z, stub_phi};
   return invented_coords;
 }
 
@@ -710,7 +710,7 @@ std::vector<double> PurgeDuplicate::getInventedCoordsExtended(unsigned int iSect
     stub_r = st->l1tstub()->r();
   }
 
-  std::vector invented_coords{stub_r, stub_z, stub_phi};
+  std::vector<double> invented_coords{stub_r, stub_z, stub_phi};
   return invented_coords;
 }
 
