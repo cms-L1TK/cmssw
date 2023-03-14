@@ -1397,6 +1397,10 @@ int TrackletLUT::getphiCorrValue(
 
 // Write LUT table.
 void TrackletLUT::writeTable() const {
+  if (nbits_ == 0) {
+    throw cms::Exception("LogicError") << "Error in " << __FILE__ << " nbits_ == 0 ";
+  }
+
   if (!settings_.writeTable()) {
     return;
   }
@@ -1432,10 +1436,6 @@ void TrackletLUT::writeTable() const {
   name[name_.size() - 1] = 't';
 
   out = openfile(settings_.tablePath(), name, __FILE__, __LINE__);
-
-  if (nbits_ == 0) {
-    throw cms::Exception("LogicError") << "Error in " << __FILE__ << " nbits_ == 0 ";
-  }
 
   int width = (nbits_ + 3) / 4;
 
