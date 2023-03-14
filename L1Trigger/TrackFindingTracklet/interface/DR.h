@@ -11,6 +11,8 @@ namespace trklet {
 
   /*! \class  trklet::DR
    *  \brief  Class to bit- and clock-accurate emulate duplicate removal
+   *          DR identifies duplicates based on pairs of tracks that share stubs in at least 3 layers.
+   *          It keeps the first such track in each pair.
    *  \author Thomas Schuh
    *  \date   2023, Feb
    */
