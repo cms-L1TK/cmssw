@@ -99,7 +99,9 @@ namespace trklet {
         const int zTu = dataFormats_->format(Variable::zT, Process::kfin).toUnsigned(zT);
         const int cotu = dataFormats_->format(Variable::cot, Process::kfin).toUnsigned(cot);
         const TTBV maybe = layerEncoding_->maybePattern(sectorEta, zTu, cotu);
-        const FrameTrack frameT(frameTrack.first, Frame("1" + maybe.str() + sectorPhiBV.str() + sectorEtaBV.str() + phiTBV.str() + inv2RBV.str() + zTBV.str() + cotBV.str()));
+        const FrameTrack frameT(frameTrack.first,
+                                Frame("1" + maybe.str() + sectorPhiBV.str() + sectorEtaBV.str() + phiTBV.str() +
+                                      inv2RBV.str() + zTBV.str() + cotBV.str()));
         tracks_.emplace_back(frameT, stubs, cot, zT, inv2R, sectorEtaBV.val());
         input.push_back(&tracks_.back());
       }
