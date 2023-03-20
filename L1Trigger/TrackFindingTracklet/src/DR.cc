@@ -73,7 +73,7 @@ namespace trklet {
           ttBV >>= channelAssignment_->widthSeedStubId();
           const TTBV layerId(ttBV, channelAssignment_->widthLayerId(), 0);
           ttBV >>= channelAssignment_->widthLayerId();
-          const TTBV tilt(ttBV, 1, 0);
+          const TTBV tilt(ttBV, channelAssignment_->widthPSTilt(), 0);
           const FrameStub frame(frameStub.first,
                                 Frame("1" + tilt.str() + layerId.str() + r.str() + phi.str() + z.str()));
           stubs_.emplace_back(frame, stubId.val(), layer);
