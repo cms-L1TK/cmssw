@@ -192,6 +192,7 @@ elif (L1TRKALGO == 'HYBRID_NEWKF' or L1TRKALGO == 'HYBRID_REDUCED'):
         process.ChannelAssignment.SeedTypes = cms.vstring( "L1L2", "L2L3", "L3L4", "L5L6" )
         process.ChannelAssignment.SeedTypesSeedLayers = cms.PSet( L1L2 = cms.vint32( 1,  2 ), L2L3 = cms.vint32( 2,  3 ), L3L4 = cms.vint32( 3,  4 ), L5L6 = cms.vint32( 5,  6 ) )
         process.ChannelAssignment.SeedTypesProjectionLayers = cms.PSet( L1L2 = cms.vint32(  3,  4,  5,  6 ), L2L3 = cms.vint32(  1,  4,  5 ), L3L4 = cms.vint32(  1,  2,  5,  6 ), L5L6 = cms.vint32(  1,  2,  3,  4 ) )
+        process.ChannelAssignment.IRChannelsIn = cms.vint32( 5, 37, 4, 2, 31, 24, 6, 19, 33, 9, 45, 25, 30, 0, 16, 8, 13, 29, 12, 32, 21, 18, 43, 7, 26, 38, 42, 28, 20, 14, 41, 44, 17, 36, 40, 1 )
 
     if (L1TRKALGO == 'HYBRID_REDUCED'):
         reducedConfig( process )
