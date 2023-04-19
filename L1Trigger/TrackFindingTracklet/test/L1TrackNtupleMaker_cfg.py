@@ -185,9 +185,9 @@ elif (L1TRKALGO == 'HYBRID_NEWKF' or L1TRKALGO == 'HYBRID_REDUCED'):
     if (L1TRKALGO == 'HYBRID_NEWKF'):
         fwConfig( process )
 
-        process.TTTracksFromTrackletEmulation.memoryModulesFile = 'L1Trigger/TrackFindingTracklet/data/barrel_memorymodules.dat'
-        process.TTTracksFromTrackletEmulation.processingModulesFile = 'L1Trigger/TrackFindingTracklet/data/barrel_processingmodules.dat'
-        process.TTTracksFromTrackletEmulation.wiresFile = 'L1Trigger/TrackFindingTracklet/data/barrel_wires.dat'
+        process.l1tTTTracksFromTrackletEmulation.memoryModulesFile = 'L1Trigger/TrackFindingTracklet/data/barrel_memorymodules.dat'
+        process.l1tTTTracksFromTrackletEmulation.processingModulesFile = 'L1Trigger/TrackFindingTracklet/data/barrel_processingmodules.dat'
+        process.l1tTTTracksFromTrackletEmulation.wiresFile = 'L1Trigger/TrackFindingTracklet/data/barrel_wires.dat'
 
         process.ChannelAssignment.SeedTypes = cms.vstring( "L1L2", "L2L3", "L3L4", "L5L6" )
         process.ChannelAssignment.SeedTypesSeedLayers = cms.PSet( L1L2 = cms.vint32( 1,  2 ), L2L3 = cms.vint32( 2,  3 ), L3L4 = cms.vint32( 3,  4 ), L5L6 = cms.vint32( 5,  6 ) )
