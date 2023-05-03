@@ -346,11 +346,11 @@ namespace trklet {
         for (int iLink = 0; iLink < setup_->tfpNumChannel(); iLink++) {
           for (int iTrack = 0; iTrack < (int)outTrackStreams[iRegion][iLink].size(); iTrack++) {
             sortedPartialTracks[2 * iRegion + iLink].push_back(
-                outTrackStreams[iRegion][iLink][iTrack]->partialTrack1());
+                outTrackStreams[iRegion][iLink][iTrack]->PartialTrack1());
             sortedPartialTracks[2 * iRegion + iLink].push_back(
-                outTrackStreams[iRegion][iLink][iTrack]->partialTrack2());
+                outTrackStreams[iRegion][iLink][iTrack]->PartialTrack2());
             sortedPartialTracks[2 * iRegion + iLink].push_back(
-                outTrackStreams[iRegion][iLink][iTrack]->partialTrack3());
+                outTrackStreams[iRegion][iLink][iTrack]->PartialTrack3());
             outputStreamsTracks[2 * iRegion + iLink].emplace_back(outTrackStreams[iRegion][iLink][iTrack]->track());
           }
         }
