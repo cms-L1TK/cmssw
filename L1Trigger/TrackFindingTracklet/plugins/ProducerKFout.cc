@@ -323,7 +323,7 @@ namespace trklet {
               (std::make_shared<TrackKFOut>(temp_track));
         }  // Iterate over Tracks
       }    // Iterate over Links
-    // Route Tracks in eta based on their sort key
+           // Route Tracks in eta based on their sort key
       for (int iRegion = 0; iRegion < setup_->numRegions(); iRegion++) {
         int buffered_tracks[] = {0, 0};
         for (int iTrack = 0;
