@@ -99,6 +99,9 @@ namespace trklet {
 
     unsigned int layerdisk_;
 
+    //The minimum radius for 2s disks in projection bins
+    unsigned int ir2smin_;
+
     //Save state at the start of istep
     bool almostfullsave_;
 

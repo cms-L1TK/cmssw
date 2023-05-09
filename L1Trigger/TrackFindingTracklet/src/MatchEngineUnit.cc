@@ -18,6 +18,12 @@ MatchEngineUnit::MatchEngineUnit(const Settings& settings,
   good__ = false;
   good__t = false;
   good___ = false;
+  ir2smin_ = 0;
+  if (layerdisk_ >= N_LAYER) {
+    double rmin2s = (layerdisk_ < N_LAYER + 2) ? settings_.rDSSinner(0) : settings_.rDSSouter(0);
+    ir2smin_ = (1 << (N_RZBITS + NFINERZBITS)) * (rmin2s - settings_.rmindiskvm()) /
+               (settings_.rmaxdisk() - settings_.rmindiskvm());
+  }
 }
 
 void MatchEngineUnit::setAlmostFull() { almostfullsave_ = candmatches_.nearfull(); }
@@ -116,11 +122,11 @@ void MatchEngineUnit::processPipeline() {
       isPSmodule = layerdisk_ < N_PSLAYER;
     } else {
       const int absz = (1 << settings_.MEBinsBits()) - 1;
-      if (layerdisk_ < N_LAYER + 2) {
-        isPSmodule = ((rzbin___ & absz) < 3) || ((rzbin___ & absz) == 3 && stubfinerz <= 3);
-      } else {
-        isPSmodule = ((rzbin___ & absz) < 3) || ((rzbin___ & absz) == 3 && stubfinerz <= 2);
-      }
+      unsigned int irstub = ((rzbin___ & absz) << NFINERZBITS) + stubfinerz;
+
+      //Verify that ir2smin_ is initialized and check if irstub is less than radius of innermost 2s module
+      assert(ir2smin_ > 0);
+      isPSmodule = irstub < ir2smin_;
     }
     assert(isPSmodule == vmstub___.isPSmodule());
 
