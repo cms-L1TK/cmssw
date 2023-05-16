@@ -939,8 +939,9 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
       bool usingNewKF = hphSetup->useNewKF();
       if (usingNewKF) {
         // Skip crazy tracks to avoid crash (as NewKF applies no cuts to kill them).
-        constexpr float crazy_z0_cut = 30.; // Cut to kill any crazy tracks found by New KF (which applies no cuts)
-        if (fabs(tmp_trk_z0) > crazy_z0_cut) continue;
+        constexpr float crazy_z0_cut = 30.;  // Cut to kill any crazy tracks found by New KF (which applies no cuts)
+        if (fabs(tmp_trk_z0) > crazy_z0_cut)
+          continue;
       }
 
       int tmp_trk_hitpattern = 0;
