@@ -517,6 +517,10 @@ namespace trackerTFP {
     ttTrack.setTrackSeedType(frame_.first->trackSeedType());
     ttTrack.setStubPtConsistency(StubPtConsistency::getConsistency(
         ttTrack, setup()->trackerGeometry(), setup()->trackerTopology(), bField, nPar));
+
+    std::unique_ptr<L1TrackQuality> trackQualityModel_ = std::make_unique<L1TrackQuality>(dataFormats_->TQPset());
+    trackQualityModel_->setL1TrackQuality(ttTrack);
+
     return ttTrack;
   }
 

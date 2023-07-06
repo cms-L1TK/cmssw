@@ -1,8 +1,11 @@
 import FWCore.ParameterSet.Config as cms
+from L1Trigger.TrackTrigger.TrackQualityParams_cfi import *
 
 TrackTriggerDataFormats_params = cms.PSet (
 
   UseHybrid = cms.bool( True ),
+
+  TrackQualityPSet = cms.PSet(TrackQualityParams),
 
   ZHoughTransform = cms.PSet (
 

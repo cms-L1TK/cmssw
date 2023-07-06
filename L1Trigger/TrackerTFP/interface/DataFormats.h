@@ -14,6 +14,7 @@ and in undigitized format in an std::tuple. (This saves CPU)
 #include "L1Trigger/TrackerTFP/interface/DataFormatsRcd.h"
 #include "L1Trigger/TrackTrigger/interface/Setup.h"
 #include "DataFormats/L1TrackTrigger/interface/TTBV.h"
+#include "L1Trigger/TrackTrigger/interface/L1TrackQuality.h"
 
 #include <vector>
 #include <cmath>
@@ -472,6 +473,8 @@ namespace trackerTFP {
     ~DataFormats() {}
     // bool indicating if hybrid or tmtt being used
     bool hybrid() const { return iConfig_.getParameter<bool>("UseHybrid"); }
+    // L1TrackQuality model parameters
+    edm::ParameterSet TQPset() const { return iConfig_.getParameter<edm::ParameterSet>("TrackQualityPSet"); }
     // converts bits to ntuple of variables
     template <typename... Ts>
     void convertStub(Process p, const tt::Frame& bv, std::tuple<Ts...>& data) const;
