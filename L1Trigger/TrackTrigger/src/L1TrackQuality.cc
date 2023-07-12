@@ -74,7 +74,7 @@ std::vector<float> L1TrackQuality::featureTransform(TTTrack<Ref_Phase2TrackerDig
 
   // get other variables directly from TTTrack
   float tmp_trk_z0 = aTrack.z0();
-  float tmp_trk_z0_scaled = tmp_trk_z0/abs(aTrack.minZ0);
+  float tmp_trk_z0_scaled = tmp_trk_z0 / abs(aTrack.minZ0);
   float tmp_trk_phi = aTrack.phi();
   float tmp_trk_eta = aTrack.eta();
   float tmp_trk_tanl = aTrack.tanL();
