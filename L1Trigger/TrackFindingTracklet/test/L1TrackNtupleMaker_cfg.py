@@ -188,6 +188,7 @@ elif (L1TRKALGO == 'HYBRID_NEWKF' or L1TRKALGO == 'HYBRID_REDUCED'):
         reducedConfig( process )
     # Needed by L1TrackNtupleMaker
     process.HitPatternHelperSetup.useNewKF = True
+    process.l1tTTTracksFromTrackletEmulation.TrackQuality = False
 
 # LEGACY ALGORITHM (EXPERTS ONLY): TRACKLET
 elif (L1TRKALGO == 'TRACKLET'):
