@@ -44,10 +44,9 @@ namespace trklet {
       FPGAWord finephi(
           phicorr_.bits(phicorr_.nbits() - nbitsfinephi, nbitsfinephi), nbitsfinephi, true, __LINE__, __FILE__);
       if (layer_.value() == -1) {
-          return str() + "|" + negdisk_.str() + "|" + stubindex_.str() + "|" + finephi.str();      
-      }
-      else {
-          return str() + "|" + stubindex_.str() + "|" + finephi.str();
+        return str() + "|" + negdisk_.str() + "|" + stubindex_.str() + "|" + finephi.str();
+      } else {
+        return str() + "|" + stubindex_.str() + "|" + finephi.str();
       }
     }
 
