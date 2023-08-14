@@ -1,6 +1,8 @@
 import FWCore.ParameterSet.Config as cms
 
 TrackQualityParams = cms.PSet(qualityAlgorithm = cms.string("GBDT_cpp"), #None, Cut, NN, GBDT, GBDT_cpp
+                              # This emulation GBDT is optimised for the HYBRID_NEWKF emulation and works with the emulation of the KF out module
+                              # It is compatible with the HYBRID simulation and will give equivilant performance with this workflow
                               ONNXmodel = cms.FileInPath("L1Trigger/TrackTrigger/data/L1_TrackQuality_GBDT_emulation_digitized.json"),
                               # The ONNX model should be found at this path, if you want a local version of the model:
                               # git clone https://github.com/cms-data/L1Trigger-TrackTrigger.git L1Trigger/TrackTrigger/data
