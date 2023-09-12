@@ -96,8 +96,8 @@ namespace trklet {
     int best_ideltaz_barrel;
     int best_ideltaphi_disk;
     int best_ideltar_disk;
-    Tracklet* curr_tracklet;
-    Tracklet* next_tracklet;
+    std::string curr_tracklet;
+    std::string next_tracklet;
 
     CircularBuffer<ProjectionTemp> inputProjBuffer_;
   };
