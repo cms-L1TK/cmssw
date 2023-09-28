@@ -538,7 +538,7 @@ bool MatchProcessor::matchCalculator(Tracklet* tracklet, const Stub* fpgastub, b
 
     int seedindex = tracklet->getISeed();
     curr_tracklet = next_tracklet;
-    next_tracklet = trklet::hexFormat(tracklet->trackletprojstr(layerdisk_+1));
+    next_tracklet = trklet::hexFormat(tracklet->trackletprojstr(layerdisk_ + 1));
 
     // Do we have a new tracklet?
     bool newtracklet = (istep == 0 || next_tracklet.compare(curr_tracklet));
