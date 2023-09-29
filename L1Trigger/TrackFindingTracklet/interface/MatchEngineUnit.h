@@ -32,6 +32,7 @@ namespace trklet {
     ~MatchEngineUnit() = default;
 
     void init(VMStubsMEMemory* vmstubsmemory,
+              unsigned int istep,
               unsigned int nrzbin,
               unsigned int rzbin,
               unsigned int iphi,
@@ -69,7 +70,7 @@ namespace trklet {
     unsigned int rptr() const { return candmatches_.rptr(); }
     unsigned int wptr() const { return candmatches_.wptr(); }
 
-    void step();
+    void step(unsigned int istep);
 
     void processPipeline();
 

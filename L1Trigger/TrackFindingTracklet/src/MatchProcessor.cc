@@ -116,8 +116,10 @@ MatchProcessor::MatchProcessor(string name, Settings const& settings, Globals* g
   best_ideltaz_barrel = 0xFFFF;
   best_ideltaphi_disk = 0xFFFF;
   best_ideltar_disk = 0xFFFF;
-  curr_tracklet = "";
-  next_tracklet = "";
+  curr_tracklet = nullptr;
+  next_tracklet = nullptr;
+  curr_proj = "";
+  next_proj = "";
 }
 
 void MatchProcessor::addOutput(MemoryBase* memory, string output) {
@@ -272,6 +274,22 @@ void MatchProcessor::execute(unsigned int iSector, double phimin) {
       }
       oldTracklet = tracklet;
 
+      if (layerdisk_ < N_LAYER) {
+        if (barrel_test < N_LAYER && layerdisk_ == barrel_test) {
+          std::cout << std::hex
+                    << "Sending BARREL to MC proj=" << trklet::hexFormat(tracklet->trackletprojstr(layerdisk_ + 1))
+                    << " with stub=" << trklet::hexFormat(fpgastub->str()) << " stubid=" << fpgastub->stubindex().str()
+                    << " istep=" << istep << std::endl;
+        }
+      } else if (disk_test < trklet::N_DISK && abs(int(layerdisk_ - N_LAYER + 1)) == disk_test) {
+        int sign = (tracklet->t() > 0.0) ? 1 : -1;
+        int disk = sign * (layerdisk_ - N_LAYER + 1);
+        if (disk_test < trklet::N_DISK && abs(disk) == disk_test) {
+          std::cout << std::hex << "Sending DISK to MC proj=" << trklet::hexFormat(tracklet->trackletprojstrD(disk))
+                    << " with stub=" << trklet::hexFormat(fpgastub->str()) << " stubid=" << fpgastub->stubindex().str()
+                    << " istep=" << istep << std::endl;
+        }
+      }
       bool match = matchCalculator(tracklet, fpgastub, print, istep);
 
       if (settings_.debugTracklet() && match) {
@@ -281,7 +299,8 @@ void MatchProcessor::execute(unsigned int iSector, double phimin) {
       countall++;
       if (match)
         countsel++;
-    }
+    } else
+      std::cout << "No MEU matches in istep=" << std::hex << istep << std::endl;
 
     //Step 2
     //Check if we have ME that can process projection
@@ -305,6 +324,7 @@ void MatchProcessor::execute(unsigned int iSector, double phimin) {
         }
 
         matchengines_[iME].init(stubmem,
+                                istep,
                                 nbins,
                                 tmpProj.slot(),
                                 tmpProj.iphi(),
@@ -321,7 +341,7 @@ void MatchProcessor::execute(unsigned int iSector, double phimin) {
         meactive = true;
         addedProjection = true;
       } else {
-        matchengines_[iME].step();
+        matchengines_[iME].step(istep);
       }
       matchengines_[iME].processPipeline();
     }
@@ -538,10 +558,13 @@ bool MatchProcessor::matchCalculator(Tracklet* tracklet, const Stub* fpgastub, b
 
     int seedindex = tracklet->getISeed();
     curr_tracklet = next_tracklet;
-    next_tracklet = trklet::hexFormat(tracklet->trackletprojstr(layerdisk_ + 1));
+    next_tracklet = tracklet;
+    curr_proj = next_proj;
+    next_proj = trklet::hexFormat(tracklet->trackletprojstr(layerdisk_ + 1));
 
     // Do we have a new tracklet?
-    bool newtracklet = (istep == 0 || next_tracklet.compare(curr_tracklet));
+    bool newtracklet = (istep == 0 || next_proj.compare(curr_proj));
+    //bool newtracklet = (istep == 0 || tracklet != curr_tracklet);
     if (istep == 0)
       best_ideltar_disk = (1 << (fpgastub->r().nbits() - 1));  // Set to the maximum possible
     // If so, replace the "best" values with the cut tables
@@ -608,6 +631,11 @@ bool MatchProcessor::matchCalculator(Tracklet* tracklet, const Stub* fpgastub, b
         imatch = keep;
       }
     }
+    if (name_[3] == 'L' && name_.substr(name_.length() - 4, name_.length()) == "PHIE" && barrel_test < N_LAYER &&
+        layerdisk_ == barrel_test) {
+      std::cout << std::hex << "stub=" << trklet::hexFormat(fpgastub->str()) << std::endl;
+      std::cout << std::hex << "proj=" << trklet::hexFormat(tracklet->trackletprojstr(layerdisk_ + 1)) << std::endl;
+    }
 
     if (imatch) {
       tracklet->addMatch(layerdisk_,
@@ -619,6 +647,11 @@ bool MatchProcessor::matchCalculator(Tracklet* tracklet, const Stub* fpgastub, b
                          dzapprox,
                          (phiregion_ << N_BITSMEMADDRESS) + fpgastub->stubindex().value(),
                          fpgastub);
+      if (barrel_test < N_LAYER && layerdisk_ == barrel_test) {
+        string match = tracklet->fullmatchstr(layerdisk_ + 1);
+        std::cout << std::hex << "stub=" << trklet::hexFormat(fpgastub->str()) << std::endl;
+        std::cout << std::hex << "proj=" << trklet::hexFormat(tracklet->trackletprojstr(layerdisk_ + 1)) << std::endl;
+      }
 
       if (settings_.debugTracklet()) {
         edm::LogVerbatim("Tracklet") << "Accepted full match in layer " << getName() << " " << tracklet;
@@ -640,25 +673,47 @@ bool MatchProcessor::matchCalculator(Tracklet* tracklet, const Stub* fpgastub, b
     int sign = (tracklet->t() > 0.0) ? 1 : -1;
     int disk = sign * (layerdisk_ - N_LAYER + 1);
     assert(disk != 0);
+    if (disk_test < trklet::N_DISK && abs(int(layerdisk_ - N_LAYER + 1)) == disk_test) {
+      std::cout << std::hex << "stub=" << trklet::hexFormat(fpgastub->str()) << std::endl;
+      std::cout << std::hex << "proj=" << trklet::hexFormat(tracklet->trackletprojstrD(disk)) << std::endl;
+    }
 
     //Perform integer calculations here
 
     int iz = fpgastub->z().value();
+    if (disk_test < trklet::N_DISK && abs(int(layerdisk_ - N_LAYER + 1)) == disk_test)
+      std::cout << std::hex << "iz=" << iz << "\t" << std::bitset<7>(iz) << std::endl;
 
     const Projection& proj = tracklet->proj(layerdisk_);
 
     int iphi = proj.fpgaphiproj().value();
+    if (disk_test < trklet::N_DISK && abs(int(layerdisk_ - N_LAYER + 1)) == disk_test)
+      std::cout << "iphi=" << iphi << "\t" << std::bitset<14>(iphi) << std::endl;
     int iphicorr = (iz * proj.fpgaphiprojder().value()) >> icorrshift_;
+    if (disk_test < trklet::N_DISK && abs(int(layerdisk_ - N_LAYER + 1)) == disk_test)
+      std::cout << "iphicorr=" << iphicorr << std::endl;
 
     iphi += iphicorr;
+    if (disk_test < trklet::N_DISK && abs(int(layerdisk_ - N_LAYER + 1)) == disk_test)
+      std::cout << "iphi=" << iphi << "\t" << std::bitset<14>(iphi) << std::endl;
 
     int ir = proj.fpgarzproj().value();
+    if (disk_test < trklet::N_DISK && abs(int(layerdisk_ - N_LAYER + 1)) == disk_test)
+      std::cout << "ir=" << ir << "\t" << std::bitset<12>(ir) << std::endl;
     int ircorr = (iz * proj.fpgarzprojder().value()) >> icorzshift_;
+    if (disk_test < trklet::N_DISK && abs(int(layerdisk_ - N_LAYER + 1)) == disk_test)
+      std::cout << "ircorr=" << ircorr << "\t" << std::bitset<7>(ircorr) << std::endl;
     ir += ircorr;
+    if (disk_test < trklet::N_DISK && abs(int(layerdisk_ - N_LAYER + 1)) == disk_test)
+      std::cout << "ir=" << ir << "\t" << std::bitset<14>(ir) << std::endl;
 
+    if (disk_test < trklet::N_DISK && abs(int(layerdisk_ - N_LAYER + 1)) == disk_test)
+      std::cout << "stubphi=" << fpgastub->phi().value() << std::endl;
     int ideltaphi = fpgastub->phi().value() - iphi;
 
     int irstub = fpgastub->r().value();
+    if (disk_test < trklet::N_DISK && abs(int(layerdisk_ - N_LAYER + 1)) == disk_test)
+      std::cout << "irstub=" << irstub << std::endl;
     int ialphafact = 0;
     if (!stub->isPSmodule()) {
       assert(irstub < (int)N_DSS_MOD * 2);
@@ -670,15 +725,35 @@ bool MatchProcessor::matchCalculator(Tracklet* tracklet, const Stub* fpgastub, b
         irstub = settings_.rDSSouter(irstub) / settings_.kr();
       }
     }
+    if (disk_test < trklet::N_DISK && abs(int(layerdisk_ - N_LAYER + 1)) == disk_test)
+      std::cout << "irstub (lookup)=" << irstub << "\t" << ((irstub * settings_.kr()) / settings_.krprojshiftdisk())
+                << std::endl;
 
     constexpr int diff_bits = 1;
     int ideltar = (irstub >> diff_bits) - ir;
+    if (disk_test < trklet::N_DISK && abs(int(layerdisk_ - N_LAYER + 1)) == disk_test) {
+      std::cout << "ideltar=" << ideltar << "\t" << std::bitset<7>(ideltar) << std::endl;
+      std::cout << "ideltaphi=" << ideltaphi << "\t" << std::bitset<7>(ideltaphi) << std::endl;
+    }
 
     if (!stub->isPSmodule()) {
       int ialpha = fpgastub->alpha().value();
+      if (disk_test < trklet::N_DISK && abs(int(layerdisk_ - N_LAYER + 1)) == disk_test)
+        std::cout << "ialpha=" << ialpha << "\t" << std::bitset<4>(ialpha) << std::endl;
       int iphialphacor = ((ideltar * ialpha * ialphafact) >> settings_.alphashift());
+      if (disk_test < trklet::N_DISK && abs(int(layerdisk_ - N_LAYER + 1)) == disk_test) {
+        std::cout << "ialpha=" << ialpha << "\t" << std::bitset<4>(ialpha) << std::endl;
+        std::cout << std::hex << "iphialphacor=" << ideltar << "*" << ialpha << "*" << ialphafact << "="
+                  << ideltar * ialpha * ialphafact << std::endl;
+      }
       ideltaphi += iphialphacor;
+      if (disk_test < trklet::N_DISK && abs(int(layerdisk_ - N_LAYER + 1)) == disk_test) {
+        std::cout << "ialphafact=" << ialphafact << "\t" << std::bitset<10>(ialphafact) << std::endl;
+        std::cout << "iphialphacor=" << iphialphacor << std::endl;
+      }
     }
+    if (disk_test < trklet::N_DISK && abs(int(layerdisk_ - N_LAYER + 1)) == disk_test)
+      std::cout << "ideltaphi=" << ideltaphi << "\t" << std::bitset<7>(ideltaphi) << std::endl;
 
     //Perform floating point calculations here
 
@@ -738,15 +813,43 @@ bool MatchProcessor::matchCalculator(Tracklet* tracklet, const Stub* fpgastub, b
       idrphicut = rphicut2Stable_.lookup(seedindex);
       idrcut = rcut2Stable_.lookup(seedindex);
     }
+    if (disk_test < trklet::N_DISK && abs(int(layerdisk_ - N_LAYER + 1)) == disk_test) {
+      std::cout << "BEFORE idrphicut=" << idrphicut << std::endl;
+      std::cout << "BEFORE idrcut=" << idrcut << std::endl;
+    }
 
+    std::cout << "BEFORE newtracklet\t" << tracklet << "\t"
+              << "previous=" << curr_tracklet << "\t"
+              << "current=" << next_tracklet << std::endl;
     curr_tracklet = next_tracklet;
-    next_tracklet = trklet::hexFormat(tracklet->trackletprojstrD(disk));
+    next_tracklet = tracklet;
+    curr_proj = next_proj;
+    next_proj = trklet::hexFormat(tracklet->trackletprojstrD(disk));
     // Do we have a new tracklet?
-    bool newtracklet = (istep == 0 || next_tracklet.compare(curr_tracklet));
+    //bool newtracklet = (istep == 0 || next_tracklet != curr_tracklet);
+    bool newtracklet = (istep == 0 || next_proj.compare(curr_proj));
+    //bool newtracklet = (istep == 0 || tracklet != curr_tracklet);
     // If so, replace the "best" values with the cut tables
+    if (disk_test < trklet::N_DISK && abs(int(layerdisk_ - N_LAYER + 1)) == disk_test &&
+        name_.substr(name_.length() - 4, name_.length()) == "PHIB") {
+      std::cout << name_ << "\t" << disk << "\t" << newtracklet << "\t" << tracklet << "\t" << curr_proj << "\t"
+                << next_proj << std::endl;
+      std::cout << (tracklet == curr_tracklet ? "(would skip) " : "")
+                << "proj=" << trklet::hexFormat(tracklet->trackletprojstrD(disk)) << " (" << tracklet
+                << ") current=" << curr_proj << std::endl;
+    }
     if (newtracklet) {
+      if (disk_test < trklet::N_DISK && abs(int(layerdisk_ - N_LAYER + 1)) == disk_test) {
+        std::cout << "/////////////////" << std::endl;
+        std::cout << "New tracklet!" << std::endl;
+        std::cout << "/////////////////" << std::endl;
+      }
       best_ideltaphi_disk = idrphicut;
       best_ideltar_disk = idrcut;
+    }
+    if (disk_test < trklet::N_DISK && abs(int(layerdisk_ - N_LAYER + 1)) == disk_test) {
+      std::cout << "idrphicut=" << best_ideltaphi_disk << std::endl;
+      std::cout << "idrcut=" << best_ideltar_disk << std::endl;
     }
 
     double drphicut = idrphicut * settings_.kphi() * settings_.kr();
@@ -765,9 +868,28 @@ bool MatchProcessor::matchCalculator(Tracklet* tracklet, const Stub* fpgastub, b
     bool match = (std::abs(drphi) < drphicut) && (std::abs(deltar) < drcut);
     bool imatch = (std::abs(ideltaphi * irstub) < best_ideltaphi_disk) && (std::abs(ideltar) < best_ideltar_disk);
     // Update the "best" values
+    if (disk_test < trklet::N_DISK && abs(int(layerdisk_ - N_LAYER + 1)) == disk_test) {
+      std::cout << "std::abs(ideltaphi)=" << std::abs(ideltaphi) << "\tstd::abs(ideltar)=" << std::abs(ideltar)
+                << std::endl;
+      std::cout << "std::abs(ideltaphi * irstub) < best_ideltaphi_disk="
+                << (std::abs(ideltaphi * irstub) <= best_ideltaphi_disk)
+                << "\tstd::abs(ideltar) < best_ideltar_disk=" << (std::abs(ideltar) <= best_ideltar_disk) << std::endl;
+      std::cout << "std::abs(ideltaphi) irstub " << std::abs(ideltaphi) << "\t" << irstub << std::endl;
+      std::cout << "std::abs(ideltaphi) * irstub=" << std::abs(ideltaphi) * irstub << std::endl;
+      std::cout << "best_ideltaphi_disk=" << best_ideltaphi_disk << std::endl;
+      std::cout << "best_ideltar_disk=" << best_ideltar_disk << std::endl;
+      std::cout << (std::abs(ideltaphi * irstub) < idrphicut) << "\t" << (std::abs(ideltar) < idrcut) << std::endl;
+      std::cout << (std::abs(ideltaphi * irstub) < best_ideltaphi_disk) << "\t"
+                << (std::abs(ideltar) < best_ideltar_disk) << std::endl;
+      std::cout << "disk imatch=" << imatch << std::endl;
+    }
     if (imatch) {
       best_ideltaphi_disk = std::abs(ideltaphi) * irstub;
       best_ideltar_disk = std::abs(ideltar);
+      if (disk_test < trklet::N_DISK && abs(disk) == disk_test) {
+        std::cout << "Overwritting best_ideltaphi_disk=" << best_ideltaphi_disk << std::endl;
+        std::cout << "Overwritting best_ideltar_disk=" << best_ideltar_disk << std::endl;
+      }
     }
 
     if (settings_.debugTracklet()) {
@@ -783,8 +905,48 @@ bool MatchProcessor::matchCalculator(Tracklet* tracklet, const Stub* fpgastub, b
         // Veto match if is not the best one for this tracklet (in given layer)
         auto res = tracklet->resid(layerdisk_);
         keep = abs(ideltaphi) < abs(res.fpgaphiresid().value());
+        if (disk_test < trklet::N_DISK && abs(int(layerdisk_ - N_LAYER + 1)) == disk_test)
+          std::cout << "Setting imatch=" << keep << " because "
+                    << "|dphi|=" << abs(ideltaphi) << " < "
+                    << " |dphi_res|=" << abs(res.fpgaphiresid().value()) << std::endl;
         imatch = keep;
       }
+    }
+    if (name_[3] == 'D' && name_.substr(name_.length() - 4, name_.length()) == "PHIB" && disk_test < trklet::N_DISK &&
+        abs(int(layerdisk_ - N_LAYER + 1)) == disk_test) {
+      std::cout << std::hex << "stub=" << trklet::hexFormat(fpgastub->str()) << std::endl;
+      std::cout << std::hex << "proj=" << trklet::hexFormat(tracklet->trackletprojstrD(disk)) << std::endl;
+      std::cout << name_ << std::endl;
+      std::cout << "layerdisk_=" << layerdisk_ << std::endl;
+      string disks[] = {"", "D1", "D2", "D3", "D4", "D5"};
+      std::cout << std::dec << "disk=" << abs(disk) << "\t" << disks[abs(disk)] << std::endl;
+      std::cout << std::hex << "iz=" << iz << "\t" << std::bitset<7>(iz) << std::endl;
+      std::cout << "iz bits=" << fpgastub->z().nbits() << std::endl;
+      std::cout << "iphi=" << iphi - iphicorr << std::endl;
+      std::cout << "iphicorr=" << iphicorr << std::endl;
+      std::cout << "iphi=" << iphi << std::endl;
+      std::cout << "ir=" << ir << std::endl;
+      std::cout << "isPSStub=" << stub->isPSmodule() << std::endl;
+      std::cout << "ircorr=" << ircorr << std::endl;
+      std::cout << "ideltaphi=" << ideltaphi << std::endl;
+      std::cout << "irstub=" << irstub << std::endl;
+      std::cout << "ideltar=" << ideltar << std::endl;
+      std::cout << std::hex << "idrphicut=" << idrphicut << std::endl;
+      std::cout << std::hex << "idrcut=" << idrcut << std::endl;
+      std::cout << std::dec << "imatch match disk: " << imatch << " " << match << " " << std::abs(ideltaphi) << " "
+                << drphicut / (settings_.kphi() * stub->r()) << " " << std::abs(ideltar) << " "
+                << drcut / settings_.krprojshiftdisk() << " r = " << stub->r() << std::endl;
+      std::cout << "phiproj=" << phiproj << std::endl;
+      std::cout << "rproj=" << rproj << std::endl;
+      std::cout << "deltar=" << deltar << std::endl;
+      std::cout << "dr=" << dr << std::endl;
+      std::cout << "dphi=" << dphi << std::endl;
+      std::cout << "dphiapprox=" << dphiapprox << std::endl;
+      std::cout << "drapprox=" << drapprox << std::endl;
+      std::cout << "drphi=" << drphi << std::endl;
+      std::cout << "drphiapprox=" << drphiapprox << std::endl;
+      std::cout << "drphicut=" << drphicut << std::endl;
+      std::cout << "drcut=" << drcut << std::endl;
     }
 
     if (imatch) {

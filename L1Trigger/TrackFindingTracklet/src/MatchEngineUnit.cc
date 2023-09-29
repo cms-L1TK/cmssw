@@ -29,6 +29,7 @@ MatchEngineUnit::MatchEngineUnit(const Settings& settings,
 void MatchEngineUnit::setAlmostFull() { almostfullsave_ = candmatches_.nearfull(); }
 
 void MatchEngineUnit::init(VMStubsMEMemory* vmstubsmemory,
+                           unsigned int istep,
                            unsigned int nrzbins,
                            unsigned int rzbin,
                            unsigned int phibin,
@@ -54,6 +55,19 @@ void MatchEngineUnit::init(VMStubsMEMemory* vmstubsmemory,
   projfinerz_ = projfinerz;
   projfinephi_ = projfinephi;
   use_.clear();
+  int sign = (proj->t() > 0.0) ? 1 : -1;
+  int disk = sign * (layerdisk_ - N_LAYER + 1);
+  if (disk_test < N_DISK && (abs(disk) == disk_test || layerdisk_ == barrel_)) {
+    if (barrel_test < N_LAYER && layerdisk_ < N_LAYER)
+      std::cout << std::hex << "proj=" << trklet::hexFormat(proj->trackletprojstr(layerdisk_ + 1)) << std::endl;
+    else if (disk_test < N_DISK && layerdisk_ >= N_LAYER && abs(disk) == disk_test)
+      std::cout << std::hex << "proj=" << trklet::hexFormat(proj->trackletprojstrdisk(disk)) << std::endl;
+  }
+  std::cout << "Initializing rzbin=" << rzbin_ << " for ";
+  if (layerdisk_ < N_LAYER)
+    std::cout << std::hex << "proj=" << trklet::hexFormat(proj->trackletprojstr(layerdisk_ + 1)) << std::endl;
+  else
+    std::cout << std::hex << "proj=" << trklet::hexFormat(proj->trackletprojstrdisk(disk)) << std::endl;
   if (usefirstMinus) {
     use_.emplace_back(0, 0);
   }
@@ -71,9 +85,23 @@ void MatchEngineUnit::init(VMStubsMEMemory* vmstubsmemory,
   proj_ = proj;
 
   good__ = false;
+  if (disk_test < N_DISK && (abs(disk) == disk_test || layerdisk_ == barrel_test)) {
+    std::cout << std::hex << "Initializing MEU "
+              << " with ";
+    if (barrel_test < N_LAYER && layerdisk_ < N_LAYER)
+      std::cout << std::hex << "proj=" << trklet::hexFormat(proj_->trackletprojstr(layerdisk_ + 1)) << std::endl;
+    else if (disk_test < N_DISK && layerdisk_ >= N_LAYER && abs(disk) == disk_test)
+      std::cout << std::hex << "proj=" << trklet::hexFormat(proj_->trackletprojstrdisk(disk)) << std::endl;
+    std::cout << "received"
+              << " zbin=" << rzbin_ << std::endl;
+    std::cout << "usefirstMinus=" << usefirstMinus << "\t"
+              << "usesecondMinus=" << usesecondMinus << "\t"
+              << "usefirstPlus=" << usefirstPlus << "\t"
+              << "usesecondPlus=" << usesecondPlus << std::endl;
+  }
 }
 
-void MatchEngineUnit::step() {
+void MatchEngineUnit::step(unsigned int istep) {
   good__ = !idle() && !almostfullsave_;
 
   if (!good__)
@@ -81,8 +109,28 @@ void MatchEngineUnit::step() {
 
   unsigned int slot = (phibin_ + use_[iuse_].second) * nrzbins_ + rzbin_ + use_[iuse_].first;
 
+  int sign = (proj_->t() > 0.0) ? 1 : -1;
+  int disk = sign * (layerdisk_ - N_LAYER + 1);
+  if (disk_test < N_DISK && (abs(disk) == disk_test || layerdisk_ == barrel_test)) {
+    if (barrel_test < N_LAYER && layerdisk_ < N_LAYER)
+      std::cout << std::hex << "proj=" << trklet::hexFormat(proj_->trackletprojstr(layerdisk_ + 1));
+    else if (disk_test < N_DISK && layerdisk_ >= N_LAYER && abs(disk) == disk_test)
+      std::cout << std::hex << "proj=" << trklet::hexFormat(proj_->trackletprojstrdisk(disk));
+    std::cout << " before projfinerz__=" << projfinerz_ << std::endl;
+  }
   projfinerz__ = projfinerz_ - (1 << NFINERZBITS) * use_[iuse_].first;
+  if (disk_test < N_DISK && (abs(disk) == disk_test || layerdisk_ == barrel_test)) {
+    std::cout << "after projfinerz__=" << projfinerz__ << " use=(" << use_[iuse_].first << "," << use_[iuse_].second
+              << ")" << std::endl;
+  }
   projfinephi__ = projfinephi_;
+  if (disk_test < N_DISK && (abs(disk) == disk_test || layerdisk_ == barrel_test)) {
+    if (barrel_test < N_LAYER && layerdisk_ < N_LAYER)
+      std::cout << std::hex << "proj=" << trklet::hexFormat(proj_->trackletprojstr(layerdisk_ + 1));
+    else if (disk_test < N_DISK && layerdisk_ >= N_LAYER && abs(disk) == disk_test)
+      std::cout << std::hex << "proj=" << trklet::hexFormat(proj_->trackletprojstrdisk(disk));
+    std::cout << " before projfinephi__=" << projfinephi__ << std::endl;
+  }
   if (use_[iuse_].second == 0) {
     if (shift_ == -1) {
       projfinephi__ -= (1 << NFINEPHIBITS);
@@ -93,9 +141,57 @@ void MatchEngineUnit::step() {
       projfinephi__ += (1 << NFINEPHIBITS);
     }
   }
+  if (disk_test < N_DISK && (abs(disk) == disk_test || layerdisk_ == barrel_test)) {
+    std::cout << "after projfinephi__=" << projfinephi__ << " use=(" << use_[iuse_].first << "," << use_[iuse_].second
+              << ")" << std::endl;
+  }
 
   vmstub__ = vmstubsmemory_->getVMStubMEBin(slot, istub_);
   rzbin__ = rzbin_ + use_[iuse_].first;
+  if (disk_test < N_DISK && (abs(disk) == disk_test || layerdisk_ == barrel_test)) {
+    if (barrel_test < N_LAYER && layerdisk_ < N_LAYER)
+      std::cout << std::hex << "proj=" << trklet::hexFormat(proj_->trackletprojstr(layerdisk_ + 1)) << std::endl;
+    else if (disk_test < N_DISK && layerdisk_ >= N_LAYER && abs(disk) == disk_test)
+      std::cout << std::hex << "proj=" << trklet::hexFormat(proj_->trackletprojstrdisk(disk)) << std::endl;
+    std::cout << "zbin=" << rzbin_ << std::endl;
+    std::cout << "use_=" << use_[iuse_].first << ", " << use_[iuse_].second << std::endl;
+    std::cout << "stubid=" << trklet::hexFormat(vmstub__.stub()->stubindex().str()) << " ("
+              << trklet::hexFormat(vmstub__.stub()->str()) << ")" << std::endl;
+    std::cout << "first=" << use_[iuse_].first << "\tsecond=" << use_[iuse_].second << std::endl;
+    std::cout << "building slot " << (phibin_ + use_[iuse_].second) << "*" << nrzbins_ << "+" << rzbin_ << "+"
+              << use_[iuse_].first << std::endl;
+    std::cout << "building slot "
+              << "(" << phibin_ << "+" << use_[iuse_].second << ")"
+              << "*" << nrzbins_ << "+" << rzbin_ << "+" << use_[iuse_].first
+              << " with nstubs=" << vmstubsmemory_->nStubsBin(slot) << " and iuse=" << iuse_ << std::endl;
+    std::cout << "istub_=" << istub_ << std::endl;
+    std::cout << "stubadd=" << (slot << 4) + istub_ << std::endl;
+  }
+  string stub = vmstub__.stub()->stubindex().str();
+  stub += "|";
+  if (!barrel_ && vmstub__.isPSmodule())
+    stub += "0";
+  stub += vmstub__.stub()->bend().str();
+
+  FPGAWord finephipos = vmstub__.finephi();
+  stub += "|" + finephipos.str();
+  FPGAWord finepos = vmstub__.finerz();
+  stub += "|" + finepos.str();
+  if (abs(disk) == disk_test || layerdisk_ == barrel_test) {
+    if (barrel_test < N_LAYER && layerdisk_ < N_LAYER) {
+      std::cout << std::hex << "proj=" << trklet::hexFormat(proj_->trackletprojstr(layerdisk_ + 1)) << " use_=("
+                << use_[iuse_].first << ", " << use_[iuse_].second << ") nuse=" << use_.size();
+    } else if (disk_test < N_DISK && layerdisk_ >= N_LAYER && abs(disk) == disk_test)
+      std::cout << std::hex << "proj=" << trklet::hexFormat(proj_->trackletprojstrdisk(disk)) << " use_[" << iuse_
+                << "]=(" << use_[iuse_].first << ", " << use_[iuse_].second << ") nuse=" << use_.size();
+    std::cout << std::hex << " " << (layerdisk_ < N_LAYER ? "Barrel" : "Disk") << " MEU " << imeu_
+              << " pipelining vmstub=" << trklet::hexFormat(stub) << " isPS=" << vmstub__.isPSmodule()
+              << " bend=" << vmstub__.stub()->bend().str() << " stub=" << trklet::hexFormat(vmstub__.stub()->str())
+              << " with stubaddr=(" << slot << "," << istub_ << "/" << vmstubsmemory_->nStubsBin(slot) << ")"
+              << " stubid=" << trklet::hexFormat(vmstub__.stub()->stubindex().str()) << "\tistep=" << istep
+              << std::endl;
+    std::cout << trklet::hexFormat(stub) << "\t" << stub << std::endl;
+  }
 
   isPSseed__ = isPSseed_;
   projrinv__ = projrinv_;
@@ -116,6 +212,7 @@ void MatchEngineUnit::processPipeline() {
   if (good___) {
     int stubfinerz = vmstub___.finerz().value();
     int stubfinephi = vmstub___.finephi().value();
+    int stubbend = vmstub___.bend().value();
     bool isPSmodule = false;
 
     if (barrel_) {
@@ -128,6 +225,20 @@ void MatchEngineUnit::processPipeline() {
       assert(ir2smin_ > 0);
       isPSmodule = irstub < ir2smin_;
     }
+    int sign = (proj___->t() > 0.0) ? 1 : -1;
+    int disk = sign * (layerdisk_ - N_LAYER + 1);
+    if (!barrel_)
+      std::cout << "rzbin=" << rzbin___ << " " << std::bitset<4>(rzbin___) << " r=" << std::dec
+                << vmstub___.stub()->r().value() << std::hex << " stubfinerz=" << stubfinerz << " "
+                << std::bitset<trklet::NFINERZBITS>(stubfinerz) << " stubfinephi=" << stubfinephi << " "
+                << std::bitset<trklet::NFINEPHIBITS>(stubfinephi) << " stubindex=" << vmstub___.stubindex().value()
+                << " bend=" << stubbend << " " << std::bitset<N_BENDBITS_2S>(stubbend) << " isPS=" << isPSmodule
+                << " true isPS=" << vmstub___.isPSmodule() << " matches=" << (isPSmodule == vmstub___.isPSmodule())
+                << " DISK=" << layerdisk_ - N_LAYER + 1 << " for ";
+    if (layerdisk_ < N_LAYER)
+      std::cout << std::hex << "proj=" << trklet::hexFormat(proj___->trackletprojstr(layerdisk_ + 1)) << std::endl;
+    else
+      std::cout << std::hex << "proj=" << trklet::hexFormat(proj___->trackletprojstrdisk(disk)) << std::endl;
     assert(isPSmodule == vmstub___.isPSmodule());
 
     int deltaphi = stubfinephi - projfinephi___;
@@ -135,6 +246,8 @@ void MatchEngineUnit::processPipeline() {
     constexpr int idphicut = 3;
 
     bool dphicut = (abs(deltaphi) < idphicut);
+    std::cout << "dphicut=" << dphicut << " stubfinephi=" << stubfinephi << " ="
+              << " projfinephi___=" << projfinephi___ << " idphicut=" << idphicut << std::endl;
 
     int nbits = isPSmodule ? N_BENDBITS_PS : N_BENDBITS_2S;
 
@@ -166,6 +279,42 @@ void MatchEngineUnit::processPipeline() {
     }
 
     bool goodpair = (pass && dphicut) && luttable_.lookup(index);
+    std::cout << proj___ << std::endl;
+    if (disk_test < N_DISK && (abs(disk) == disk_test || layerdisk_ == barrel_test)) {
+      int drzcut = 0;
+      if (barrel_) {
+        if (isPSseed___) {
+          drzcut = 1;
+        } else {
+          drzcut = 5;
+        }
+      } else {
+        if (isPSmodule) {
+          drzcut = 1;
+        } else {
+          drzcut = 3;
+        }
+      }
+      if (layerdisk_ < N_LAYER) {
+        std::cout << "allpass=" << goodpair << "\tproj=" << trklet::hexFormat(proj___->trackletprojstr(layerdisk_ + 1))
+                  << "\tgood___=" << good___ << "\tpassphi=" << dphicut << "(projfinephi=" << projfinephi___
+                  << " - stubfinephi=" << stubfinephi << ") < " << idphicut << "\tpass=" << pass << " (";
+        std::cout << "projfinezadj___=" << projfinerz___ << " - stubfinez=" << stubfinerz << ") < " << drzcut;
+        std::cout << "\ttable[" << index << "]=" << luttable_.lookup(index) << " (diskps=" << diskps
+                  << " projrinv___=" << projrinv___ << " stubbend=" << stubbend << ")";
+        //std::cout << "\ttable[" << index << "]=" << luttable_.lookup(index) << " (diskps=" << diskps << " projrinv___=" << projrinv___ << " stubbend=" << vmstub___.bend().value() << ")";
+      } else {
+        std::cout << "allpass=" << goodpair << "\tproj=" << trklet::hexFormat(proj___->trackletprojstrdisk(disk))
+                  << "\tgood___=" << good___ << "\tpassphi=" << dphicut << "(projfinephi=" << projfinephi___
+                  << " - stubfinephi=" << stubfinephi << ") < " << idphicut << "\tpass=" << pass << " (";
+        std::cout << "projfinezadj___=" << projfinerz___ << " - stubfinez=" << stubfinerz << ") < " << drzcut;
+        std::cout << "\ttable[" << index << "]=" << luttable_.lookup(index) << " (diskps=" << diskps
+                  << " projrinv___=" << projrinv___ << " stubbend=" << stubbend << ")";
+        //std::cout << "\ttable[" << index << "]=" << luttable_.lookup(index) << " (diskps=" << diskps << " projrinv___=" << projrinv___ << " stubbend=" << vmstub___.bend().value() << ")";
+      }
+      std::cout << "\tfor stub=" << trklet::hexFormat(vmstub___.stub()->str()) << " isPS=" << isPSmodule
+                << " diskps=" << diskps << std::endl;
+    }
 
     std::pair<Tracklet*, const Stub*> tmppair(proj___, vmstub___.stub());
 

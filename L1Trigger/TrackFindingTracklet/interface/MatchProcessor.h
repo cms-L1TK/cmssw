@@ -7,6 +7,7 @@
 #include "L1Trigger/TrackFindingTracklet/interface/CircularBuffer.h"
 #include "L1Trigger/TrackFindingTracklet/interface/FullMatchMemory.h"
 #include "L1Trigger/TrackFindingTracklet/interface/TrackletProjectionsMemory.h"
+#include "L1Trigger/TrackFindingTracklet/interface/Projection.h"
 #include "L1Trigger/TrackFindingTracklet/interface/VMStubsMEMemory.h"
 #include "L1Trigger/TrackFindingTracklet/interface/AllStubsMemory.h"
 #include "L1Trigger/TrackFindingTracklet/interface/TrackletLUT.h"
@@ -96,8 +97,10 @@ namespace trklet {
     int best_ideltaz_barrel;
     int best_ideltaphi_disk;
     int best_ideltar_disk;
-    std::string curr_tracklet;
-    std::string next_tracklet;
+    std::string curr_proj;
+    std::string next_proj;
+    Tracklet* curr_tracklet;
+    Tracklet* next_tracklet;
 
     CircularBuffer<ProjectionTemp> inputProjBuffer_;
   };
