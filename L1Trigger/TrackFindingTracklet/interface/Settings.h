@@ -1047,6 +1047,9 @@ namespace trklet {
     double stripLength_2S_{5.0250};
 
     //Following values are used for duplicate removal
+    //The bin edges for rinv were chosen using the output tracks without duplicate removal for a large number of events
+    //The number of the output tracks was divided by the number of bins and the rinv for the track at that index, and multiples of that index, was chosen as an edge
+    //This was to ensure all bins had approximately the same number of tracks
     //Rinv bin edges for 6 bins.
     std::vector<double> rinvBins_{-rinvcut(), -0.004968, -0.003828, 0, 0.003828, 0.004968, rinvcut()};
     //Phi bin edges for 2 bins.
