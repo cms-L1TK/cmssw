@@ -36,7 +36,6 @@
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "Geometry/Records/interface/IdealGeometryRecord.h"
 #include "Geometry/Records/interface/TrackerDigiGeometryRecord.h"
-#include "Geometry/Records/interface/TrackerDigiGeometryRecord.h"
 #include "Geometry/TrackerGeometryBuilder/interface/StripGeomDetUnit.h"
 #include "Geometry/TrackerGeometryBuilder/interface/TrackerGeometry.h"
 #include "MagneticField/Engine/interface/MagneticField.h"
@@ -225,11 +224,20 @@ void SiStripLorentzAnglePCLHarvester::dqmEndJob(DQMStore::IBooker& iBooker, DQMS
 
   // prepare the profiles
   for (const auto& ME : iHists_.h2_) {
+    if (!ME.second)
+      continue;
+    // draw colored 2D plots
+    ME.second->setOption("colz");
     TProfile* hp = (TProfile*)ME.second->getTH2F()->ProfileX();
     iBooker.setCurrentFolder(folderToHarvest + "/" + getStem(ME.first, /* isFolder = */ true));
     iHists_.p_[hp->GetName()] = iBooker.bookProfile(hp->GetName(), hp);
     iHists_.p_[hp->GetName()]->setAxisTitle(ME.second->getAxisTitle(2), 2);
     delete hp;
+  }
+
+  if (iHists_.p_.empty()) {
+    edm::LogError(moduleDescription().moduleName()) << "None of the input histograms could be retrieved. Aborting";
+    return;
   }
 
   std::map<std::string, std::pair<double, double>> LAMap_;

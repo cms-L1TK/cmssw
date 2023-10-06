@@ -44,7 +44,6 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "Geometry/Records/interface/TrackerDigiGeometryRecord.h"
 #include "Geometry/TrackerGeometryBuilder/interface/StripGeomDetUnit.h"
-#include "Geometry/TrackerGeometryBuilder/interface/StripGeomDetUnit.h"
 #include "Geometry/TrackerGeometryBuilder/interface/TrackerGeometry.h"
 #include "MagneticField/Engine/interface/MagneticField.h"
 #include "MagneticField/Records/interface/IdealMagneticFieldRecord.h"
@@ -248,13 +247,15 @@ void SiStripLorentzAnglePCLMonitor::analyze(const edm::Event& iEvent, const edm:
     iHists_.h1_["track_eta"]->Fill(track->eta());
     iHists_.h1_["track_phi"]->Fill(track->phi());
     iHists_.h1_["track_validhits"]->Fill(track->numberOfValidHits());
-    iHists_.h1_["track_chi2ndof"]->Fill((track->chi2() / track->ndof()));
-    iHists_.h2_["track_chi2xhits"]->Fill((track->chi2() / track->ndof()), track->numberOfValidHits());
+
+    const auto normChi2 = track->ndof() > 0 ? track->chi2() / track->ndof() : -1.;
+    iHists_.h1_["track_chi2ndof"]->Fill(normChi2);
+    iHists_.h2_["track_chi2xhits"]->Fill(normChi2, track->numberOfValidHits());
     iHists_.h2_["track_ptxhits"]->Fill(track->pt(), track->numberOfValidHits());
     iHists_.h2_["track_etaxhits"]->Fill(track->eta(), track->numberOfValidHits());
-    iHists_.h2_["track_ptxchi2"]->Fill(track->pt(), (track->chi2() / track->ndof()));
+    iHists_.h2_["track_ptxchi2"]->Fill(track->pt(), normChi2);
     iHists_.h2_["track_ptxeta"]->Fill(track->pt(), track->eta());
-    iHists_.h2_["track_etaxchi2"]->Fill(track->eta(), (track->chi2() / track->ndof()));
+    iHists_.h2_["track_etaxchi2"]->Fill(track->eta(), normChi2);
 
     edm::LogInfo("SiStripLorentzAnglePCLMonitor")
         << " track pT()" << track->pt() << " track eta()" << track->eta() << std::endl;
@@ -424,22 +425,22 @@ void SiStripLorentzAnglePCLMonitor::bookHistograms(DQMStore::IBooker& ibook,
 	titles = Form("Cluster variance (w=3) in %s;cluster variance (w=3);n. clusters", locType.c_str());
         iHists_.h1_[Form("%s_variance_w3", locType.c_str())] = ibook.book1D(Form("%s_variance_w3", locType.c_str()), titles, 100, 0, 1);
 
-	titles = Form("tan(#theta_{trk})cos(#phi_{trk}) vs n. strips in %s;n. strips;tan(#theta_{trk})cos(#phi_{trk});n. clusters", locType.c_str());
+	titles = Form("n. strips in %s vs tan(#theta_{trk})cos(#phi_{trk});tan(#theta_{trk})cos(#phi_{trk});n. strips;n. clusters", locType.c_str());
         iHists_.h2_[Form("%s_tanthcosphtrk_nstrip", locType.c_str())] = ibook.book2D(Form("%s_tanthcosphtrk_nstrip", locType.c_str()), titles, 360, -0.9, 0.9, 20, 0, 20);
 
-	titles = Form("#theta_{trk} vs n. strips in %s;n. strips;#theta_{trk} [rad];n. clusters", locType.c_str());
+	titles = Form("n. strips in %s vs #theta_{trk};#theta_{trk} [rad];n. strips;n. clusters", locType.c_str());
         iHists_.h2_[Form("%s_thetatrk_nstrip", locType.c_str())] = ibook.book2D(Form("%s_thetatrk_nstrip", locType.c_str()), titles, 360, -0.9, 0.9, 20, 0, 20);
 
-	titles = Form("tan(#theta_{trk})cos(#phi_{trk}) vs cluster variance (w=2) in %s;cluster variance (w=2);tan(#theta_{trk})cos(#phi_{trk});n. clusters", locType.c_str());
+	titles = Form("cluster variance (w=2) in %s vs tan(#theta_{trk})cos(#phi_{trk});tan(#theta_{trk})cos(#phi_{trk});cluster variance (w=2);n. clusters", locType.c_str());
         iHists_.h2_[Form("%s_tanthcosphtrk_var2", locType.c_str())] = ibook.book2D(Form("%s_tanthcosphtrk_var2", locType.c_str()), titles, 360, -0.9, 0.9, 50, 0, 1);
 
-	titles =  Form("tan(#theta_{trk})cos(#phi_{trk}) vs cluster variance (w=3) in %s;cluster variance (w=3);tan(#theta_{trk})cos(#phi_{trk});n. clusters", locType.c_str());
+	titles =  Form("cluster variance (w=3) in %s vs tan(#theta_{trk})cos(#phi_{trk});tan(#theta_{trk})cos(#phi_{trk});cluster variance (w=3);n. clusters", locType.c_str());
         iHists_.h2_[Form("%s_tanthcosphtrk_var3", locType.c_str())] = ibook.book2D(Form("%s_tanthcosphtrk_var3", locType.c_str()), titles, 360, -0.9, 0.9, 50, 0, 1);
 
-	titles =  Form("#theta_{trk}cos(#phi_{trk}) vs cluster variance (w=2) in %s;cluster variance (w=2);#theta_{trk}cos(#phi_{trk});n. clusters", locType.c_str());
+	titles =  Form("cluster variance (w=2) in %s vs #theta_{trk}cos(#phi_{trk});#theta_{trk}cos(#phi_{trk});cluster variance (w=2);n. clusters", locType.c_str());
         iHists_.h2_[Form("%s_thcosphtrk_var2", locType.c_str())] = ibook.book2D(Form("%s_thcosphtrk_var2", locType.c_str()), titles, 360, -0.9, 0.9, 50, 0, 1);
 
-	titles = Form("#theta_{trk}cos(#phi_{trk}) vs cluster variance (w=3) in %s;cluster variance (w=3);#theta_{trk}cos(#phi_{trk});n. clusters", locType.c_str());
+	titles = Form("cluster variance (w=3) in %s vs #theta_{trk}cos(#phi_{trk});#theta_{trk}cos(#phi_{trk});cluster variance (w=3);n. clusters", locType.c_str());
         iHists_.h2_[Form("%s_thcosphtrk_var3", locType.c_str())] = ibook.book2D(Form("%s_thcosphtrk_var3", locType.c_str()), titles, 360, -0.9, 0.9, 50, 0, 1);
         // clang-format on
       }
