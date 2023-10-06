@@ -1052,7 +1052,7 @@ namespace trklet {
     //Phi bin edges for 2 bins.
     //The bin edges for rinv were chosen using the output tracks without duplicate removal for a large number of events
     //The rinv of the output tracks was calculated, put into an array, and then sorted in increasing order
-    //The length of the rinv array was floor divided by the number of bins, the resulting number and its multiples were used as indices for the rinv array 
+    //The length of the rinv array was floor divided by the number of bins, the resulting number and its multiples were used as indices for the rinv array
     //The bin edges were the rinv of the tracks at those indices
     //This was to ensure all bins had approximately the same number of tracks
     std::vector<double> phiBins_{0, dphisectorHG() / 2, dphisectorHG()};
