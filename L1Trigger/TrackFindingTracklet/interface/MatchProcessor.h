@@ -38,6 +38,7 @@ namespace trklet {
   private:
     unsigned int layerdisk_;
     bool barrel_;
+    bool first_;
 
     unsigned int phiregion_;
 
@@ -96,8 +97,8 @@ namespace trklet {
     int best_ideltaz_barrel;
     int best_ideltaphi_disk;
     int best_ideltar_disk;
-    std::string curr_tracklet;
-    std::string next_tracklet;
+    Tracklet* curr_tracklet;
+    Tracklet* next_tracklet;
 
     CircularBuffer<ProjectionTemp> inputProjBuffer_;
   };
