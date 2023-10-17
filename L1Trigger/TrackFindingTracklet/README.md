@@ -14,4 +14,4 @@ performance & BDT track quality performance plots from the TTree.
 Both can be run via makeHists.csh .
 
 The optional "NewKF" track fit can be run by changing L1TRKALGO=HYBRID_NEWKF. It corresponds to the curent FW, but is is not yet the default, as only a basic duplicate track removal is available for it. It is configured via 
-TrackTrigger/python/ProducerSetup_cfi.py, (which also configures the DTC).
+TrackTrigger/python/ProducerSetup_cfi.py, (which also configures the DTC). 
