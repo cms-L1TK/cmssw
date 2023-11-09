@@ -4,8 +4,6 @@
 #include "FWCore/Framework/interface/data_default_record_trait.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/ParameterSet/interface/Registry.h"
-#include "DataFormats/Provenance/interface/ProcessHistory.h"
-#include "DataFormats/Provenance/interface/ParameterSetID.h"
 #include "DataFormats/DetId/interface/DetId.h"
 #include "DataFormats/GeometryVector/interface/GlobalPoint.h"
 #include "DataFormats/Math/interface/deltaPhi.h"
@@ -13,10 +11,7 @@
 #include "DataFormats/SiStripDetId/interface/StripSubdetector.h"
 #include "Geometry/CommonTopologies/interface/PixelGeomDetUnit.h"
 #include "Geometry/TrackerGeometryBuilder/interface/TrackerGeometry.h"
-#include "DetectorDescription/Core/interface/DDCompactView.h"
-#include "DetectorDescription/DDCMS/interface/DDCompactView.h"
 #include "L1Trigger/TrackTrigger/interface/TTStubAlgorithm_official.h"
-#include "MagneticField/Engine/interface/MagneticField.h"
 #include "CondFormats/SiPhase2TrackerObjects/interface/TrackerDetToDTCELinkCablingMap.h"
 #include "SimTracker/Common/interface/TrackingParticleSelector.h"
 
@@ -45,21 +40,13 @@ namespace tt {
   public:
     Setup() {}
     Setup(const edm::ParameterSet& iConfig,
-          const MagneticField& magneticField,
           const TrackerGeometry& trackerGeometry,
           const TrackerTopology& trackerTopology,
           const TrackerDetToDTCELinkCablingMap& cablingMap,
           const StubAlgorithmOfficial& stubAlgorithm,
-          const edm::ParameterSet& pSetStubAlgorithm,
-          const edm::ParameterSet& pSetGeometryConfiguration,
-          const edm::ParameterSetID& pSetIdTTStubAlgorithm,
-          const edm::ParameterSetID& pSetIdGeometryConfiguration);
+          const edm::ParameterSet& pSetStubAlgorithm);
     ~Setup() {}
 
-    // true if tracker geometry and magnetic field supported
-    bool configurationSupported() const { return configurationSupported_; }
-    // checks current configuration vs input sample configuration
-    void checkHistory(const edm::ProcessHistory& processHistory) const;
     // converts tk layout id into dtc id
     int dtcId(int tklId) const;
     // converts dtci id into tk layout id
@@ -116,7 +103,7 @@ namespace tt {
     std::vector<int> layerMap(const TTBV& hitPattern, const TTBV& ttBV) const;
     //
     std::vector<int> layerMap(const TTBV& ttBV) const;
-  // stub projected phi uncertainty
+    // stub projected phi uncertainty
     double dPhi(const TTStubRef& ttStubRef, double inv2R) const;
     // stub projected z uncertainty
     double dZ(const TTStubRef& ttStubRef) const;
@@ -415,9 +402,9 @@ namespace tt {
     // Parameter specifying GeometricProcessor
 
     // number of phi sectors in a processing nonant used in hough transform
-    int numSectorsPhi() const { return numSectorsPhi_; }
+    int gpNumBinsPhiT() const { return gpNumBinsPhiT_; }
     // number of eta sectors used in hough transform
-    int numSectorsEta() const { return numSectorsEta_; }
+    int gpNumBinsZT() const { return gpNumBinsZT_; }
     // # critical radius defining r-z sector shape in cm
     double chosenRofZ() const { return chosenRofZ_; }
     // fifo depth in stub router firmware
@@ -444,48 +431,24 @@ namespace tt {
     // internal fifo depth
     int htDepthMemory() const { return htDepthMemory_; }
 
-    // Parameter specifying MiniHoughTransform
+    // Parameter specifying Track Builder
 
     // number of finer inv2R bins inside HT bin
-    int mhtNumBinsInv2R() const { return mhtNumBinsInv2R_; }
+    int ctbNumBinsInv2R() const { return ctbNumBinsInv2R_; }
     // number of finer phiT bins inside HT bin
-    int mhtNumBinsPhiT() const { return mhtNumBinsPhiT_; }
+    int ctbNumBinsPhiT() const { return ctbNumBinsPhiT_; }
+    // number of used z0 bins inside GP ZT bin
+    int ctbNumBinsZ0() const { return ctbNumBinsZ0_; }
+    //number of used zT bins inside GP ZT bin
+    int ctbNumBinsZT() const { return ctbNumBinsZT_; }
     // required number of stub layers to form a candidate
-    int mhtMinLayers() const { return mhtMinLayers_; }
-    // number of mht cells
-    int mhtNumCells() const { return mhtNumCells_; }
-
-    // Parameter specifying ZHoughTransform
-
-    // number of used cot bins
-    int zhtNumBinsCot() const { return zhtNumBinsCot_; }
-    //number of used zT bins
-    int zhtNumBinsZT() const { return zhtNumBinsZT_; }
-    // required number of stub layers to form a candidate
-    int zhtMinLayers() const { return zhtMinLayers_; }
-    // required number of stub PS layers to form a candidate
-    int zhtMinLayersPS() const { return zhtMinLayersPS_; }
-    // number of zht cells
-    int zhtNumCells() const { return zhtNumCells_; }
-
-    // Parameter specifying KalmanFilter Input Formatter
-
-    // power of 2 multiplier of stub phi residual range
-    int kfinShiftRangePhi() const { return kfinShiftRangePhi_; }
-    // power of 2 multiplier of stub z residual range
-    int kfinShiftRangeZ() const { return kfinShiftRangeZ_; }
+    int ctbMinLayers() const { return ctbMinLayers_; }
     // max number of output tracks per node
-    int kfinMaxTracks() const { return kfinMaxTracks_; }
+    int ctbMaxTracks() const { return ctbMaxTracks_; }
     // cut on number of stub per layer for input candidates
-    int kfinMaxStubsPerLayer() const { return kfinMaxStubsPerLayer_; }
-    // number of merged zht channel to one
-    int kfinNumMuxedChannel() const { return kfinNumMuxedChannel_; }
+    int ctbMaxStubs() const { return ctbMaxStubs_; }
     // internal memory depth
-    int kfinDepthMemory() const { return kfinDepthMemory_; }
-    // number of bits used to count stubs per layer
-    int kfinWidthLayerCount() const { return kfinWidthLayerCount_; }
-    //
-    int kfinWidthAddrDPhi() const { return kfinWidthAddrDPhi_; }
+    int ctbDepthMemory() const { return ctbDepthMemory_; }
 
     // Parameter specifying KalmanFilter
 
@@ -495,6 +458,8 @@ namespace tt {
     int kfMinLayers() const { return kfMinLayers_; }
     // maximum number of  layers added to a track
     int kfMaxLayers() const { return kfMaxLayers_; }
+    //
+    int kfMaxGaps() const { return kfMaxGaps_; }
     // search window of each track parameter in initial uncertainties
     double kfRangeFactor() const { return kfRangeFactor_; }
     // bases get shifted by this power of two wrt tfp output bases
@@ -507,6 +472,14 @@ namespace tt {
     int kfShiftInitialC22() const { return kfShiftInitialC22_; }
     // initial C33 is given by zT uncertainty squared times this power of 2
     int kfShiftInitialC33() const { return kfShiftInitialC33_; }
+    //
+    int kfShiftChi20() const { return kfShiftChi20_; }
+    //
+    int kfShiftChi21() const { return kfShiftChi21_; }
+    //
+    int kfPowCutChi2() const { return kfPowCutChi2_; }
+    //
+    int kfWidthChi2() const { return kfWidthChi2_; }
 
     // Parameter specifying KalmanFilter Output Formatter
 
@@ -538,10 +511,6 @@ namespace tt {
                       const edm::ParameterSetID&) const;
     // dumps pSetHistory where incosistent lines with pSetProcess are highlighted
     std::string dumpDiff(const edm::ParameterSet& pSetHistory, const edm::ParameterSet& pSetProcess) const;
-    // check if bField is supported
-    void checkMagneticField();
-    // check if geometry is supported
-    void checkGeometry();
     // derive constants
     void calculateConstants();
     // convert configuration of TTStubAlgorithm
@@ -559,8 +528,6 @@ namespace tt {
     // configure TPSelector
     void configureTPSelector();
 
-    // MagneticField
-    const MagneticField* magneticField_;
     // TrackerGeometry
     const TrackerGeometry* trackerGeometry_;
     // TrackerTopology
@@ -571,33 +538,6 @@ namespace tt {
     const StubAlgorithmOfficial* stubAlgorithm_;
     // pSet of ttStub algorithm, used to identify bend window sizes of sensor modules
     const edm::ParameterSet* pSetSA_;
-    // pSet of geometry configuration, used to identify if geometry is supported
-    const edm::ParameterSet* pSetGC_;
-    // pset id of current TTStubAlgorithm
-    edm::ParameterSetID pSetIdTTStubAlgorithm_;
-    // pset id of current geometry configuration
-    edm::ParameterSetID pSetIdGeometryConfiguration_;
-
-    // DD4hep
-    bool fromDD4hep_;
-
-    // Parameter to check if configured Tracker Geometry is supported
-    edm::ParameterSet pSetSG_;
-    // label of ESProducer/ESSource
-    std::string sgXMLLabel_;
-    // compared path
-    std::string sgXMLPath_;
-    // compared filen ame
-    std::string sgXMLFile_;
-    // list of supported versions
-    std::vector<std::string> sgXMLVersions_;
-
-    // Parameter to check if Process History is consistent with process configuration
-    edm::ParameterSet pSetPH_;
-    // label of compared GeometryConfiguration
-    std::string phGeometryConfiguration_;
-    // label of compared TTStubAlgorithm
-    std::string phTTStubAlgorithm_;
 
     // Common track finding parameter
     edm::ParameterSet pSetTF_;
@@ -837,9 +777,9 @@ namespace tt {
     // Parameter specifying GeometricProcessor
     edm::ParameterSet pSetGP_;
     // number of phi sectors used in hough transform
-    int numSectorsPhi_;
+    int gpNumBinsPhiT_;
     // number of eta sectors used in hough transform
-    int numSectorsEta_;
+    int gpNumBinsZT_;
     // # critical radius defining r-z sector shape in cm
     double chosenRofZ_;
     // fifo depth in stub router firmware
@@ -864,42 +804,24 @@ namespace tt {
     // internal fifo depth
     int htDepthMemory_;
 
-    // Parameter specifying MiniHoughTransform
-    edm::ParameterSet pSetMHT_;
+    // Parameter specifying Clean Track Builder
+    edm::ParameterSet pSetCTB_;
     // number of finer inv2R bins inside HT bin
-    int mhtNumBinsInv2R_;
+    int ctbNumBinsInv2R_;
     // number of finer phiT bins inside HT bin
-    int mhtNumBinsPhiT_;
+    int ctbNumBinsPhiT_;
+    // number of used z0 bins inside GP ZT bin
+    int ctbNumBinsZ0_;
+    //number of used zT bins inside GP ZT bin
+    int ctbNumBinsZT_;
     // required number of stub layers to form a candidate
-    int mhtMinLayers_;
-
-    // Parameter specifying ZHoughTransform
-    edm::ParameterSet pSetZHT_;
-    // number of used cot bins
-    int zhtNumBinsCot_;
-    //number of used zT bins
-    int zhtNumBinsZT_;
-    // required number of stub layers to form a candidate
-    int zhtMinLayers_;
-    // required number of stub PS layers to form a candidate
-    int zhtMinLayersPS_;
-
-    // Parameter specifying KalmanFilter Input Formatter
-    edm::ParameterSet pSetKFin_;
-    // power of 2 multiplier of stub phi residual range
-    int kfinShiftRangePhi_;
-    // power of 2 multiplier of stub z residual range
-    int kfinShiftRangeZ_;
+    int ctbMinLayers_;
     // max number of output tracks per node
-    int kfinMaxTracks_;
+    int ctbMaxTracks_;
     // cut on number of stub per layer for input candidates
-    int kfinMaxStubsPerLayer_;
-    // number of merged zht channel to one
-    int kfinNumMuxedChannel_;
+    int ctbMaxStubs_;
     // internal memory depth
-    int kfinDepthMemory_;
-    //
-    int kfinWidthAddrDPhi_;
+    int ctbDepthMemory_;
 
     // Parameter specifying KalmanFilter
     edm::ParameterSet pSetKF_;
@@ -909,6 +831,8 @@ namespace tt {
     int kfMinLayers_;
     // maximum number of  layers added to a track
     int kfMaxLayers_;
+    //
+    int kfMaxGaps_;
     // search window of each track parameter in initial uncertainties
     double kfRangeFactor_;
     // bases get shifted by this power of two wrt tfp output bases
@@ -921,6 +845,14 @@ namespace tt {
     int kfShiftInitialC22_;
     // initial C33 is given by zT uncertainty squared times this power of 2
     int kfShiftInitialC33_;
+    //
+    int kfShiftChi20_;
+    //
+    int kfShiftChi21_;
+    //
+    int kfPowCutChi2_;
+    //
+    int kfWidthChi2_;
 
     // Parameter specifying KalmanFilter Output Formatter
     edm::ParameterSet pSetKFOut_;
@@ -948,8 +880,6 @@ namespace tt {
     // Derived constants
     //
 
-    // true if tracker geometry and magnetic field supported
-    bool configurationSupported_;
     // selector to partly select TPs for efficiency measurements
     TrackingParticleSelector tpSelector_;
     // selector to partly select TPs for fake and duplicate rate measurements
@@ -1073,20 +1003,10 @@ namespace tt {
     // total number of sectors
     int numSectors_;
 
-    // MHT
-
-    // number of mht cells
-    int mhtNumCells_;
-
-    // ZHT
-
-    // number of zht cells
-    int zhtNumCells_;
-
-    // KFin
+    // CTB
 
     // number of bits used to count stubs per layer
-    int kfinWidthLayerCount_;
+    int ctbWidthLayerCount_;
 
     // KFout
 

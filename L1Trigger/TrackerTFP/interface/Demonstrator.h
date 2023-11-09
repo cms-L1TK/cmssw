@@ -27,15 +27,17 @@ namespace trackerTFP {
 
   private:
     // converts streams of bv into stringstream
-    void convert(const std::vector<std::vector<tt::Frame>>& bits, std::stringstream& ss) const;
+    void convert(const std::vector<std::vector<tt::Frame>>& bits,
+                 std::stringstream& ss,
+                 const std::vector<int>& mapping) const;
     // plays stringstream through modelsim
     void sim(const std::stringstream& ss) const;
     // compares stringstream with modelsim output
     bool compare(std::stringstream& ss) const;
     // creates emp file header
-    std::string header(int numChannel) const;
+    std::string header(const std::vector<int>& links) const;
     // creates 6 frame gap between packets
-    std::string infraGap(int& nFrame, int numChannel) const;
+    std::string infraGap(int& nFrame, int numLinks) const;
     // creates frame number
     std::string frame(int& nFrame) const;
     // converts bv into hex
@@ -45,6 +47,10 @@ namespace trackerTFP {
     std::string dirIPBB_;
     // runtime in ms
     double runTime_;
+    //
+    std::vector<int> linkMappingIn_;
+    //
+    std::vector<int> linkMappingOut_;
     // path to input text file
     std::string dirIn_;
     // path to output text file

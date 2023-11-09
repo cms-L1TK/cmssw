@@ -7,12 +7,10 @@ from L1Trigger.TrackerTFP.DataFormats_cff import TrackTriggerDataFormats
 from L1Trigger.TrackerTFP.LayerEncoding_cff import TrackTriggerLayerEncoding
 from L1Trigger.TrackerTFP.KalmanFilterFormats_cff import TrackTriggerKalmanFilterFormats
 
+TrackerTFPProducerPP = cms.EDProducer( 'trackerTFP::ProducerPP', TrackerTFPProducer_params )
 TrackerTFPProducerGP = cms.EDProducer( 'trackerTFP::ProducerGP', TrackerTFPProducer_params )
 TrackerTFPProducerHT = cms.EDProducer( 'trackerTFP::ProducerHT', TrackerTFPProducer_params )
-TrackerTFPProducerMHT = cms.EDProducer( 'trackerTFP::ProducerMHT', TrackerTFPProducer_params )
-TrackerTFPProducerZHT = cms.EDProducer( 'trackerTFP::ProducerZHT', TrackerTFPProducer_params )
-TrackerTFPProducerTTFound = cms.EDProducer( 'trackerTFP::ProducerTTTrackFound', TrackerTFPProducer_params )
-TrackerTFPProducerKFin = cms.EDProducer( 'trackerTFP::ProducerKFin', TrackerTFPProducer_params )
+TrackerTFPProducerCTB = cms.EDProducer( 'trackerTFP::ProducerCTB', TrackerTFPProducer_params )
 TrackerTFPProducerKF = cms.EDProducer( 'trackerTFP::ProducerKF', TrackerTFPProducer_params )
-TrackerTFPProducerTTFitted = cms.EDProducer( 'trackerTFP::ProducerTTTrackFitted', TrackerTFPProducer_params )
-TrackerTFPProducerAS = cms.EDProducer( 'trackerTFP::ProducerAS', TrackerTFPProducer_params )
+TrackerTFPProducerDR = cms.EDProducer( 'trackerTFP::ProducerDR', TrackerTFPProducer_params )
+TrackerTFPProducerTFP = cms.EDProducer( 'trackerTFP::ProducerTFP', TrackerTFPProducer_params )

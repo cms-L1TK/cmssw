@@ -50,7 +50,8 @@ namespace tt {
   CleanAssoc::CleanAssoc(const ParameterSet& iConfig) {
     // book in- and output ed products
     edGetTokenTTClusterAssMap_ = consumes<TTClusterAssMap>(iConfig.getParameter<InputTag>("InputTagTTClusterAssMap"));
-    edGetTokenTrackingParticleCollection_ = consumes<TrackingParticleCollection>(iConfig.getParameter<InputTag>("InputTagTPs"));
+    edGetTokenTrackingParticleCollection_ =
+        consumes<TrackingParticleCollection>(iConfig.getParameter<InputTag>("InputTagTPs"));
     edPutToken_ = produces<TTClusterAssMap>(iConfig.getParameter<string>("Branch"));
   }
 
@@ -61,7 +62,8 @@ namespace tt {
     Handle<TTClusterAssMap> handleTTClusterAssMap;
     iEvent.getByToken<TTClusterAssMap>(edGetTokenTTClusterAssMap_, handleTTClusterAssMap);
     Handle<TrackingParticleCollection> handleTrackingParticleCollection;
-    iEvent.getByToken<TrackingParticleCollection>(edGetTokenTrackingParticleCollection_, handleTrackingParticleCollection);
+    iEvent.getByToken<TrackingParticleCollection>(edGetTokenTrackingParticleCollection_,
+                                                  handleTrackingParticleCollection);
     int i(0);
     for (const auto& p : handleTTClusterAssMap->getTrackingParticleToTTClustersMap()) {
       const TPPtr tpPtr(handleTrackingParticleCollection, i++);

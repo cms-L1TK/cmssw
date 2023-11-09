@@ -47,7 +47,7 @@ namespace trackerTFP {
     // ED input token of stubs
     EDGetTokenT<StreamsStub> edGetTokenAccepted_;
     // ED input token of lost stubs
-    EDGetTokenT<StreamsStub> edGetTokenLost_;
+    EDGetTokenT<StreamsStub> edGetTokenTruncated_;
     // ED input token of TTStubRef to TPPtr association for tracking efficiency
     EDGetTokenT<StubAssociation> edGetTokenAss_;
     // Setup token
@@ -73,10 +73,10 @@ namespace trackerTFP {
     usesResource("TFileService");
     // book in- and output ED products
     const string& label = iConfig.getParameter<string>("LabelGP");
-    const string& branchAccepted = iConfig.getParameter<string>("BranchAcceptedStubs");
-    const string& branchLost = iConfig.getParameter<string>("BranchLostStubs");
+    const string& branchAccepted = iConfig.getParameter<string>("BranchStubsAccepted");
+    const string& branchTruncated = iConfig.getParameter<string>("BranchStubsTruncated");
     edGetTokenAccepted_ = consumes<StreamsStub>(InputTag(label, branchAccepted));
-    edGetTokenLost_ = consumes<StreamsStub>(InputTag(label, branchLost));
+    edGetTokenTruncated_ = consumes<StreamsStub>(InputTag(label, branchTruncated));
     if (useMCTruth_) {
       const auto& inputTagAss = iConfig.getParameter<InputTag>("InputTagSelection");
       edGetTokenAss_ = consumes<StubAssociation>(inputTagAss);
@@ -96,8 +96,8 @@ namespace trackerTFP {
     TFileDirectory dir;
     dir = fs->mkdir("GP");
     prof_ = dir.make<TProfile>("Counts", ";", 4, 0.5, 4.5);
-    prof_->GetXaxis()->SetBinLabel(1, "Stubs");
-    prof_->GetXaxis()->SetBinLabel(2, "Lost Stubs");
+    prof_->GetXaxis()->SetBinLabel(1, "Accepted Stubs");
+    prof_->GetXaxis()->SetBinLabel(2, "Truncated Stubs");
     prof_->GetXaxis()->SetBinLabel(3, "Found TPs");
     prof_->GetXaxis()->SetBinLabel(4, "Selected TPs");
     // channel occupancy
@@ -111,8 +111,8 @@ namespace trackerTFP {
     // read in gp products
     Handle<StreamsStub> handleAccepted;
     iEvent.getByToken<StreamsStub>(edGetTokenAccepted_, handleAccepted);
-    Handle<StreamsStub> handleLost;
-    iEvent.getByToken<StreamsStub>(edGetTokenLost_, handleLost);
+    Handle<StreamsStub> handleTruncated;
+    iEvent.getByToken<StreamsStub>(edGetTokenTruncated_, handleTruncated);
     // read in MCTruth
     const StubAssociation* stubAssociation = nullptr;
     if (useMCTruth_) {
@@ -124,8 +124,8 @@ namespace trackerTFP {
     // analyze gp products and find still reconstrucable TrackingParticles
     set<TPPtr> setTPPtr;
     for (int region = 0; region < setup_->numRegions(); region++) {
-      int nStubs(0);
-      int nLost(0);
+      int nStubsAccepted(0);
+      int nStubsTruncated(0);
       map<TPPtr, vector<TTStubRef>> mapTPsTTStubs;
       for (int channel = 0; channel < setup_->numSectors(); channel++) {
         const int index = region * setup_->numSectors() + channel;
@@ -135,7 +135,7 @@ namespace trackerTFP {
         for (const FrameStub& frame : accepted) {
           if (frame.first.isNull())
             continue;
-          nStubs++;
+          nStubsAccepted++;
           if (!useMCTruth_)
             continue;
           const vector<TPPtr>& tpPtrs = stubAssociation->findTrackingParticlePtrs(frame.first);
@@ -148,13 +148,13 @@ namespace trackerTFP {
             it->second.push_back(frame.first);
           }
         }
-        nLost += handleLost->at(index).size();
+        nStubsTruncated += handleTruncated->at(index).size();
       }
       for (const auto& p : mapTPsTTStubs)
         if (setup_->reconstructable(p.second))
           setTPPtr.insert(p.first);
-      prof_->Fill(1, nStubs);
-      prof_->Fill(2, nLost);
+      prof_->Fill(1, nStubsAccepted);
+      prof_->Fill(2, nStubsTruncated);
     }
     prof_->Fill(3, setTPPtr.size());
     nEvents_++;

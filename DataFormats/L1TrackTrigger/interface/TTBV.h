@@ -43,7 +43,9 @@ public:
 
   // constructor: int value
   TTBV(int value, int size, bool twos = false)
-      : twos_(twos), size_(size), bs_((!twos || value >= 0) ? value : value + iMax()) { checkI(value); }
+      : twos_(twos), size_(size), bs_((!twos || value >= 0) ? value : value + iMax()) {
+    checkI(value);
+  }
 
   // constructor: double value + precision, biased (floor) representation
   TTBV(double value, double base, int size, bool twos = false) : TTBV((int)std::floor(value / base), size, twos) {}
@@ -67,9 +69,14 @@ public:
   // underlying storage
   const std::bitset<S_>& bs() const { return bs_; }
 
-  // access: single bit
+  // access: single bit value
   bool operator[](int pos) const { return bs_[pos]; }
+
+  // access: single bit reference
   std::bitset<S_>::reference operator[](int pos) { return bs_[pos]; }
+
+  // access: single bit value with bounds check
+  bool test(int pos) const { return bs_.test(pos); }
 
   // access: most significant bit copy
   bool msb() const { return bs_[size_ - 1]; }
@@ -100,6 +107,12 @@ public:
     return *this;
   }
 
+  // operator: boolean and
+  TTBV operator&&(const TTBV& rhs) {
+    TTBV copy(*this);
+    return copy &= rhs;
+  }
+
   // operator: boolean or
   TTBV& operator|=(const TTBV& rhs) {
     const int m(std::max(size_, rhs.size()));
@@ -108,6 +121,12 @@ public:
     bv.resize(m);
     bs_ |= bv.bs_;
     return *this;
+  }
+
+  // operator: boolean or
+  TTBV operator||(const TTBV& rhs) {
+    TTBV copy(*this);
+    return copy |= rhs;
   }
 
   // operator: boolean xor
@@ -378,7 +397,7 @@ private:
     if (size_ == 0)
       return;
     static const std::array<double, S_ + 1> lut = powersOfTwo();
-    auto abs = [](int val){ return val < 0 ? std::abs(val) - 1 : val; };
+    auto abs = [](int val) { return val < 0 ? std::abs(val) - 1 : val; };
     if (abs(value) < std::round(lut[size_ - 1]))
       return;
     cms::Exception exception("RunTimeError.");

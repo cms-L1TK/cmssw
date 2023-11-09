@@ -125,10 +125,10 @@ namespace trklet {
     // book in- and output ED products
     const InputTag& inputTag = iConfig.getParameter<InputTag>("InputTagDTC");
     const string& label = iConfig.getParameter<string>("LabelTBout");
-    const string& branchAcceptedStubs = iConfig.getParameter<string>("BranchAcceptedStubs");
-    const string& branchAcceptedTracks = iConfig.getParameter<string>("BranchAcceptedTracks");
-    const string& branchLostStubs = iConfig.getParameter<string>("BranchLostStubs");
-    const string& branchLostTracks = iConfig.getParameter<string>("BranchLostTracks");
+    const string& branchAcceptedStubs = iConfig.getParameter<string>("BranchStubsAccepted");
+    const string& branchAcceptedTracks = iConfig.getParameter<string>("BranchTracksAccepted");
+    const string& branchLostStubs = iConfig.getParameter<string>("BranchStubsTruncated");
+    const string& branchLostTracks = iConfig.getParameter<string>("BranchTracksTruncated");
     edGetTokenTTDTC_ = consumes<TTDTC>(inputTag);
     edGetTokenAcceptedStubs_ = consumes<StreamsStub>(InputTag(label, branchAcceptedStubs));
     edGetTokenAcceptedTracks_ = consumes<StreamsTrack>(InputTag(label, branchAcceptedTracks));

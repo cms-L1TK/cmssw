@@ -27,12 +27,12 @@ process.load( 'L1Trigger.TrackerTFP.Demonstrator_cff' )
 
 # build schedule
 process.tt = cms.Sequence (  process.TrackerDTCProducer
+                           + process.TrackerTFPProducerPP
                            + process.TrackerTFPProducerGP
                            + process.TrackerTFPProducerHT
-                           + process.TrackerTFPProducerMHT
-                           + process.TrackerTFPProducerZHT
-                           + process.TrackerTFPProducerTTFound
-                           + process.TrackerTFPProducerKFin
+                           + process.TrackerTFPProducerCTB
+                           + process.TrackerTFPProducerKF
+                           + process.TrackerTFPProducerDR
                           )
 process.demo = cms.Path( process.tt + process.TrackerTFPDemonstrator )
 process.schedule = cms.Schedule( process.demo )
@@ -143,7 +143,7 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(options.Even
 process.source = cms.Source(
   "PoolSource",
   fileNames = cms.untracked.vstring( options.inputMC ),
-  skipEvents = cms.untracked.uint32( 100+182+123+111 ),
+  #skipEvents = cms.untracked.uint32( 3 ),
   secondaryFileNames = cms.untracked.vstring(),
   duplicateCheckMode = cms.untracked.string( 'noDuplicateCheck' )
 )

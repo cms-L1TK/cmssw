@@ -23,8 +23,13 @@ namespace trackerTFP {
     ~LayerEncoding() {}
     // Set of layers for given bin in zT
     const std::vector<int>& layerEncoding(int zT) const;
+    // Set of layers for given zT in cm
+    const std::vector<int>& layerEncoding(double zT) const;
     // pattern of maybe layers for given bin in zT
     const TTBV& maybePattern(int zT) const;
+    // pattern of maybe layers for given zT in cm
+    const TTBV& maybePattern(double zT) const;
+
   private:
     // helper class providing run-time constants
     const tt::Setup* setup_;

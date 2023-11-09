@@ -48,14 +48,14 @@ namespace trackerTFP {
 
   private:
     //
-    void formTracks(int channel, const StreamStub& stream, vector<vector<TTStubRef>>& tracks) const;
+    void formTracks(const StreamStub& stream, vector<vector<TTStubRef>>& tracks) const;
     //
     void associate(const vector<vector<TTStubRef>>& tracks, const StubAssociation* ass, set<TPPtr>& tps, int& sum) const;
 
     // ED input token of stubs
     EDGetTokenT<StreamsStub> edGetTokenAccepted_;
     // ED input token of lost stubs
-    EDGetTokenT<StreamsStub> edGetTokenLost_;
+    EDGetTokenT<StreamsStub> edGetTokenTruncated_;
     // ED input token of TTStubRef to TPPtr association for tracking efficiency
     EDGetTokenT<StubAssociation> edGetTokenSelection_;
     // ED input token of TTStubRef to recontructable TPPtr association
@@ -87,10 +87,10 @@ namespace trackerTFP {
     usesResource("TFileService");
     // book in- and output ED products
     const string& label = iConfig.getParameter<string>("LabelHT");
-    const string& branchAccepted = iConfig.getParameter<string>("BranchAcceptedStubs");
-    const string& branchLost = iConfig.getParameter<string>("BranchLostStubs");
+    const string& branchAccepted = iConfig.getParameter<string>("BranchStubsAccepted");
+    const string& branchTruncated = iConfig.getParameter<string>("BranchStubsTruncated");
     edGetTokenAccepted_ = consumes<StreamsStub>(InputTag(label, branchAccepted));
-    edGetTokenLost_ = consumes<StreamsStub>(InputTag(label, branchLost));
+    edGetTokenTruncated_ = consumes<StreamsStub>(InputTag(label, branchTruncated));
     if (useMCTruth_) {
       const auto& inputTagSelecttion = iConfig.getParameter<InputTag>("InputTagSelection");
       const auto& inputTagReconstructable = iConfig.getParameter<InputTag>("InputTagReconstructable");
@@ -117,12 +117,12 @@ namespace trackerTFP {
     prof_ = dir.make<TProfile>("Counts", ";", 9, 0.5, 9.5);
     prof_->GetXaxis()->SetBinLabel(1, "Stubs");
     prof_->GetXaxis()->SetBinLabel(2, "Tracks");
-    prof_->GetXaxis()->SetBinLabel(3, "Lost Tracks");
+    prof_->GetXaxis()->SetBinLabel(3, "Truncated Tracks");
     prof_->GetXaxis()->SetBinLabel(4, "Matched Tracks");
     prof_->GetXaxis()->SetBinLabel(5, "All Tracks");
     prof_->GetXaxis()->SetBinLabel(6, "Found TPs");
     prof_->GetXaxis()->SetBinLabel(7, "Found selected TPs");
-    prof_->GetXaxis()->SetBinLabel(8, "Lost TPs");
+    prof_->GetXaxis()->SetBinLabel(8, "Truncated TPs");
     prof_->GetXaxis()->SetBinLabel(9, "All TPs");
     // binInv2R occupancy
     constexpr int maxOcc = 180;
@@ -135,8 +135,8 @@ namespace trackerTFP {
     // read in ht products
     Handle<StreamsStub> handleAccepted;
     iEvent.getByToken<StreamsStub>(edGetTokenAccepted_, handleAccepted);
-    Handle<StreamsStub> handleLost;
-    iEvent.getByToken<StreamsStub>(edGetTokenLost_, handleLost);
+    Handle<StreamsStub> handleTruncated;
+    iEvent.getByToken<StreamsStub>(edGetTokenTruncated_, handleTruncated);
     // read in MCTruth
     const StubAssociation* selection = nullptr;
     const StubAssociation* reconstructable = nullptr;
@@ -152,13 +152,13 @@ namespace trackerTFP {
     // analyze ht products and associate found tracks with reconstrucable TrackingParticles
     set<TPPtr> tpPtrs;
     set<TPPtr> tpPtrsSelection;
-    set<TPPtr> tpPtrsLost;
+    set<TPPtr> tpPtrsTruncated;
     int allMatched(0);
     int allTracks(0);
     for (int region = 0; region < setup_->numRegions(); region++) {
       int nStubs(0);
       int nTracks(0);
-      int nLost(0);
+      int nTruncated(0);
       for (int channel = 0; channel < dataFormats_->numChannel(Process::ht); channel++) {
         const int index = region * dataFormats_->numChannel(Process::ht) + channel;
         const StreamStub& accepted = handleAccepted->at(index);
@@ -167,32 +167,33 @@ namespace trackerTFP {
         nStubs += accepted.size();
         vector<vector<TTStubRef>> tracks;
         vector<vector<TTStubRef>> lost;
-        formTracks(channel, accepted, tracks);
-        formTracks(channel, handleLost->at(index), lost);
+        formTracks(accepted, tracks);
+        formTracks(handleTruncated->at(index), lost);
         nTracks += tracks.size();
         allTracks += tracks.size();
-        nLost += lost.size();
+        nTruncated += lost.size();
         if (!useMCTruth_)
           continue;
         int tmp(0);
         associate(tracks, selection, tpPtrsSelection, tmp);
-        associate(lost, selection, tpPtrsLost, tmp);
+        associate(lost, selection, tpPtrsTruncated, tmp);
         associate(tracks, reconstructable, tpPtrs, allMatched);
       }
       prof_->Fill(1, nStubs);
       prof_->Fill(2, nTracks);
-      prof_->Fill(3, nLost);
+      prof_->Fill(3, nTruncated);
     }
     vector<TPPtr> recovered;
-    recovered.reserve(tpPtrsLost.size());
-    set_intersection(tpPtrsLost.begin(), tpPtrsLost.end(), tpPtrs.begin(), tpPtrs.end(), back_inserter(recovered));
+    recovered.reserve(tpPtrsTruncated.size());
+    set_intersection(
+        tpPtrsTruncated.begin(), tpPtrsTruncated.end(), tpPtrs.begin(), tpPtrs.end(), back_inserter(recovered));
     for (const TPPtr& tpPtr : recovered)
-      tpPtrsLost.erase(tpPtr);
+      tpPtrsTruncated.erase(tpPtr);
     prof_->Fill(4, allMatched);
     prof_->Fill(5, allTracks);
     prof_->Fill(6, tpPtrs.size());
     prof_->Fill(7, tpPtrsSelection.size());
-    prof_->Fill(8, tpPtrsLost.size());
+    prof_->Fill(8, tpPtrsTruncated.size());
     nEvents_++;
   }
 
@@ -203,31 +204,31 @@ namespace trackerTFP {
     const double totalTPs = prof_->GetBinContent(9);
     const double numStubs = prof_->GetBinContent(1);
     const double numTracks = prof_->GetBinContent(2);
-    const double numTracksLost = prof_->GetBinContent(3);
+    const double numTracksTruncated = prof_->GetBinContent(3);
     const double totalTracks = prof_->GetBinContent(5);
     const double numTracksMatched = prof_->GetBinContent(4);
     const double numTPsAll = prof_->GetBinContent(6);
     const double numTPsEff = prof_->GetBinContent(7);
-    const double numTPsLost = prof_->GetBinContent(8);
+    const double numTPsTruncated = prof_->GetBinContent(8);
     const double errStubs = prof_->GetBinError(1);
     const double errTracks = prof_->GetBinError(2);
-    const double errTracksLost = prof_->GetBinError(3);
+    const double errTracksTruncated = prof_->GetBinError(3);
     const double fracFake = (totalTracks - numTracksMatched) / totalTracks;
     const double fracDup = (numTracksMatched - numTPsAll) / totalTracks;
     const double eff = numTPsEff / totalTPs;
     const double errEff = sqrt(eff * (1. - eff) / totalTPs / nEvents_);
-    const double effLoss = numTPsLost / totalTPs;
+    const double effLoss = numTPsTruncated / totalTPs;
     const double errEffLoss = sqrt(effLoss * (1. - effLoss) / totalTPs / nEvents_);
-    const vector<double> nums = {numStubs, numTracks, numTracksLost};
-    const vector<double> errs = {errStubs, errTracks, errTracksLost};
+    const vector<double> nums = {numStubs, numTracks, numTracksTruncated};
+    const vector<double> errs = {errStubs, errTracks, errTracksTruncated};
     const int wNums = ceil(log10(*max_element(nums.begin(), nums.end()))) + 5;
     const int wErrs = ceil(log10(*max_element(errs.begin(), errs.end()))) + 5;
     log_ << "                         HT  SUMMARY                         " << endl;
     log_ << "number of stubs       per TFP = " << setw(wNums) << numStubs << " +- " << setw(wErrs) << errStubs << endl;
     log_ << "number of tracks      per TFP = " << setw(wNums) << numTracks << " +- " << setw(wErrs) << errTracks
          << endl;
-    log_ << "number of lost tracks per TFP = " << setw(wNums) << numTracksLost << " +- " << setw(wErrs) << errTracksLost
-         << endl;
+    log_ << "number of lost tracks per TFP = " << setw(wNums) << numTracksTruncated << " +- " << setw(wErrs)
+         << errTracksTruncated << endl;
     log_ << "     max  tracking efficiency = " << setw(wNums) << eff << " +- " << setw(wErrs) << errEff << endl;
     log_ << "     lost tracking efficiency = " << setw(wNums) << effLoss << " +- " << setw(wErrs) << errEffLoss << endl;
     log_ << "                    fake rate = " << setw(wNums) << fracFake << endl;
@@ -237,19 +238,24 @@ namespace trackerTFP {
   }
 
   //
-  void AnalyzerHT::formTracks(int channel, const StreamStub& stream, vector<vector<TTStubRef>>& tracks) const {
+  void AnalyzerHT::formTracks(const StreamStub& stream, vector<vector<TTStubRef>>& tracks) const {
+    auto toTrkId = [this](const StubHT& stub) {
+      static const DataFormat& phiT = dataFormats_->format(Variable::phiT, Process::ht);
+      static const DataFormat& zT = dataFormats_->format(Variable::zT, Process::ht);
+      return (phiT.ttBV(stub.phiT()) + zT.ttBV(stub.zT())).val();
+    };
     vector<StubHT> stubs;
     stubs.reserve(stream.size());
     for (const FrameStub& frame : stream)
-      stubs.emplace_back(frame, dataFormats_, channel);
+      stubs.emplace_back(frame, dataFormats_);
     for (auto it = stubs.begin(); it != stubs.end();) {
       const auto start = it;
-      const int id = it->trackId();
-      auto different = [id](const StubHT& stub) { return id != stub.trackId(); };
+      const int id = toTrkId(*it);
+      auto different = [id, toTrkId](const StubHT& stub) { return id != toTrkId(stub); };
       it = find_if(it, stubs.end(), different);
       vector<TTStubRef> ttStubRefs;
       ttStubRefs.reserve(distance(start, it));
-      transform(start, it, back_inserter(ttStubRefs), [](const StubHT& stub) { return stub.ttStubRef(); });
+      transform(start, it, back_inserter(ttStubRefs), [](const StubHT& stub) { return stub.frame().first; });
       tracks.push_back(ttStubRefs);
     }
   }

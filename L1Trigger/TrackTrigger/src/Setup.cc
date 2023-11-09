@@ -1,6 +1,5 @@
 #include "L1Trigger/TrackTrigger/interface/Setup.h"
 #include "FWCore/Utilities/interface/Exception.h"
-#include "DataFormats/Provenance/interface/ProcessConfiguration.h"
 #include "DataFormats/L1TrackTrigger/interface/TTBV.h"
 #include "DataFormats/L1TrackTrigger/interface/TTTypes.h"
 
@@ -9,9 +8,6 @@
 #include <numeric>
 #include <vector>
 #include <set>
-#include <unordered_map>
-#include <string>
-#include <sstream>
 
 using namespace std;
 using namespace edm;
@@ -19,36 +15,16 @@ using namespace edm;
 namespace tt {
 
   Setup::Setup(const ParameterSet& iConfig,
-               const MagneticField& magneticField,
                const TrackerGeometry& trackerGeometry,
                const TrackerTopology& trackerTopology,
                const TrackerDetToDTCELinkCablingMap& cablingMap,
                const StubAlgorithmOfficial& stubAlgorithm,
-               const ParameterSet& pSetStubAlgorithm,
-               const ParameterSet& pSetGeometryConfiguration,
-               const ParameterSetID& pSetIdTTStubAlgorithm,
-               const ParameterSetID& pSetIdGeometryConfiguration)
-      : magneticField_(&magneticField),
-        trackerGeometry_(&trackerGeometry),
+               const ParameterSet& pSetStubAlgorithm)
+      : trackerGeometry_(&trackerGeometry),
         trackerTopology_(&trackerTopology),
         cablingMap_(&cablingMap),
         stubAlgorithm_(&stubAlgorithm),
         pSetSA_(&pSetStubAlgorithm),
-        pSetGC_(&pSetGeometryConfiguration),
-        pSetIdTTStubAlgorithm_(pSetIdTTStubAlgorithm),
-        pSetIdGeometryConfiguration_(pSetIdGeometryConfiguration),
-        // DD4hep
-        fromDD4hep_(iConfig.getParameter<bool>("fromDD4hep")),
-        // Parameter to check if configured Tracker Geometry is supported
-        pSetSG_(iConfig.getParameter<ParameterSet>("UnSupportedGeometry")),
-        sgXMLLabel_(pSetSG_.getParameter<string>("XMLLabel")),
-        sgXMLPath_(pSetSG_.getParameter<string>("XMLPath")),
-        sgXMLFile_(pSetSG_.getParameter<string>("XMLFile")),
-        sgXMLVersions_(pSetSG_.getParameter<vector<string>>("XMLVersions")),
-        // Parameter to check if Process History is consistent with process configuration
-        pSetPH_(iConfig.getParameter<ParameterSet>("ProcessHistory")),
-        phGeometryConfiguration_(pSetPH_.getParameter<string>("GeometryConfiguration")),
-        phTTStubAlgorithm_(pSetPH_.getParameter<string>("TTStubAlgorithm")),
         // Common track finding parameter
         pSetTF_(iConfig.getParameter<ParameterSet>("TrackFinding")),
         beamWindowZ_(pSetTF_.getParameter<double>("BeamWindowZ")),
@@ -163,8 +139,8 @@ namespace tt {
         tfpNumChannel_(pSetTFP_.getParameter<int>("NumChannel")),
         // Parmeter specifying GeometricProcessor
         pSetGP_(iConfig.getParameter<ParameterSet>("GeometricProcessor")),
-        numSectorsPhi_(pSetGP_.getParameter<int>("NumSectorsPhi")),
-        numSectorsEta_(pSetGP_.getParameter<int>("NumSectorsEta")),
+        gpNumBinsPhiT_(pSetGP_.getParameter<int>("NumBinsPhiT")),
+        gpNumBinsZT_(pSetGP_.getParameter<int>("NumBinsZT")),
         chosenRofZ_(pSetGP_.getParameter<double>("ChosenRofZ")),
         gpDepthMemory_(pSetGP_.getParameter<int>("DepthMemory")),
         gpWidthModule_(pSetGP_.getParameter<int>("WidthModule")),
@@ -177,36 +153,32 @@ namespace tt {
         htNumBinsPhiT_(pSetHT_.getParameter<int>("NumBinsPhiT")),
         htMinLayers_(pSetHT_.getParameter<int>("MinLayers")),
         htDepthMemory_(pSetHT_.getParameter<int>("DepthMemory")),
-        // Parmeter specifying MiniHoughTransform
-        pSetMHT_(iConfig.getParameter<ParameterSet>("MiniHoughTransform")),
-        mhtNumBinsInv2R_(pSetMHT_.getParameter<int>("NumBinsInv2R")),
-        mhtNumBinsPhiT_(pSetMHT_.getParameter<int>("NumBinsPhiT")),
-        mhtMinLayers_(pSetMHT_.getParameter<int>("MinLayers")),
-        // Parmeter specifying ZHoughTransform
-        pSetZHT_(iConfig.getParameter<ParameterSet>("ZHoughTransform")),
-        zhtNumBinsCot_(pSetZHT_.getParameter<int>("NumBinsCot")),
-        zhtNumBinsZT_(pSetZHT_.getParameter<int>("NumBinsZT")),
-        zhtMinLayers_(pSetZHT_.getParameter<int>("MinLayers")),
-        zhtMinLayersPS_(pSetZHT_.getParameter<int>("MinLayersPS")),
-        // Parameter specifying KalmanFilter Input Formatter
-        pSetKFin_(iConfig.getParameter<ParameterSet>("KalmanFilterIn")),
-        kfinShiftRangePhi_(pSetKFin_.getParameter<int>("ShiftRangePhi")),
-        kfinShiftRangeZ_(pSetKFin_.getParameter<int>("ShiftRangeZ")),
-        kfinMaxTracks_(pSetKFin_.getParameter<int>("MaxTracks")),
-        kfinMaxStubsPerLayer_(pSetKFin_.getParameter<int>("MaxStubsPerLayer")),
-        kfinDepthMemory_(pSetKFin_.getParameter<int>("DepthMemory")),
-        kfinWidthAddrDPhi_(pSetKFin_.getParameter<int>("WidthAddrDPhi")),
+        // Parameter specifying Track Builder
+        pSetCTB_(iConfig.getParameter<ParameterSet>("CleanTrackBuilder")),
+        ctbNumBinsInv2R_(pSetCTB_.getParameter<int>("NumBinsInv2R")),
+        ctbNumBinsPhiT_(pSetCTB_.getParameter<int>("NumBinsPhiT")),
+        ctbNumBinsZ0_(pSetCTB_.getParameter<int>("NumBinsZ0")),
+        ctbNumBinsZT_(pSetCTB_.getParameter<int>("NumBinsZT")),
+        ctbMinLayers_(pSetCTB_.getParameter<int>("MinLayers")),
+        ctbMaxTracks_(pSetCTB_.getParameter<int>("MaxTracks")),
+        ctbMaxStubs_(pSetCTB_.getParameter<int>("MaxStubs")),
+        ctbDepthMemory_(pSetCTB_.getParameter<int>("DepthMemory")),
         // Parmeter specifying KalmanFilter
         pSetKF_(iConfig.getParameter<ParameterSet>("KalmanFilter")),
         kfNumWorker_(pSetKF_.getParameter<int>("NumWorker")),
         kfMinLayers_(pSetKF_.getParameter<int>("MinLayers")),
         kfMaxLayers_(pSetKF_.getParameter<int>("MaxLayers")),
+        kfMaxGaps_(pSetKF_.getParameter<int>("MaxGaps")),
         kfRangeFactor_(pSetKF_.getParameter<double>("RangeFactor")),
         kfBaseShift_(pSetKF_.getParameter<int>("BaseShift")),
         kfShiftInitialC00_(pSetKF_.getParameter<int>("ShiftInitialC00")),
         kfShiftInitialC11_(pSetKF_.getParameter<int>("ShiftInitialC11")),
         kfShiftInitialC22_(pSetKF_.getParameter<int>("ShiftInitialC22")),
         kfShiftInitialC33_(pSetKF_.getParameter<int>("ShiftInitialC33")),
+        kfShiftChi20_(pSetKF_.getParameter<int>("ShiftChi20")),
+        kfShiftChi21_(pSetKF_.getParameter<int>("ShiftChi21")),
+        kfPowCutChi2_(pSetKF_.getParameter<int>("PowCutChi2")),
+        kfWidthChi2_(pSetKF_.getParameter<int>("WidthChi2")),
         // Parmeter specifying KalmanFilter Output Formatter
         pSetKFOut_(iConfig.getParameter<ParameterSet>("KalmanFilterOut")),
         kfoutchi2rphiConv_(pSetKFOut_.getParameter<int>("Chi2rphiConv")),
@@ -217,13 +189,6 @@ namespace tt {
         // Parmeter specifying DuplicateRemoval
         pSetDR_(iConfig.getParameter<ParameterSet>("DuplicateRemoval")),
         drDepthMemory_(pSetDR_.getParameter<int>("DepthMemory")) {
-    configurationSupported_ = true;
-    // check if bField is supported
-    checkMagneticField();
-    // check if geometry is supported
-    checkGeometry();
-    if (!configurationSupported_)
-      return;
     // derive constants
     calculateConstants();
     // convert configuration of TTStubAlgorithm
@@ -237,58 +202,6 @@ namespace tt {
     produceSensorModules();
     // configure TPSelector
     configureTPSelector();
-  }
-
-  // checks current configuration vs input sample configuration
-  void Setup::checkHistory(const ProcessHistory& processHistory) const {
-    const pset::Registry* psetRegistry = pset::Registry::instance();
-    // check used TTStubAlgorithm in input producer
-    checkHistory(processHistory, psetRegistry, phTTStubAlgorithm_, pSetIdTTStubAlgorithm_);
-    // check used GeometryConfiguration in input producer
-    checkHistory(processHistory, psetRegistry, phGeometryConfiguration_, pSetIdGeometryConfiguration_);
-  }
-
-  // checks consitency between history and current configuration for a specific module
-  void Setup::checkHistory(const ProcessHistory& ph,
-                           const pset::Registry* pr,
-                           const string& label,
-                           const ParameterSetID& pSetId) const {
-    vector<pair<string, ParameterSet>> pSets;
-    pSets.reserve(ph.size());
-    for (const ProcessConfiguration& pc : ph) {
-      const ParameterSet* pSet = pr->getMapped(pc.parameterSetID());
-      if (pSet && pSet->exists(label))
-        pSets.emplace_back(pc.processName(), pSet->getParameterSet(label));
-    }
-    if (pSets.empty()) {
-      cms::Exception exception("BadConfiguration");
-      exception << label << " not found in process history.";
-      exception.addContext("tt::Setup::checkHistory");
-      throw exception;
-    }
-    auto consistent = [&pSetId](const pair<string, ParameterSet>& p) { return p.second.id() == pSetId; };
-    if (!all_of(pSets.begin(), pSets.end(), consistent)) {
-      const ParameterSet& pSetProcess = getParameterSet(pSetId);
-      cms::Exception exception("BadConfiguration");
-      exception.addContext("tt::Setup::checkHistory");
-      exception << label << " inconsistent with History." << endl;
-      exception << "Current Configuration:" << endl << pSetProcess.dump() << endl;
-      for (const pair<string, ParameterSet>& p : pSets)
-        if (!consistent(p))
-          exception << "Process " << p.first << " Configuration:" << endl << dumpDiff(p.second, pSetProcess) << endl;
-      throw exception;
-    }
-  }
-
-  // dumps pSetHistory where incosistent lines with pSetProcess are highlighted
-  string Setup::dumpDiff(const ParameterSet& pSetHistory, const ParameterSet& pSetProcess) const {
-    stringstream ssHistory, ssProcess, ss;
-    ssHistory << pSetHistory.dump();
-    ssProcess << pSetProcess.dump();
-    string lineHistory, lineProcess;
-    for (; getline(ssHistory, lineHistory) && getline(ssProcess, lineProcess);)
-      ss << (lineHistory != lineProcess ? "\033[1;31m" : "") << lineHistory << "\033[0m" << endl;
-    return ss.str();
   }
 
   // converts tk layout id into dtc id
@@ -384,43 +297,6 @@ namespace tt {
   const vector<double>& Setup::encodingBend(int windowSize, bool psModule) const {
     const vector<vector<double>>& encodingsBend = psModule ? encodingsBendPS_ : encodingsBend2S_;
     return encodingsBend.at(windowSize);
-  }
-
-  // check if bField is supported
-  void Setup::checkMagneticField() {
-    const double bFieldES = magneticField_->inTesla(GlobalPoint(0., 0., 0.)).z();
-    if (abs(bField_ - bFieldES) > bFieldError_) {
-      configurationSupported_ = false;
-      LogWarning("ConfigurationNotSupported")
-          << "Magnetic Field from EventSetup (" << bFieldES << ") differs more then " << bFieldError_
-          << " from supported value (" << bField_ << "). ";
-    }
-  }
-
-  // check if geometry is supported
-  void Setup::checkGeometry() {
-    //FIX ME: Can we assume that geometry used in dd4hep wf supports L1Track?
-    if (!fromDD4hep_) {
-      const vector<string>& geomXMLFiles = pSetGC_->getParameter<vector<string>>(sgXMLLabel_);
-      string version;
-      for (const string& geomXMLFile : geomXMLFiles) {
-        const auto begin = geomXMLFile.find(sgXMLPath_) + sgXMLPath_.size();
-        const auto end = geomXMLFile.find(sgXMLFile_);
-        if (begin != string::npos && end != string::npos)
-          version = geomXMLFile.substr(begin, end - begin - 1);
-      }
-      if (version.empty()) {
-        cms::Exception exception("LogicError");
-        exception << "No " << sgXMLPath_ << "*/" << sgXMLFile_ << " found in GeometryConfiguration";
-        exception.addContext("tt::Setup::checkGeometry");
-        throw exception;
-      }
-      if (find(sgXMLVersions_.begin(), sgXMLVersions_.end(), version) != sgXMLVersions_.end()) {
-        configurationSupported_ = false;
-        LogWarning("ConfigurationNotSupported")
-            << "Geometry Configuration " << sgXMLPath_ << version << "/" << sgXMLFile_ << " is not supported. ";
-      }
-    }
   }
 
   // convert configuration of TTStubAlgorithm
@@ -554,7 +430,7 @@ namespace tt {
     TTBV ttBV;
     for (int layer = numLayers_ - 1; layer >= 0; layer--) {
       const int i = ints[layer];
-      ttBV += TTBV(i, kfinWidthLayerCount_);
+      ttBV += TTBV(i, ctbWidthLayerCount_);
     }
     return ttBV;
   }
@@ -564,7 +440,7 @@ namespace tt {
     TTBV ttBV;
     for (int layer = numLayers_ - 1; layer >= 0; layer--) {
       const int i = ints[layer];
-      ttBV += TTBV((hitPattern[layer] ? i - 1 : 0), kfinWidthLayerCount_);
+      ttBV += TTBV((hitPattern[layer] ? i - 1 : 0), ctbWidthLayerCount_);
     }
     return ttBV;
   }
@@ -574,7 +450,7 @@ namespace tt {
     TTBV bv(ttBV);
     vector<int> ints(numLayers_, 0);
     for (int layer = 0; layer < numLayers_; layer++) {
-      const int i = bv.extract(kfinWidthLayerCount_);
+      const int i = bv.extract(ctbWidthLayerCount_);
       ints[layer] = i + (hitPattern[layer] ? 1 : 0);
     }
     return ints;
@@ -585,7 +461,7 @@ namespace tt {
     TTBV bv(ttBV);
     vector<int> ints(numLayers_, 0);
     for (int layer = 0; layer < numLayers_; layer++)
-      ints[layer] = bv.extract(kfinWidthLayerCount_);
+      ints[layer] = bv.extract(ctbWidthLayerCount_);
     return ints;
   }
 
@@ -668,8 +544,7 @@ namespace tt {
         tilted = abs(z) > limitsTiltedZ_[layer2];
       else if (r < limitsTiltedR_[layer3])
         tilted = abs(z) > limitsTiltedZ_[layer3];
-    }
-    else if (abs(z) > limitsPSDiksZ_[disk5])
+    } else if (abs(z) > limitsPSDiksZ_[disk5])
       ps = r < limitsPSDiksR_[disk5];
     else if (abs(z) > limitsPSDiksZ_[disk4])
       ps = r < limitsPSDiksR_[disk4];
@@ -692,7 +567,8 @@ namespace tt {
   // stub projected phi uncertainty for given module type, stub radius and track curvature
   double Setup::dPhi(const TTBV& module, double r, double inv2R) const {
     const double sigma = (ps(module) ? pitchRowPS_ : pitchRow2S_) / r;
-    const double dR = scattering_ + (barrel(module) ? (tilted(module) ? tiltUncertaintyR_ : 0.0) : (ps(module) ? pitchColPS_ : pitchCol2S_));
+    const double dR = scattering_ + (barrel(module) ? (tilted(module) ? tiltUncertaintyR_ : 0.0)
+                                                    : (ps(module) ? pitchColPS_ : pitchCol2S_));
     const double dPhi = sigma + dR * abs(inv2R) + tmttBasePhi_;
     return dPhi;
   }
@@ -719,10 +595,10 @@ namespace tt {
     baseRegion_ = 2. * M_PI / numRegions_;
     maxCot_ = beamWindowZ_ / chosenRofZ_ + sinh(maxEta_);
     // gp
-    baseSector_ = baseRegion_ / numSectorsPhi_;
+    baseSector_ = baseRegion_ / gpNumBinsPhiT_;
     maxRphi_ = max(abs(outerRadius_ - chosenRofPhi_), abs(innerRadius_ - chosenRofPhi_));
     maxRz_ = max(abs(outerRadius_ - chosenRofZ_), abs(innerRadius_ - chosenRofZ_));
-    numSectors_ = numSectorsPhi_ * numSectorsEta_;
+    numSectors_ = gpNumBinsPhiT_ * gpNumBinsZT_;
     // tmtt
     const double rangeInv2R = 2. * invPtToDphi_ / minPt_;
     tmttBaseInv2R_ = rangeInv2R / htNumBinsInv2R_;
@@ -738,14 +614,13 @@ namespace tt {
     const int baseShiftPhi = ceil(log2(rangePhi / tmttBasePhiT_ / pow(2., tmttWidthPhi_)));
     tmttBasePhi_ = tmttBasePhiT_ * pow(2., baseShiftPhi);
     tmttWidthLayer_ = ceil(log2(numLayers_));
-    tmttWidthSectorEta_ = ceil(log2(numSectorsEta_));
+    tmttWidthSectorEta_ = ceil(log2(gpNumBinsZT_));
     tmttWidthInv2R_ = ceil(log2(htNumBinsInv2R_));
     tmttNumUnusedBits_ = TTBV::S_ - tmttWidthLayer_ - 2 * tmttWidthSectorEta_ - tmttWidthR_ - tmttWidthPhi_ -
-                         tmttWidthZ_ - 2 * tmttWidthInv2R_ - numSectorsPhi_ - 1;
+                         tmttWidthZ_ - 2 * tmttWidthInv2R_ - gpNumBinsPhiT_ - 1;
     // hybrid
     const double hybridRangeInv2R = 2. * invPtToDphi_ / hybridMinPt_;
-    const double hybridRangeR =
-        2. * max(abs(outerRadius_ - chosenRofPhi_), abs(innerRadius_ - chosenRofPhi_));
+    const double hybridRangeR = 2. * max(abs(outerRadius_ - chosenRofPhi_), abs(innerRadius_ - chosenRofPhi_));
     hybridRangePhi_ = baseRegion_ + (hybridRangeR * hybridRangeInv2R) / 2.;
     hybridWidthLayerId_ = ceil(log2(hybridNumLayers_));
     hybridBasesZ_.reserve(SensorModule::NumTypes);
@@ -786,13 +661,8 @@ namespace tt {
     const double maxM = atan2(x1, innerRadius_) - atan2(x0, innerRadius_);
     dtcWidthM_ = ceil(log2(maxM / dtcBaseM_));
     dtcNumStreams_ = numDTCs_ * numOverlappingRegions_;
-    // mht
-    mhtNumCells_ = mhtNumBinsInv2R_ * mhtNumBinsPhiT_;
-    // zht
-    zhtNumCells_ = zhtNumBinsCot_ * zhtNumBinsZT_;
-    // kfin
-    kfinNumMuxedChannel_ = htNumBinsInv2R_ / kfNumWorker_;
-    kfinWidthLayerCount_ = ceil(log2(kfinMaxStubsPerLayer_));
+    // ctb
+    ctbWidthLayerCount_ = ceil(log2(ctbMaxStubs_));
     // kf
   }
 
@@ -848,7 +718,7 @@ namespace tt {
       }
       p = GlobalPoint(GlobalPoint::Cylindrical(r, phi, z));
     } else {
-      bv >>= 2 * tmttWidthInv2R_ + 2 * tmttWidthSectorEta_ + numSectorsPhi_ + tmttWidthLayer_;
+      bv >>= 2 * tmttWidthInv2R_ + 2 * tmttWidthSectorEta_ + gpNumBinsPhiT_ + tmttWidthLayer_;
       double z = (bv.val(tmttWidthZ_, 0, true) + .5) * tmttBaseZ_;
       bv >>= tmttWidthZ_;
       double phi = (bv.val(tmttWidthPhi_, 0, true) + .5) * tmttBasePhi_;

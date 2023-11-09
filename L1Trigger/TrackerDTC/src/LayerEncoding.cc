@@ -13,8 +13,7 @@ using namespace tt;
 
 namespace trackerDTC {
 
-  LayerEncoding::LayerEncoding(const Setup* setup)
-      : setup_(setup), numDTCsPerRegion_(setup->numDTCsPerRegion()) {
+  LayerEncoding::LayerEncoding(const Setup* setup) : setup_(setup), numDTCsPerRegion_(setup->numDTCsPerRegion()) {
     encodingsLayerId_.reserve(numDTCsPerRegion_);
     for (int dtcInRegion = 0; dtcInRegion < setup->numDTCsPerRegion(); dtcInRegion++) {
       set<int> encodingLayerId;

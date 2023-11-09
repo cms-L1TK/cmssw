@@ -16,10 +16,11 @@ using namespace tt;
 namespace trackerTFP {
 
   constexpr auto variableKFstrs_ = {
-      "x0",        "x1",     "x2",     "x3",  "H00",      "H12",      "m0",           "m1",           "v0",
-      "v1",        "r0",     "r1",     "S00", "S01",      "S12",      "S13",          "K00",          "K10",
-      "K21",       "K31",    "R00",    "R11", "R00Rough", "R11Rough", "invR00Approx", "invR11Approx", "invR00Cor",
-      "invR11Cor", "invR00", "invR11", "C00", "C01",      "C11",      "C22",          "C23",          "C33"};
+      "x0",           "x1",           "x2",        "x3",        "H00",    "H12",    "m0",       "m1",
+      "v0",           "v1",           "r0",        "r1",        "S00",    "S01",    "S12",      "S13",
+      "K00",          "K10",          "K21",       "K31",       "R00",    "R11",    "R00Rough", "R11Rough",
+      "invR00Approx", "invR11Approx", "invR00Cor", "invR11Cor", "invR00", "invR11", "C00",      "C01",
+      "C11",          "C22",          "C23",       "C33",       "r02",    "r12",    "chi20",    "chi21"};
 
   void KalmanFilterFormats::endJob() {
     const int wName =
@@ -41,9 +42,7 @@ namespace trackerTFP {
   }
 
   KalmanFilterFormats::KalmanFilterFormats(const ParameterSet& iConfig, const DataFormats* dataFormats)
-      : iConfig_(iConfig),
-        dataFormats_(dataFormats),
-        setup_(dataFormats_->setup()) {
+      : iConfig_(iConfig), dataFormats_(dataFormats), setup_(dataFormats_->setup()) {
     formats_.reserve(+VariableKF::end);
     fillFormats();
   }
@@ -72,7 +71,7 @@ namespace trackerTFP {
 
   void DataFormatKF::updateRangeActual(double d) {
     rangeActual_ = make_pair(min(rangeActual_.first, d), max(rangeActual_.second, d));
-    /*if (!inRange(d)) {
+    if (!inRange(d)) {
       string v = *next(variableKFstrs_.begin(), +v_);
       cms::Exception exception("out_of_range");
       exception.addContext("trackerTFP:DataFormatKF::updateRangeActual");
@@ -81,7 +80,7 @@ namespace trackerTFP {
       if (twos_ || d >= 0.)
         exception.addAdditionalInfo("Consider raising BaseShift" + v + " in KalmnaFilterFormats_cfi.py.");
       throw exception;
-    }*/
+    }
   }
 
   template <>
@@ -127,18 +126,18 @@ namespace trackerTFP {
   template <>
   FormatKF<VariableKF::H00>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig)
       : DataFormatKF(VariableKF::H00, true) {
-    const DataFormat& kfin = dataFormats->format(Variable::r, Process::kfin);
-    base_ = kfin.base();
-    width_ = kfin.width();
-    range_ = kfin.range();
+    const DataFormat& ctb = dataFormats->format(Variable::r, Process::ctb);
+    base_ = ctb.base();
+    width_ = ctb.width();
+    range_ = ctb.range();
   }
 
   template <>
   FormatKF<VariableKF::H12>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig)
       : DataFormatKF(VariableKF::H12, true) {
     const Setup* setup = dataFormats->setup();
-    const DataFormat& kfin = dataFormats->format(Variable::r, Process::kfin);
-    base_ = kfin.base();
+    const DataFormat& ctb = dataFormats->format(Variable::r, Process::ctb);
+    base_ = ctb.base();
     range_ = 2. * setup->maxRz();
     width_ = ceil(log2(range_ / base_));
   }
@@ -146,19 +145,19 @@ namespace trackerTFP {
   template <>
   FormatKF<VariableKF::m0>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig)
       : DataFormatKF(VariableKF::m0, true) {
-    const DataFormat& kfin = dataFormats->format(Variable::phi, Process::kfin);
-    base_ = kfin.base();
-    width_ = kfin.width();
-    range_ = kfin.range();
+    const DataFormat& ctb = dataFormats->format(Variable::phi, Process::ctb);
+    base_ = ctb.base();
+    width_ = ctb.width();
+    range_ = ctb.range();
   }
 
   template <>
   FormatKF<VariableKF::m1>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig)
       : DataFormatKF(VariableKF::m1, true) {
-    const DataFormat& kfin = dataFormats->format(Variable::z, Process::kfin);
-    base_ = kfin.base();
-    width_ = kfin.width();
-    range_ = kfin.range();
+    const DataFormat& ctb = dataFormats->format(Variable::z, Process::ctb);
+    base_ = ctb.base();
+    width_ = ctb.width();
+    range_ = ctb.range();
   }
 
   template <>
@@ -173,7 +172,7 @@ namespace trackerTFP {
 
   template <>
   FormatKF<VariableKF::v1>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig)
-      : DataFormatKF(VariableKF::v1, true) {
+      : DataFormatKF(VariableKF::v1, false) {
     const DataFormat& x3 = dataFormats->format(Variable::zT, Process::kf);
     const int baseShift = iConfig.getParameter<int>("BaseShiftv1");
     base_ = pow(2., baseShift) * x3.base() * x3.base();
@@ -439,6 +438,44 @@ namespace trackerTFP {
     const DataFormat& x3 = dataFormats->format(Variable::zT, Process::kf);
     const int baseShift = iConfig.getParameter<int>("BaseShiftC33");
     base_ = pow(2., baseShift) * x3.base() * x3.base();
+    width_ = dataFormats->setup()->widthDSPbu();
+    calcRange();
+  }
+
+  template <>
+  FormatKF<VariableKF::r02>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig)
+      : DataFormatKF(VariableKF::r02, false) {
+    const DataFormat& x1 = dataFormats->format(Variable::phiT, Process::kf);
+    const int baseShift = iConfig.getParameter<int>("BaseShiftr02");
+    base_ = pow(2., baseShift) * x1.base() * x1.base();
+    width_ = dataFormats->setup()->widthDSPbu();
+    calcRange();
+  }
+
+  template <>
+  FormatKF<VariableKF::r12>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig)
+      : DataFormatKF(VariableKF::r12, false) {
+    const DataFormat& x3 = dataFormats->format(Variable::zT, Process::kf);
+    const int baseShift = iConfig.getParameter<int>("BaseShiftr12");
+    base_ = pow(2., baseShift) * x3.base() * x3.base();
+    width_ = dataFormats->setup()->widthDSPbu();
+    calcRange();
+  }
+
+  template <>
+  FormatKF<VariableKF::chi20>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig)
+      : DataFormatKF(VariableKF::chi20, false) {
+    const int baseShift = iConfig.getParameter<int>("BaseShiftchi20");
+    base_ = pow(2., baseShift);
+    width_ = dataFormats->setup()->widthDSPbu();
+    calcRange();
+  }
+
+  template <>
+  FormatKF<VariableKF::chi21>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig)
+      : DataFormatKF(VariableKF::chi21, false) {
+    const int baseShift = iConfig.getParameter<int>("BaseShiftchi21");
+    base_ = pow(2., baseShift);
     width_ = dataFormats->setup()->widthDSPbu();
     calcRange();
   }

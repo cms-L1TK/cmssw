@@ -25,6 +25,8 @@ namespace tt {
     bool side() const { return side_; }
     // barrel or endcap
     bool barrel() const { return barrel_; }
+    // tilted barrel or flat barrel
+    bool tilted() const { return tilted_; }
     // Pixel-Strip or 2Strip module
     bool psModule() const { return psModule_; }
     // main sensor inside or outside
@@ -88,6 +90,8 @@ namespace tt {
     bool side_;
     // barrel or endcap
     bool barrel_;
+    // tilted barrel or flat barrel
+    bool tilted_;
     // Pixel-Strip or 2Strip module
     bool psModule_;
     // main sensor inside or outside

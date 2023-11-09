@@ -19,7 +19,12 @@ namespace trackerDTC {
   class Stub {
   public:
     Stub(const trackerTFP::DataFormats*, const tt::SensorModule*, const TTStubRef&);
-    Stub(const edm::ParameterSet&, const tt::Setup*, const trackerTFP::DataFormats*, const LayerEncoding*, const tt::SensorModule*, const TTStubRef&);
+    Stub(const edm::ParameterSet&,
+         const tt::Setup*,
+         const trackerTFP::DataFormats*,
+         const LayerEncoding*,
+         const tt::SensorModule*,
+         const TTStubRef&);
     ~Stub() {}
     // underlying TTStubRef
     const TTStubRef& ttStubRef() const { return ttStubRef_; }
@@ -28,14 +33,15 @@ namespace trackerDTC {
     // stub bend in quarter pitch units
     int bend() const { return bend_; }
     // bit accurate representation of Stub
-    tt::Frame frame(int region) const;
+    tt::FrameStub frame(int region) const;
     // checks stubs region assignment
-    bool inRegion(int region) const;
+    bool inRegion(int region) const { return regions_[region]; }
     // range of stub extrapolated phi to radius chosenRofPhi in rad
     std::pair<double, double> phiT() const { return phiT_; }
     // stub phi w.r.t. detector region centre in rad
     double phi() const { return phi_; }
-  private:
+
+  public:
     // truncates double precision to f/w integer equivalent
     double digi(double value, double precision) const;
     // 64 bit stub in hybrid data format
@@ -82,6 +88,8 @@ namespace trackerDTC {
     std::pair<double, double> inv2R_;
     // range of stub extrapolated phi to radius chosenRofPhi wrt detector nonant center in rad
     std::pair<double, double> phiT_;
+    // range of stub extrapolated z to radius chosenRofZ in cm
+    std::pair<double, double> zT_;
     // shared regions this stub belongs to [0-1]
     TTBV regions_;
   };

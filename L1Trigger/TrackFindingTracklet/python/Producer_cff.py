@@ -1,7 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 
 from L1Trigger.TrackTrigger.Setup_cff import TrackTriggerSetup
-from L1Trigger.TrackTrigger.ProducerHPH_cff import HitPatternHelperSetup
 from L1Trigger.TrackerTFP.Producer_cfi import TrackerTFPProducer_params
 from L1Trigger.TrackerTFP.DataFormats_cff import TrackTriggerDataFormats
 from L1Trigger.TrackerTFP.LayerEncoding_cff import TrackTriggerLayerEncoding

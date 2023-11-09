@@ -17,8 +17,9 @@ namespace trackerDTC {
            const DataFormats* dataFormats,
            const LayerEncoding* layerEncoding,
            int dtcId,
-           const std::vector<std::vector<TTStubRef>>& stubsDTC)
+           const vector<vector<TTStubRef>>& stubsDTC)
       : setup_(setup),
+        dataFormats_(dataFormats),
         enableTruncation_(iConfig.getParameter<bool>("EnableTruncation")),
         region_(dtcId / setup->numDTCsPerRegion()),
         board_(dtcId % setup->numDTCsPerRegion()),
@@ -153,9 +154,7 @@ namespace trackerDTC {
   // conversion from Stubss to TTDTC
   void DTC::produce(const Stubss& stubss, TTDTC& product) {
     int channel(0);
-    auto toFrame = [&channel](Stub* stub) {
-      return stub ? make_pair(stub->ttStubRef(), stub->frame(channel)) : FrameStub();
-    };
+    auto toFrame = [&channel](Stub* stub) { return stub ? stub->frame(channel) : FrameStub(); };
     for (const Stubs& stubs : stubss) {
       StreamStub stream;
       stream.reserve(stubs.size());

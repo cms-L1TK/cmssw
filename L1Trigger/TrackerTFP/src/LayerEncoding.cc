@@ -70,10 +70,10 @@ namespace trackerTFP {
       // mayber layers are given by layer ids crossed by only one booundary
       set<int> maybeLayer;
       set_symmetric_difference(layers[0].begin(),
-                                layers[0].end(),
-                                layers[1].begin(),
-                                layers[1].end(),
-                                inserter(maybeLayer, maybeLayer.end()));
+                               layers[0].end(),
+                               layers[1].begin(),
+                               layers[1].end(),
+                               inserter(maybeLayer, maybeLayer.end()));
       // layerEncoding is given by sorted layer ids crossed by any booundary
       set<int> layerEncoding;
       set_union(layers[0].begin(),
@@ -88,68 +88,7 @@ namespace trackerTFP {
       TTBV& mp = maybePattern_[binZT];
       for (int m : maybeLayer)
         mp.set(min((int)distance(le.begin(), find(le.begin(), le.end(), m)), setup_->numLayers() - 1));
-      /*if (zT_->toSigned(binZT) == 4) {
-        cout << mp << endl;
-        for (int i : le)
-          cout << i << " ";
-        cout << endl;
-      }*/
     }
-    const bool print = false;
-    if (!print)
-      return;
-    static constexpr int widthLayer = 3;
-    stringstream ssLE;
-    stringstream ssMP;
-    for (int binZT = 0; binZT < pow(2, zT_->width()); binZT++) {
-      const vector<int>& le = layerEncoding_[binZT];
-      /*if (zT_->toSigned(binZT) == 11) {
-        for (int i : le)
-          cout << i << " ";
-        cout << endl;
-      }*/
-      const TTBV& mp = maybePattern_[binZT];
-      ssMP << mp << endl;
-      for (int layer = 0; layer < setup_->numLayers(); layer++) {
-        vector<int> layerIds;
-        if (layer == 0)
-          layerIds = {1, 16};
-        else if (layer == 1)
-          layerIds = {2, 16};
-        else if (layer == 2)
-          layerIds = {6, 11};
-        else if (layer == 3)
-          layerIds = {5, 12};
-        else if (layer == 4)
-          layerIds = {4, 13};
-        else if (layer == 5)
-          layerIds = {0, 14};
-        else if (layer == 6)
-          layerIds = {3, 15};
-        for (int layerId : layerIds) {
-          const auto it = find(le.begin(), le.end(), layerId);
-          const bool valid = it != le.end();
-          const int kfLayerId = min((int)distance(le.begin(), it), setup_->numLayers() - 1);
-          /*if (zT_->toSigned(binZT) == 11) {
-            cout << layer << " " << valid << " " << kfLayerId << endl;
-          }*/
-          if (valid)
-            ssLE << "1" << TTBV(kfLayerId, widthLayer);
-          else
-            ssLE << "0" << string(widthLayer, '-');
-        }
-      }
-      //if (zT_->toSigned(binZT) == 4)
-        //throw cms::Exception("...");
-      ssLE << endl;
-    }
-    fstream file;
-    file.open("layerEncoding.mem", ios::out);
-    file << ssLE.rdbuf();
-    file.close();
-    file.open("maybePatterns.mem", ios::out);
-    file << ssMP.rdbuf();
-    file.close();
   }
 
   // Set of layers for given bin in zT
@@ -158,10 +97,22 @@ namespace trackerTFP {
     return layerEncoding_.at(binZT);
   }
 
+  // Set of layers for given zT in cm
+  const vector<int>& LayerEncoding::layerEncoding(double zT) const {
+    const int binZT = zT_->integer(zT);
+    return layerEncoding(binZT);
+  }
+
   // pattern of maybe layers for given bin in zT
   const TTBV& LayerEncoding::maybePattern(int zT) const {
     const int binZT = zT_->toUnsigned(zT);
     return maybePattern_.at(binZT);
+  }
+
+  // pattern of maybe layers for given zT in cm
+  const TTBV& LayerEncoding::maybePattern(double zT) const {
+    const int binZT = zT_->integer(zT);
+    return maybePattern(binZT);
   }
 
 }  // namespace trackerTFP
