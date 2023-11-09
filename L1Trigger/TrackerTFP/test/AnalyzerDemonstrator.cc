@@ -64,14 +64,14 @@ namespace trackerTFP {
     // book in- and output ED products
     const string& labelIn = iConfig.getParameter<string>("LabelIn");
     const string& labelOut = iConfig.getParameter<string>("LabelOut");
-    const string& branchStubs = iConfig.getParameter<string>("BranchAcceptedStubs");
-    const string& branchTracks = iConfig.getParameter<string>("BranchAcceptedTracks");
+    const string& branchStubs = iConfig.getParameter<string>("BranchStubsAccepted");
+    const string& branchTracks = iConfig.getParameter<string>("BranchTracksAccepted");
     edGetTokenStubsIn_ = consumes<StreamsStub>(InputTag(labelIn, branchStubs));
     edGetTokenStubsOut_ = consumes<StreamsStub>(InputTag(labelOut, branchStubs));
-    if (labelIn == "TrackerTFPProducerKFin" || labelIn == "TrackerTFPProducerKF")
+    if (labelIn == "TrackerTFPProducerCTB" || labelIn == "TrackerTFPProducerKF")
       edGetTokenTracksIn_ = consumes<StreamsTrack>(InputTag(labelIn, branchTracks));
     edGetTokenStubsOut_ = consumes<StreamsStub>(InputTag(labelOut, branchStubs));
-    if (labelOut == "TrackerTFPProducerKFin" || labelOut == "TrackerTFPProducerKF" || labelOut == "TrackerTFPProducerDR")
+    if (labelOut == "TrackerTFPProducerCTB" || labelOut == "TrackerTFPProducerKF" || labelOut == "TrackerTFPProducerDR")
       edGetTokenTracksOut_ = consumes<StreamsTrack>(InputTag(labelOut, branchTracks));
     // book ES products
     esGetTokenSetup_ = esConsumes<Setup, SetupRcd, Transition::BeginRun>();

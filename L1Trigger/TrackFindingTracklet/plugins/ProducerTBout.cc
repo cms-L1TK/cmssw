@@ -79,10 +79,10 @@ namespace trklet {
 
   ProducerTBout::ProducerTBout(const ParameterSet& iConfig) : iConfig_(iConfig) {
     const InputTag& inputTag = iConfig.getParameter<InputTag>("InputTag");
-    const string& branchAcceptedStubs = iConfig.getParameter<string>("BranchAcceptedStubs");
-    const string& branchAcceptedTracks = iConfig.getParameter<string>("BranchAcceptedTracks");
-    const string& branchLostStubs = iConfig.getParameter<string>("BranchLostStubs");
-    const string& branchLostTracks = iConfig.getParameter<string>("BranchLostTracks");
+    const string& branchAcceptedStubs = iConfig.getParameter<string>("BranchStubsAccepted");
+    const string& branchAcceptedTracks = iConfig.getParameter<string>("BranchTracksAccepted");
+    const string& branchLostStubs = iConfig.getParameter<string>("BranchStubsTruncated");
+    const string& branchLostTracks = iConfig.getParameter<string>("BranchTracksTruncated");
     // book in- and output ED products
     edGetTokenTTTracks_ = consumes<TTTracks>(inputTag);
     edGetTokenTracks_ = consumes<Streams>(inputTag);
@@ -102,11 +102,6 @@ namespace trklet {
   void ProducerTBout::beginRun(const Run& iRun, const EventSetup& iSetup) {
     // helper class to store configurations
     setup_ = &iSetup.getData(esGetTokenSetup_);
-    if (!setup_->configurationSupported())
-      return;
-    // check process history if desired
-    if (iConfig_.getParameter<bool>("CheckHistory"))
-      setup_->checkHistory(iRun.processHistory());
     // helper class to extract structured data from tt::Frames
     dataFormats_ = &iSetup.getData(esGetTokenDataFormats_);
     // helper class to assign tracks to channel
@@ -122,63 +117,61 @@ namespace trklet {
     StreamsStub streamLostStubs(numStreamsStubs);
     StreamsTrack streamLostTracks(numStreamsTracks);
     // read in hybrid track finding product and produce KFin product
-    if (setup_->configurationSupported()) {
-      // create and structure TTrackRefs in h/w channel
-      vector<deque<TTTrackRef>> ttTrackRefs(numStreamsTracks);
-      Handle<TTTracks> handleTTTracks;
-      iEvent.getByToken<TTTracks>(edGetTokenTTTracks_, handleTTTracks);
-      int channelId(-1);
-      for (int i = 0; i < (int)handleTTTracks->size(); i++) {
-        const TTTrackRef ttTrackRef(handleTTTracks, i);
-        const int channelId = channelAssignment_->channelId(ttTrackRef);
+    // create and structure TTrackRefs in h/w channel
+    vector<deque<TTTrackRef>> ttTrackRefs(numStreamsTracks);
+    Handle<TTTracks> handleTTTracks;
+    iEvent.getByToken<TTTracks>(edGetTokenTTTracks_, handleTTTracks);
+    int channelId(-1);
+    for (int i = 0; i < (int)handleTTTracks->size(); i++) {
+      const TTTrackRef ttTrackRef(handleTTTracks, i);
+      if (channelAssignment_->channelId(ttTrackRef, channelId))
         ttTrackRefs[channelId].push_back(ttTrackRef);
+    }
+    // get and trunacte tracks
+    Handle<Streams> handleTracks;
+    iEvent.getByToken<Streams>(edGetTokenTracks_, handleTracks);
+    channelId = 0;
+    for (const Stream& streamTrack : *handleTracks) {
+      const int nTracks = accumulate(
+          streamTrack.begin(), streamTrack.end(), 0, [](int& sum, const Frame& f) { return sum += f.any() ? 1 : 0; });
+      StreamTrack& accepted = streamAcceptedTracks[channelId];
+      StreamTrack& lost = streamLostTracks[channelId];
+      auto limit = streamTrack.end();
+      if (enableTruncation_ && (int)streamTrack.size() > setup_->numFrames())
+        limit = next(streamTrack.begin(), setup_->numFrames());
+      accepted.reserve(distance(streamTrack.begin(), limit));
+      lost.reserve(distance(limit, streamTrack.end()));
+      int nFrame(0);
+      const deque<TTTrackRef>& ttTracks = ttTrackRefs[channelId++];
+      if ((int)ttTracks.size() != nTracks) {
+        cms::Exception exception("LogicError.");
+        const int region = channelId / channelAssignment_->numChannelsTrack();
+        const int channel = channelId % channelAssignment_->numChannelsTrack();
+        exception << "Region " << region << " output channel " << channel << " has " << nTracks
+                  << " tracks found but created " << ttTracks.size() << " TTTracks.";
+        exception.addContext("trklet::ProducerTBout::produce");
+        throw exception;
       }
-      // get and trunacte tracks
-      Handle<Streams> handleTracks;
-      iEvent.getByToken<Streams>(edGetTokenTracks_, handleTracks);
-      channelId = 0;
-      for (const Stream& streamTrack : *handleTracks) {
-        const int nTracks = accumulate(
-            streamTrack.begin(), streamTrack.end(), 0, [](int sum, const Frame& f) { return sum + (f.any() ? 1 : 0); });
-        StreamTrack& accepted = streamAcceptedTracks[channelId];
-        StreamTrack& lost = streamLostTracks[channelId];
-        auto limit = streamTrack.end();
-        if (enableTruncation_ && (int)streamTrack.size() > setup_->numFrames())
-          limit = next(streamTrack.begin(), setup_->numFrames());
-        accepted.reserve(distance(streamTrack.begin(), limit));
-        lost.reserve(distance(limit, streamTrack.end()));
-        int nFrame(0);
-        const deque<TTTrackRef>& ttTracks = ttTrackRefs[channelId++];
-        if ((int)ttTracks.size() != nTracks) {
-          cms::Exception exception("LogicError.");
-          const int region = channelId / channelAssignment_->numChannelsTrack();
-          const int channel = channelId % channelAssignment_->numChannelsTrack();
-          exception << "Region " << region << " output channel " << channel << " has " << nTracks
-                    << " tracks found but created " << ttTracks.size() << " TTTracks.";
-          exception.addContext("trklet::ProducerTBout::produce");
-          throw exception;
-        }
-        auto toFrameTrack = [&nFrame, &ttTracks](const Frame& frame) {
-          if (frame.any())
-            return FrameTrack(ttTracks[nFrame++], frame);
-          return FrameTrack();
-        };
-        transform(streamTrack.begin(), limit, back_inserter(accepted), toFrameTrack);
-        transform(limit, streamTrack.end(), back_inserter(lost), toFrameTrack);
-      }
-      // get and trunacte stubs
-      Handle<StreamsStub> handleStubs;
-      iEvent.getByToken<StreamsStub>(edGetTokenStubs_, handleStubs);
-      const StreamsStub& streamsStub = *handleStubs;
-      // reserve output ed products
-      channelId = 0;
-      for (const StreamStub& streamStub : streamsStub) {
-        auto limit = streamStub.end();
-        if (enableTruncation_ && (int)streamStub.size() > setup_->numFrames())
-          limit = next(streamStub.begin(), setup_->numFrames());
-        streamAcceptedStubs[channelId] = StreamStub(streamStub.begin(), limit);
-        streamLostStubs[channelId++] = StreamStub(limit, streamStub.end());
-      }
+      auto toFrameTrack = [&nFrame, &ttTracks](const Frame& frame) {
+        if (frame.any())
+          return FrameTrack(ttTracks[nFrame++], frame);
+        return FrameTrack();
+      };
+      transform(streamTrack.begin(), limit, back_inserter(accepted), toFrameTrack);
+      transform(limit, streamTrack.end(), back_inserter(lost), toFrameTrack);
+    }
+    // get and trunacte stubs
+    Handle<StreamsStub> handleStubs;
+    iEvent.getByToken<StreamsStub>(edGetTokenStubs_, handleStubs);
+    const StreamsStub& streamsStub = *handleStubs;
+    // reserve output ed products
+    channelId = 0;
+    for (const StreamStub& streamStub : streamsStub) {
+      auto limit = streamStub.end();
+      if (enableTruncation_ && (int)streamStub.size() > setup_->numFrames())
+        limit = next(streamStub.begin(), setup_->numFrames());
+      streamAcceptedStubs[channelId] = StreamStub(streamStub.begin(), limit);
+      streamLostStubs[channelId++] = StreamStub(limit, streamStub.end());
     }
     // store products
     iEvent.emplace(edPutTokenAcceptedStubs_, std::move(streamAcceptedStubs));

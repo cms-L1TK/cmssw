@@ -12,29 +12,40 @@ namespace trackerTFP {
   // Class to represent a Kalman Filter State
   class State {
   public:
-    // default constructor
+    enum Type { combSkip, combDone, skip, done };
+    // copy constructor
     State(State* state);
     // proto state constructor
-    State(KalmanFilterFormats* formats, TrackKFin* track, int trackId);
-    // combinatoric state constructor
-    State(State* state, StubKFin* stub);
+    State(KalmanFilterFormats* formats,
+          TrackCTB* track,
+          const std::vector<std::vector<StubCTB*>>& stubs,
+          const TTBV& maybe,
+          int trackId);
     // updated state constructor
     State(State* state, const std::vector<double>& doubles);
+    // combinatoric state constructor
+    State(State* state, StubCTB* stub, int layer, Type type);
     ~State() {}
+    //
+    State* comb(std::deque<State>& states, int layer);
+    //
+    State* unskip(std::deque<State>& states, int layer);
     // input track
-    TrackKFin* track() const { return track_; }
+    TrackCTB* track() const { return track_; }
     // parent state (nullpointer if no parent available)
     State* parent() const { return parent_; }
     // stub to add to state
-    StubKFin* stub() const { return stub_; }
+    StubCTB* stub() const { return stub_; }
     // hitPattern of so far added stubs
     const TTBV& hitPattern() const { return hitPattern_; }
+    // shows which layer the found track has stubs on
+    const TTBV& trackPattern() const { return trackPattern_; }
     // track id of input track
     int trackId() const { return trackId_; }
     // pattern of maybe layers for input track
-    const TTBV& maybePattern() const { return track_->maybePattern(); }
+    const TTBV& maybePattern() const { return maybePattern_; }
     // layer id of the current stub to add
-    int layer() const { return (stub_ ? stub_->layer() : -1); }
+    int layer() const { return layer_; }
     // helix inv2R wrt input helix
     double x0() const { return x0_; }
     // helix phi at radius ChosenRofPhi wrt input helix
@@ -43,6 +54,10 @@ namespace trackerTFP {
     double x2() const { return x2_; }
     // helix z at radius chosenRofZ wrt input helix
     double x3() const { return x3_; }
+    //
+    double chi20() const { return chi20_; }
+    //
+    double chi21() const { return chi21_; }
     // cov. matrix element
     double C00() const { return C00_; }
     // cov. matrix element
@@ -71,23 +86,35 @@ namespace trackerTFP {
     double v0() const { return v0_; }
     // squared stub projected z uncertainty instead of wheight (wrong but simpler)
     double v1() const { return v1_; }
+    //
+    bool isDone() const { return type_ == done; }
+    //
+    bool isSkip() const { return type_ == skip; }
+    const std::vector<std::vector<StubCTB*>>& stubs() const { return stubs_; }
+
   private:
     // provides data fomats
     KalmanFilterFormats* formats_;
     // provides run-time constants
     const tt::Setup* setup_;
     // input track
-    TrackKFin* track_;
+    TrackCTB* track_;
+    // input track stubs
+    std::vector<std::vector<StubCTB*>> stubs_;
+    // pattern of maybe layers for input track
+    TTBV maybePattern_;
     // track id
     int trackId_;
     // previous state, nullptr for first states
     State* parent_;
     // stub to add
-    StubKFin* stub_;
-    // shows which stub on each layer has been added so far
-    std::vector<int> layerMap_;
+    StubCTB* stub_;
+    // layer id of the current stub to add
+    int layer_;
     // shows which layer has been added so far
     TTBV hitPattern_;
+    // shows which layer the found track has stubs on
+    TTBV trackPattern_;
     // helix inv2R wrt input helix
     double x0_;
     // helix phi at radius ChosenRofPhi wrt input helix
@@ -96,6 +123,10 @@ namespace trackerTFP {
     double x2_;
     // helix z at radius chosenRofZ wrt input helix
     double x3_;
+    //
+    double chi20_;
+    //
+    double chi21_;
     // cov. matrix
     double C00_;
     double C01_;
@@ -109,6 +140,8 @@ namespace trackerTFP {
     double v0_;
     // squared stub projected z uncertainty instead of wheight (wrong but simpler)
     double v1_;
+    //
+    Type type_;
   };
 
 }  // namespace trackerTFP

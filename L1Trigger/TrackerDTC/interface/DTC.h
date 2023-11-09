@@ -45,6 +45,8 @@ namespace trackerDTC {
     Stub* pop_front(Stubs& stubs);
     // helper class to store configurations
     const tt::Setup* setup_;
+    // provides dataformats
+    const trackerTFP::DataFormats* dataFormats_;
     // enables emulation of truncation
     bool enableTruncation_;
     // outer tracker detector region [0-8]

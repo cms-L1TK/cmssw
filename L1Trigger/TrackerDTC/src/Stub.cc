@@ -102,14 +102,17 @@ namespace trackerDTC {
         ttStubRef_(ttStubRef),
         hybrid_(iConfig.getParameter<bool>("UseHybrid")) {
     const Stub stub(dataFormats, sm, ttStubRef);
+    bend_ = stub.bend_;
     valid_ = stub.valid_;
+    row_ = stub.row_;
+    col_ = stub.col_;
     r_ = stub.r_;
     phi_ = stub.phi_;
     z_ = stub.z_;
     phiT_ = stub.phiT_;
     inv2R_ = stub.inv2R_;
     regions_ = stub.regions_;
-    // apply "eta" cut 
+    // apply "eta" cut
     const DataFormat& dfZT = dataFormats->format(Variable::zT, Process::gp);
     const double r = r_ + setup->chosenRofPhi();
     if (hybrid_) {
@@ -121,6 +124,7 @@ namespace trackerDTC {
       const double zT = z_ * ratioRZ;
       // extrapolated z0 window at radius T
       const double dZT = setup->beamWindowZ() * abs(1. - ratioRZ);
+      zT_ = {zT - dZT, zT + dZT};
       if (abs(zT) > dfZT.limit() + dZT)
         valid_ = false;
     }
@@ -144,13 +148,14 @@ namespace trackerDTC {
   }
 
   // returns bit accurate representation of Stub
-  Frame Stub::frame(int region) const { return hybrid_ ? formatHybrid(region) : formatTMTT(region); }
-
-  // returns true if stub belongs to region
-  bool Stub::inRegion(int region) const { return regions_[region]; }
+  FrameStub Stub::frame(int region) const {
+    return make_pair(ttStubRef_, hybrid_ ? formatHybrid(region) : formatTMTT(region));
+  }
 
   // truncates double precision to f/w integer equivalent
-  double Stub::digi(double value, double precision) const { return (floor(value / precision + 1.e-12) + .5) * precision; }
+  double Stub::digi(double value, double precision) const {
+    return (floor(value / precision + 1.e-12) + .5) * precision;
+  }
 
   // returns 64 bit stub in hybrid data format
   Frame Stub::formatHybrid(int region) const {
@@ -175,7 +180,29 @@ namespace trackerDTC {
   }
 
   Frame Stub::formatTMTT(int region) const {
-    return StubDTC(ttStubRef_, dataFormats_, region, sm_->layerId(), r_, phi_, z_, phiT_, inv2R_).bv();
+    static const DataFormat& dfInv2R = dataFormats_->format(Variable::inv2R, Process::ht);
+    static const DataFormat& dfPhiT = dataFormats_->format(Variable::phiT, Process::gp);
+    static const DataFormat& dfZT = dataFormats_->format(Variable::zT, Process::gp);
+    const double offset = (region - .5) * dfPhiT.range();
+    const double r = r_;
+    const double phi = phi_ - offset;
+    const double z = z_;
+    const int indexLayerId = setup_->indexLayerId(ttStubRef_);
+    TTBV layer(indexLayerId, dataFormats_->width(Variable::layer, Process::dtc));
+    if (sm_->barrel()) {
+      layer.set(4);
+      if (sm_->tilted())
+        layer.set(3);
+    } else if (sm_->psModule())
+      layer.set(3);
+    const int phiTMin = dfPhiT.integerF(phiT_.first - offset);
+    const int phiTMax = dfPhiT.integerF(phiT_.second - offset);
+    const int zTMin = dfZT.integerF(zT_.first);
+    const int zTMax = dfZT.integerF(zT_.second);
+    const int inv2RMin = dfInv2R.integer(inv2R_.first);
+    const int inv2RMax = dfInv2R.integer(inv2R_.second);
+    const StubDTC stub(ttStubRef_, dataFormats_, r, phi, z, layer, phiTMin, phiTMax, zTMin, zTMax, inv2RMin, inv2RMax);
+    return stub.frame().second;
   }
 
 }  // namespace trackerDTC

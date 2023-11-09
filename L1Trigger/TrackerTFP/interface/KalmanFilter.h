@@ -3,11 +3,14 @@
 
 #include "L1Trigger/TrackTrigger/interface/Setup.h"
 #include "L1Trigger/TrackerTFP/interface/DataFormats.h"
+#include "L1Trigger/TrackerTFP/interface/LayerEncoding.h"
 #include "L1Trigger/TrackerTFP/interface/KalmanFilterFormats.h"
 #include "L1Trigger/TrackerTFP/interface/State.h"
 #include "DataFormats/L1TrackTrigger/interface/TTTypes.h"
 
+#include <vector>
 #include <deque>
+#include <utility>
 
 namespace trackerTFP {
 
@@ -17,36 +20,38 @@ namespace trackerTFP {
     KalmanFilter(const edm::ParameterSet& iConfig,
                  const tt::Setup* setup,
                  const DataFormats* dataFormats,
+                 const LayerEncoding* layerEncoding,
                  KalmanFilterFormats* kalmanFilterFormats,
-                 int region);
+                 std::vector<TrackKF>& tracks,
+                 std::vector<StubKF>& stubs);
     ~KalmanFilter() {}
 
-    // read in and organize input tracks and stubs
-    void consume(const tt::StreamsTrack& streamsTrack, const tt::StreamsStub& streamsStub);
     // fill output products
-    void produce(tt::StreamsStub& accpetedStubs,
-                 tt::StreamsTrack& acceptedTracks,
-                 tt::StreamsStub& lostStubs,
-                 tt::StreamsTrack& lostTracks,
+    void produce(const std::vector<std::vector<TrackCTB*>>& tracksIn,
+                 const std::vector<std::vector<StubCTB*>>& stubsIn,
+                 std::vector<std::vector<TrackKF*>>& tracksOut,
+                 std::vector<std::vector<std::vector<StubKF*>>>& stubsOut,
                  int& numAcceptedStates,
-                 int& numLostStates);
+                 int& numLostStates,
+                 std::deque<std::pair<double, double>>& chi2s);
 
   private:
     // remove and return first element of deque, returns nullptr if empty
     template <class T>
     T* pop_front(std::deque<T*>& ts) const;
-    // remove and return first element of vector, returns nullptr if empty
-    template <class T>
-    T* pop_front(std::vector<T*>& ts) const;
 
+    // apply final cuts
+    void finalize(std::deque<State*>& stream);
     // Transform States into Tracks
-    void conv(const std::deque<State*>& states, std::vector<TrackKF>& tracksKF, std::vector<StubKF>& stubsKF, std::vector<TrackKF*>& tracks) const;
+    void conv(const std::deque<State*>& states,
+              std::vector<TrackKF*>& tracks,
+              std::vector<std::vector<StubKF*>>& stubs);
     // adds a layer to states
     void addLayer(std::deque<State*>& stream);
     // Assign next combinatoric (i.e. not first in layer) stub to state
     void comb(State*& state);
     // best state selection
-    void accumulator(std::vector<TrackKF*>& stream);
+    void accumulator(std::deque<State*>& stream);
     // updates state
     void update(State*& state);
 
@@ -56,18 +61,16 @@ namespace trackerTFP {
     const tt::Setup* setup_;
     // provides dataformats
     const DataFormats* dataFormats_;
+    // provides layer Encoding
+    const LayerEncoding* layerEncoding_;
     // provides dataformats of Kalman filter internals
     KalmanFilterFormats* kalmanFilterFormats_;
-    // processing region (0 - 8)
-    int region_;
-    // container of input stubs
-    std::vector<StubKFin> stubs_;
-    // container of input tracks
-    std::vector<TrackKFin> tracks_;
+    // container of output tracks
+    std::vector<TrackKF>& tracks_;
+    // container of output stubs
+    std::vector<StubKF>& stubs_;
     // container of all Kalman Filter states
     std::deque<State> states_;
-    // h/w liked organized pointer to input stubs
-    std::vector<std::vector<TrackKFin*>> input_;
     // current layer used during state propagation
     int layer_;
 
@@ -109,6 +112,10 @@ namespace trackerTFP {
     DataFormatKF* C22_;
     DataFormatKF* C23_;
     DataFormatKF* C33_;
+    DataFormatKF* r02_;
+    DataFormatKF* r12_;
+    DataFormatKF* chi20_;
+    DataFormatKF* chi21_;
   };
 
 }  // namespace trackerTFP

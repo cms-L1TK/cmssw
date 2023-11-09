@@ -57,11 +57,13 @@ namespace trklet {
             const std::vector<Stub*>& stubs,
             double cot,
             double zT,
-            double inv2R,
-            int sectorEta)
-          : frame_(frame), stubs_(stubs), cot_(cot), zT_(zT), inv2R_(inv2R), sectorEta_(sectorEta) {}
-      tt::FrameTrack frame_;
-      std::vector<Stub*> stubs_;
+            const std::vector<Stub*>& stubs)
+          : ttTrackRef_(ttTrackRef), valid_(valid), inv2R_(inv2R), phiT_(phiT), cot_(cot), zT_(zT), stubs_(stubs) {}
+      TTTrackRef ttTrackRef_;
+      bool valid_;
+      TTBV maybe_;
+      double inv2R_;
+      double phiT_;
       double cot_;
       double zT_;
       double inv2R_;
@@ -88,6 +90,30 @@ namespace trklet {
     std::vector<Stub> stubs_;
     // h/w liked organized pointer to input tracks
     std::vector<std::vector<Track*>> input_;
+    // unified tracklet digitisation granularity
+    double baseUinv2R_;
+    double baseUphiT_;
+    double baseUcot_;
+    double baseUzT_;
+    double baseUr_;
+    double baseUphi_;
+    double baseUz_;
+    // KF input format digitisation granularity (identical to TMTT)
+    double baseLinv2R_;
+    double baseLphiT_;
+    double baseLzT_;
+    double baseLr_;
+    double baseLphi_;
+    double baseLz_;
+    // Finer granularity (by powers of 2) than the TMTT one. Used to transform from Tracklet to TMTT base.
+    double baseHinv2R_;
+    double baseHphiT_;
+    double baseHzT_;
+    double baseHr_;
+    double baseHphi_;
+    double baseHz_;
+    // digitisation granularity used for inverted cot(theta)
+    double baseInvCot_;
   };
 
 }  // namespace trklet

@@ -2,17 +2,6 @@ import FWCore.ParameterSet.Config as cms
 
 TrackTrigger_params = cms.PSet (
 
-  fromDD4hep = cms.bool(False),
-
-  # Parameter to check if configured Tracker Geometry is supported
-  # this refers to files included by Configuration/Geometry/python/GeometryExtended*_cff.py
-  UnSupportedGeometry = cms.PSet (
-    XMLLabel    = cms.string ("geomXMLFiles"                             ), # label of ESProducer/ESSource
-    XMLPath     = cms.string ("Geometry/TrackerCommonData/data/PhaseII/" ), # compared path
-    XMLFile     = cms.string ("tracker.xml"                              ), # compared filen ame
-    XMLVersions = cms.vstring()  # list of unsupported versions
-  ),
-
   # Parameter to check if Process History is consistent with process configuration
   ProcessHistory = cms.PSet (
     GeometryConfiguration = cms.string( "XMLIdealGeometryESSource@"                    ), # label of compared GeometryConfiguration
@@ -27,7 +16,7 @@ TrackTrigger_params = cms.PSet (
     UnMatchedStubs   = cms.int32 (  1       ), # allowed number of stubs a found track may have not in common with its matched TP
     UnMatchedStubsPS = cms.int32 (  0       ), # allowed number of PS stubs a found track may have not in common with its matched TP
     NumLayers        = cms.int32 (  7       ), # TMTT: number of detector layers a reconstructbale particle may cross, reduced to 7, 8th layer almost never corssed
-    MinPt            = cms.double(  1.34    ), # min track pt in GeV
+    MinPt            = cms.double(  2.0     ), # min track pt in GeV
     MaxEta           = cms.double(  2.5     ), # cut on stub eta
     ChosenRofPhi     = cms.double( 55.      ), # critical radius defining region overlap shape in cm
   ),
@@ -158,15 +147,15 @@ TrackTrigger_params = cms.PSet (
 
   # Parmeter specifying GeometricProcessor
   GeometricProcessor = cms.PSet (
-    NumSectorsPhi = cms.int32 (   2    ), # number of phi sectors used in hough transform
-    NumSectorsEta = cms.int32 (  32    ), # number of eta sectors used in hough transform
-    ChosenRofZ    = cms.double(  57.76 ), # critical radius defining r-z sector shape in cm
-    #ChosenRofZ    = cms.double(  90.37 ), # critical radius defining r-z sector shape in cm
-    DepthMemory   = cms.int32 (  32    ), # fifo depth in stub router firmware
-    WidthModule   = cms.int32 (   3    ), #
-    PosPS         = cms.int32 (   2    ), #
-    PosBarrel     = cms.int32 (   1    ), #
-    PosTilted     = cms.int32 (   0    )  #
+    NumBinsPhiT = cms.int32 (   2    ), # number of phi sectors used in hough transform
+    NumBinsZT   = cms.int32 (  32    ), # number of eta sectors used in hough transform
+    ChosenRofZ  = cms.double(  57.76 ), # critical radius defining r-z sector shape in cm
+    #ChosenRofZ  = cms.double(  90.37 ), # critical radius defining r-z sector shape in cm
+    DepthMemory = cms.int32 (  32    ), # fifo depth in stub router firmware
+    WidthModule = cms.int32 (   3    ), #
+    PosPS       = cms.int32 (   2    ), #
+    PosBarrel   = cms.int32 (   1    ), #
+    PosTilted   = cms.int32 (   0    )  #
   ),
 
   # Parmeter specifying HoughTransform
@@ -177,30 +166,17 @@ TrackTrigger_params = cms.PSet (
     DepthMemory  = cms.int32( 32 )  # internal fifo depth
   ),
 
-  # Parmeter specifying MiniHoughTransform
-  MiniHoughTransform = cms.PSet (
-    NumBinsInv2R = cms.int32( 4 ), # number of inv2R bins
-    NumBinsPhiT  = cms.int32( 4 ), # number of phiT bins
-    MinLayers    = cms.int32( 4 )  # required number of stub layers to form a candidate
-  ),
+  # Parmeter specifying Clean Track Builder
 
-  # Parmeter specifying ZHoughTransform
-  ZHoughTransform = cms.PSet (
-    NumBinsCot  = cms.int32( 4 ), # number of cot bins
-    NumBinsZT   = cms.int32( 4 ), # number of zT bins
-    MinLayers   = cms.int32( 4 ), # required number of stub layers to form a candidate
-    MinLayersPS = cms.int32( 2 )  # required number of stub PS layers to form a candidate
-  ),
-
-  # Parmeter specifying KalmanFilter Input Formatter
-
-  KalmanFilterIn = cms.PSet (
-    ShiftRangePhi    = cms.int32(  2 ), # power of 2 multiplier of stub phi residual range
-    ShiftRangeZ      = cms.int32(  1 ), # power of 2 multiplier of stub z residual range
-    MaxTracks        = cms.int32( 16 ), # max number of output tracks per node
-    MaxStubsPerLayer = cms.int32(  4 ), # cut on number of stub per layer for input candidates
-    DepthMemory      = cms.int32( 16 ), # internal fifo depth
-    WidthAddrDPhi    = cms.int32(  8 )  # 
+  CleanTrackBuilder = cms.PSet (
+    NumBinsInv2R = cms.int32(  4 ), # number of inv2R bins
+    NumBinsPhiT  = cms.int32(  4 ), # number of phiT bins
+    NumBinsZ0    = cms.int32(  4 ), # number of z0 bins
+    NumBinsZT    = cms.int32(  4 ), # number of zT bins
+    MinLayers    = cms.int32(  4 ), # required number of stub layers to form a candidate
+    MaxTracks    = cms.int32( 16 ), # max number of output tracks per node
+    MaxStubs     = cms.int32(  4 ), # cut on number of stub per layer for input candidates
+    DepthMemory  = cms.int32( 16 )  # internal fifo depth
   ),
 
   # Parmeter specifying KalmanFilter
@@ -210,10 +186,15 @@ TrackTrigger_params = cms.PSet (
     BaseShift       = cms.int32 ( -1   ), # bases get shifted by this power of two wrt tfp output bases
     MinLayers       = cms.int32 (  4   ), # required number of stub layers to form a track
     MaxLayers       = cms.int32 (  7   ), # maximum number of  layers added to a track
-    ShiftInitialC00 = cms.int32 (  0   ), # initial C00 is given by inv2R uncertainty squared times this power of 2
-    ShiftInitialC11 = cms.int32 (  0   ), # initial C11 is given by phiT uncertainty squared times this power of 2
-    ShiftInitialC22 = cms.int32 ( -1   ), # initial C22 is given by cot uncertainty squared times this power of 2
-    ShiftInitialC33 = cms.int32 ( -1   )  # initial C33 is given by zT uncertainty squared times this power of 2
+    MaxGaps         = cms.int32 (  2   ), # 
+    ShiftInitialC00 = cms.int32 ( -1   ), # initial C00 is given by inv2R uncertainty squared times this power of 2
+    ShiftInitialC11 = cms.int32 ( -2   ), # initial C11 is given by phiT uncertainty squared times this power of 2
+    ShiftInitialC22 = cms.int32 ( -8   ), # initial C22 is given by cot uncertainty squared times this power of 2
+    ShiftInitialC33 = cms.int32 ( -7   ), # initial C33 is given by zT uncertainty squared times this power of 2
+    ShiftChi20      = cms.int32 ( -1   ), #
+    ShiftChi21      = cms.int32 ( -5   ), #
+    PowCutChi2      = cms.int32 (  2   ), #
+    WidthChi2       = cms.int32 (  8   )  #
   ),
 
   # Parmeter specifying KalmanFilter Output Formatter

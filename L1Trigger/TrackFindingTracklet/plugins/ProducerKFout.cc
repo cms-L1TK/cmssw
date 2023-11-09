@@ -119,26 +119,31 @@ namespace trklet {
   void ProducerKFout::beginRun(const Run& iRun, const EventSetup& iSetup) {
     // helper class to store configurations
     setup_ = &iSetup.getData(esGetTokenSetup_);
-    if (!setup_->configurationSupported())
-      return;
-    // check process history if desired
-    if (iConfig_.getParameter<bool>("CheckHistory"))
-      setup_->checkHistory(iRun.processHistory());
     // helper class to extract structured data from tt::Frames
     dataFormats_ = &iSetup.getData(esGetTokenDataFormats_);
 
     // Calculate 1/dz**2 and 1/dphi**2 bins for v0 and v1 weightings
+    for (int i = 0; i < pow(2, dataFormats_->width(Variable::dPhi, Process::ht)) / pow(2, setup_->weightBinFraction());
+         i++)
+      dPhiBins_.push_back(
+          pow(dataFormats_->base(Variable::dPhi, Process::ht) * (i + 1) * pow(2, setup_->weightBinFraction()), -2));
 
-    float temp_dphi = 0.0;
-    float temp_dz = 0.0;
-    for (int i = 0;
-         i < pow(2, dataFormats_->width(Variable::dPhi, Process::kfin)) / pow(2, setup_->weightBinFraction());
-         i++) {
-      temp_dphi =
-          pow(dataFormats_->base(Variable::dPhi, Process::kfin) * (i + 1) * pow(2, setup_->weightBinFraction()), -2);
-      temp_dphi = temp_dphi / setup_->dphiTruncation();
-      temp_dphi = std::floor(temp_dphi);
-      dPhiBins_.push_back(temp_dphi * setup_->dphiTruncation());
+    for (int i = 0; i < pow(2, dataFormats_->width(Variable::dZ, Process::ht)) / pow(2, setup_->weightBinFraction());
+         i++)
+      dZBins_.push_back(
+          pow(dataFormats_->base(Variable::dZ, Process::ht) * (i + 1) * pow(2, setup_->weightBinFraction()), -2));
+
+    partialTrackWordBits_ = TTBV::S_ / 2;
+    numWorkers_ = setup_->kfNumWorker();
+  }
+
+  // Helper function to convert floating chi2 to chi2 bin
+  template <typename T>
+  int ProducerKFout::digitise(const vector<T> Bins, T Value, T factor) {
+    for (int i = 0; i < (int)Bins.size(); i++) {
+      if (Value * factor > Bins[i] && Value * factor <= Bins[i + 1]) {
+        return i;
+      }
     }
     for (int i = 0; i < pow(2, dataFormats_->width(Variable::dZ, Process::kfin)) / pow(2, setup_->weightBinFraction());
          i++) {
@@ -152,7 +157,7 @@ namespace trklet {
     partialTrackWordBits_ = TTBV::S_ / 2;
   }
 
-  void ProducerKFout::produce(Event& iEvent, const EventSetup& iSetup) {
+  void ProducerKFout::produce(Event& iEvent, const EventSetup& iSetup) { /*
     // empty KFout product
     StreamsTrack accepted(setup_->numRegions() * setup_->tfpNumChannel());
     StreamsTrack lost(setup_->numRegions() * setup_->tfpNumChannel());
@@ -239,15 +244,10 @@ namespace trklet {
 
             counter = true;
 
-            hitPattern.set(iStub);
-            temp_nstub += 1;
-            double phiSquared = pow(inStub.phi(), 2);
-            double zSquared = pow(inStub.z(), 2);
-
-            double tempv0 = dPhiBins_[(inStub.dPhi() / (dataFormats_->base(Variable::dPhi, Process::kfin) *
+            double tempv0 = dPhiBins_[(InStub.dPhi() / (dataFormats_->base(Variable::dPhi, Process::ht) *
                                                         pow(2, setup_->weightBinFraction())))];
             double tempv1 = dZBins_[(
-                inStub.dZ() / (dataFormats_->base(Variable::dZ, Process::kfin) * pow(2, setup_->weightBinFraction())))];
+                InStub.dZ() / (dataFormats_->base(Variable::dZ, Process::ht) * pow(2, setup_->weightBinFraction())))];
 
             double tempRphi = phiSquared * tempv0;
             double tempRz = zSquared * tempv1;
@@ -369,8 +369,8 @@ namespace trklet {
       }    // Iterate through links
     }      // Config Supported
     // store products
-    iEvent.emplace(edPutTokenAccepted_, std::move(accepted));
-    iEvent.emplace(edPutTokenLost_, std::move(lost));
+    iEvent.emplace(edPutTokenAccepted_, move(accepted));
+    iEvent.emplace(edPutTokenLost_, move(lost));*/
   }
 }  // namespace trklet
 

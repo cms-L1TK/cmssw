@@ -65,29 +65,22 @@ namespace trackerTFP {
   void ProducerAS::beginRun(const Run& iRun, const EventSetup& iSetup) {
     // helper class to store configurations
     setup_ = &iSetup.getData(esGetTokenSetup_);
-    if (!setup_->configurationSupported())
-      return;
-    // check process history if desired
-    if (iConfig_.getParameter<bool>("CheckHistory"))
-      setup_->checkHistory(iRun.processHistory());
   }
 
   void ProducerAS::produce(Event& iEvent, const EventSetup& iSetup) {
     // empty KFTTTrack product
     TTTrackRefMap ttTrackMap;
     // read in KF Product and produce AssociatorKF product
-    if (setup_->configurationSupported()) {
-      Handle<StreamsTrack> handleKF;
-      iEvent.getByToken<StreamsTrack>(edGetTokenKF_, handleKF);
-      const StreamsTrack& streams = *handleKF.product();
-      Handle<TTTracks> handleTT;
-      iEvent.getByToken<TTTracks>(edGetTokenTT_, handleTT);
-      int i(0);
-      for (const StreamTrack& stream : streams)
-        for (const FrameTrack& frame : stream)
-          if (frame.first.isNonnull())
-            ttTrackMap.emplace(TTTrackRef(handleTT, i++), frame.first);
-    }
+    Handle<StreamsTrack> handleKF;
+    iEvent.getByToken<StreamsTrack>(edGetTokenKF_, handleKF);
+    const StreamsTrack& streams = *handleKF.product();
+    Handle<TTTracks> handleTT;
+    iEvent.getByToken<TTTracks>(edGetTokenTT_, handleTT);
+    int i(0);
+    for (const StreamTrack& stream : streams)
+      for (const FrameTrack& frame : stream)
+        if (frame.first.isNonnull())
+          ttTrackMap.emplace(TTTrackRef(handleTT, i++), frame.first);
     // store products
     iEvent.emplace(edPutToken_, std::move(ttTrackMap));
   }

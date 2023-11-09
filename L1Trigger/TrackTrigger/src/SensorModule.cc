@@ -113,7 +113,9 @@ namespace tt {
     // calculate tilt correction parameter used to project r to z uncertainty
     tiltCorrectionSlope_ = barrel_ ? 0. : 1.;
     tiltCorrectionIntercept_ = barrel_ ? 1. : 0.;
+    tilted_ = false;
     if (typeTilt == tiltedMinus || typeTilt == tiltedPlus) {
+      tilted_ = true;
       tiltCorrectionSlope_ = setup->tiltApproxSlope();
       tiltCorrectionIntercept_ = setup->tiltApproxIntercept();
     }
