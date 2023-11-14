@@ -63,19 +63,18 @@ namespace trklet {
           if (frameStub.first.isNull())
             continue;
           TTBV ttBV = frameStub.second;
-          const TTBV z(ttBV, dataFormats_->format(Variable::z, Process::kfin).width(), 0, true);
-          ttBV >>= dataFormats_->format(Variable::z, Process::kfin).width();
-          const TTBV phi(ttBV, dataFormats_->format(Variable::phi, Process::kfin).width(), 0, true);
-          ttBV >>= dataFormats_->format(Variable::phi, Process::kfin).width();
-          const TTBV r(ttBV, dataFormats_->format(Variable::r, Process::kfin).width(), 0, true);
-          ttBV >>= dataFormats_->format(Variable::r, Process::kfin).width();
+          const TTBV dZ(ttBV, dataFormats_->format(Variable::dZ, Process::ctb).width(), 0);
+          ttBV >>= dataFormats_->format(Variable::dZ, Process::ctb).width();
+          const TTBV dPhi(ttBV, dataFormats_->format(Variable::dPhi, Process::ctb).width(), 0);
+          ttBV >>= dataFormats_->format(Variable::dPhi, Process::ctb).width();
+          const TTBV z(ttBV, dataFormats_->format(Variable::z, Process::ctb).width(), 0, true);
+          ttBV >>= dataFormats_->format(Variable::z, Process::ctb).width();
+          const TTBV phi(ttBV, dataFormats_->format(Variable::phi, Process::ctb).width(), 0, true);
+          ttBV >>= dataFormats_->format(Variable::phi, Process::ctb).width();
+          const TTBV r(ttBV, dataFormats_->format(Variable::r, Process::ctb).width(), 0, true);
+          ttBV >>= dataFormats_->format(Variable::r, Process::ctb).width();
           const TTBV stubId(ttBV, channelAssignment_->widthSeedStubId(), 0);
-          ttBV >>= channelAssignment_->widthSeedStubId();
-          const TTBV layerId(ttBV, channelAssignment_->widthLayerId(), 0);
-          ttBV >>= channelAssignment_->widthLayerId();
-          const TTBV tilt(ttBV, channelAssignment_->widthPSTilt(), 0);
-          const FrameStub frame(frameStub.first,
-                                Frame("1" + tilt.str() + layerId.str() + r.str() + phi.str() + z.str()));
+          const FrameStub frame(frameStub.first, Frame("1" + r.str() + phi.str() + z.str() + dPhi.str() + dZ.str()));
           stubs_.emplace_back(frame, stubId.val(), layer);
           stubs.push_back(&stubs_.back());
         }

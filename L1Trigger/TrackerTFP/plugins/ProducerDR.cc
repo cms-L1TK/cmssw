@@ -33,6 +33,7 @@ namespace trackerTFP {
   public:
     explicit ProducerDR(const ParameterSet&);
     ~ProducerDR() override {}
+
   private:
     void beginRun(const Run&, const EventSetup&) override;
     void produce(Event&, const EventSetup&) override;

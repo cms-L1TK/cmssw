@@ -185,8 +185,10 @@ namespace tt {
     double tiltUncertaintyR() const { return tiltUncertaintyR_; }
     // scattering term used to add stub phi uncertainty depending on assumed track inv2R
     double scattering() const { return scattering_; }
-    // barrel layer limit |z| value to partition into tilted and untilted region
-    double limitsTiltedZ(int index) const { return limitsTiltedZ_[index]; }
+    // barrel layer limit z value to partition into tilted and untilted region
+    double tiltedLayerLimitZ(int layer) const { return tiltedLayerLimitsZ_.at(layer); }
+    // endcap disk limit r value to partition into PS and 2S region
+    double psDiskLimitR(int layer) const { return psDiskLimitsR_.at(layer); }
 
     // Common track finding parameter
 
@@ -365,6 +367,8 @@ namespace tt {
     int offsetLayerDisks() const { return offsetLayerDisks_; }
     // offset between 0 and smallest layer id (barrel layer 1)
     int offsetLayerId() const { return offsetLayerId_; }
+    //
+    int numBarrelLayer() const { return numBarrelLayer_; }
     // total number of outer tracker DTCs
     int numDTCs() const { return numDTCs_; }
     // number of DTCs connected to one TFP (48)
@@ -706,6 +710,10 @@ namespace tt {
     std::vector<double> limitsPSDiksZ_;
     // endcap disk limit r value to partition into PS and 2S region
     std::vector<double> limitsPSDiksR_;
+    // barrel layer limit |z| value to partition into tilted and untilted region
+    std::vector<double> tiltedLayerLimitsZ_;
+    // endcap disk limit r value to partition into PS and 2S region
+    std::vector<double> psDiskLimitsR_;
 
     // Parameter specifying front-end
     edm::ParameterSet pSetFE_;
@@ -754,6 +762,8 @@ namespace tt {
     int offsetLayerDisks_;
     // offset between 0 and smallest layer id (barrel layer 1)
     int offsetLayerId_;
+    //
+    int numBarrelLayer_;
     // total number of output channel
     int dtcNumStreams_;
     // slot number changing from PS to 2S (default: 6)

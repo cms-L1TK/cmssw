@@ -56,7 +56,7 @@ process.dr = cms.Sequence( process.TrackFindingTrackletProducerDR + process.Trac
 process.kfin = cms.Sequence( process.TrackFindingTrackletProducerKFin + process.TrackFindingTrackletAnalyzerKFin )
 process.kf = cms.Sequence( process.TrackFindingTrackletProducerKF + process.TrackFindingTrackletAnalyzerKF )
 process.interOut = cms.Sequence( process.TrackFindingTrackletProducerKFout + process.TrackFindingTrackletAnalyzerKFout )
-process.tt = cms.Path( process.mc + process.dtc + process.tracklet + process.TBout + process.interIn + process.kf )#+ process.TTTracks + process.interOut )
+process.tt = cms.Path( process.mc + process.dtc + process.tracklet + process.TBout + process.drin + process.dr + process.kfin + process.kf )#+ process.TTTracks + process.interOut )
 process.schedule = cms.Schedule( process.tt )
 
 # create options

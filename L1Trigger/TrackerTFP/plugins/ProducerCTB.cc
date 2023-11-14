@@ -38,6 +38,7 @@ namespace trackerTFP {
   public:
     explicit ProducerCTB(const ParameterSet&);
     ~ProducerCTB() override {}
+
   private:
     void beginRun(const Run&, const EventSetup&) override;
     void produce(Event&, const EventSetup&) override;
@@ -71,7 +72,7 @@ namespace trackerTFP {
     // book in- and output ED products
     edGetToken_ = consumes<StreamsStub>(InputTag(label, branchStubs));
     edPutTokenStubs_ = produces<StreamsStub>(branchStubs);
-    edPutTokenTTTracks_  = produces<TTTracks>(branchTracks);
+    edPutTokenTTTracks_ = produces<TTTracks>(branchTracks);
     edPutTokenTracks_ = produces<StreamsTrack>(branchTracks);
     // book ES products
     esGetTokenSetup_ = esConsumes<Setup, SetupRcd, Transition::BeginRun>();
@@ -96,12 +97,13 @@ namespace trackerTFP {
     StreamsTrack acceptedTracks(numRegions * numChannelOut);
     StreamsStub acceptedStubs(numRegions * numChannelOut * numLayers);
     vector<vector<deque<TrackCTB*>>> streamsTracks(numRegions, vector<deque<TrackCTB*>>(numChannelOut));
-    vector<vector<vector<deque<StubCTB*>>>> streamsStubs(numRegions, vector<vector<deque<StubCTB*>>>(numChannelOut, vector<deque<StubCTB*>>(numLayers)));
+    vector<vector<vector<deque<StubCTB*>>>> streamsStubs(
+        numRegions, vector<vector<deque<StubCTB*>>>(numChannelOut, vector<deque<StubCTB*>>(numLayers)));
     // read input Product and produce output product
     Handle<StreamsStub> handleGet;
     iEvent.getByToken<StreamsStub>(edGetToken_, handleGet);
     const StreamsStub& streamsStub = *handleGet.product();
-    // count stubs 
+    // count stubs
     int nStubsHT(0);
     auto validFrame = [](int& sum, const FrameStub& frame) { return sum += (frame.first.isNonnull() ? 1 : 0); };
     for (const StreamStub& stream : streamsStub)
@@ -109,7 +111,7 @@ namespace trackerTFP {
     // create input objects and count tracks
     vector<StubHT> stubsHT;
     stubsHT.reserve(nStubsHT);
-    // count stubs 
+    // count stubs
     int nTracksHT(0);
     for (const StreamStub& stream : streamsStub) {
       pair<int, int> trackId({setup_->htNumBinsPhiT(), setup_->gpNumBinsZT()});
@@ -163,7 +165,7 @@ namespace trackerTFP {
     }
     // store TTTracks
     int nTracks(0);
-    auto valid = [](int& sum, TrackCTB* track){ return sum += (track ? 1 : 0); };
+    auto valid = [](int& sum, TrackCTB* track) { return sum += (track ? 1 : 0); };
     for (const vector<deque<TrackCTB*>>& region : streamsTracks)
       for (const deque<TrackCTB*>& channel : region)
         nTracks += accumulate(channel.begin(), channel.end(), 0, valid);
@@ -175,13 +177,13 @@ namespace trackerTFP {
       for (int channelOut = 0; channelOut < numChannelOut; channelOut++) {
         const deque<TrackCTB*>& channelTracks = regionTracks[channelOut];
         const vector<deque<StubCTB*>>& channelStubs = regionStubs[channelOut];
-        for (int frame = 0; frame < (int)channelTracks.size(); frame++)  {
+        for (int frame = 0; frame < (int)channelTracks.size(); frame++) {
           TrackCTB* track = channelTracks[frame];
           if (!track)
             continue;
           const auto begin = next(channelTracks.begin(), frame);
-          const auto end = find_if(begin + 1, channelTracks.end(), [](TrackCTB* track){ return track; });
-          const int size =  distance(begin, end);
+          const auto end = find_if(begin + 1, channelTracks.end(), [](TrackCTB* track) { return track; });
+          const int size = distance(begin, end);
           vector<vector<StubCTB*>> stubs(numLayers);
           for (int layer = 0; layer < numLayers; layer++) {
             const deque<StubCTB*>& layerStubs = channelStubs[layer];
@@ -198,7 +200,7 @@ namespace trackerTFP {
       }
     }
     const OrphanHandle<TTTracks> handle = iEvent.emplace(edPutTokenTTTracks_, move(ttTracks));
-    // add TTTrackRefs 
+    // add TTTrackRefs
     int iTrk(0);
     int iChan(0);
     for (const vector<deque<TrackCTB*>>& region : streamsTracks) {

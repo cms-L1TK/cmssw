@@ -13,19 +13,21 @@ namespace trackerTFP {
   class DuplicateRemoval {
   public:
     DuplicateRemoval(const edm::ParameterSet& iConfig,
-                 const tt::Setup* setup,
-                 const DataFormats* dataFormats,
-                 std::vector<TrackDR>& tracks,
-                 std::vector<StubDR>& stubs);
+                     const tt::Setup* setup,
+                     const DataFormats* dataFormats,
+                     std::vector<TrackDR>& tracks,
+                     std::vector<StubDR>& stubs);
     ~DuplicateRemoval() {}
     // fill output products
     void produce(const std::vector<std::vector<TrackKF*>>& tracksIn,
                  const std::vector<std::vector<StubKF*>>& stubsIn,
                  std::vector<std::vector<TrackDR*>>& tracksOut,
                  std::vector<std::vector<StubDR*>>& stubsOut);
+
   private:
     struct Track {
-      Track(TrackKF* track, const std::vector<StubKF*>& stubs, bool match, int inv2R, int phiT, int zT) : track_(track), stubs_(stubs), match_(match), inv2R_(inv2R), phiT_(phiT), zT_(zT) {}
+      Track(TrackKF* track, const std::vector<StubKF*>& stubs, bool match, int inv2R, int phiT, int zT)
+          : track_(track), stubs_(stubs), match_(match), inv2R_(inv2R), phiT_(phiT), zT_(zT) {}
       //
       TrackKF* track_;
       //

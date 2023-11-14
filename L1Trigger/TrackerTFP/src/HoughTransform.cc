@@ -147,32 +147,12 @@ namespace trackerTFP {
     TTBV trkFoundPhiTs(0, setup_->htNumBinsPhiT());
     // hitPattern for all possible tracks, used to find tracks
     vector<TTBV> patternHits(setup_->htNumBinsPhiT(), TTBV(0, setup_->numLayers()));
-<<<<<<< HEAD
-    // found unsigned phiTs, ordered in time
-    vector<int> binsPhiT;
-    // stub container for all possible tracks
-    vector<vector<StubHT*>> tracks(setup_->htNumBinsPhiT());
-    for (int binPhiT = 0; binPhiT < setup_->htNumBinsPhiT(); binPhiT++) {
-      const int phiT = phiT_.toSigned(binPhiT);
-      auto samePhiT = [phiT](int sum, StubHT* stub) { return sum + (stub->phiT() == phiT); };
-      const int numAccepted = accumulate(acceptedSector.begin(), acceptedSector.end(), 0, samePhiT);
-      const int numLost = accumulate(lostSector.begin(), lostSector.end(), 0, samePhiT);
-      tracks[binPhiT].reserve(numAccepted + numLost);
-    }
-    for (StubHT* stub : acceptedSector) {
-      const int binPhiT = phiT_.toUnsigned(stub->phiT());
-=======
     // found phiTs, ordered in time
     vector<int> phiTs;
     phiTs.reserve(setup_->htNumBinsPhiT());
     for (StubHT* stub : input) {
-<<<<<<< HEAD
-      const int binPhiT = stub->phiTlocal() + setup_->htNumBinsPhiT() / 2;
->>>>>>> ebfddccae6a (KFin emulation added, mini hts and kf updated.)
-=======
       const int binPhiT = toBinPhiT(stub);
       const int layerId = toLayerId(stub);
->>>>>>> 8e576aad0aa (TrackerTFP synced with FW.)
       TTBV& pattern = patternHits[binPhiT];
       pattern.set(layerId);
       if (trkFoundPhiTs[binPhiT] || pattern.count() < setup_->htMinLayers())
@@ -200,23 +180,4 @@ namespace trackerTFP {
     return t;
   }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 }  // namespace trackerTFP
-=======
-  // remove and return last element of vector, returns nullptr if empty
-  template <class T>
-  T* HoughTransform::pop_back(vector<T*>& ts) const {
-    T* t = nullptr;
-    if (!ts.empty()) {
-      t = ts.back();
-      ts.pop_back();
-    }
-    return t;
-  }
-
-}  // namespace trackerTFP
->>>>>>> ebfddccae6a (KFin emulation added, mini hts and kf updated.)
-=======
-}  // namespace trackerTFP
->>>>>>> 8e576aad0aa (TrackerTFP synced with FW.)

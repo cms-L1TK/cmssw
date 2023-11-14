@@ -98,7 +98,7 @@ namespace tt {
     // associate reconstructable TrackingParticles with TTStubs
     StubAssociation reconstructable(setup_);
     StubAssociation selection(setup_);
-    for (const pair<TPPtr, vector<TTStubRef>>& p : mapTPPtrsTTStubRefs) {
+    for (const auto& p : mapTPPtrsTTStubRefs) {
       if (!setup_->reconstructable(p.second))
         continue;
       reconstructable.insert(p.first, p.second);
