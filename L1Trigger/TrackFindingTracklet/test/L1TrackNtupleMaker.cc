@@ -557,7 +557,7 @@ void L1TrackNtupleMaker::beginJob() {
     eventTree->Branch("allstub_isBarrel", &m_allstub_isBarrel);
     eventTree->Branch("allstub_layer", &m_allstub_layer);
     eventTree->Branch("allstub_isPSmodule", &m_allstub_isPSmodule);
-    eventTree->Branch("allstub_isPSmodule", &m_allstub_isTiltedBarrel);
+    eventTree->Branch("allstub_isTiltedBarrel", &m_allstub_isTiltedBarrel);
 
     eventTree->Branch("allstub_trigDisplace", &m_allstub_trigDisplace);
     eventTree->Branch("allstub_trigOffset", &m_allstub_trigOffset);
