@@ -79,7 +79,7 @@ namespace trklet {
     int partialTrackWordBits_;
 
     // Helper function to convert floating chi2 to chi2 bin
-    template <typename T>
+    /*template <typename T>
     unsigned int digitise(const T& bins, double value, double factor) {
       unsigned int bin = 0;
       for (unsigned int i = 0; i < bins.size() - 1; i++) {
@@ -87,7 +87,7 @@ namespace trklet {
           bin = i;
       }
       return bin;
-    }
+    }*/
   };
 
   ProducerKFout::ProducerKFout(const ParameterSet& iConfig) : iConfig_(iConfig) {
@@ -138,7 +138,7 @@ namespace trklet {
   }
 
   // Helper function to convert floating chi2 to chi2 bin
-  template <typename T>
+  /*template <typename T>
   int ProducerKFout::digitise(const vector<T> Bins, T Value, T factor) {
     for (int i = 0; i < (int)Bins.size(); i++) {
       if (Value * factor > Bins[i] && Value * factor <= Bins[i + 1]) {
@@ -155,7 +155,7 @@ namespace trklet {
     }
     numWorkers_ = setup_->kfNumWorker();
     partialTrackWordBits_ = TTBV::S_ / 2;
-  }
+  }*/
 
   void ProducerKFout::produce(Event& iEvent, const EventSetup& iSetup) { /*
     // empty KFout product

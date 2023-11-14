@@ -31,6 +31,7 @@ namespace trackerTFP {
   public:
     explicit ProducerPP(const ParameterSet&);
     ~ProducerPP() override {}
+
   private:
     void beginRun(const Run&, const EventSetup&) override;
     void produce(Event&, const EventSetup&) override;
@@ -57,9 +58,7 @@ namespace trackerTFP {
     esGetTokenSetup_ = esConsumes<Setup, SetupRcd, Transition::BeginRun>();
   }
 
-  void ProducerPP::beginRun(const Run& iRun, const EventSetup& iSetup) {
-    setup_ = &iSetup.getData(esGetTokenSetup_);
-  }
+  void ProducerPP::beginRun(const Run& iRun, const EventSetup& iSetup) { setup_ = &iSetup.getData(esGetTokenSetup_); }
 
   void ProducerPP::produce(Event& iEvent, const EventSetup& iSetup) {
     // empty GP products

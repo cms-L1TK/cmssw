@@ -81,10 +81,10 @@ namespace trklet {
 
   ProducerDRin::ProducerDRin(const ParameterSet& iConfig) : iConfig_(iConfig) {
     const string& label = iConfig.getParameter<string>("LabelTBout");
-    const string& branchAcceptedStubs = iConfig.getParameter<string>("BranchAcceptedStubs");
-    const string& branchAcceptedTracks = iConfig.getParameter<string>("BranchAcceptedTracks");
-    const string& branchLostStubs = iConfig.getParameter<string>("BranchLostStubs");
-    const string& branchLostTracks = iConfig.getParameter<string>("BranchLostTracks");
+    const string& branchAcceptedStubs = iConfig.getParameter<string>("BranchStubsAccepted");
+    const string& branchAcceptedTracks = iConfig.getParameter<string>("BranchTracksAccepted");
+    const string& branchLostStubs = iConfig.getParameter<string>("BranchStubsTruncated");
+    const string& branchLostTracks = iConfig.getParameter<string>("BranchTracksTruncated");
     // book in- and output ED products
     edGetTokenTracks_ = consumes<StreamsTrack>(InputTag(label, branchAcceptedTracks));
     edGetTokenStubs_ = consumes<StreamsStub>(InputTag(label, branchAcceptedStubs));
@@ -102,11 +102,6 @@ namespace trklet {
   void ProducerDRin::beginRun(const Run& iRun, const EventSetup& iSetup) {
     // helper class to store configurations
     setup_ = &iSetup.getData(esGetTokenSetup_);
-    if (!setup_->configurationSupported())
-      return;
-    // check process history if desired
-    if (iConfig_.getParameter<bool>("CheckHistory"))
-      setup_->checkHistory(iRun.processHistory());
     // helper class to extract structured data from tt::Frames
     dataFormats_ = &iSetup.getData(esGetTokenDataFormats_);
     // helper class to encode layer
@@ -124,21 +119,19 @@ namespace trklet {
     StreamsStub lostStubs(numStreamsStubs);
     StreamsTrack lostTracks(numStreamsTracks);
     // read in TBout Product and produce KFin product
-    if (setup_->configurationSupported()) {
-      Handle<StreamsStub> handleStubs;
-      iEvent.getByToken<StreamsStub>(edGetTokenStubs_, handleStubs);
-      const StreamsStub& stubs = *handleStubs;
-      Handle<StreamsTrack> handleTracks;
-      iEvent.getByToken<StreamsTrack>(edGetTokenTracks_, handleTracks);
-      const StreamsTrack& tracks = *handleTracks;
-      for (int region = 0; region < setup_->numRegions(); region++) {
-        // object to reformat tracks from tracklet fromat to TMTT format in a processing region
-        DRin drin(iConfig_, setup_, dataFormats_, layerEncoding_, channelAssignment_, &settings_, region);
-        // read in and organize input tracks and stubs
-        drin.consume(tracks, stubs);
-        // fill output products
-        drin.produce(acceptedStubs, acceptedTracks, lostStubs, lostTracks);
-      }
+    Handle<StreamsStub> handleStubs;
+    iEvent.getByToken<StreamsStub>(edGetTokenStubs_, handleStubs);
+    const StreamsStub& stubs = *handleStubs;
+    Handle<StreamsTrack> handleTracks;
+    iEvent.getByToken<StreamsTrack>(edGetTokenTracks_, handleTracks);
+    const StreamsTrack& tracks = *handleTracks;
+    for (int region = 0; region < setup_->numRegions(); region++) {
+      // object to reformat tracks from tracklet fromat to TMTT format in a processing region
+      DRin drin(iConfig_, setup_, dataFormats_, layerEncoding_, channelAssignment_, &settings_, region);
+      // read in and organize input tracks and stubs
+      drin.consume(tracks, stubs);
+      // fill output products
+      drin.produce(acceptedStubs, acceptedTracks, lostStubs, lostTracks);
     }
     // store products
     iEvent.emplace(edPutTokenAcceptedStubs_, std::move(acceptedStubs));

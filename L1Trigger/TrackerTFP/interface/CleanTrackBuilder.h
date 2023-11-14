@@ -25,11 +25,19 @@ namespace trackerTFP {
                  std::vector<std::deque<TrackCTB*>>& regionTracks,
                  std::vector<std::vector<std::deque<StubCTB*>>>& regionStubs);
     void put(TrackCTB* track, const std::vector<std::vector<StubCTB*>>& stubs, int region, tt::TTTracks& ttTracks) const;
+
   private:
     // struct to represent internal stubs
     struct Stub {
       // construct Stub from StubHT
-      Stub(StubHT* stub, int trackId, const TTBV& hitsPhi, const TTBV& hitsZ, int layerId, double dPhi, double dZ) : stubHT_(stub), trackId_(trackId), hitsPhi_(hitsPhi), hitsZ_(hitsZ), layerId_(layerId), dPhi_(dPhi), dZ_(dZ) {}
+      Stub(StubHT* stub, int trackId, const TTBV& hitsPhi, const TTBV& hitsZ, int layerId, double dPhi, double dZ)
+          : stubHT_(stub),
+            trackId_(trackId),
+            hitsPhi_(hitsPhi),
+            hitsZ_(hitsZ),
+            layerId_(layerId),
+            dPhi_(dPhi),
+            dZ_(dZ) {}
       //
       void update(const TTBV& phi, const TTBV& z, std::vector<int>& ids, int max);
       // original ht stub
@@ -53,12 +61,17 @@ namespace trackerTFP {
     };
 
     // struct to represent internal tracks
-    struct Track  {
+    struct Track {
       // construct Track from Stubs
-      Track(const tt::Setup* setup, int trackId, const TTBV& hitsPhi, const TTBV& hitsZ, const std::vector<Stub*>& stubs, double inv2R);
+      Track(const tt::Setup* setup,
+            int trackId,
+            const TTBV& hitsPhi,
+            const TTBV& hitsZ,
+            const std::vector<Stub*>& stubs,
+            double inv2R);
       //
       bool valid_;
-      // stubs 
+      // stubs
       std::vector<Stub*> stubs_;
       // track id
       int trackId_;
@@ -72,9 +85,16 @@ namespace trackerTFP {
       int size_;
     };
     //
-    void cleanStream(const std::vector<StubHT*>& input, std::deque<Track*>& tracks, std::deque<Stub*>& stubs, int channelId);
+    void cleanStream(const std::vector<StubHT*>& input,
+                     std::deque<Track*>& tracks,
+                     std::deque<Stub*>& stubs,
+                     int channelId);
     // run single track through r-phi and r-z hough transform
-    void cleanTrack(const std::vector<StubHT*>& track, std::deque<Track*>& tracks, std::deque<Stub*>& stubs, double inv2R, int trackId);
+    void cleanTrack(const std::vector<StubHT*>& track,
+                    std::deque<Track*>& tracks,
+                    std::deque<Stub*>& stubs,
+                    double inv2R,
+                    int trackId);
     //
     void route(std::vector<std::deque<Track*>>& inputs, std::deque<Track*>& output) const;
     //
@@ -82,7 +102,10 @@ namespace trackerTFP {
     //
     void sort(std::deque<Track*>& track, std::vector<std::deque<Stub*>>& stubs) const;
     //
-    void convert(const std::deque<Track*>& iTracks, const std::vector<std::deque<Stub*>>& iStubs, std::deque<TrackCTB*>& oTracks, std::vector<std::deque<StubCTB*>>& oStubs);
+    void convert(const std::deque<Track*>& iTracks,
+                 const std::vector<std::deque<Stub*>>& iStubs,
+                 std::deque<TrackCTB*>& oTracks,
+                 std::vector<std::deque<StubCTB*>>& oStubs);
     // remove and return first element of deque, returns nullptr if empty
     template <class T>
     T* pop_front(std::deque<T*>& ts) const;

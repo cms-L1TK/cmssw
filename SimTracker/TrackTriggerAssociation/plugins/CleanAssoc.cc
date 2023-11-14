@@ -68,7 +68,7 @@ namespace tt {
     for (const auto& p : handleTTClusterAssMap->getTrackingParticleToTTClustersMap()) {
       const TPPtr tpPtr(handleTrackingParticleCollection, i++);
       mapTPPtrClusterRefs.emplace(tpPtr, p.second);
-      for (const auto c : p.second)
+      for (const auto& c : p.second)
         mapTTClusterRefTPPtrs[c].push_back(tpPtr);
     }
     // create and store TTClusterAssMap

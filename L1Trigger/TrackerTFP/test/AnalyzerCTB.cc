@@ -46,6 +46,7 @@ namespace trackerTFP {
     void analyze(const Event& iEvent, const EventSetup& iSetup) override;
     void endRun(const Run& iEvent, const EventSetup& iSetup) override {}
     void endJob() override;
+
   private:
     //
     void formTracks(const StreamsTrack& streamsTrack,
@@ -179,7 +180,9 @@ namespace trackerTFP {
         const int offsetStub = indexTrack * setup_->numLayers();
         for (int layer = 0; layer < setup_->numLayers(); layer++) {
           const StreamStub& stream = acceptedStubs[offsetStub + layer];
-          const int nStubs = accumulate(stream.begin(), stream.end(), 0, [](int& sum, const FrameStub& frame){ return sum += (frame.first.isNonnull() ? 1 : 0); });
+          const int nStubs = accumulate(stream.begin(), stream.end(), 0, [](int& sum, const FrameStub& frame) {
+            return sum += (frame.first.isNonnull() ? 1 : 0);
+          });
           hisStubs_->Fill(nStubs);
           profStubs_->Fill(channel * setup_->numLayers() + layer, nStubs);
         }
@@ -242,9 +245,9 @@ namespace trackerTFP {
 
   //
   void AnalyzerCTB::formTracks(const StreamsTrack& streamsTrack,
-                                const StreamsStub& streamsStubs,
-                                vector<vector<TTStubRef>>& tracks,
-                                int channel) const {
+                               const StreamsStub& streamsStubs,
+                               vector<vector<TTStubRef>>& tracks,
+                               int channel) const {
     const int offset = channel * setup_->numLayers();
     const StreamTrack& streamTrack = streamsTrack[channel];
     const int numTracks = accumulate(streamTrack.begin(), streamTrack.end(), 0, [](int sum, const FrameTrack& frame) {
@@ -282,9 +285,9 @@ namespace trackerTFP {
 
   //
   void AnalyzerCTB::associate(const vector<vector<TTStubRef>>& tracks,
-                               const StubAssociation* ass,
-                               set<TPPtr>& tps,
-                               int& sum) const {
+                              const StubAssociation* ass,
+                              set<TPPtr>& tps,
+                              int& sum) const {
     for (const vector<TTStubRef>& ttStubRefs : tracks) {
       const vector<TPPtr>& tpPtrs = ass->associate(ttStubRefs);
       if (tpPtrs.empty())

@@ -42,21 +42,10 @@ namespace trklet {
     // basetransformation of val from baseLow into baseHigh using widthMultiplier bit multiplication
     double redigi(double val, double baseLow, double baseHigh, int widthMultiplier) const;
     struct Stub {
-      Stub(const TTStubRef& ttStubRef,
-           int layer,
-           int layerDet,
-           bool seed,
-           int stubId,
-           double r,
-           double phi,
-           double z,
-           bool psTilt)
+      Stub(const TTStubRef& ttStubRef, int layer, int stubId, double r, double phi, double z, bool psTilt)
           : valid_(true),
             ttStubRef_(ttStubRef),
             layer_(layer),
-            layerDet_(layerDet),
-            layerKF_(-1),
-            seed_(seed),
             stubId_(stubId),
             r_(r),
             phi_(phi),
@@ -64,15 +53,8 @@ namespace trklet {
             psTilt_(psTilt) {}
       bool valid_;
       TTStubRef ttStubRef_;
-      // layers a seed types can project to using default layer id [barrel: 1-6, discs: 11-15]
       int layer_;
-      // layer id [0-5] barrel [6-10] end cap discs
-      int layerDet_;
-      // layer id [0-6] counted from inside-out along track
-      int layerKF_;
-      // true if stub was part of the seed
-      bool seed_;
-      // traclet stub id
+      //
       int stubId_;
       // radius w.r.t. chosenRofPhi in cm
       double r_;
@@ -80,6 +62,10 @@ namespace trklet {
       double phi_;
       // z residual in cm
       double z_;
+      // phi uncertainty * sqrt(12) + additional terms in rad
+      double dPhi_;
+      // z uncertainty * sqrt(12) + additional terms in cm
+      double dZ_;
       // true if barrel tilted module or encap PS module
       bool psTilt_;
     };

@@ -20,47 +20,8 @@ namespace trackerTFP {
       : enableTruncation_(iConfig.getParameter<bool>("EnableTruncation")),
         setup_(setup),
         dataFormats_(dataFormats),
-<<<<<<< HEAD
-        region_(region),
-        input_(dataFormats_->numChannel(Process::gp), vector<deque<StubPP*>>(dataFormats_->numChannel(Process::pp))) {}
-
-  // read in and organize input product (fill vector input_)
-  void GeometricProcessor::consume(const TTDTC& ttDTC) {
-    auto validFrame = [](int sum, const FrameStub& frame) { return sum + (frame.first.isNonnull() ? 1 : 0); };
-    int nStubsPP(0);
-    for (int channel = 0; channel < dataFormats_->numChannel(Process::pp); channel++) {
-      const StreamStub& stream = ttDTC.stream(region_, channel);
-      nStubsPP += accumulate(stream.begin(), stream.end(), 0, validFrame);
-    }
-    stubsPP_.reserve(nStubsPP);
-    for (int channel = 0; channel < dataFormats_->numChannel(Process::pp); channel++) {
-      for (const FrameStub& frame : ttDTC.stream(region_, channel)) {
-        StubPP* stub = nullptr;
-        if (frame.first.isNonnull()) {
-          stubsPP_.emplace_back(frame, dataFormats_);
-          stub = &stubsPP_.back();
-        }
-        for (int sector = 0; sector < dataFormats_->numChannel(Process::gp); sector++)
-          // adding gaps (nullptr) if no stub available or not in sector to emulate f/w
-          input_[sector][channel].push_back(stub && stub->inSector(sector) ? stub : nullptr);
-      }
-    }
-    // remove all gaps between end and last stub
-    for (vector<deque<StubPP*>>& input : input_)
-      for (deque<StubPP*>& stubs : input)
-        for (auto it = stubs.end(); it != stubs.begin();)
-          it = (*--it) ? stubs.begin() : stubs.erase(it);
-    auto validStub = [](int sum, StubPP* stub) { return sum + (stub ? 1 : 0); };
-    int nStubsGP(0);
-    for (const vector<deque<StubPP*>>& sector : input_)
-      for (const deque<StubPP*>& channel : sector)
-        nStubsGP += accumulate(channel.begin(), channel.end(), 0, validStub);
-    stubsGP_.reserve(nStubsGP);
-  }
-=======
         layerEncoding_(layerEncoding),
         stubs_(stubs) {}
->>>>>>> 8e576aad0aa (TrackerTFP synced with FW.)
 
   // fill output products
   void GeometricProcessor::produce(const vector<vector<StubPP*>>& streamsIn,

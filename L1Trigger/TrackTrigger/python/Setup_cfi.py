@@ -102,6 +102,8 @@ TrackTrigger_params = cms.PSet (
     LimitsTiltedZ       = cms.vdouble( 15.5, 25.0, 34.3   ), # barrel layer limit |z| value to partition into tilted and untilted region
     LimitsPSDiksZ       = cms.vdouble( 125.0, 150.0, 175.0, 200.0, 250.0 ), # endcap disk limit |z| value to partition into PS and 2S region
     LimitsPSDiksR       = cms.vdouble(  66.0,  66.0,  63.0,  63.0,  63.0 ), # endcap disk limit r value to partition into PS and 2S region
+    TiltedLayerLimitsZ  = cms.vdouble( 15.5, 24.9, 34.3, -1., -1., -1. ), # barrel layer limit |z| value to partition into tilted and untilted region
+    PSDiskLimitsR       = cms.vdouble( 66.4, 66.4, 64.55, 64.55, 64.55 ), # endcap disk limit r value to partition into PS and 2S region
   ),
 
   # Parmeter specifying front-end
@@ -187,13 +189,13 @@ TrackTrigger_params = cms.PSet (
     MinLayers       = cms.int32 (  4   ), # required number of stub layers to form a track
     MaxLayers       = cms.int32 (  7   ), # maximum number of  layers added to a track
     MaxGaps         = cms.int32 (  2   ), # 
-    ShiftInitialC00 = cms.int32 ( -1   ), # initial C00 is given by inv2R uncertainty squared times this power of 2
-    ShiftInitialC11 = cms.int32 ( -2   ), # initial C11 is given by phiT uncertainty squared times this power of 2
-    ShiftInitialC22 = cms.int32 ( -8   ), # initial C22 is given by cot uncertainty squared times this power of 2
-    ShiftInitialC33 = cms.int32 ( -7   ), # initial C33 is given by zT uncertainty squared times this power of 2
-    ShiftChi20      = cms.int32 ( -1   ), #
-    ShiftChi21      = cms.int32 ( -5   ), #
-    PowCutChi2      = cms.int32 (  2   ), #
+    ShiftInitialC00 = cms.int32 ( -1+11   ), # initial C00 is given by inv2R uncertainty squared times this power of 2
+    ShiftInitialC11 = cms.int32 ( -2+12   ), # initial C11 is given by phiT uncertainty squared times this power of 2
+    ShiftInitialC22 = cms.int32 ( -8+18   ), # initial C22 is given by cot uncertainty squared times this power of 2
+    ShiftInitialC33 = cms.int32 ( -7+17   ), # initial C33 is given by zT uncertainty squared times this power of 2
+    ShiftChi20      = cms.int32 ( -1+1   ), #
+    ShiftChi21      = cms.int32 ( -5+5   ), #
+    PowCutChi2      = cms.int32 ( 10-8   ), #
     WidthChi2       = cms.int32 (  8   )  #
   ),
 

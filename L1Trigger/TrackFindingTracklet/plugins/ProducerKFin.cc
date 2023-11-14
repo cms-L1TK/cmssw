@@ -12,7 +12,9 @@
 
 #include "L1Trigger/TrackTrigger/interface/Setup.h"
 #include "L1Trigger/TrackerTFP/interface/DataFormats.h"
+#include "L1Trigger/TrackerTFP/interface/LayerEncoding.h"
 #include "L1Trigger/TrackFindingTracklet/interface/ChannelAssignment.h"
+#include "L1Trigger/TrackFindingTracklet/interface/Settings.h"
 #include "L1Trigger/TrackFindingTracklet/interface/KFin.h"
 #include "SimTracker/TrackTriggerAssociation/interface/TTTypes.h"
 
@@ -31,9 +33,9 @@ using namespace tt;
 namespace trklet {
 
   /*! \class  trklet::ProducerKFin
-   *  \brief  Transforms format of DR into that expected by KF input.
+   *  \brief  Transforms format of TBout into that expected by KF input.
    *  \author Thomas Schuh
-   *  \date   2023, Feb
+   *  \date   2020, Oct; updated 2021, Dec
    */
   class ProducerKFin : public stream::EDProducer<> {
   public:
@@ -44,6 +46,7 @@ namespace trklet {
     void beginRun(const Run&, const EventSetup&) override;
     void produce(Event&, const EventSetup&) override;
     virtual void endJob() {}
+
     // ED input token of Tracks
     EDGetTokenT<StreamsTrack> edGetTokenTracks_;
     // ED input token of Stubs
@@ -75,7 +78,7 @@ namespace trklet {
   };
 
   ProducerKFin::ProducerKFin(const ParameterSet& iConfig) : iConfig_(iConfig) {
-    const string& label = iConfig.getParameter<string>("LabelTBout");
+    const string& label = iConfig.getParameter<string>("LabelDR");
     const string& branchAcceptedStubs = iConfig.getParameter<string>("BranchStubsAccepted");
     const string& branchAcceptedTracks = iConfig.getParameter<string>("BranchTracksAccepted");
     const string& branchLostStubs = iConfig.getParameter<string>("BranchStubsTruncated");
@@ -120,17 +123,17 @@ namespace trklet {
     const StreamsTrack& tracks = *handleTracks;
     for (int region = 0; region < setup_->numRegions(); region++) {
       // object to reformat tracks from tracklet fromat to TMTT format in a processing region
-      KFin kfin(iConfig_, setup_, dataFormats_, layerEncoding_, channelAssignment_, &settings_, region);
+      KFin kfin(iConfig_, setup_, channelAssignment_, region);
       // read in and organize input tracks and stubs
       kfin.consume(tracks, stubs);
       // fill output products
       kfin.produce(acceptedStubs, acceptedTracks, lostStubs, lostTracks);
     }
     // store products
-    iEvent.emplace(edPutTokenAcceptedStubs_, std::move(acceptedStubs));
-    iEvent.emplace(edPutTokenAcceptedTracks_, std::move(acceptedTracks));
-    iEvent.emplace(edPutTokenLostStubs_, std::move(lostStubs));
-    iEvent.emplace(edPutTokenLostTracks_, std::move(lostTracks));
+    iEvent.emplace(edPutTokenAcceptedStubs_, move(acceptedStubs));
+    iEvent.emplace(edPutTokenAcceptedTracks_, move(acceptedTracks));
+    iEvent.emplace(edPutTokenLostStubs_, move(lostStubs));
+    iEvent.emplace(edPutTokenLostTracks_, move(lostTracks));
   }
 
 }  // namespace trklet

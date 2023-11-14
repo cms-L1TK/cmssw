@@ -103,6 +103,8 @@ namespace tt {
         limitsTiltedZ_(pSetOT_.getParameter<vector<double>>("LimitsTiltedZ")),
         limitsPSDiksZ_(pSetOT_.getParameter<vector<double>>("LimitsPSDiksZ")),
         limitsPSDiksR_(pSetOT_.getParameter<vector<double>>("LimitsPSDiksR")),
+        tiltedLayerLimitsZ_(pSetOT_.getParameter<vector<double>>("TiltedLayerLimitsZ")),
+        psDiskLimitsR_(pSetOT_.getParameter<vector<double>>("PSDiskLimitsR")),
         // Parmeter specifying front-end
         pSetFE_(iConfig.getParameter<ParameterSet>("FrontEnd")),
         widthBend_(pSetFE_.getParameter<int>("WidthBend")),
@@ -128,6 +130,7 @@ namespace tt {
         offsetDetIdTP_(pSetDTC_.getParameter<int>("OffsetDetIdTP")),
         offsetLayerDisks_(pSetDTC_.getParameter<int>("OffsetLayerDisks")),
         offsetLayerId_(pSetDTC_.getParameter<int>("OffsetLayerId")),
+        numBarrelLayer_(pSetDTC_.getParameter<int>("NumBarrelLayer")),
         slotLimitPS_(pSetDTC_.getParameter<int>("SlotLimitPS")),
         slotLimit10gbps_(pSetDTC_.getParameter<int>("SlotLimit10gbps")),
         // Parmeter specifying TFP

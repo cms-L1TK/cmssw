@@ -38,13 +38,14 @@ namespace trackerTFP {
     static const int numZT = setup_->gpNumBinsZT();
     int nTracks(0);
     for (const vector<TrackKF*>& tracks : tracksIn)
-      nTracks += accumulate(tracks.begin(), tracks.end(), 0, [](int& sum, TrackKF* track){ return sum += track ? 1 : 0; });
+      nTracks +=
+          accumulate(tracks.begin(), tracks.end(), 0, [](int& sum, TrackKF* track) { return sum += track ? 1 : 0; });
     vector<Track> tracks;
     tracks.reserve(nTracks);
     deque<Track*> stream;
     // merge 4 channel to 1
     //for (int channel = 0; channel < numChannel; channel++ ) {
-      for (int channel = numChannel - 1; channel >= 0; channel--) {
+    for (int channel = numChannel - 1; channel >= 0; channel--) {
       const int offset = channel * numLayers;
       const vector<TrackKF*>& tracksChannel = tracksIn[channel];
       for (int frame = 0; frame < (int)tracksChannel.size(); frame++) {
@@ -79,8 +80,7 @@ namespace trackerTFP {
         continue;
       if (track->match_) {
         hits[track->zT_][track->inv2R_].set(track->phiT_);
-      }
-      else {
+      } else {
         killed.push_back(track);
         track = nullptr;
       }

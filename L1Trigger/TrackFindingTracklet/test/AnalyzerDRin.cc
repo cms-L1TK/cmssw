@@ -105,10 +105,10 @@ namespace trklet {
     usesResource("TFileService");
     // book in- and output ED products
     const string& label = iConfig.getParameter<string>("LabelDRin");
-    const string& branchAcceptedStubs = iConfig.getParameter<string>("BranchAcceptedStubs");
-    const string& branchAcceptedTracks = iConfig.getParameter<string>("BranchAcceptedTracks");
-    const string& branchLostStubs = iConfig.getParameter<string>("BranchLostStubs");
-    const string& branchLostTracks = iConfig.getParameter<string>("BranchLostTracks");
+    const string& branchAcceptedStubs = iConfig.getParameter<string>("BranchStubsAccepted");
+    const string& branchAcceptedTracks = iConfig.getParameter<string>("BranchTracksAccepted");
+    const string& branchLostStubs = iConfig.getParameter<string>("BranchStubsTruncated");
+    const string& branchLostTracks = iConfig.getParameter<string>("BranchTracksTruncated");
     edGetTokenAcceptedStubs_ = consumes<StreamsStub>(InputTag(label, branchAcceptedStubs));
     edGetTokenAcceptedTracks_ = consumes<StreamsTrack>(InputTag(label, branchAcceptedTracks));
     edGetTokenLostStubs_ = consumes<StreamsStub>(InputTag(label, branchLostStubs));

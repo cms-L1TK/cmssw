@@ -100,9 +100,13 @@ namespace trackerTFP {
     TH1F* hisEffInv2R_;
     TH1F* hisEffInv2RTotal_;
     TEfficiency* effInv2R_;
+    TH1F* hisEffPT_;
+    TH1F* hisEffPTTotal_;
+    TEfficiency* effPT_;
     TH1F* hisChi20s_;
     TH1F* hisChi21s_;
     TH1F* hisChi2s_;
+    TH1F* hisTracks_;
 
     // printout
     stringstream log_;
@@ -167,25 +171,31 @@ namespace trackerTFP {
       profRes_[i] = dir.make<TProfile>(("ProfRes" + names[i]).c_str(), ";", 32, 0, 2.4);
     }
     // Efficiencies
-    hisEffEtaTotal_ = dir.make<TH1F>("HisTPEtaTotal", ";", 128, -2.4, 2.4);
-    hisEffEta_ = dir.make<TH1F>("HisTPEta", ";", 128, -2.4, 2.4);
-    effEta_ = dir.make<TEfficiency>("EffEta", ";", 128, -2.4, 2.4);
+    hisEffEtaTotal_ = dir.make<TH1F>("HisTPEtaTotal", ";", 48, -2.4, 2.4);
+    hisEffEta_ = dir.make<TH1F>("HisTPEta", ";", 48, -2.4, 2.4);
+    effEta_ = dir.make<TEfficiency>("EffEta", ";", 48, -2.4, 2.4);
     const double rangeInv2R = dataFormats_->format(Variable::inv2R, Process::dr).range();
     hisEffInv2R_ = dir.make<TH1F>("HisTPInv2R", ";", 32, -rangeInv2R / 2., rangeInv2R / 2.);
     hisEffInv2RTotal_ = dir.make<TH1F>("HisTPInv2RTotal", ";", 32, -rangeInv2R / 2., rangeInv2R / 2.);
     effInv2R_ = dir.make<TEfficiency>("EffInv2R", ";", 32, -rangeInv2R / 2., rangeInv2R / 2.);
+    hisEffPT_ = dir.make<TH1F>("HisTPPT", ";", 100, 0, 100);
+    hisEffPTTotal_ = dir.make<TH1F>("HisTPPTTotal", ";", 100, 0, 100);
+    effPT_ = dir.make<TEfficiency>("EffPT", ";", 100, 0, 100);
     // chi2s
     hisChi20s_ = dir.make<TH1F>("HisChi20", ";", 128, 0., 10);
     hisChi21s_ = dir.make<TH1F>("HisChi21", ";", 128, 0., 10);
     hisChi2s_ = dir.make<TH1F>("HisChi2", ";", 128, 0., 10);
+    // tracks
+    hisTracks_ = dir.make<TH1F>("HisTracks", ";", 40, 0., 400);
   }
 
   void AnalyzerKF::analyze(const Event& iEvent, const EventSetup& iSetup) {
     static const int numChannel = dataFormats_->numChannel(Process::kf);
     static const int numLayers = setup_->numLayers();
-    auto fill = [this](const TPPtr& tpPtr, TH1F* hisEta, TH1F* hisInv2R) {
+    auto fill = [this](const TPPtr& tpPtr, TH1F* hisEta, TH1F* hisInv2R, TH1F* hisPT) {
       hisEta->Fill(tpPtr->eta());
       hisInv2R->Fill(tpPtr->charge() / tpPtr->pt() * setup_->invPtToDphi());
+      hisPT->Fill(tpPtr->pt());
     };
     // read in kf products
     Handle<StreamsStub> handleStubs;
@@ -212,7 +222,7 @@ namespace trackerTFP {
       iEvent.getByToken<StubAssociation>(edGetTokenReconstructable_, handleReconstructable);
       reconstructable = handleReconstructable.product();
       for (const auto& p : selection->getTrackingParticleToTTStubsMap())
-        fill(p.first, hisEffEtaTotal_, hisEffInv2RTotal_);
+        fill(p.first, hisEffEtaTotal_, hisEffInv2RTotal_, hisEffPTTotal_);
     }
     // chi2s
     for (const pair<double, double>& chi2s : *handleChi2s) {
@@ -265,7 +275,7 @@ namespace trackerTFP {
       prof_->Fill(2, nRegionTracks);
     }
     for (const TPPtr& tpPtr : tpPtrsSelection)
-      fill(tpPtr, hisEffEta_, hisEffInv2R_);
+      fill(tpPtr, hisEffEta_, hisEffInv2R_, hisEffPT_);
     prof_->Fill(4, numMatched);
     prof_->Fill(5, numTracks);
     prof_->Fill(6, tpPtrs.size());
@@ -273,6 +283,7 @@ namespace trackerTFP {
     prof_->Fill(10, *handleNumStatesAccepted);
     prof_->Fill(11, *handleNumStatesTruncated);
     prof_->Fill(12, tpPtrsMax.size());
+    hisTracks_->Fill(numTracks);
     nEvents_++;
   }
 
@@ -284,6 +295,8 @@ namespace trackerTFP {
     effEta_->SetTotalHistogram(*hisEffEtaTotal_, "f");
     effInv2R_->SetPassedHistogram(*hisEffInv2R_, "f");
     effInv2R_->SetTotalHistogram(*hisEffInv2RTotal_, "f");
+    effPT_->SetPassedHistogram(*hisEffPT_, "f");
+    effPT_->SetTotalHistogram(*hisEffPTTotal_, "f");
     // printout SF summary
     const double totalTPs = prof_->GetBinContent(9);
     const double numStubs = prof_->GetBinContent(1);
@@ -348,15 +361,16 @@ namespace trackerTFP {
       copy(tpPtrs.begin(), tpPtrs.end(), inserter(tps, tps.begin()));
       if (his.empty())
         continue;
-      const double cot = track.zT() / setup_->chosenRofZ() + track.cot();
+      const double zT = dataFormats_->format(Variable::zT, Process::gp).digi(track.zT());
+      const double cot = zT / setup_->chosenRofZ() + track.cot();
       const double z0 = track.zT() - setup_->chosenRofZ() * cot;
       const double inv2R = track.inv2R();
       const double phi0 = deltaPhi(track.phiT() - setup_->chosenRofPhi() * inv2R +
-                                   (region - .5) * dataFormats_->format(Variable::phiT, Process::kf).range());
+                                   region * dataFormats_->format(Variable::phiT, Process::kf).range());
       for (const TPPtr& tpPtr : tpPtrs) {
         const double tpPhi0 = tpPtr->phi();
         const double tpCot = sinh(tpPtr->eta());
-        const double tpInv2R = setup_->invPtToDphi() * tpPtr->charge() / tpPtr->pt();
+        const double tpInv2R = -setup_->invPtToDphi() * tpPtr->charge() / tpPtr->pt();
         const math::XYZPointD& v = tpPtr->vertex();
         const double tpZ0 = v.z() - cot * (v.x() * cos(phi0) + v.y() * sin(phi0));
         const double dCot = tpCot - cot;

@@ -72,10 +72,10 @@ namespace trklet {
 
   ProducerDR::ProducerDR(const ParameterSet& iConfig) : iConfig_(iConfig) {
     const string& label = iConfig.getParameter<string>("LabelDRin");
-    const string& branchAcceptedStubs = iConfig.getParameter<string>("BranchAcceptedStubs");
-    const string& branchAcceptedTracks = iConfig.getParameter<string>("BranchAcceptedTracks");
-    const string& branchLostStubs = iConfig.getParameter<string>("BranchLostStubs");
-    const string& branchLostTracks = iConfig.getParameter<string>("BranchLostTracks");
+    const string& branchAcceptedStubs = iConfig.getParameter<string>("BranchStubsAccepted");
+    const string& branchAcceptedTracks = iConfig.getParameter<string>("BranchTracksAccepted");
+    const string& branchLostStubs = iConfig.getParameter<string>("BranchStubsTruncated");
+    const string& branchLostTracks = iConfig.getParameter<string>("BranchTracksTruncated");
     // book in- and output ED products
     edGetTokenTracks_ = consumes<StreamsTrack>(InputTag(label, branchAcceptedTracks));
     edGetTokenStubs_ = consumes<StreamsStub>(InputTag(label, branchAcceptedStubs));
@@ -92,11 +92,6 @@ namespace trklet {
   void ProducerDR::beginRun(const Run& iRun, const EventSetup& iSetup) {
     // helper class to store configurations
     setup_ = &iSetup.getData(esGetTokenSetup_);
-    if (!setup_->configurationSupported())
-      return;
-    // check process history if desired
-    if (iConfig_.getParameter<bool>("CheckHistory"))
-      setup_->checkHistory(iRun.processHistory());
     // helper class to extract structured data from tt::Frames
     dataFormats_ = &iSetup.getData(esGetTokenDataFormats_);
     // helper class to assign tracks to channel
@@ -112,21 +107,19 @@ namespace trklet {
     StreamsStub lostStubs(numStreamsStubs);
     StreamsTrack lostTracks(numStreamsTracks);
     // read in TBout Product and produce KFin product
-    if (setup_->configurationSupported()) {
-      Handle<StreamsStub> handleStubs;
-      iEvent.getByToken<StreamsStub>(edGetTokenStubs_, handleStubs);
-      const StreamsStub& stubs = *handleStubs;
-      Handle<StreamsTrack> handleTracks;
-      iEvent.getByToken<StreamsTrack>(edGetTokenTracks_, handleTracks);
-      const StreamsTrack& tracks = *handleTracks;
-      for (int region = 0; region < setup_->numRegions(); region++) {
-        // object to remove duplicated tracks in a processing region
-        DR dr(iConfig_, setup_, dataFormats_, channelAssignment_, region);
-        // read in and organize input tracks and stubs
-        dr.consume(tracks, stubs);
-        // fill output products
-        dr.produce(acceptedStubs, acceptedTracks, lostStubs, lostTracks);
-      }
+    Handle<StreamsStub> handleStubs;
+    iEvent.getByToken<StreamsStub>(edGetTokenStubs_, handleStubs);
+    const StreamsStub& stubs = *handleStubs;
+    Handle<StreamsTrack> handleTracks;
+    iEvent.getByToken<StreamsTrack>(edGetTokenTracks_, handleTracks);
+    const StreamsTrack& tracks = *handleTracks;
+    for (int region = 0; region < setup_->numRegions(); region++) {
+      // object to remove duplicated tracks in a processing region
+      DR dr(iConfig_, setup_, dataFormats_, channelAssignment_, region);
+      // read in and organize input tracks and stubs
+      dr.consume(tracks, stubs);
+      // fill output products
+      dr.produce(acceptedStubs, acceptedTracks, lostStubs, lostTracks);
     }
     // store products
     iEvent.emplace(edPutTokenAcceptedStubs_, std::move(acceptedStubs));

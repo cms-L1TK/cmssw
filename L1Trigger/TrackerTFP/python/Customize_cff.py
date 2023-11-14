@@ -21,6 +21,7 @@ def setupUseTMTT(process):
   process.TrackTriggerSetup.KalmanFilter.BaseShift       =  0
   process.TrackTriggerSetup.KalmanFilter.ShiftChi20      = -4
   process.TrackTriggerSetup.KalmanFilter.ShiftChi21      = -1
+  process.TrackTriggerSetup.KalmanFilter.PowCutChi2      = 2
   process.TrackTriggerKalmanFilterFormats.BaseShiftx0           =  -5
   process.TrackTriggerKalmanFilterFormats.BaseShiftx1           = -10
   process.TrackTriggerKalmanFilterFormats.BaseShiftx2           =  -5
