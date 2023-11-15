@@ -803,7 +803,7 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
 
         const unsigned int tobSide = tTopo->tobSide(detid); // nonBarrel = 0, tiltedMinus = 1, tiltedPlus = 2, flat = 3
         int isTiltedBarrel = 0;
-	if (tobSide == 1 || tobSide == 2)
+	if (isBarrel == 1 && (tobSide == 1 || tobSide == 2))
           isTiltedBarrel = 1;
 
         MeasurementPoint coords = tempStubPtr->clusterRef(0)->findAverageLocalCoordinatesCentered();
