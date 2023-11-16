@@ -139,7 +139,7 @@ namespace trackerTFP {
       const double pitchCol = ps ? setup_->pitchColPS() : setup_->pitchCol2S();
       const double zT = dfZT.floating(stub->zT());
       const double cot = abs(zT) / setup_->chosenRofZ();
-      const double sigmaZ = barrel ? (tilt ? m * cot + c : pitchCol) : cot * pitchCol;
+      const double sigmaZ = (barrel ? (tilt ? m * cot + c : 1.) : cot) * pitchCol;
       const double dZ = sigmaZ + dfDZ.base();
       return dfDZ.digi(dZ);
     };

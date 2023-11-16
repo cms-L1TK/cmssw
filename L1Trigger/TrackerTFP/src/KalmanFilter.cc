@@ -305,7 +305,6 @@ namespace trackerTFP {
       const double phi = stub->phi() - (state->x1() + stub->r() * state->x0());
       const double rz = stub->r() + H00_->digi(setup_->chosenRofPhi() - setup_->chosenRofZ());
       const double z = stub->z() - (state->x3() + rz * state->x2());
-      //return abs(phi) < stub->dPhi() / 2. && abs(z) < stub->dZ() / 2.;
       return m0_->digi(abs(phi)) - 1.e-12 < stub->dPhi() / 2. && m1_->digi(abs(z)) - 1.e-12 < stub->dZ() / 2.;
     };
     auto numConsistentLayers = [isConsistent](State* state) {

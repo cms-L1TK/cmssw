@@ -351,9 +351,15 @@ namespace trackerTFP {
       const vector<StubKF*>& stubs = tracksStubs[frame];
       vector<TTStubRef> ttStubRefs;
       ttStubRefs.reserve(stubs.size());
-      for (StubKF* stub : stubs)
-        if (stub)
-          ttStubRefs.push_back(stub->frame().first);
+      TTBV hitPattern(0, setup_->numLayers());
+      int layer(-1);
+      for (StubKF* stub : stubs) {
+        layer++;
+        if (!stub)
+          continue;
+        hitPattern.set(layer);
+        ttStubRefs.push_back(stub->frame().first);
+      }
       const vector<TPPtr>& tpPtrs = perfect ? ass->associateFinal(ttStubRefs) : ass->associate(ttStubRefs);
       if (tpPtrs.empty())
         continue;
@@ -367,6 +373,7 @@ namespace trackerTFP {
       const double inv2R = track.inv2R();
       const double phi0 = deltaPhi(track.phiT() - setup_->chosenRofPhi() * inv2R +
                                    region * dataFormats_->format(Variable::phiT, Process::kf).range());
+      const int nInner = hitPattern.count(0, setup_->numBarrelLayer());
       for (const TPPtr& tpPtr : tpPtrs) {
         const double tpPhi0 = tpPtr->phi();
         const double tpCot = sinh(tpPtr->eta());
@@ -379,6 +386,8 @@ namespace trackerTFP {
         const double dPhi0 = deltaPhi(tpPhi0 - phi0);
         const vector<double> ds = {dPhi0, dInv2R, dZ0, dCot};
         for (int i = 0; i < (int)ds.size(); i++) {
+          if (i > 1 && nInner < 2)
+            continue;
           his[i]->Fill(ds[i]);
           prof[i]->Fill(abs(tpPtr->eta()), abs(ds[i]));
         }
