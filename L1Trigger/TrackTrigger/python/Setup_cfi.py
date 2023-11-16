@@ -189,13 +189,13 @@ TrackTrigger_params = cms.PSet (
     MinLayers       = cms.int32 (  4   ), # required number of stub layers to form a track
     MaxLayers       = cms.int32 (  7   ), # maximum number of  layers added to a track
     MaxGaps         = cms.int32 (  2   ), # 
-    ShiftInitialC00 = cms.int32 ( -1+11   ), # initial C00 is given by inv2R uncertainty squared times this power of 2
-    ShiftInitialC11 = cms.int32 ( -2+12   ), # initial C11 is given by phiT uncertainty squared times this power of 2
-    ShiftInitialC22 = cms.int32 ( -8+18   ), # initial C22 is given by cot uncertainty squared times this power of 2
-    ShiftInitialC33 = cms.int32 ( -7+17   ), # initial C33 is given by zT uncertainty squared times this power of 2
-    ShiftChi20      = cms.int32 ( -1+1   ), #
-    ShiftChi21      = cms.int32 ( -5+5   ), #
-    PowCutChi2      = cms.int32 ( 10-8   ), #
+    ShiftInitialC00 = cms.int32 ( -1   ), # initial C00 is given by inv2R uncertainty squared times this power of 2
+    ShiftInitialC11 = cms.int32 ( -2   ), # initial C11 is given by phiT uncertainty squared times this power of 2
+    ShiftInitialC22 = cms.int32 ( -8   ), # initial C22 is given by cot uncertainty squared times this power of 2
+    ShiftInitialC33 = cms.int32 ( -7   ), # initial C33 is given by zT uncertainty squared times this power of 2
+    ShiftChi20      = cms.int32 ( -1   ), #
+    ShiftChi21      = cms.int32 ( -5   ), #
+    PowCutChi2      = cms.int32 ( 10   ), #
     WidthChi2       = cms.int32 (  8   )  #
   ),
 
