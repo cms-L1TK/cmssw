@@ -20,6 +20,8 @@ namespace trackerTFP {
         maybePattern_(vector<TTBV>(pow(2, zT_->width()), TTBV(0, setup_->numLayers()))) {
     // number of boundaries of fiducial area in r-z plane for a given set of rough r-z track parameter
     static constexpr int boundaries = 2;
+      // z at radius chosenRofZ wrt zT of sectorZT of this bin boundaries
+    const vector<double> z0s = {-setup_->beamWindowZ(), setup_->beamWindowZ()};
     // find unique sensor mouldes in r-z
     // allowed distance in r and z in cm between modules to consider them not unique
     static constexpr double delta = 1.e-3;
@@ -42,14 +44,12 @@ namespace trackerTFP {
     for (int binZT = 0; binZT < pow(2, zT_->width()); binZT++) {
       // z at radius chosenRofZ
       const double zT = zT_->floating(zT_->toSigned(binZT));
-      // cotTheta of eta sector centre
-      const double cot = zT / setup_->chosenRofZ();
-      // cot uncertainty
-      const double dCot = (zT_->base() / 2. + setup_->beamWindowZ()) / setup_->chosenRofZ();
       // z at radius chosenRofZ wrt zT of sectorZT of this bin boundaries
       const vector<double> zTs = {zT - zT_->base() / 2., zT + zT_->base() / 2.};
-      // cotTheta wrt sectorCot of this bin boundaries
-      const vector<double> cots = {cot - dCot, cot + dCot};
+      vector<vector<double>> cots(boundaries);
+      for (int i = 0; i < boundaries; i++)
+        for (double z0 : z0s)
+          cots[i].push_back((zTs[i] - z0) / setup_->chosenRofZ());
       // layer ids crossed by left and right rough r-z parameter shape boundaries
       vector<set<int>> layers(boundaries);
       // loop over all unique modules
@@ -57,24 +57,23 @@ namespace trackerTFP {
         // check if module is crossed by left and right rough r-z parameter shape boundaries
         for (int i = 0; i < boundaries; i++) {
           const double zTi = zTs[i];
-          for (double coti : cots) {
-            // distance between module and boundary in moudle tilt angle direction
-            const double d =
-                (zTi - sm->z() + (sm->r() - setup_->chosenRofZ()) * coti) / (sm->cosTilt() - sm->sinTilt() * coti);
-            // compare distance with module size and add module layer id to layers if module is crossed
-            if (abs(d) < sm->numColumns() * sm->pitchCol() / 2.)
-              layers[i].insert(sm->layerId());
-          }
+          const double coti = sm->r() < setup_->chosenRofZ() ? cots[i][i == 0 ? 0 : 1] : cots[i][i == 0 ? 1 : 0];
+          // distance between module and boundary in moudle tilt angle direction
+          const double d =
+              (zTi - sm->z() + (sm->r() - setup_->chosenRofZ()) * coti) / (sm->cosTilt() - sm->sinTilt() * coti);
+          // compare distance with module size and add module layer id to layers if module is crossed
+          if (abs(d) < sm->numColumns() * sm->pitchCol() / 2.)
+            layers[i].insert(sm->layerId());
         }
       }
-      // mayber layers are given by layer ids crossed by only one booundary
+      // mayber layers are given by layer ids crossed by only one boundary
       set<int> maybeLayer;
       set_symmetric_difference(layers[0].begin(),
                                layers[0].end(),
                                layers[1].begin(),
                                layers[1].end(),
                                inserter(maybeLayer, maybeLayer.end()));
-      // layerEncoding is given by sorted layer ids crossed by any booundary
+      // layerEncoding is given by sorted layer ids crossed by any boundary
       set<int> layerEncoding;
       set_union(layers[0].begin(),
                 layers[0].end(),

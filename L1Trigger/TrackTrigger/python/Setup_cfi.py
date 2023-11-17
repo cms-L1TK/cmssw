@@ -15,9 +15,9 @@ TrackTrigger_params = cms.PSet (
     MatchedLayersPS  = cms.int32 (  0       ), # required number of ps layers a found track has to have in common with a TP to consider it matched to it
     UnMatchedStubs   = cms.int32 (  1       ), # allowed number of stubs a found track may have not in common with its matched TP
     UnMatchedStubsPS = cms.int32 (  0       ), # allowed number of PS stubs a found track may have not in common with its matched TP
-    NumLayers        = cms.int32 (  7       ), # TMTT: number of detector layers a reconstructbale particle may cross, reduced to 7, 8th layer almost never corssed
+    NumLayers        = cms.int32 (  8       ), # TMTT: number of detector layers a reconstructbale particle may cross, reduced to 7, 8th layer almost never corssed
     MinPt            = cms.double(  2.0     ), # min track pt in GeV
-    MaxEta           = cms.double(  2.5     ), # cut on stub eta
+    MaxEta           = cms.double(  2.4     ), # cut on stub eta
     ChosenRofPhi     = cms.double( 55.      ), # critical radius defining region overlap shape in cm
   ),
 
