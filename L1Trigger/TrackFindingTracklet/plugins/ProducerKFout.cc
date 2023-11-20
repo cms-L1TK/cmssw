@@ -93,9 +93,9 @@ namespace trklet {
   ProducerKFout::ProducerKFout(const ParameterSet& iConfig) : iConfig_(iConfig) {
     const string& labelKF = iConfig.getParameter<string>("LabelKF");
     const string& labelAS = iConfig.getParameter<string>("LabelAS");
-    const string& branchStubs = iConfig.getParameter<string>("BranchAcceptedStubs");
-    const string& branchTracks = iConfig.getParameter<string>("BranchAcceptedTracks");
-    const string& branchLost = iConfig.getParameter<string>("BranchLostTracks");
+    const string& branchStubs = iConfig.getParameter<string>("BranchStubsAccepted");
+    const string& branchTracks = iConfig.getParameter<string>("BranchTracksAccepted");
+    const string& branchLost = iConfig.getParameter<string>("BranchTracksTruncated");
     // book in- and output ED products
     edGetTokenStubs_ = consumes<StreamsStub>(InputTag(labelKF, branchStubs));
     edGetTokenTracks_ = consumes<StreamsTrack>(InputTag(labelKF, branchTracks));
@@ -109,11 +109,11 @@ namespace trklet {
     setup_ = nullptr;
     dataFormats_ = nullptr;
 
-    trackQualityModel_ = std::make_unique<L1TrackQuality>(iConfig.getParameter<edm::ParameterSet>("TrackQualityPSet"));
+    /*trackQualityModel_ = std::make_unique<L1TrackQuality>(iConfig.getParameter<edm::ParameterSet>("TrackQualityPSet"));
     edm::ParameterSet trackQualityPSset = iConfig.getParameter<edm::ParameterSet>("TrackQualityPSet");
     tqBins_ = trackQualityPSset.getParameter<vector<int>>("tqemu_bins");
     tqTanlScale_ = trackQualityPSset.getParameter<double>("tqemu_TanlScale");
-    tqZ0Scale_ = trackQualityPSset.getParameter<double>("tqemu_Z0Scale");
+    tqZ0Scale_ = trackQualityPSset.getParameter<double>("tqemu_Z0Scale");*/
   }
 
   void ProducerKFout::beginRun(const Run& iRun, const EventSetup& iSetup) {

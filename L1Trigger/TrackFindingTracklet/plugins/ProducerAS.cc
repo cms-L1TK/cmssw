@@ -53,7 +53,7 @@ namespace trklet {
   ProducerAS::ProducerAS(const ParameterSet& iConfig) : iConfig_(iConfig) {
     const string& labelKF = iConfig.getParameter<string>("LabelKF");
     const string& labelTT = iConfig.getParameter<string>("LabelTT");
-    const string& branch = iConfig.getParameter<string>("BranchAcceptedTracks");
+    const string& branch = iConfig.getParameter<string>("BranchTracksAccepted");
     // book in- and output ED products
     edGetTokenKF_ = consumes<StreamsTrack>(InputTag(labelKF, branch));
     edGetTokenTT_ = consumes<TTTracks>(InputTag(labelTT, branch));

@@ -119,7 +119,7 @@ namespace trackerTFP {
     Service<TFileService> fs;
     TFileDirectory dir;
     dir = fs->mkdir("DR");
-    prof_ = dir.make<TProfile>("Counts", ";", 9, 0.5, 9.5);
+    prof_ = dir.make<TProfile>("Counts", ";", 12, 0.5, 12.5);
     prof_->GetXaxis()->SetBinLabel(1, "Stubs");
     prof_->GetXaxis()->SetBinLabel(2, "Tracks");
     prof_->GetXaxis()->SetBinLabel(4, "Matched Tracks");
@@ -127,6 +127,8 @@ namespace trackerTFP {
     prof_->GetXaxis()->SetBinLabel(6, "Found TPs");
     prof_->GetXaxis()->SetBinLabel(7, "Found selected TPs");
     prof_->GetXaxis()->SetBinLabel(9, "All TPs");
+    prof_->GetXaxis()->SetBinLabel(10, "states");
+    prof_->GetXaxis()->SetBinLabel(12, "max tp");
     // channel occupancy
     constexpr int maxOcc = 180;
     const int numChannels = dataFormats_->numChannel(Process::dr);
@@ -160,6 +162,7 @@ namespace trackerTFP {
     // analyze ht products and associate found tracks with reconstrucable TrackingParticles
     set<TPPtr> tpPtrs;
     set<TPPtr> tpPtrsSelection;
+    set<TPPtr> tpPtrsMax;
     int allMatched(0);
     int allTracks(0);
     for (int region = 0; region < setup_->numRegions(); region++) {
@@ -181,6 +184,7 @@ namespace trackerTFP {
         int tmp(0);
         associate(tracks, selection, tpPtrsSelection, tmp);
         associate(tracks, reconstructable, tpPtrs, allMatched);
+        associate(tracks, selection, tpPtrsMax, tmp);
         const int size = acceptedTracks[offset + channel].size();
         hisChannel_->Fill(size);
         profChannel_->Fill(channel, size);
@@ -192,6 +196,7 @@ namespace trackerTFP {
     prof_->Fill(5, allTracks);
     prof_->Fill(6, tpPtrs.size());
     prof_->Fill(7, tpPtrsSelection.size());
+    prof_->Fill(12, tpPtrsMax.size());
     nEvents_++;
   }
 
@@ -206,12 +211,15 @@ namespace trackerTFP {
     const double numTracksMatched = prof_->GetBinContent(4);
     const double numTPsAll = prof_->GetBinContent(6);
     const double numTPsEff = prof_->GetBinContent(7);
+    const double numTPsEffMax = prof_->GetBinContent(12);
     const double errStubs = prof_->GetBinError(1);
     const double errTracks = prof_->GetBinError(2);
     const double fracFake = (totalTracks - numTracksMatched) / totalTracks;
     const double fracDup = (numTracksMatched - numTPsAll) / totalTracks;
     const double eff = numTPsEff / totalTPs;
     const double errEff = sqrt(eff * (1. - eff) / totalTPs / nEvents_);
+    const double effMax = numTPsEffMax / totalTPs;
+    const double errEffMax = sqrt(effMax * (1. - effMax) / totalTPs / nEvents_);
     const vector<double> nums = {numStubs, numTracks};
     const vector<double> errs = {errStubs, errTracks};
     const int wNums = ceil(log10(*max_element(nums.begin(), nums.end()))) + 5;
@@ -221,6 +229,7 @@ namespace trackerTFP {
     log_ << "number of tracks      per TFP = " << setw(wNums) << numTracks << " +- " << setw(wErrs) << errTracks
          << endl;
     log_ << "          tracking efficiency = " << setw(wNums) << eff << " +- " << setw(wErrs) << errEff << endl;
+    log_ << "      max tracking efficiency = " << setw(wNums) << effMax << " +- " << setw(wErrs) << errEffMax << endl;
     log_ << "                    fake rate = " << setw(wNums) << fracFake << endl;
     log_ << "               duplicate rate = " << setw(wNums) << fracDup << endl;
     log_ << "=============================================================";

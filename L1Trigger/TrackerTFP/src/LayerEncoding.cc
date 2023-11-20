@@ -20,7 +20,7 @@ namespace trackerTFP {
         maybePattern_(vector<TTBV>(pow(2, zT_->width()), TTBV(0, setup_->numLayers()))) {
     // number of boundaries of fiducial area in r-z plane for a given set of rough r-z track parameter
     static constexpr int boundaries = 2;
-      // z at radius chosenRofZ wrt zT of sectorZT of this bin boundaries
+    // z at radius chosenRofZ wrt zT of sectorZT of this bin boundaries
     const vector<double> z0s = {-setup_->beamWindowZ(), setup_->beamWindowZ()};
     // find unique sensor mouldes in r-z
     // allowed distance in r and z in cm between modules to consider them not unique
