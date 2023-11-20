@@ -131,7 +131,7 @@ namespace trklet {
       ttTrack.setTrackSeedType(track.frame().first->trackSeedType());
       ttTrack.setStubPtConsistency(StubPtConsistency::getConsistency(
           ttTrack, setup_->trackerGeometry(), setup_->trackerTopology(), bField, nPar));
-      return ttTrack;
+      ttTracks.emplace_back(ttTrack);
     };
     // convert kf track frames per channel and stub frames per channel and layer to TTTracks
     for (int channel = 0; channel < (int)streamsTracks.size(); channel++) {
