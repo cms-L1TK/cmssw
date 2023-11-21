@@ -17,7 +17,7 @@ TrackTriggerKalmanFilterFormats_params = cms.PSet (
   BaseShiftS00          = cms.int32(   1 ),
   BaseShiftS01          = cms.int32(  -5 ),
   BaseShiftS12          = cms.int32(   2 ),
-  BaseShiftS13          = cms.int32(   1+1 ),
+  BaseShiftS13          = cms.int32(   2 ),
   BaseShiftK00          = cms.int32( -17 ),
   BaseShiftK10          = cms.int32( -22 ),
   BaseShiftK21          = cms.int32( -23 ),
@@ -37,8 +37,8 @@ TrackTriggerKalmanFilterFormats_params = cms.PSet (
   BaseShiftC23          = cms.int32(   0 ),
   BaseShiftC33          = cms.int32(   1 ),
   BaseShiftr02          = cms.int32(  -2 ),
-  BaseShiftr12          = cms.int32(  11 ),
-  BaseShiftchi20        = cms.int32( -14+9 ),
-  BaseShiftchi21        = cms.int32( -14+9 )
+  BaseShiftr12          = cms.int32(  12 ),
+  BaseShiftchi20        = cms.int32(  -5 ),
+  BaseShiftchi21        = cms.int32(  -5 )
 
 )

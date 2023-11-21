@@ -79,7 +79,7 @@ namespace trackerTFP {
                 << (twos_ ? range_ / 2. : range_) << "." << endl;
       if (twos_ || d >= 0.)
         exception.addAdditionalInfo("Consider raising BaseShift" + v + " in KalmnaFilterFormats_cfi.py.");
-      throw exception;
+      //throw exception;
     }
   }
 

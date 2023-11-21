@@ -68,16 +68,17 @@ options = VarParsing.VarParsing( 'analysis' )
 #from MCsamples.RelVal_1260_D88.PU200_TTbar_14TeV_cfi import *
 #inputMC = getCMSdataFromCards()
 inputMC = [
-  '/store/relval/CMSSW_12_6_0_pre4/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU_125X_mcRun4_realistic_v2_2026D88PU200-v1/2590000/00b3d04b-4c7b-4506-8d82-9538fb21ee19.root',
-  '/store/relval/CMSSW_12_6_0_pre4/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU_125X_mcRun4_realistic_v2_2026D88PU200-v1/2590000/0390df7b-7c2a-45d0-9bdb-e13f6565f65a.root',
-  '/store/relval/CMSSW_12_6_0_pre4/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU_125X_mcRun4_realistic_v2_2026D88PU200-v1/2590000/0919ec05-0bdc-4f85-9a21-3a167117ea5e.root',
-  '/store/relval/CMSSW_12_6_0_pre4/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU_125X_mcRun4_realistic_v2_2026D88PU200-v1/2590000/09e5d64c-d0de-442c-943d-620927afc59c.root',
-  '/store/relval/CMSSW_12_6_0_pre4/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU_125X_mcRun4_realistic_v2_2026D88PU200-v1/2590000/0ce69121-29ff-4f67-babf-c3372a273ce6.root',
-  '/store/relval/CMSSW_12_6_0_pre4/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU_125X_mcRun4_realistic_v2_2026D88PU200-v1/2590000/0eccd3e4-cbe0-403e-a574-750ec48804fc.root',
-  '/store/relval/CMSSW_12_6_0_pre4/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU_125X_mcRun4_realistic_v2_2026D88PU200-v1/2590000/1118e869-7f5d-4d34-98ae-43d09b52c437.root',
-  '/store/relval/CMSSW_12_6_0_pre4/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU_125X_mcRun4_realistic_v2_2026D88PU200-v1/2590000/1967aa5c-4fb4-4039-ac75-2f6fcdc8d0b0.root',
-  '/store/relval/CMSSW_12_6_0_pre4/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU_125X_mcRun4_realistic_v2_2026D88PU200-v1/2590000/19fb8c07-8b8c-418f-aa6f-8bedc4f8c8c5.root',
-  '/store/relval/CMSSW_12_6_0_pre4/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU_125X_mcRun4_realistic_v2_2026D88PU200-v1/2590000/1a364293-a1ab-42a0-bbda-afc6d404cb2e.root'
+  #'/store/relval/CMSSW_12_6_0_pre4/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU_125X_mcRun4_realistic_v2_2026D88PU200-v1/2590000/00b3d04b-4c7b-4506-8d82-9538fb21ee19.root',
+  #'/store/relval/CMSSW_12_6_0_pre4/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU_125X_mcRun4_realistic_v2_2026D88PU200-v1/2590000/0390df7b-7c2a-45d0-9bdb-e13f6565f65a.root',
+  #'/store/relval/CMSSW_12_6_0_pre4/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU_125X_mcRun4_realistic_v2_2026D88PU200-v1/2590000/0919ec05-0bdc-4f85-9a21-3a167117ea5e.root',
+  #'/store/relval/CMSSW_12_6_0_pre4/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU_125X_mcRun4_realistic_v2_2026D88PU200-v1/2590000/09e5d64c-d0de-442c-943d-620927afc59c.root',
+  #'/store/relval/CMSSW_12_6_0_pre4/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU_125X_mcRun4_realistic_v2_2026D88PU200-v1/2590000/0ce69121-29ff-4f67-babf-c3372a273ce6.root',
+  #'/store/relval/CMSSW_12_6_0_pre4/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU_125X_mcRun4_realistic_v2_2026D88PU200-v1/2590000/0eccd3e4-cbe0-403e-a574-750ec48804fc.root',
+  #'/store/relval/CMSSW_12_6_0_pre4/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU_125X_mcRun4_realistic_v2_2026D88PU200-v1/2590000/1118e869-7f5d-4d34-98ae-43d09b52c437.root',
+  #'/store/relval/CMSSW_12_6_0_pre4/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU_125X_mcRun4_realistic_v2_2026D88PU200-v1/2590000/1967aa5c-4fb4-4039-ac75-2f6fcdc8d0b0.root',
+  #'/store/relval/CMSSW_12_6_0_pre4/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU_125X_mcRun4_realistic_v2_2026D88PU200-v1/2590000/19fb8c07-8b8c-418f-aa6f-8bedc4f8c8c5.root',
+  #'/store/relval/CMSSW_12_6_0_pre4/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU_125X_mcRun4_realistic_v2_2026D88PU200-v1/2590000/1a364293-a1ab-42a0-bbda-afc6d404cb2e.root'
+  '/store/relval/CMSSW_12_6_0_pre4/RelValSingleMuPt100/GEN-SIM-DIGI-RAW/125X_mcRun4_realistic_v2_2026D88noPU-v1/2580000/0f157dee-d97c-4cf0-8fea-a6a072bb678f.root'
 ]
 options.register( 'inputMC', inputMC, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.string, "Files to be processed" )
 # specify number of events to process.
@@ -89,7 +90,7 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(options.Even
 process.source = cms.Source(
   "PoolSource",
   fileNames = cms.untracked.vstring( options.inputMC ),
-  #skipEvents = cms.untracked.uint32( 658 ),
+  #skipEvents = cms.untracked.uint32( 8 ),
   secondaryFileNames = cms.untracked.vstring(),
   duplicateCheckMode = cms.untracked.string( 'noDuplicateCheck' )
 )

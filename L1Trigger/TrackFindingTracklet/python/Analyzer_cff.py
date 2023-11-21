@@ -8,6 +8,6 @@ TrackFindingTrackletAnalyzerTracklet = cms.EDAnalyzer( 'trklet::AnalyzerTracklet
 TrackFindingTrackletAnalyzerDRin = cms.EDAnalyzer( 'trklet::AnalyzerDRin', TrackFindingTrackletAnalyzer_params, TrackFindingTrackletProducer_params )
 TrackFindingTrackletAnalyzerDR = cms.EDAnalyzer( 'trklet::AnalyzerDR', TrackFindingTrackletAnalyzer_params, TrackFindingTrackletProducer_params )
 TrackFindingTrackletAnalyzerKFin = cms.EDAnalyzer( 'trklet::AnalyzerKFin', TrackFindingTrackletAnalyzer_params, TrackFindingTrackletProducer_params )
-TrackFindingTrackletAnalyzerKF = cms.EDAnalyzer( 'trackerTFP::AnalyzerKF', TrackFindingTrackletAnalyzer_params, TrackFindingTrackletProducer_params )
+TrackFindingTrackletAnalyzerKF = cms.EDAnalyzer( 'trklet::AnalyzerKF', TrackFindingTrackletAnalyzer_params, TrackFindingTrackletProducer_params )
 TrackFindingTrackletAnalyzerKFout = cms.EDAnalyzer( 'trklet::AnalyzerKFout', TrackFindingTrackletAnalyzer_params, TrackFindingTrackletProducer_params )
 TrackFindingTrackletAnalyzerTT = cms.EDAnalyzer( 'trklet::AnalyzerTT', TrackFindingTrackletAnalyzer_params, TrackFindingTrackletProducer_params )
