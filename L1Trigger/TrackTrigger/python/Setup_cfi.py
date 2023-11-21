@@ -17,7 +17,7 @@ TrackTrigger_params = cms.PSet (
     UnMatchedStubsPS = cms.int32 (  0       ), # allowed number of PS stubs a found track may have not in common with its matched TP
     NumLayers        = cms.int32 (  8       ), # TMTT: number of detector layers a reconstructbale particle may cross, reduced to 7, 8th layer almost never corssed
     MinPt            = cms.double(  2.0     ), # min track pt in GeV
-    MaxEta           = cms.double(  2.4     ), # cut on stub eta
+    MaxEta           = cms.double(  2.5     ), # cut on stub eta
     ChosenRofPhi     = cms.double( 55.      ), # critical radius defining region overlap shape in cm
   ),
 
@@ -187,8 +187,8 @@ TrackTrigger_params = cms.PSet (
     RangeFactor     = cms.double(  2.0 ), # search window of each track parameter in initial uncertainties
     BaseShift       = cms.int32 ( -1   ), # bases get shifted by this power of two wrt tfp output bases
     MinLayers       = cms.int32 (  4   ), # required number of stub layers to form a track
-    MaxLayers       = cms.int32 (  7   ), # maximum number of  layers added to a track
-    MaxGaps         = cms.int32 (  2   ), # 
+    MaxLayers       = cms.int32 (  8   ), # maximum number of  layers added to a track
+    MaxGaps         = cms.int32 (  4   ), # 
     ShiftInitialC00 = cms.int32 ( -1   ), # initial C00 is given by inv2R uncertainty squared times this power of 2
     ShiftInitialC11 = cms.int32 ( -2   ), # initial C11 is given by phiT uncertainty squared times this power of 2
     ShiftInitialC22 = cms.int32 ( -8   ), # initial C22 is given by cot uncertainty squared times this power of 2

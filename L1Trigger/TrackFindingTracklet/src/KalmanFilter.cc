@@ -65,20 +65,7 @@ namespace trklet {
         C11_(&kalmanFilterFormats_->format(VariableKF::C11)),
         C22_(&kalmanFilterFormats_->format(VariableKF::C22)),
         C23_(&kalmanFilterFormats_->format(VariableKF::C23)),
-        C33_(&kalmanFilterFormats_->format(VariableKF::C33)) {
-    C00_->updateRangeActual(pow(dataFormats_->base(Variable::inv2R, Process::ht), 2) *
-                                pow(2, setup_->kfShiftInitialC00()) -
-                            .5 * C00_->base());
-    C11_->updateRangeActual(pow(dataFormats_->base(Variable::phiT, Process::ht), 2) *
-                                pow(2, setup_->kfShiftInitialC11()) -
-                            .5 * C11_->base());
-    C22_->updateRangeActual(pow(dataFormats_->base(Variable::cot, Process::gp), 2) *
-                                pow(2, setup_->kfShiftInitialC22()) -
-                            .5 * C22_->base());
-    C33_->updateRangeActual(pow(dataFormats_->base(Variable::zT, Process::gp), 2) *
-                                pow(2, setup_->kfShiftInitialC33()) -
-                            .5 * C33_->base());
-  }
+        C33_(&kalmanFilterFormats_->format(VariableKF::C33)) {}
 
   // fill output products
   void KalmanFilter::produce(const vector<vector<TrackCTB*>>& tracksIn,
@@ -424,9 +411,6 @@ namespace trklet {
     K10_->updateRangeActual(K10);
     K21_->updateRangeActual(K21);
     K31_->updateRangeActual(K31);
-    // create updated state
-    states_.emplace_back(State(state, {x0, x1, x2, x3, C00, C11, C22, C33, C01, C23}));
-    state = &states_.back();
     x0_->updateRangeActual(x0);
     x1_->updateRangeActual(x1);
     x2_->updateRangeActual(x2);
@@ -437,6 +421,9 @@ namespace trklet {
     C22_->updateRangeActual(C22);
     C23_->updateRangeActual(C23);
     C33_->updateRangeActual(C33);
+    // create updated state
+    states_.emplace_back(State(state, {x0, x1, x2, x3, C00, C11, C22, C33, C01, C23}));
+    state = &states_.back();
   }
 
   // remove and return first element of deque, returns nullptr if empty

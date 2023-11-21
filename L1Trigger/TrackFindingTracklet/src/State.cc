@@ -24,11 +24,6 @@ namespace trklet {
         hitPattern_(0, setup_->numLayers()),
         trackPattern_(0, setup_->numLayers()),
         type_(combSkip) {
-    const DataFormats* dataFormats = formats_->dataFormats();
-    const DataFormat& dfInv2R = dataFormats->format(Variable::inv2R, Process::ht);
-    const DataFormat& dfPhiT = dataFormats->format(Variable::phiT, Process::ht);
-    const DataFormat& dfCot = dataFormats->format(Variable::cot, Process::gp);
-    const DataFormat& dfZT = dataFormats->format(Variable::zT, Process::gp);
     DataFormatKF& dfX0 = formats_->format(VariableKF::x0);
     DataFormatKF& dfX1 = formats_->format(VariableKF::x1);
     DataFormatKF& dfX2 = formats_->format(VariableKF::x2);
@@ -48,10 +43,10 @@ namespace trklet {
     x2_ = dfX2.digi(0.);
     x3_ = dfX3.digi(0.);
     // initial uncertainties
-    C00_ = dfC00.digi(pow(dfInv2R.base(), 2) * pow(2, setup_->kfShiftInitialC00()) - .5 * dfC00.base());
-    C11_ = dfC11.digi(pow(dfPhiT.base(), 2) * pow(2, setup_->kfShiftInitialC11()) - .5 * dfC11.base());
-    C22_ = dfC22.digi(pow(dfCot.base(), 2) * pow(2, setup_->kfShiftInitialC22()) - .5 * dfC22.base());
-    C33_ = dfC33.digi(pow(dfZT.base(), 2) * pow(2, setup_->kfShiftInitialC33()) - .5 * dfC33.base());
+    C00_ = dfC00.range() - .5 * dfC00.base();
+    C11_ = dfC11.range() - .5 * dfC11.base();
+    C22_ = dfC22.range() - .5 * dfC22.base();
+    C33_ = dfC33.range() - .5 * dfC33.base();
     C01_ = dfC01.digi(0.);
     C23_ = dfC23.digi(0.);
     // first stub from first layer on input track with stubs
