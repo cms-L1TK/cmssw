@@ -1,4 +1,4 @@
-#include "L1Trigger/TrackerTFP/interface/KalmanFilter.h"
+#include "L1Trigger/TrackFindingTracklet/interface/KalmanFilter.h"
 
 #include <numeric>
 #include <algorithm>
@@ -6,14 +6,14 @@
 #include <deque>
 #include <vector>
 #include <set>
-#include <utility>
 #include <cmath>
 
 using namespace std;
 using namespace edm;
 using namespace tt;
+using namespace trackerTFP;
 
-namespace trackerTFP {
+namespace trklet {
 
   KalmanFilter::KalmanFilter(const ParameterSet& iConfig,
                              const Setup* setup,
@@ -65,11 +65,7 @@ namespace trackerTFP {
         C11_(&kalmanFilterFormats_->format(VariableKF::C11)),
         C22_(&kalmanFilterFormats_->format(VariableKF::C22)),
         C23_(&kalmanFilterFormats_->format(VariableKF::C23)),
-        C33_(&kalmanFilterFormats_->format(VariableKF::C33)),
-        r02_(&kalmanFilterFormats_->format(VariableKF::r02)),
-        r12_(&kalmanFilterFormats_->format(VariableKF::r12)),
-        chi20_(&kalmanFilterFormats_->format(VariableKF::chi20)),
-        chi21_(&kalmanFilterFormats_->format(VariableKF::chi21)) {
+        C33_(&kalmanFilterFormats_->format(VariableKF::C33)) {
     C00_->updateRangeActual(pow(dataFormats_->base(Variable::inv2R, Process::ht), 2) *
                                 pow(2, setup_->kfShiftInitialC00()) -
                             .5 * C00_->base());
@@ -90,8 +86,7 @@ namespace trackerTFP {
                              vector<vector<TrackKF*>>& tracksOut,
                              vector<vector<vector<StubKF*>>>& stubsOut,
                              int& numAcceptedStates,
-                             int& numLostStates,
-                             deque<pair<double, double>>& chi2s) {
+                             int& numLostStates) {
     static const int numChannel = dataFormats_->numChannel(Process::kf);
     static const int numLayers = setup_->numLayers();
     for (int channel = 0; channel < numChannel; channel++) {
@@ -148,9 +143,6 @@ namespace trackerTFP {
       numLostStates += nStates - (int)stream.size();
       // best track per candidate selection
       accumulator(stream);
-      // store chi2s
-      for (State* state : stream)
-        chi2s.emplace_back(state->chi20(), state->chi21());
       // Transform States into Tracks
       vector<TrackKF*>& tracks = tracksOut[channel];
       vector<vector<StubKF*>>& stubs = stubsOut[channel];
@@ -282,14 +274,6 @@ namespace trackerTFP {
       if (find_if(trackIds.begin(), trackIds.end(), [trackId](int id) { return id == trackId; }) == trackIds.end())
         trackIds.push_back(trackId);
     }
-    // sort in chi2
-    auto chi2 = [this](State* state) {
-      static const double baseChi2 = pow(2., setup_->kfPowCutChi2() - setup_->kfWidthChi2());
-      const double chi2 = state->chi20() + state->chi21();
-      return (int)floor(chi2 / baseChi2);
-    };
-    auto smallerChi2 = [chi2](State* lhs, State* rhs) { return chi2(lhs) < chi2(rhs); };
-    stable_sort(stream.begin(), stream.end(), smallerChi2);
     // sort in number of skipped layers
     auto numSkippedLayers = [](State* state) {
       const TTBV& hitPattern = state->hitPattern();
@@ -342,9 +326,6 @@ namespace trackerTFP {
         state = state->unskip(states_, layer_ + 1);
       return;
     }
-    static const int shifChi20 = setup_->kfShiftChi20();
-    static const int shifChi21 = setup_->kfShiftChi21();
-    static const double chi2cut = pow(2.0, setup_->kfPowCutChi2());
     // All variable names & equations come from Fruhwirth KF paper http://dx.doi.org/10.1016/0168-9002%2887%2990887-4", where F taken as unit matrix. Stub uncertainties projected onto (phi,z), assuming no correlations between r-phi & r-z planes.
     // stub phi residual wrt input helix
     const double m0 = state->m0();
@@ -373,18 +354,12 @@ namespace trackerTFP {
     double C22 = state->C22();
     double C23 = state->C23();
     double C33 = state->C33();
-    // chi2s
-    double chi20 = state->chi20();
-    double chi21 = state->chi21();
     // stub phi residual wrt current state
     const double r0C = x1_->digi(m0 - x1);
     const double r0 = r0_->digi(r0C - x0 * H00);
     // stub z residual wrt current state
     const double r1C = x3_->digi(m1 - x3);
     const double r1 = r1_->digi(r1C - x2 * H12);
-    // squared residuals
-    const double r02 = r02_->digi(r0 * r0);
-    const double r12 = r12_->digi(r1 * r1);
     // matrix S = H*C
     const double S00 = S00_->digi(C01 + H00 * C00);
     const double S01 = S01_->digi(C11 + H00 * C01);
@@ -411,7 +386,7 @@ namespace trackerTFP {
     const double K10 = K10_->digi(S01 * invR00);
     const double K21 = K21_->digi(S12 * invR11);
     const double K31 = K31_->digi(S13 * invR11);
-    // Updated helix params, their cov. matrix & chi2s
+    // Updated helix params, their cov. matrix
     x0 = x0_->digi(x0 + r0 * K00);
     x1 = x1_->digi(x1 + r0 * K10);
     x2 = x2_->digi(x2 + r1 * K21);
@@ -422,20 +397,6 @@ namespace trackerTFP {
     C22 = C22_->digi(C22 - S12 * K21);
     C23 = C23_->digi(C23 - S13 * K21);
     C33 = C33_->digi(C33 - S13 * K31);
-    chi20 = chi20_->digi(chi20 + r02 * invR00 * pow(2., shifChi20));
-    chi21 = chi21_->digi(chi21 + r12 * invR11 * pow(2., shifChi21));
-    // cut on eta sector boundaries
-    const bool invalidX3 = abs(x3) > dataFormats_->format(Variable::zT, Process::gp).base() / 2.;
-    // cut on triple found inv2R window
-    const bool invalidX0 = abs(x0) > 1.5 * dataFormats_->format(Variable::inv2R, Process::ht).base();
-    // cut on triple found phiT window
-    const bool invalidX1 = abs(x1) > 1.5 * dataFormats_->format(Variable::phiT, Process::ht).base();
-    // cot cut
-    const bool invalidX2 = abs(x2) > dataFormats_->format(Variable::cot, Process::gp).base() / 2.;
-    // chi2 cut
-    //const double chi2 = chi20 + chi21;
-    const double chi2 = 0.;
-    const bool validChi2 = chi2 < chi2cut;
     // update variable ranges to tune variable granularity
     m0_->updateRangeActual(m0);
     m1_->updateRangeActual(m1);
@@ -463,14 +424,8 @@ namespace trackerTFP {
     K10_->updateRangeActual(K10);
     K21_->updateRangeActual(K21);
     K31_->updateRangeActual(K31);
-    r02_->updateRangeActual(r02);
-    r12_->updateRangeActual(r12);
-    if (invalidX3 || invalidX0 || invalidX1 || invalidX2 || !validChi2) {
-      state = nullptr;
-      return;
-    }
     // create updated state
-    states_.emplace_back(State(state, {x0, x1, x2, x3, chi20, chi21, C00, C11, C22, C33, C01, C23}));
+    states_.emplace_back(State(state, {x0, x1, x2, x3, C00, C11, C22, C33, C01, C23}));
     state = &states_.back();
     x0_->updateRangeActual(x0);
     x1_->updateRangeActual(x1);
@@ -482,8 +437,6 @@ namespace trackerTFP {
     C22_->updateRangeActual(C22);
     C23_->updateRangeActual(C23);
     C33_->updateRangeActual(C33);
-    chi20_->updateRangeActual(chi20);
-    chi21_->updateRangeActual(chi21);
   }
 
   // remove and return first element of deque, returns nullptr if empty
@@ -497,4 +450,4 @@ namespace trackerTFP {
     return t;
   }
 
-}  // namespace trackerTFP
+}  // namespace trklet

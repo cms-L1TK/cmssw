@@ -5,7 +5,7 @@ from L1Trigger.TrackFindingTracklet.ChannelAssignment_cff import ChannelAssignme
 l1tTTTracksFromTrackletEmulation = cms.EDProducer("L1FPGATrackProducer",
                                                TTStubSource = cms.InputTag("TTStubsFromPhase2TrackerDigis","StubAccepted"),
                                                InputTagTTDTC = cms.InputTag("TrackerDTCProducer", "StubAccepted"),
-                                               readMoreMcTruth = cms.bool(True),
+                                               readMoreMcTruth = cms.bool(False),
                                                MCTruthClusterInputTag = cms.InputTag("TTClusterAssociatorFromPixelDigis", "ClusterAccepted"),
                                                MCTruthStubInputTag = cms.InputTag("TTStubAssociatorFromPixelDigis", "StubAccepted"),
                                                TrackingParticleInputTag = cms.InputTag("mix", "MergedTrackTruth"),

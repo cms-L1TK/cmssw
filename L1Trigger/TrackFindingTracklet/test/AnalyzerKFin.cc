@@ -53,7 +53,8 @@ namespace trklet {
     void formTracks(const StreamsTrack& streamsTrack,
                     const StreamsStub& streamsStubs,
                     vector<vector<TTStubRef>>& tracks,
-                    int channel) const;
+                    int channel,
+                    bool accepted = false) const;
     //
     void associate(const vector<vector<TTStubRef>>& tracks,
                    const StubAssociation* ass,
@@ -90,6 +91,9 @@ namespace trklet {
     TProfile* prof_;
     TProfile* profChannel_;
     TH1F* hisChannel_;
+    TH1F* hisLayers_;
+    TH1F* hisNumLayers_;
+    TProfile* profNumLayers_;
 
     // printout
     stringstream log_;
@@ -146,6 +150,10 @@ namespace trklet {
     const int numChannels = setup_->kfNumWorker();
     hisChannel_ = dir.make<TH1F>("His Channel Occupancy", ";", maxOcc, -.5, maxOcc - .5);
     profChannel_ = dir.make<TProfile>("Prof Channel Occupancy", ";", numChannels, -.5, numChannels - .5);
+    // layers
+    hisLayers_ = dir.make<TH1F>("HisLayers", ";", 8, 0, 8);
+    hisNumLayers_ = dir.make<TH1F>("HisNumLayers", ";", 9, 0, 9);
+    profNumLayers_ = dir.make<TProfile>("Prof NumLayers", ";", 32, 0, 2.4);
   }
 
   void AnalyzerKFin::analyze(const Event& iEvent, const EventSetup& iSetup) {
@@ -188,7 +196,7 @@ namespace trklet {
       int nLost(0);
       for (int channel = 0; channel < setup_->kfNumWorker(); channel++) {
         vector<vector<TTStubRef>> tracks;
-        formTracks(acceptedTracks, acceptedStubs, tracks, offset + channel);
+        formTracks(acceptedTracks, acceptedStubs, tracks, offset + channel, true);
         vector<vector<TTStubRef>> lost;
         formTracks(lostTracks, lostStubs, lost, offset + channel);
         nTracks += tracks.size();
@@ -278,7 +286,8 @@ namespace trklet {
   void AnalyzerKFin::formTracks(const StreamsTrack& streamsTrack,
                                 const StreamsStub& streamsStubs,
                                 vector<vector<TTStubRef>>& tracks,
-                                int channel) const {
+                                int channel,
+                                bool accepted) const {
     const int offset = channel * setup_->numLayers();
     const StreamTrack& streamTrack = streamsTrack[channel];
     const int numTracks = accumulate(streamTrack.begin(), streamTrack.end(), 0, [](int sum, const FrameTrack& frame) {
@@ -289,14 +298,24 @@ namespace trklet {
       const FrameTrack& frameTrack = streamTrack[frame];
       if (frameTrack.first.isNull())
         continue;
+      const double eta = abs(frameTrack.first->eta());
       vector<TTStubRef> ttStubRefs;
       ttStubRefs.reserve(setup_->numLayers());
+      int nLayer(0);
       for (int layer = 0; layer < setup_->numLayers(); layer++) {
         const FrameStub& stub = streamsStubs[offset + layer][frame];
-        if (stub.first.isNonnull())
-          ttStubRefs.push_back(stub.first);
+        if (stub.first.isNull())
+          continue;
+        ttStubRefs.push_back(stub.first);
+        nLayer++;
+        if (accepted)
+          hisLayers_->Fill(layer);
       }
       tracks.push_back(ttStubRefs);
+      if (accepted) {
+        hisNumLayers_->Fill(nLayer);
+        profNumLayers_->Fill(eta, nLayer);
+      }
     }
   }
 

@@ -324,7 +324,7 @@ namespace trklet {
           lengthZ = length * abs(track.cot_);
           lengthR = length;
         } else if (tilt) {
-          lengthZ = length * abs(setup_->tiltApproxSlope() * track.cot_ + setup_->tiltApproxIntercept());
+          lengthZ = length * (setup_->tiltApproxSlope() * abs(track.cot_) + setup_->tiltApproxIntercept());
           lengthR = setup_->tiltUncertaintyR();
         }
         const double scat = digi(setup_->scattering(), baseLr_);

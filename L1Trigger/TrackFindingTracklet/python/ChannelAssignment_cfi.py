@@ -15,7 +15,7 @@ ChannelAssignment_params = cms.PSet (
 
   # DR parameter
   DR = cms.PSet (
-    NumComparisonModules = cms.int32( 16 ), # number of comparison modules used in each DR node
+    NumComparisonModules = cms.int32(  0 ), # number of comparison modules used in each DR node
     MinIdenticalStubs    = cms.int32(  3 )  # min number of shared stubs to identify duplicates
   ),
 
