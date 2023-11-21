@@ -201,7 +201,7 @@ private:
   std::vector<int>* m_trk_injet;          //is the track within dR<0.4 of a genjet with pt > 30 GeV?
   std::vector<int>* m_trk_injet_highpt;   //is the track within dR<0.4 of a genjet with pt > 100 GeV?
   std::vector<int>* m_trk_injet_vhighpt;  //is the track within dR<0.4 of a genjet with pt > 200 GeV?
-  std::vector<int>* m_trk_layers;
+  std::vector<std::vector<int>>* m_trk_layers;
 
   // all tracking particles
   std::vector<float>* m_tp_pt;
@@ -502,7 +502,7 @@ void L1TrackNtupleMaker::beginJob() {
   m_trk_injet = new std::vector<int>;
   m_trk_injet_highpt = new std::vector<int>;
   m_trk_injet_vhighpt = new std::vector<int>;
-  m_trk_layers = new std::vector<int>;
+  m_trk_layers = new std::vector<std::vector<int>>;
 
   m_tp_pt = new std::vector<float>;
   m_tp_eta = new std::vector<float>;
@@ -1349,9 +1349,11 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
       const TTBV hitPattern((int)iterL1Track->hitPattern(), setup->numLayers());
       const double zT = iterL1Track->z0() + setup->chosenRofZ() * iterL1Track->tanL();
       const vector<int>& le = layerEncoding->layerEncoding(zT);
-      m_trk_layers->reserve(hitPattern.size());
+      vector<int> layers;
+      layers.reserve(hitPattern.size());
       for (int layer : hitPattern.ids())
-        m_trk_layers->push_back(le[layer]);
+        layers.push_back(le[layer]);
+      m_trk_layers->push_back(layers);
 
     }  //end track loop
 
