@@ -56,6 +56,8 @@
 
 ////////////////
 // PHYSICS TOOLS
+#include "L1Trigger/TrackTrigger/interface/Setup.h"
+#include "L1Trigger/TrackerTFP/interface/LayerEncoding.h"
 #include "L1Trigger/TrackFindingTracklet/interface/HitPatternHelper.h"
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 #include "CLHEP/Units/PhysicalConstants.h"
@@ -146,6 +148,8 @@ private:
   edm::ESGetToken<TrackerTopology, TrackerTopologyRcd> getTokenTrackerTopo_;
   edm::ESGetToken<MagneticField, IdealMagneticFieldRecord> getTokenBField_;
   edm::ESGetToken<hph::Setup, hph::SetupRcd> getTokenHPHSetup_;
+  edm::ESGetToken<tt::Setup, tt::SetupRcd> getTokenSetup_;
+  edm::ESGetToken<trackerTFP::LayerEncoding, trackerTFP::LayerEncodingRcd> getTokenLayerEncoding_;
   //-----------------------------------------------------------------------------------------------
   // tree & branches for mini-ntuple
 
@@ -197,6 +201,7 @@ private:
   std::vector<int>* m_trk_injet;          //is the track within dR<0.4 of a genjet with pt > 30 GeV?
   std::vector<int>* m_trk_injet_highpt;   //is the track within dR<0.4 of a genjet with pt > 100 GeV?
   std::vector<int>* m_trk_injet_vhighpt;  //is the track within dR<0.4 of a genjet with pt > 200 GeV?
+  std::vector<int>* m_trk_layers;
 
   // all tracking particles
   std::vector<float>* m_tp_pt;
@@ -318,6 +323,8 @@ L1TrackNtupleMaker::L1TrackNtupleMaker(edm::ParameterSet const& iConfig) : confi
   getTokenTrackerTopo_ = esConsumes<TrackerTopology, TrackerTopologyRcd>();
   getTokenBField_ = esConsumes<MagneticField, IdealMagneticFieldRecord>();
   getTokenHPHSetup_ = esConsumes<hph::Setup, hph::SetupRcd>();
+  getTokenSetup_ = esConsumes<tt::Setup, tt::SetupRcd>();
+  getTokenLayerEncoding_ = esConsumes<trackerTFP::LayerEncoding, trackerTFP::LayerEncodingRcd>();
 }
 
 /////////////
@@ -495,6 +502,7 @@ void L1TrackNtupleMaker::beginJob() {
   m_trk_injet = new std::vector<int>;
   m_trk_injet_highpt = new std::vector<int>;
   m_trk_injet_vhighpt = new std::vector<int>;
+  m_trk_layers = new std::vector<int>;
 
   m_tp_pt = new std::vector<float>;
   m_tp_eta = new std::vector<float>;
@@ -611,6 +619,7 @@ void L1TrackNtupleMaker::beginJob() {
       eventTree->Branch("trk_injet_highpt", &m_trk_injet_highpt);
       eventTree->Branch("trk_injet_vhighpt", &m_trk_injet_vhighpt);
     }
+    eventTree->Branch("m_trk_layers", &m_trk_layers);
   }
 
   eventTree->Branch("tp_pt", &m_tp_pt);
@@ -752,6 +761,7 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
     m_trk_injet->clear();
     m_trk_injet_highpt->clear();
     m_trk_injet_vhighpt->clear();
+    m_trk_layers->clear();
   }
 
   m_tp_pt->clear();
@@ -859,10 +869,14 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
   edm::ESHandle<MagneticField> bFieldHandle = iSetup.getHandle(getTokenBField_);
 
   edm::ESHandle<hph::Setup> hphHandle = iSetup.getHandle(getTokenHPHSetup_);
+  edm::ESHandle<tt::Setup> handleSetup = iSetup.getHandle(getTokenSetup_);
+  edm::ESHandle<trackerTFP::LayerEncoding> handleLayerEncoding = iSetup.getHandle(getTokenLayerEncoding_);
 
   const TrackerTopology* const tTopo = tTopoHandle.product();
   const TrackerGeometry* const theTrackerGeom = tGeomHandle.product();
   const hph::Setup* hphSetup = hphHandle.product();
+  const tt::Setup* setup = handleSetup.product();
+  const trackerTFP::LayerEncoding* layerEncoding = handleLayerEncoding.product();
 
   // ----------------------------------------------------------------------------------------------
   // loop over L1 stubs
@@ -1330,6 +1344,14 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
         m_trk_injet_vhighpt->push_back(InJetVeryHighpt);
 
       }  //end tracking in jets
+
+      // layer encoding
+      const TTBV hitPattern((int)iterL1Track->hitPattern(), setup->numLayers());
+      const double zT = iterL1Track->z0() + setup->chosenRofZ() * iterL1Track->tanL();
+      const vector<int>& le = layerEncoding->layerEncoding(zT);
+      m_trk_layers->reserve(hitPattern.size());
+      for (int layer : hitPattern.ids())
+        m_trk_layers->push_back(le[layer]);
 
     }  //end track loop
 
