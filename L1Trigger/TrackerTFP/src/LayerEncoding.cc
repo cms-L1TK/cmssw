@@ -83,6 +83,7 @@ namespace trackerTFP {
       // fill layerEncoding_
       vector<int>& le = layerEncoding_[binZT];
       le = vector<int>(layerEncoding.begin(), layerEncoding.end());
+      le.resize(setup_->numLayers(), -1);
       // fill maybePattern_
       TTBV& mp = maybePattern_[binZT];
       for (int m : maybeLayer)

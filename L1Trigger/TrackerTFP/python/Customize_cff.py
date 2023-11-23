@@ -14,6 +14,7 @@ def setupUseTMTT(process):
   process.TrackTriggerSetup.KalmanFilter.RangeFactor     =  3.0
   process.TrackTriggerSetup.KalmanFilter.NumWorker       =  4
   process.TrackTriggerSetup.KalmanFilter.MaxLayers       =  8
+  process.TrackTriggerSetup.KalmanFilter.MaxGaps         =  2
   process.TrackTriggerSetup.KalmanFilter.ShiftInitialC00 = -1
   process.TrackTriggerSetup.KalmanFilter.ShiftInitialC11 = -1
   process.TrackTriggerSetup.KalmanFilter.ShiftInitialC22 = -4

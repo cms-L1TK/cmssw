@@ -48,7 +48,7 @@ namespace trackerTFP {
 
   private:
     //
-    void formTracks(const StreamStub& stream, vector<vector<TTStubRef>>& tracks) const;
+    void formTracks(const StreamStub& stream, vector<vector<TTStubRef>>& tracks, bool accepted = false) const;
     //
     void associate(const vector<vector<TTStubRef>>& tracks, const StubAssociation* ass, set<TPPtr>& tps, int& sum) const;
 
@@ -78,6 +78,9 @@ namespace trackerTFP {
     TProfile* prof_;
     TProfile* profChannel_;
     TH1F* hisChannel_;
+    TH1F* hisLayers_;
+    TH1F* hisNumLayers_;
+    TProfile* profNumLayers_;
 
     // printout
     stringstream log_;
@@ -129,6 +132,10 @@ namespace trackerTFP {
     const int numChannel = dataFormats_->numChannel(Process::ht);
     hisChannel_ = dir.make<TH1F>("His binInv2R Occupancy", ";", maxOcc, -.5, maxOcc - .5);
     profChannel_ = dir.make<TProfile>("Prof binInv2R Occupancy", ";", numChannel, -.5, numChannel - .5);
+    // layers
+    hisLayers_ = dir.make<TH1F>("HisLayers", ";", 8, 0, 8);
+    hisNumLayers_ = dir.make<TH1F>("HisNumLayers", ";", 9, 0, 9);
+    profNumLayers_ = dir.make<TProfile>("Prof NumLayers", ";", 32, 0, 2.4);
   }
 
   void AnalyzerHT::analyze(const Event& iEvent, const EventSetup& iSetup) {
@@ -167,7 +174,7 @@ namespace trackerTFP {
         nStubs += accepted.size();
         vector<vector<TTStubRef>> tracks;
         vector<vector<TTStubRef>> lost;
-        formTracks(accepted, tracks);
+        formTracks(accepted, tracks, true);
         formTracks(handleTruncated->at(index), lost);
         nTracks += tracks.size();
         allTracks += tracks.size();
@@ -238,7 +245,8 @@ namespace trackerTFP {
   }
 
   //
-  void AnalyzerHT::formTracks(const StreamStub& stream, vector<vector<TTStubRef>>& tracks) const {
+  void AnalyzerHT::formTracks(const StreamStub& stream, vector<vector<TTStubRef>>& tracks, bool accepted) const {
+    static const DataFormat& layer = dataFormats_->format(Variable::layer, Process::ctb);
     auto toTrkId = [this](const StubHT& stub) {
       static const DataFormat& phiT = dataFormats_->format(Variable::phiT, Process::ht);
       static const DataFormat& zT = dataFormats_->format(Variable::zT, Process::ht);
@@ -257,6 +265,16 @@ namespace trackerTFP {
       ttStubRefs.reserve(distance(start, it));
       transform(start, it, back_inserter(ttStubRefs), [](const StubHT& stub) { return stub.frame().first; });
       tracks.push_back(ttStubRefs);
+      if (!accepted)
+        continue;
+      TTBV hitPattern(0, setup_->numLayers());
+      for (auto iter = start; iter != it; iter++)
+        hitPattern.set(iter->layer().val(layer.width()));
+      const double cot = dataFormats_->format(Variable::zT, Process::ht).floating(start->zT()) / setup_->chosenRofZ();
+      hisNumLayers_->Fill(hitPattern.count());
+      profNumLayers_->Fill(abs(sinh(cot)), hitPattern.count());
+      for (int layer : hitPattern.ids())
+        hisLayers_->Fill(layer);
     }
   }
 
