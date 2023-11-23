@@ -261,6 +261,21 @@ namespace trklet {
       if (find_if(trackIds.begin(), trackIds.end(), [trackId](int id) { return id == trackId; }) == trackIds.end())
         trackIds.push_back(trackId);
     }
+    // remove states with less then 2 consistent ps layers
+    auto isConsistentRZ = [this](State* state, StubCTB* stub) {
+      const double rz = stub->r() + H00_->digi(setup_->chosenRofPhi() - setup_->chosenRofZ());
+      const double z = stub->z() - (state->x3() + rz * state->x2());
+      return m1_->digi(abs(z)) - 1.e-12 < stub->dZ() / 2.;
+    };
+    auto notEnoughConsistentLayersPS = [isConsistentRZ, this](State* state) {
+      int num(0);
+      State* s = state;
+      while ((s = s->parent()))
+        if (isConsistentRZ(state, s->stub()) && setup_->psModule(s->stub()->frame().first))
+          num++;
+      return num < 2;
+    };
+    stream.erase(remove_if(stream.begin(), stream.end(), notEnoughConsistentLayersPS), stream.end());
     // sort in number of skipped layers
     auto numSkippedLayers = [](State* state) {
       const TTBV& hitPattern = state->hitPattern();

@@ -148,6 +148,12 @@ namespace trackerTFP {
       numLostStates += nStates - (int)stream.size();
       // best track per candidate selection
       accumulator(stream);
+      /*for (State* state : stream) {
+        State* s = state;
+        cout << s->x2() << " " << s->x3() << " " << dataFormats_->base(Variable::zT, Process::gp) / 2. << endl;
+        while((s = s->parent()))
+          cout << s->H12() << " " << s->m1() << " " << s->dZ() << " | " << s->x2() << " " << s->x3() << " | " << s->C22() << " " << s->C23() << " " << s->C33() << " | " << s->chi21() << " " << s->hitPattern() << endl;
+      }*/
       // store chi2s
       for (State* state : stream)
         chi2s.emplace_back(state->chi20(), state->chi21());
@@ -282,6 +288,21 @@ namespace trackerTFP {
       if (find_if(trackIds.begin(), trackIds.end(), [trackId](int id) { return id == trackId; }) == trackIds.end())
         trackIds.push_back(trackId);
     }
+    // remove states with less then 2 consistent ps layers
+    auto isConsistentRZ = [this](State* state, StubCTB* stub) {
+      const double rz = stub->r() + H00_->digi(setup_->chosenRofPhi() - setup_->chosenRofZ());
+      const double z = stub->z() - (state->x3() + rz * state->x2());
+      return m1_->digi(abs(z)) - 1.e-12 < stub->dZ() / 2.;
+    };
+    auto notEnoughConsistentLayersPS = [isConsistentRZ, this](State* state) {
+      int num(0);
+      State* s = state;
+      while ((s = s->parent()))
+        if (isConsistentRZ(state, s->stub()) && setup_->psModule(s->stub()->frame().first))
+          num++;
+      return num < 2;
+    };
+    stream.erase(remove_if(stream.begin(), stream.end(), notEnoughConsistentLayersPS), stream.end());
     // sort in chi2
     auto chi2 = [this](State* state) {
       static const double baseChi2 = pow(2., setup_->kfPowCutChi2() - setup_->kfWidthChi2());
@@ -345,6 +366,7 @@ namespace trackerTFP {
     static const int shifChi20 = setup_->kfShiftChi20();
     static const int shifChi21 = setup_->kfShiftChi21();
     static const double chi2cut = pow(2.0, setup_->kfPowCutChi2());
+    //static const vector<double> chi2cuts = {9.e9, 1., 2., 3., 4., 5., 6., 7.};
     // All variable names & equations come from Fruhwirth KF paper http://dx.doi.org/10.1016/0168-9002%2887%2990887-4", where F taken as unit matrix. Stub uncertainties projected onto (phi,z), assuming no correlations between r-phi & r-z planes.
     // stub phi residual wrt input helix
     const double m0 = state->m0();
@@ -433,9 +455,10 @@ namespace trackerTFP {
     // cot cut
     const bool invalidX2 = abs(x2) > dataFormats_->format(Variable::cot, Process::gp).base() / 2.;
     // chi2 cut
-    //const double chi2 = chi20 + chi21;
-    const double chi2 = 0.;
+    const double chi2 = chi20 + chi21;
     const bool validChi2 = chi2 < chi2cut;
+    //const bool validChi20 = chi20 < chi2cuts[state->hitPattern().count()];
+    //const bool validChi21 = chi21 < chi2cuts[state->hitPattern().count()];
     // update variable ranges to tune variable granularity
     m0_->updateRangeActual(m0);
     m1_->updateRangeActual(m1);
@@ -466,6 +489,7 @@ namespace trackerTFP {
     r02_->updateRangeActual(r02);
     r12_->updateRangeActual(r12);
     if (invalidX3 || invalidX0 || invalidX1 || invalidX2 || !validChi2) {
+    //if (invalidX3 || invalidX0 || invalidX1 || invalidX2 || !validChi20 || !validChi21) {
       state = nullptr;
       return;
     }

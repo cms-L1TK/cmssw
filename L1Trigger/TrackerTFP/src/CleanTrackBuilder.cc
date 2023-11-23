@@ -31,7 +31,6 @@ namespace trackerTFP {
   void CleanTrackBuilder::produce(const vector<vector<StubHT*>>& streamsIn,
                                   vector<deque<TrackCTB*>>& regionTracks,
                                   vector<vector<deque<StubCTB*>>>& regionStubs) {
-    static int region = 0;
     static const int numChannelIn = dataFormats_->numChannel(Process::ht);
     static const int numChannelOut = dataFormats_->numChannel(Process::ctb);
     static const int numChannel = numChannelIn / numChannelOut;
@@ -56,7 +55,6 @@ namespace trackerTFP {
       vector<deque<StubCTB*>>& channelStubs = regionStubs[channelOut];
       convert(tracks, stubs, channelTracks, channelStubs);
     }
-    region++;
   }
 
   //
@@ -106,6 +104,7 @@ namespace trackerTFP {
   // run single track through r-phi and r-z hough transform
   void CleanTrackBuilder::cleanTrack(
       const vector<StubHT*>& track, deque<Track*>& tracks, deque<Stub*>& stubs, double inv2R, int trackId) {
+    static const DataFormat& layer = dataFormats_->format(Variable::layer, Process::ctb);
     static const int numBinsInv2R = setup_->ctbNumBinsInv2R();
     static const int numBinsPhiT = setup_->ctbNumBinsPhiT();
     static const int numBinsZ0 = setup_->ctbNumBinsZ0();
@@ -115,7 +114,7 @@ namespace trackerTFP {
     //static const double baseZ0 = dataFormats_->range(Variable::zT, Process::dr) / numBinsZ0;
     static const double baseZ0 = 2. * setup_->beamWindowZ() / numBinsZ0;
     static const double baseZT = dataFormats_->base(Variable::zT, Process::ht) / numBinsZT;
-    auto toLayerId = [](StubHT* stub) { return stub->layer().val(3); };
+    auto toLayerId = [](StubHT* stub) { return stub->layer().val(layer.width()); };
     auto toDPhi = [this, inv2R](StubHT* stub) {
       static const DataFormat df = dataFormats_->format(Variable::dPhi, Process::ctb);
       const bool barrel = stub->layer()[5];

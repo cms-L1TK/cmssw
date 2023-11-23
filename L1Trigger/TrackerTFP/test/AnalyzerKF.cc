@@ -107,6 +107,9 @@ namespace trackerTFP {
     TH1F* hisChi21s_;
     TH1F* hisChi2s_;
     TH1F* hisTracks_;
+    TH1F* hisLayers_;
+    TH1F* hisNumLayers_;
+    TProfile* profNumLayers_;
 
     // printout
     stringstream log_;
@@ -164,7 +167,7 @@ namespace trackerTFP {
     profChannel_ = dir.make<TProfile>("Prof Channel Occupancy", ";", numChannels, -.5, numChannels - .5);
     // resoultions
     static const vector<string> names = {"phi0", "inv2R", "z0", "cot"};
-    static const vector<double> ranges = {.01, .004, 5., .4};
+    static const vector<double> ranges = {.01, .004, 20., .4};
     for (int i = 0; i < 4; i++) {
       const double range = ranges[i];
       hisRes_[i] = dir.make<TH1F>(("HisRes" + names[i]).c_str(), ";", 100, -range, range);
@@ -187,6 +190,10 @@ namespace trackerTFP {
     hisChi2s_ = dir.make<TH1F>("HisChi2", ";", 128, 0., 10);
     // tracks
     hisTracks_ = dir.make<TH1F>("HisTracks", ";", 40, 0., 400);
+    // layers
+    hisLayers_ = dir.make<TH1F>("HisLayers", ";", 8, 0, 8);
+    hisNumLayers_ = dir.make<TH1F>("HisNumLayers", ";", 9, 0, 9);
+    profNumLayers_ = dir.make<TProfile>("Prof NumLayers", ";", 32, 0, 2.4);
   }
 
   void AnalyzerKF::analyze(const Event& iEvent, const EventSetup& iSetup) {
@@ -252,13 +259,19 @@ namespace trackerTFP {
         stubs.reserve(channelTracks.size() * numLayers);
         for (int frame = 0; frame < (int)channelTracks.size(); frame++) {
           tracks.emplace_back(channelTracks[frame], dataFormats_);
+          const double cot = tracks.back().zT() / setup_->chosenRofZ();
+          int nLs(0);
           for (int layer = 0; layer < numLayers; layer++) {
             const FrameStub& fs = allStubs[offset + layer][frame];
             if (fs.first.isNull())
               continue;
             stubs.emplace_back(fs, dataFormats_);
             tracksStubs[frame][layer] = &stubs.back();
+            hisLayers_->Fill(layer);
+            nLs++;
           }
+          hisNumLayers_->Fill(nLs);
+          profNumLayers_->Fill(abs(sinh(cot)), nLs);
         }
         nRegionStubs += stubs.size();
         nRegionTracks += tracks.size();
@@ -346,6 +359,8 @@ namespace trackerTFP {
                              const vector<TH1F*>& his,
                              const vector<TProfile*>& prof,
                              bool perfect) const {
+    /*bool bug(false);
+    stringstream ss;*/
     for (int frame = 0; frame < (int)tracks.size(); frame++) {
       const TrackKF& track = tracks[frame];
       const vector<StubKF*>& stubs = tracksStubs[frame];
@@ -373,7 +388,6 @@ namespace trackerTFP {
       const double inv2R = track.inv2R();
       const double phi0 = deltaPhi(track.phiT() - setup_->chosenRofPhi() * inv2R +
                                    region * dataFormats_->format(Variable::phiT, Process::kf).range());
-      const int nInner = hitPattern.count(0, setup_->numBarrelLayer());
       for (const TPPtr& tpPtr : tpPtrs) {
         const double tpPhi0 = tpPtr->phi();
         const double tpCot = sinh(tpPtr->eta());
@@ -386,13 +400,22 @@ namespace trackerTFP {
         const double dPhi0 = deltaPhi(tpPhi0 - phi0);
         const vector<double> ds = {dPhi0, dInv2R, dZ0, dCot};
         for (int i = 0; i < (int)ds.size(); i++) {
-          if (i > 1 && nInner < 2)
-            continue;
+          /*if (i == 2 && abs(ds[i]) > 10.) {
+            bug = true;
+            const double tpZT = tpZ0 + setup_->chosenRofZ() * tpCot;
+            const double zTDcot = dataFormats_->format(Variable::zT, Process::gp).digi(tpZT) / setup_->chosenRofZ();
+            ss << "TP " << tpCot - zTDcot << " " << tpZT - setup_->chosenRofZ() * zTDcot << " " << tpCot << " " << tpZT << endl;
+            ss << "KF " << track.cot() << " " << track.zT() - zT << " " << cot << " " << zT << endl;
+          }*/
           his[i]->Fill(ds[i]);
           prof[i]->Fill(abs(tpPtr->eta()), abs(ds[i]));
         }
       }
     }
+    /*if (bug) {
+      cout << ss.str();
+      throw cms::Exception("...");
+    }*/
   }
 
 }  // namespace trackerTFP
