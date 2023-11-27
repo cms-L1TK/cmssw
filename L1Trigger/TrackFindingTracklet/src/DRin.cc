@@ -333,6 +333,69 @@ namespace trklet {
         stub->dPhi_ = digi(stub->dPhi_, baseLphi_) + baseLphi_;
       }
     }
+    // recalculate track parameter use first two layers
+    for (Track& track : tracks_) {
+      if (!track.valid_)
+        continue;
+      // identify first two layers
+      vector<Stub*> stubs = track.stubs_;
+      stubs.erase(remove_if(stubs.begin(), stubs.end(), [](Stub* stub){ return !stub->valid_; }), stubs.end());
+      sort(stubs.begin(), stubs.end(), [](Stub* lhs, Stub* rhs){ return lhs->layer_ < rhs->layer_; });
+      // calculate track paramter shifts
+      const double dR = stubs[1]->r_ - stubs[0]->r_;
+      const double dPhi = stubs[1]->phi_ - stubs[0]->phi_;
+      const double dZ = stubs[1]->z_ - stubs[0]->z_;
+      const double aRphi = (stubs[1]->r_ + stubs[0]->r_) / 2.;
+      const double aRz = aRphi + setup_->chosenRofPhi() - setup_->chosenRofZ();;
+      const double aPhi = (stubs[1]->phi_ + stubs[0]->phi_) / 2.;
+      const double aZ = (stubs[1]->z_ + stubs[0]->z_) / 2.;
+      const double dInv2R = dPhi / dR;
+      const double dCot = dZ / dR;
+      const double dPhiT = aPhi - aRphi * dInv2R;
+      const double dZT = aZ - aRz * dCot;
+      const double Dinv2R = digi(track.inv2R_ + dInv2R, baseLinv2R_) - track.inv2R_;
+      const double DphiT = digi(track.phiT_ + dPhiT, baseLphiT_) - track.phiT_;
+      const double DzT = digi(track.zT_ + dZT, baseLphiT_) - track.zT_;
+      const double Dcot = DzT / setup_->chosenRofZ();
+      // shift track parameters
+      track.inv2R_ = digi(track.inv2R_ + dInv2R, baseLinv2R_);
+      track.phiT_ = digi(track.phiT_ + dPhiT, baseLphiT_);
+      track.zT_ = digi(track.zT_ + dZT, baseLphiT_);
+      track.cot_ = track.zT_ / setup_->chosenRofZ();
+      // range checks
+      if (!dataFormats_->format(Variable::inv2R, Process::ctb).inRange(track.inv2R_, true))
+        track.valid_ = false;
+      if (!dataFormats_->format(Variable::phiT, Process::ctb).inRange(track.phiT_, true))
+        track.valid_ = false;
+      if (!dataFormats_->format(Variable::zT, Process::ctb).inRange(track.zT_, true))
+        track.valid_ = false;
+      if (!track.valid_)
+        continue;
+      // shift stub parameters
+      for (Stub*& stub : track.stubs_) {
+        const double dphi = DphiT + stub->r_ * Dinv2R;
+        const double r = stub->r_ + setup_->chosenRofPhi() - setup_->chosenRofZ();
+        const double dz = DzT + r * Dcot;
+        stub->phi_ = digi(stub->phi_ - dphi, baseLphi_);
+        stub->z_ = digi(stub->z_ - dz, baseLz_);
+        // range checks
+        if (!dataFormats_->format(Variable::phi, Process::ctb).inRange(stub->phi_))
+          stub->valid_ = false;
+        if (!dataFormats_->format(Variable::z, Process::ctb).inRange(stub->z_))
+          stub->valid_ = false;
+      }
+    }
+    // kill tracks with not enough layer
+    for (Track& track : tracks_) {
+      if (!track.valid_)
+        continue;
+      TTBV hits(0, setup_->numLayers());
+      for (const Stub* stub : track.stubs_)
+        if (stub->valid_)
+          hits.set(stub->layer_);
+      if (hits.count() < setup_->kfMinLayers())
+        track.valid_ = false;
+    }
     // store helper
     auto frameTrack = [this](Track* track) {
       if (!track->valid_)
