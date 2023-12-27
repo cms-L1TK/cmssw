@@ -4,7 +4,6 @@
 #include "L1Trigger/TrackFindingTracklet/interface/AllStubsMemory.h"
 #include "L1Trigger/TrackFindingTracklet/interface/AllInnerStubsMemory.h"
 #include "L1Trigger/TrackFindingTracklet/interface/Util.h"
-#include "L1Trigger/TrackFindingTracklet/interface/IMATH_TrackletCalculator.h"
 
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 #include "FWCore/Utilities/interface/Exception.h"
@@ -58,6 +57,8 @@ TrackletProcessor::TrackletProcessor(string name, Settings const& settings, Glob
       rmin = rmax * settings_.zmean(layerdisk2_ - N_LAYER - 1) / settings_.zmean(layerdisk2_ - N_LAYER);
     }
   }
+
+  init(iSeed_);
 
   double dphimax = asin(0.5 * settings_.maxrinv() * rmax) - asin(0.5 * settings_.maxrinv() * rmin);
 

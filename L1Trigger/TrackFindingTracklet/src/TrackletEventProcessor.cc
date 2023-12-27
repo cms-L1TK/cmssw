@@ -6,7 +6,6 @@
 #include "L1Trigger/TrackFindingTracklet/interface/HistBase.h"
 #include "L1Trigger/TrackFindingTracklet/interface/Track.h"
 #include "L1Trigger/TrackFindingTracklet/interface/TrackletConfigBuilder.h"
-#include "L1Trigger/TrackFindingTracklet/interface/IMATH_TrackletCalculator.h"
 #include "L1Trigger/TrackFindingTracklet/interface/StubStreamData.h"
 
 #include "DataFormats/Math/interface/deltaPhi.h"
@@ -28,25 +27,6 @@ TrackletEventProcessor::~TrackletEventProcessor() {
 void TrackletEventProcessor::init(Settings const& theSettings, const tt::Setup* setup) {
   settings_ = &theSettings;
   globals_ = make_unique<Globals>(*settings_);
-
-  //Verify consistency
-  if (settings_->kphi0pars() != globals_->ITC_L1L2()->phi0_final.K()) {
-    throw cms::Exception("Inconsistency") << "phi0 conversion parameter inconsistency\n";
-  }
-
-  if (settings_->krinvpars() != globals_->ITC_L1L2()->rinv_final.K()) {
-    throw cms::Exception("Inconsistency") << "ring conversion parameter inconsistency\n";
-  }
-
-  if (settings_->ktpars() != globals_->ITC_L1L2()->t_final.K()) {
-    throw cms::Exception("Inconsistency") << "t conversion parameter inconsistency\n";
-  }
-
-  if (settings_->kphider() != globals_->ITC_L1L2()->der_phiL_final.K()) {
-    throw cms::Exception("Inconsistency")
-        << "t conversion parameter inconsistency:" << settings_->kphider() / globals_->ITC_L1L2()->der_phiL_final.K()
-        << "\n";
-  }
 
   if (settings_->debugTracklet()) {
     edm::LogVerbatim("Tracklet") << "========================================================= \n"
