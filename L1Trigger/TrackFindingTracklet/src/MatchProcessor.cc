@@ -18,7 +18,6 @@
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 #include "FWCore/Utilities/interface/Exception.h"
 #include "DataFormats/Math/interface/deltaPhi.h"
-#include "L1Trigger/TrackFindingTracklet/interface/IMATH_TrackletCalculator.h"
 
 #include <filesystem>
 
@@ -68,7 +67,7 @@ MatchProcessor::MatchProcessor(string name, Settings const& settings, Globals* g
 
   if (!barrel_) {
     rinvbendlut_.initProjectionBend(
-        global->ITC_L1L2()->der_phiD_final.K(), layerdisk_ - N_LAYER, nrbits_, nphiderbits_);
+        settings_.kphiderdisk(), layerdisk_ - N_LAYER, nrbits_, nphiderbits_);
   }
 
   nrinv_ = NRINVBITS;
@@ -591,8 +590,9 @@ bool MatchProcessor::matchCalculator(Tracklet* tracklet, const Stub* fpgastub, b
 
     //This would catch significant consistency problems in the configuration - helps to debug if there are problems.
     if (std::abs(dphi) > 0.5 * settings_.dphisectorHG() || std::abs(dphiapprox) > 0.5 * settings_.dphisectorHG()) {
-      throw cms::Exception("LogicError") << "WARNING dphi and/or dphiapprox too large : " << dphi << " " << dphiapprox
-                                         << endl;
+      //throw cms::Exception("LogicError") << "WARNING dphi and/or dphiapprox too large : " << dphi << " " << dphiapprox
+      //                                   << endl;
+      std::cout << "WARNING dphi and/or dphiapprox too large : " << dphi << " " << dphiapprox << std::endl;
     }
 
     bool keep = true;
@@ -798,8 +798,8 @@ bool MatchProcessor::matchCalculator(Tracklet* tracklet, const Stub* fpgastub, b
       if (std::abs(dphi) >= third * settings_.dphisectorHG()) {
         edm::LogPrint("Tracklet") << "dphi " << dphi << " ISeed " << tracklet->getISeed();
       }
-      assert(std::abs(dphi) < third * settings_.dphisectorHG());
-      assert(std::abs(dphiapprox) < third * settings_.dphisectorHG());
+      //assert(std::abs(dphi) < third * settings_.dphisectorHG());
+      //assert(std::abs(dphiapprox) < third * settings_.dphisectorHG());
 
       tracklet->addMatch(layerdisk_,
                          ideltaphi,

@@ -170,9 +170,12 @@ namespace trklet {
     double rphicut2S(unsigned int iSeed, unsigned int idisk) const { return rphicut2S_[idisk][iSeed]; }
     double rcut2S(unsigned int iSeed, unsigned int idisk) const { return rcut2S_[idisk][iSeed]; }
 
+
+    unsigned int irmean(unsigned int iLayer) const { return irmean_[iLayer]; }
     double rmean(unsigned int iLayer) const { return irmean_[iLayer] * rmaxdisk_ / 4096; }
     double rmax(unsigned int iLayer) const { return rmean(iLayer) + drmax(); }
     double rmin(unsigned int iLayer) const { return rmean(iLayer) - drmax(); }
+    unsigned int izmean(unsigned int iDisk) const { return izmean_[iDisk]; }    
     double zmean(unsigned int iDisk) const { return izmean_[iDisk] * zlength_ / 2048; }
     double zmax(unsigned int iDisk) const { return zmean(iDisk) + dzmax(); }
     double zmin(unsigned int iDisk) const { return zmean(iDisk) - dzmax(); }
