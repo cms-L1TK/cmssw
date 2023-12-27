@@ -3,7 +3,6 @@
 #include "L1Trigger/TrackFindingTracklet/interface/Globals.h"
 #include "L1Trigger/TrackFindingTracklet/interface/AllStubsMemory.h"
 #include "L1Trigger/TrackFindingTracklet/interface/AllInnerStubsMemory.h"
-#include "L1Trigger/TrackFindingTracklet/interface/StubPairsMemory.h"
 #include "L1Trigger/TrackFindingTracklet/interface/Tracklet.h"
 #include "L1Trigger/TrackFindingTracklet/interface/Util.h"
 #include "L1Trigger/TrackFindingTracklet/interface/IMATH_TrackletCalculator.h"
@@ -26,7 +25,6 @@ TrackletProcessorDisplaced::TrackletProcessorDisplaced(string name, Settings con
   innerallstubs_.clear();
   middleallstubs_.clear();
   outerallstubs_.clear();
-  stubpairs_.clear();
   innervmstubs_.clear();
   outervmstubs_.clear();
 
@@ -205,12 +203,6 @@ void TrackletProcessorDisplaced::addInput(MemoryBase* memory, string input) {
     outerallstubs_.push_back(tmp);
     return;
   }
-  if (input.substr(0, 8) == "stubpair") {
-    auto* tmp = dynamic_cast<StubPairsMemory*>(memory);
-    assert(tmp != nullptr);
-    stubpairs_.push_back(tmp);
-    return;
-  }
 
   if (input == "thirdvmstubin") {
     auto* tmp = dynamic_cast<VMStubsTEMemory*>(memory);
@@ -245,7 +237,6 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
   assert(!outerallstubs_.empty());
   assert(!innervmstubs_.empty());
   assert(!outervmstubs_.empty());
-  assert(stubpairs_.empty());
 
   for (auto& iInnerMem : middleallstubs_) {
     assert(iInnerMem->nStubs() == iInnerMem->nStubs());

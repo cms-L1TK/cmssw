@@ -63,7 +63,6 @@ namespace trklet {
     TrackletLUT innerOverlapTable_;  //projection to disk from layer
     TrackletLUT innerThirdTable_;    //projection to disk1 for extended - iseed=10
 
-    std::vector<StubPairsMemory*> stubpairs_;
     /* std::vector<StubTripletsMemory*> stubtriplets_; */
     std::vector<VMStubsTEMemory*> innervmstubs_;
     std::vector<VMStubsTEMemory*> outervmstubs_;
