@@ -1027,7 +1027,7 @@ namespace trklet {
     bool inventStubs_{true};     // invent seeding stub coordinates based on tracklet traj
 
     // Use combined TP (TE+TC) and MP (PR+ME+MC) configuration (with prompt tracking)
-    bool combined_{false};
+    bool combined_{true};
     // N.B. To use combined modules with extended tracking, edit
     // Tracklet_cfi.py to refer to *_hourglassExtendedCombined.dat,
     // but leave combined_=false.
