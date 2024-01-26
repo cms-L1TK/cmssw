@@ -337,7 +337,6 @@ void TrackletEventProcessor::event(SLHCEvent& ev,
 
     if (settings_->writeMem() && k == settings_->writememsect()) {
       sector_->writeTPAR(first);
-      sector_->writeTPROJ(first);
     }
 
     // projection router
@@ -348,6 +347,14 @@ void TrackletEventProcessor::event(SLHCEvent& ev,
       sector_->writeAP(first);
     }
     PRTimer_.stop();
+
+    // projection calculator
+    PCTimer_.start();
+    sector_->executePC();
+    if (settings_->writeMem() && k == settings_->writememsect()) {
+      sector_->writeTPROJ(first);
+    }
+    PCTimer_.stop();
 
     // match engine
     METimer_.start();
