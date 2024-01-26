@@ -459,6 +459,61 @@ std::string TrackletConfigBuilder::iTCStr(unsigned int iTC) const {
   return name[iTC];
 }
 
+std::string TrackletConfigBuilder::iMergedTCStr(unsigned int iSeed, unsigned int iTC) const {
+  
+  assert(iSeed<8);
+  
+  if (iSeed == 0) {
+    static std::string name[6] = {"ABC", "DE", "F", "G", "HI", "JKL"};
+    assert(iTC<6);
+    return name[iTC];
+  }
+
+  if (iSeed == 1) {
+    static std::string name[1] = {"ABCD"};
+    assert(iTC<1);
+    return name[iTC];
+  }
+
+  if (iSeed == 2) {
+    static std::string name[2] = {"AB", "CD"};
+    assert(iTC<2);
+    return name[iTC];
+  }
+
+  if (iSeed == 3) {
+    static std::string name[1] = {"ABCD"};
+    assert(iTC<1);
+    return name[iTC];
+  }
+
+  if (iSeed == 4) {
+    static std::string name[1] = {"ABCD"};
+    assert(iTC<1);
+    return name[iTC];
+  }
+
+  if (iSeed == 5) {
+    static std::string name[1] = {"ABCD"};
+    assert(iTC<1);
+    return name[iTC];
+  }
+
+  if (iSeed == 6) {
+    static std::string name[2] = {"ABCD", "EFGH"};
+    assert(iTC<2);
+    return name[iTC];
+  }
+
+  if (iSeed == 7) {
+    static std::string name[1] = {"ABCD"};
+    assert(iTC<1);
+    return name[iTC];
+  }
+
+  return "Error";;
+}
+
 std::string TrackletConfigBuilder::iRegStr(unsigned int iReg, unsigned int iSeed) const {
   static std::string name[8] = {"A", "B", "C", "D", "E", "F", "G", "H"};
 
@@ -486,6 +541,10 @@ std::string TrackletConfigBuilder::TCName(unsigned int iSeed, unsigned int iTC) 
   }
 }
 
+std::string TrackletConfigBuilder::PCName(unsigned int iSeed, unsigned int iMergedTC) const {
+  return "PC_" + iSeedStr(iSeed) + iMergedTCStr(iSeed,iMergedTC);
+}
+
 std::string TrackletConfigBuilder::LayerName(unsigned int ilayer) {
   return ilayer < 6 ? ("L" + numStr(ilayer)) : ("D" + numStr(ilayer - 6));
 }
@@ -495,6 +554,13 @@ std::string TrackletConfigBuilder::TPROJName(unsigned int iSeed,
                                              unsigned int ilayer,
                                              unsigned int ireg) const {
   return "TPROJ_" + iSeedStr(iSeed) + iTCStr(iTC) + "_" + LayerName(ilayer) + "PHI" + iTCStr(ireg);
+}
+
+std::string TrackletConfigBuilder::MPROJName(unsigned int iSeed,
+                                             unsigned int iTC,
+                                             unsigned int ilayer,
+                                             unsigned int ireg) const {
+  return "MPROJ_" + iSeedStr(iSeed) + iMergedTCStr(iSeed,iTC) + "_" + LayerName(ilayer) + "PHI" + iTCStr(ireg);
 }
 
 std::string TrackletConfigBuilder::PRName(unsigned int ilayer, unsigned int ireg) const {
@@ -511,17 +577,79 @@ void TrackletConfigBuilder::writeProjectionMemories(std::ostream& os, std::ostre
   //
   // Each PR (e.g. PR_L3PHIA) reads all TPROJ memories for the given layer & phi region.
 
+  unsigned int nMergedTC[8] = {6, 1, 2, 1, 1, 1, 2, 1};
+
   for (unsigned int ilayer = 0; ilayer < N_LAYER + N_DISK; ilayer++) {
     for (unsigned int ireg = 0; ireg < projections_[ilayer].size(); ireg++) {
       for (unsigned int imem = 0; imem < projections_[ilayer][ireg].size(); imem++) {
         unsigned int iSeed = projections_[ilayer][ireg][imem].first;
         unsigned int iTC = projections_[ilayer][ireg][imem].second;
 
-        memories << "TrackletProjections: " + TPROJName(iSeed, iTC, ilayer, ireg) + " [54]" << std::endl;
+	for (unsigned int iMergedTC = 0 ; iMergedTC<nMergedTC[iSeed]; iMergedTC++) { 
 
-        os << TPROJName(iSeed, iTC, ilayer, ireg) << " input=> " << TCName(iSeed, iTC) << ".projout"
-           << LayerName(ilayer) << "PHI" << iTCStr(ireg) << " output=> " << PRName(ilayer, ireg) << ".projin"
-           << std::endl;
+	  std::string mergetcstr = iMergedTCStr(iSeed, iMergedTC);
+
+	  if (mergetcstr.find(iTCStr(iTC)) != std::string::npos) {
+	  
+	    memories << "TrackletProjections: " + TPROJName(iSeed, iTC, ilayer, ireg) + " [54]" << std::endl;
+
+	    os << TPROJName(iSeed, iTC, ilayer, ireg) << " input=> " << TCName(iSeed, iTC) << ".projout"
+	       << LayerName(ilayer) << "PHI" << iTCStr(ireg) << " output=> " << PCName(iSeed, iMergedTC) << ".projin"
+	       << std::endl;
+
+	  }
+	}
+      }
+    }
+  }
+}
+
+void TrackletConfigBuilder::writeMergedProjectionMemories(std::ostream& os, std::ostream& memories, std::ostream& process) {
+  // Writed the merged projection memories as produced by the ProjectionCalculator mdoels
+  // MPROJ_L1L2ABC_L3PHIA) indicating that TP_L1L2A, TP_L1L2B, and TP_L1L2C are merged together
+  //
+
+  unsigned int nMergedTC[8] = {6, 1, 2, 1, 1, 1, 2, 1};
+
+  for (unsigned int iSeed = 0; iSeed < 8; iSeed++){
+    for (unsigned int iPC = 0; iPC < nMergedTC[iSeed]; iPC++) {
+      process << "ProjectionCalculator: " << PCName(iSeed, iPC) << std::endl;
+    }
+  } 
+
+  std::set<std::string> MPROJNames;
+
+  for (unsigned int ilayer = 0; ilayer < N_LAYER + N_DISK; ilayer++) {
+    for (unsigned int ireg = 0; ireg < projections_[ilayer].size(); ireg++) {
+      for (unsigned int imem = 0; imem < projections_[ilayer][ireg].size(); imem++) {
+        unsigned int iSeed = projections_[ilayer][ireg][imem].first;
+        unsigned int iTC = projections_[ilayer][ireg][imem].second;
+	for (unsigned int iMergedTC = 0 ; iMergedTC<nMergedTC[iSeed]; iMergedTC++) { 
+
+	  std::string mergetcstr = iMergedTCStr(iSeed, iMergedTC);
+
+	  if (mergetcstr.find(iTCStr(iTC)) == std::string::npos) {
+	    continue;
+	  }
+
+	  std::string mtprojname = MPROJName(iSeed, iMergedTC, ilayer, ireg);
+
+	  //std::cout << "mtprojname: " << mtprojname << " " << iSeed << std::endl;
+
+	  if (MPROJNames.find(mtprojname)!=MPROJNames.end()) {
+	    //std::cout << "Already have: " << mtprojname << std::endl;
+	    continue;
+	  }
+
+	  //std::cout << "Adding: " << mtprojname << std::endl;
+	  MPROJNames.insert(mtprojname);
+
+	  memories << "TrackletProjections: " + MPROJName(iSeed, iMergedTC, ilayer, ireg) + " [54]" << std::endl;
+	  os << MPROJName(iSeed, iMergedTC, ilayer, ireg) << " input=> " << PCName(iSeed, iMergedTC) << ".projout"
+	    //<< LayerName(ilayer) << "PHI" << iTCStr(ireg) 
+	     << " output=> " << PRName(ilayer, ireg) << ".projin"
+	     << std::endl;
+	}
       }
     }
   }
@@ -1212,6 +1340,8 @@ void TrackletConfigBuilder::writeAll(std::ostream& wires, std::ostream& memories
   writeASMemories(wires, memories, modules);
   writeVMSMemories(wires, memories, modules);
   writeSPMemories(wires, memories, modules);
+  writeSPDMemories(wires, memories, modules);
+  writeMergedProjectionMemories(wires, memories, modules);
   writeProjectionMemories(wires, memories, modules);
   writeTPARMemories(wires, memories, modules);
   writeVMPROJMemories(wires, memories, modules);

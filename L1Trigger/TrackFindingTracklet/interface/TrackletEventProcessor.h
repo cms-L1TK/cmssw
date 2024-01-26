@@ -59,6 +59,7 @@ namespace trklet {
     Timer VMRouterTimer_;
     Timer TPTimer_;
     Timer TPDTimer_;
+    Timer PCTimer_;
     Timer MPTimer_;
     Timer FTTimer_;
     Timer PDTimer_;

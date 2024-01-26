@@ -286,8 +286,15 @@ void TrackletEventProcessor::event(SLHCEvent& ev,
 
     if (settings_->writeMem() && k == settings_->writememsect()) {
       sector_->writeTPAR(first);
+    }
+
+    // projection calculator
+    PCTimer_.start();
+    sector_->executePC();
+    if (settings_->writeMem() && k == settings_->writememsect()) {
       sector_->writeTPROJ(first);
     }
+    PCTimer_.stop();
 
     // match processor (alternative to ME+MC)
     MPTimer_.start();

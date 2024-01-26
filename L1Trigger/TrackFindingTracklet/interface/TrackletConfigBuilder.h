@@ -44,17 +44,26 @@ namespace trklet {
     //Return iTC as string - ie A, B, C, etc
     std::string iTCStr(unsigned int iTC) const;
 
+    //Return iTC as string - ie AB, CD, ABC, etc
+    std::string iMergedTCStr(unsigned int iSeed, unsigned int iMergedTC) const;
+
     //The region string A, B, C etc for layers and disks; X, Y, Z etc for overlap
     std::string iRegStr(unsigned int iReg, unsigned int iSeed) const;
 
     //TC Name
     std::string TCName(unsigned int iSeed, unsigned int iTC) const;
 
+    //TC Name
+    std::string PCName(unsigned int iSeed, unsigned int iMergedTC) const;
+
     //Name of layer or disk, e.g. L1 or D1
     static std::string LayerName(unsigned int ilayer);
 
     //Tracklet projection name
     std::string TPROJName(unsigned int iSeed, unsigned int iTC, unsigned int ilayer, unsigned int ireg) const;
+
+    //Merged tracklet projection name
+    std::string MPROJName(unsigned int iSeed, unsigned int iTC, unsigned int ilayer, unsigned int ireg) const;
 
     //Projection router name
     std::string PRName(unsigned int ilayer, unsigned int ireg) const;
@@ -199,6 +208,8 @@ namespace trklet {
     //
     // This group of methods are used to print out the configuration as a file
     //
+    void writeMergedProjectionMemories(std::ostream& os, std::ostream& memories, std::ostream& modules);
+
     void writeProjectionMemories(std::ostream& os, std::ostream& memories, std::ostream& modules);
 
     void writeSPMemories(std::ostream& os, std::ostream& memories, std::ostream& modules);
