@@ -13,9 +13,12 @@ TrackletProjectionsMemory::TrackletProjectionsMemory(string name, Settings const
   assert(pos != string::npos);
   initLayerDisk(pos + 1, layer_, disk_);
   hasProj_ = false;
+  npage_ = name.size()-17;
+  std::cout << "Name, size:" << name << " " << npage_ << std::endl;
+  tracklets_.resize(npage_);
 }
 
-void TrackletProjectionsMemory::addProj(Tracklet* tracklet) {
+void TrackletProjectionsMemory::addProj(Tracklet* tracklet, unsigned int page) {
   if (layer_ != 0 && disk_ == 0)
     assert(tracklet->validProj(layer_ - 1));
   if (layer_ == 0 && disk_ != 0)
@@ -23,7 +26,7 @@ void TrackletProjectionsMemory::addProj(Tracklet* tracklet) {
   if (layer_ != 0 && disk_ != 0)
     assert(tracklet->validProj(layer_ - 1) || tracklet->validProj(N_LAYER + abs(disk_) - 1));
 
-  for (auto& itracklet : tracklets_) {
+  for (auto& itracklet : tracklets_[page]) {
     if (itracklet == tracklet) {
       edm::LogPrint("Tracklet") << "Adding same tracklet " << tracklet << " twice in " << getName();
     }
@@ -31,10 +34,18 @@ void TrackletProjectionsMemory::addProj(Tracklet* tracklet) {
   }
 
   hasProj_ = true;
-  tracklets_.push_back(tracklet);
+
+  std::cout << "Adding tracklet " << tracklet << " in " << getName() << "in page = " << page << std::endl;
+
+  tracklets_[page].push_back(tracklet);
 }
 
-void TrackletProjectionsMemory::clean() { tracklets_.clear(); }
+void TrackletProjectionsMemory::clean() {
+  cout << "cleanTPROJ:" << getName() << endl;
+  for (unsigned int i = 0; i < tracklets_.size() ; i++){
+    tracklets_[i].clear(); 
+  }
+}
 
 void TrackletProjectionsMemory::writeTPROJ(bool first, unsigned int iSector) {
   iSector_ = iSector;
@@ -50,9 +61,14 @@ void TrackletProjectionsMemory::writeTPROJ(bool first, unsigned int iSector) {
   out_ << "BX = " << (bitset<3>)bx_ << " Event : " << event_ << endl;
 
   for (unsigned int j = 0; j < tracklets_.size(); j++) {
-    string proj = (layer_ > 0 && tracklets_[j]->validProj(layer_ - 1)) ? tracklets_[j]->trackletprojstrlayer(layer_)
-                                                                       : tracklets_[j]->trackletprojstrdisk(disk_);
-    out_ << hexstr(j) << " " << proj << "  " << trklet::hexFormat(proj) << endl;
+    cout << "WriteTPROJ:" << getName() << " " << tracklets_.size() << " " << tracklets_[j].size() << endl;
+    //out_ << tracklets_.size() << " " << tracklets_[j].size() << endl;
+    for (unsigned int i = 0; i < tracklets_[j].size(); i++) {
+    
+      string proj = (layer_ > 0 && tracklets_[j][i]->validProj(layer_ - 1)) ? tracklets_[j][i]->trackletprojstrlayer(layer_)
+	: tracklets_[j][i]->trackletprojstrdisk(disk_);
+      out_ << hexstr(j) << " " << hexstr(i) << " " << proj << "  " << trklet::hexFormat(proj) << endl;
+    }
   }
   out_.close();
 

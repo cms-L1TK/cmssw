@@ -193,8 +193,13 @@ void MatchProcessor::execute(unsigned int iSector, double phimin) {
   unsigned int countinputproj = 0;
 
   unsigned int iprojmem = 0;
-  while (iprojmem < inputprojs_.size() && inputprojs_[iprojmem]->nTracklets() == 0) {
-    iprojmem++;
+  unsigned int page = 0;
+  while (iprojmem < inputprojs_.size() && inputprojs_[iprojmem]->nTracklets(page) == 0) {
+    page++;
+    if (page>=inputprojs_[iprojmem]->nPage()) {
+      page = 0;
+      iprojmem++;
+    }
   }
 
   unsigned int iproj = 0;
@@ -348,7 +353,7 @@ void MatchProcessor::execute(unsigned int iSector, double phimin) {
           edm::LogVerbatim("Tracklet") << getName() << " have projection in memory : " << projMem->getName();
         }
 
-        Tracklet* proj = projMem->getTracklet(iproj);
+        Tracklet* proj = projMem->getTracklet(iproj,page);
 
         FPGAWord fpgaphi = proj->proj(layerdisk_).fpgaphiproj();
 
@@ -459,11 +464,15 @@ void MatchProcessor::execute(unsigned int iSector, double phimin) {
         }
 
         iproj++;
-        if (iproj == projMem->nTracklets()) {
+        if (iproj == projMem->nTracklets(page)) {
           iproj = 0;
           do {
-            iprojmem++;
-          } while (iprojmem < inputprojs_.size() && inputprojs_[iprojmem]->nTracklets() == 0);
+	    page++;
+	    if (page >= inputprojs_[iprojmem]->nPage()){
+	      page = 0;
+	      iprojmem++;
+	    }
+          } while (iprojmem < inputprojs_.size() && inputprojs_[iprojmem]->nTracklets(page) == 0);
         }
 
       } else {
