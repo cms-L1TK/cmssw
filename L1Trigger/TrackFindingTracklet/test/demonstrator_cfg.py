@@ -14,7 +14,7 @@ from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:phase2_realistic', '')
 
 # load code that produces DTCStubs
-process.load( 'L1Trigger.TrackerDTC.ProducerED_cff' )
+process.load( 'L1Trigger.TrackerDTC.DTC_cff' )
 # L1 tracking => hybrid emulation 
 process.load("L1Trigger.TrackFindingTracklet.L1HybridEmulationTracks_cff")
 # load code that fits hybrid tracks

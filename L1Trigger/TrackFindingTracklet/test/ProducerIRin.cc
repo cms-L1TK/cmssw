@@ -60,7 +60,7 @@ namespace trklet {
 
   ProducerIRin::ProducerIRin(const ParameterSet& iConfig) : iConfig_(iConfig) {
     const InputTag& inputTag = iConfig.getParameter<InputTag>("InputTagDTC");
-    const string& branchStubs = iConfig.getParameter<string>("BranchAcceptedStubs");
+    const string& branchStubs = iConfig.getParameter<string>("BranchStubsAccepted");
     // book in- and output ED products
     edGetTokenTTDTC_ = consumes<TTDTC>(inputTag);
     edPutTokenStubs_ = produces<StreamsStub>(branchStubs);
