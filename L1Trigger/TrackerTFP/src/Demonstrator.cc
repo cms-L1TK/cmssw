@@ -5,6 +5,7 @@
 #include <string>
 #include <sstream>
 #include <fstream>
+#include <numeric>
 
 using namespace std;
 using namespace edm;
@@ -21,19 +22,31 @@ namespace trackerTFP {
         dirOut_(dirIPBB_ + "out.txt"),
         dirPre_(dirIPBB_ + "pre.txt"),
         dirDiff_(dirIPBB_ + "diff.txt"),
-        numFrames_(setup->numFramesIO()),
+        numFrames_(setup->numFramesIOHigh()),
         numFramesInfra_(setup->numFramesInfra()),
         numRegions_(setup->numRegions()) {}
 
   // plays input through modelsim and compares result with output
   bool Demonstrator::analyze(const vector<vector<Frame>>& input, const vector<vector<Frame>>& output) const {
-    stringstream ss;
+    // default link mapping
+    auto linkMapping = [this](const vector<int>& mapC, vector<int>& map, const vector<vector<Frame>>& data) {
+      if (mapC.empty()) {
+        map.resize((int)data.size() / numRegions_);
+        iota(map.begin(), map.end(), 0);
+      } else
+        map = mapC;
+    };
     // converts input into stringstream
-    convert(input, ss, linkMappingIn_);
+    stringstream ss;
+    vector<int> map;
+    linkMapping(linkMappingIn_, map, input);
+    convert(input, ss, map);
     // play input through modelsim
     sim(ss);
     // converts output into stringstream
-    convert(output, ss, linkMappingOut_);
+    map.clear();
+    linkMapping(linkMappingOut_, map, output);
+    convert(output, ss, map);
     // compares output with modelsim output
     return compare(ss);
   }

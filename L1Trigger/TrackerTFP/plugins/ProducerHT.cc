@@ -13,6 +13,7 @@
 #include "DataFormats/L1TrackTrigger/interface/TTTypes.h"
 #include "L1Trigger/TrackTrigger/interface/Setup.h"
 #include "L1Trigger/TrackerTFP/interface/DataFormats.h"
+#include "L1Trigger/TrackerTFP/interface/LayerEncoding.h"
 #include "L1Trigger/TrackerTFP/interface/HoughTransform.h"
 
 #include <string>
@@ -52,12 +53,16 @@ namespace trackerTFP {
     ESGetToken<Setup, SetupRcd> esGetTokenSetup_;
     // DataFormats token
     ESGetToken<DataFormats, DataFormatsRcd> esGetTokenDataFormats_;
+    // LayerEncoding token
+    ESGetToken<LayerEncoding, LayerEncodingRcd> esGetTokenLayerEncoding_;
     // configuration
     ParameterSet iConfig_;
     // helper class to store configurations
     const Setup* setup_ = nullptr;
     // helper class to extract structured data from tt::Frames
     const DataFormats* dataFormats_ = nullptr;
+    //
+    const LayerEncoding* layerEncoding_ = nullptr;
   };
 
   ProducerHT::ProducerHT(const ParameterSet& iConfig) : iConfig_(iConfig) {
@@ -71,6 +76,7 @@ namespace trackerTFP {
     // book ES products
     esGetTokenSetup_ = esConsumes<Setup, SetupRcd, Transition::BeginRun>();
     esGetTokenDataFormats_ = esConsumes<DataFormats, DataFormatsRcd, Transition::BeginRun>();
+    esGetTokenLayerEncoding_ = esConsumes<LayerEncoding, LayerEncodingRcd, Transition::BeginRun>();
   }
 
   void ProducerHT::beginRun(const Run& iRun, const EventSetup& iSetup) {
@@ -78,6 +84,8 @@ namespace trackerTFP {
     setup_ = &iSetup.getData(esGetTokenSetup_);
     // helper class to extract structured data from tt::Frames
     dataFormats_ = &iSetup.getData(esGetTokenDataFormats_);
+    //
+    layerEncoding_ = &iSetup.getData(esGetTokenLayerEncoding_);
   }
 
   void ProducerHT::produce(Event& iEvent, const EventSetup& iSetup) {
@@ -129,7 +137,7 @@ namespace trackerTFP {
       // container for output stubs
       deque<StubHT> stubsHT;
       // object to find initial rough candidates in r-phi in a region
-      HoughTransform ht(iConfig_, setup_, dataFormats_, stubsHT);
+      HoughTransform ht(iConfig_, setup_, dataFormats_, layerEncoding_, stubsHT);
       // empty h/w liked organized pointer to output data
       vector<deque<StubHT*>> streamsOut(numChannelOut);
       // empty h/w liked organized pointer to truncated data

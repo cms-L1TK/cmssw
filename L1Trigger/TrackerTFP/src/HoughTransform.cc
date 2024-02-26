@@ -16,10 +16,12 @@ namespace trackerTFP {
   HoughTransform::HoughTransform(const ParameterSet& iConfig,
                                  const Setup* setup,
                                  const DataFormats* dataFormats,
+                                 const LayerEncoding* layerEncoding,
                                  deque<StubHT>& stubs)
       : enableTruncation_(iConfig.getParameter<bool>("EnableTruncation")),
         setup_(setup),
         dataFormats_(dataFormats),
+        layerEncoding_(layerEncoding),
         inv2R_(&dataFormats_->format(Variable::inv2R, Process::ht)),
         phiT_(&dataFormats_->format(Variable::phiT, Process::ht)),
         phi_(&dataFormats_->format(Variable::phi, Process::ht)),
@@ -44,8 +46,8 @@ namespace trackerTFP {
         // associate stubs with inv2R and phiT bins
         fillIn(inv2R, channelIn, input, stubs, truncated);
         // apply truncation
-        if (enableTruncation_ && (int)stubs.size() > setup_->numFrames()) {
-          const auto limit = next(stubs.begin(), setup_->numFrames());
+        if (enableTruncation_ && (int)stubs.size() > setup_->numFramesHigh()) {
+          const auto limit = next(stubs.begin(), setup_->numFramesHigh());
           copy_if(limit, stubs.end(), back_inserter(truncated), [](StubHT* stub) { return stub; });
           stubs.erase(limit, stubs.end());
         }
@@ -55,8 +57,8 @@ namespace trackerTFP {
         readOut(stubs, output);
       }
       // apply truncation
-      if (enableTruncation_ && (int)output.size() > setup_->numFrames()) {
-        const auto limit = next(output.begin(), setup_->numFrames());
+      if (enableTruncation_ && (int)output.size() > setup_->numFramesHigh()) {
+        const auto limit = next(output.begin(), setup_->numFramesHigh());
         copy_if(limit, output.end(), back_inserter(truncated), [](StubHT* stub) { return stub; });
         output.erase(limit, output.end());
       }
@@ -155,7 +157,7 @@ namespace trackerTFP {
       const int layerId = toLayerId(stub);
       TTBV& pattern = patternHits[binPhiT];
       pattern.set(layerId);
-      if (trkFoundPhiTs[binPhiT] || pattern.count() < setup_->htMinLayers())
+      if (trkFoundPhiTs[binPhiT] || noTrack(pattern, stub->zT()))
         continue;
       // first time track found
       trkFoundPhiTs.set(binPhiT);
@@ -167,6 +169,35 @@ namespace trackerTFP {
       // read out stubs in reverse order to emulate f/w (backtracking linked list)
       copy_if(input.rbegin(), input.rend(), back_inserter(output), samePhiT);
     }
+  }
+
+  // track identification
+  bool HoughTransform::noTrack(const TTBV& pattern, int zT) const {
+    const TTBV& maybePattern = layerEncoding_->maybePattern(zT);
+    // check min layers req
+    const int minLayers = ((zT == -4 || zT == 3) && (!pattern.test(5) && !pattern.test(7))) ? 4 : setup_->htMinLayers();
+    int nHits(0);
+    int last(-1);
+    for (int layer = 0; layer < setup_->numLayers(); layer++)
+      if(pattern.test(layer))
+        if(++nHits == minLayers)
+          last = layer;
+    if (nHits < minLayers)
+      return true;
+    // double gap
+    TTBV p = pattern;
+    p |= maybePattern;
+    for (int layer = 1; layer < last; layer++)
+      if (!p.test(layer - 1) && !p.test(layer))
+        return true;
+    // too many gaps
+    if (p.count(0, last, false) > setup_->kfMaxGaps())
+      return true;
+    // not enough seeding layer
+    if (pattern.count(0, setup_->kfMaxSeedLayer()) < 2)
+      return true;
+    // pass
+    return false;
   }
 
   // remove and return first element of deque, returns nullptr if empty

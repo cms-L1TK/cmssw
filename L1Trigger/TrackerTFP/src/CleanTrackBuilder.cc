@@ -16,11 +16,13 @@ namespace trackerTFP {
   CleanTrackBuilder::CleanTrackBuilder(const ParameterSet& iConfig,
                                        const Setup* setup,
                                        const DataFormats* dataFormats,
+                                       const LayerEncoding* layerEncoding,
                                        vector<StubCTB>& stubs,
                                        vector<TrackCTB>& tracks)
       : enableTruncation_(iConfig.getParameter<bool>("EnableTruncation")),
         setup_(setup),
         dataFormats_(dataFormats),
+        layerEncoding_(layerEncoding),
         stubsCTB_(stubs),
         tracksCTB_(tracks) {
     stubs_.reserve(stubs.capacity());
@@ -30,7 +32,7 @@ namespace trackerTFP {
   // fill output products
   void CleanTrackBuilder::produce(const vector<vector<StubHT*>>& streamsIn,
                                   vector<deque<TrackCTB*>>& regionTracks,
-                                  vector<vector<deque<StubCTB*>>>& regionStubs) {
+                                  vector<vector<deque<StubCTB*>>>& regionStubs) {static int region(-1);region++;              
     static const int numChannelIn = dataFormats_->numChannel(Process::ht);
     static const int numChannelOut = dataFormats_->numChannel(Process::ctb);
     static const int numChannel = numChannelIn / numChannelOut;
@@ -77,7 +79,7 @@ namespace trackerTFP {
       return (phiT.ttBV(stub->phiT()) + zT.ttBV(stub->zT())).val();
     };
     auto different = [&id, toTrkId](StubHT* stub) { return id != toTrkId(stub); };
-    int delta = -setup_->htMinLayers();
+    int delta = -setup_->htMinLayers() - 1;
     int old = 0;
     for (auto it = input.begin(); it != input.end();) {
       id = toTrkId(*it);
@@ -93,7 +95,7 @@ namespace trackerTFP {
         delta = 0;
       }
       // run single track through r-phi and r-z hough transform
-      cleanTrack(track, tracks, stubs, inv2R, trackId++);
+      cleanTrack(track, tracks, stubs, inv2R, (*start)->zT(), trackId++);
       if (trackId - offset == setup_->ctbMaxTracks())
         break;
       // set begin of next track
@@ -102,8 +104,7 @@ namespace trackerTFP {
   }
 
   // run single track through r-phi and r-z hough transform
-  void CleanTrackBuilder::cleanTrack(
-      const vector<StubHT*>& track, deque<Track*>& tracks, deque<Stub*>& stubs, double inv2R, int trackId) {
+  void CleanTrackBuilder::cleanTrack(const vector<StubHT*>& track, deque<Track*>& tracks, deque<Stub*>& stubs, double inv2R, int zT, int trackId) {
     static const DataFormat& layer = dataFormats_->format(Variable::layer, Process::ctb);
     static const int numBinsInv2R = setup_->ctbNumBinsInv2R();
     static const int numBinsPhiT = setup_->ctbNumBinsPhiT();
@@ -114,6 +115,33 @@ namespace trackerTFP {
     //static const double baseZ0 = dataFormats_->range(Variable::zT, Process::dr) / numBinsZ0;
     static const double baseZ0 = 2. * setup_->beamWindowZ() / numBinsZ0;
     static const double baseZT = dataFormats_->base(Variable::zT, Process::ht) / numBinsZT;
+    const TTBV& maybePattern = layerEncoding_->maybePattern(zT);
+    auto noTrack = [this, &maybePattern, zT](const TTBV& pattern) {
+      // check min layers req
+      const int minLayers = ((zT == -4 || zT == 3) && (!pattern.test(5) && !pattern.test(7))) ? 4 : setup_->htMinLayers();
+      int nHits(0);
+      int last(-1);
+      for (int layer = 0; layer < setup_->numLayers(); layer++)
+        if(pattern.test(layer))
+          if(++nHits == minLayers)
+            last = layer;
+      if (nHits < minLayers)
+        return true;
+      // double gap
+      TTBV p = pattern;
+      p |= maybePattern;
+      for (int layer = 1; layer < last; layer++)
+        if (!p.test(layer - 1) && !p.test(layer))
+          return true;
+      // too many gaps
+      if (p.count(0, last, false) > setup_->kfMaxGaps())
+        return true;
+      // not enough seeding layer
+      if (pattern.count(0, setup_->kfMaxSeedLayer()) < 2)
+        return true;
+      // pass
+      return false;
+    };
     auto toLayerId = [](StubHT* stub) { return stub->layer().val(layer.width()); };
     auto toDPhi = [this, inv2R](StubHT* stub) {
       static const DataFormat df = dataFormats_->format(Variable::dPhi, Process::ctb);
@@ -170,7 +198,7 @@ namespace trackerTFP {
       // check for tracks on the fly
       for (int phi : hitsPhi.ids()) {
         hitPatternPhi[phi].set(layerId);
-        if (hitPatternPhi[phi].count() >= setup_->ctbMinLayers())
+        if (!noTrack(hitPatternPhi[phi]))
           tracksPhi.set(phi);
       }
       // r - z HT
@@ -198,7 +226,7 @@ namespace trackerTFP {
       // check for tracks on the fly
       for (int z : hitsZ.ids()) {
         hitPatternZ[z].set(layerId);
-        if (hitPatternZ[z].count() >= setup_->ctbMinLayers())
+        if (!noTrack(hitPatternZ[z]))
           tracksZ.set(z);
       }
       // store stubs consistent finer tracks
@@ -323,11 +351,11 @@ namespace trackerTFP {
   void CleanTrackBuilder::sort(deque<Track*>& tracks, vector<deque<Stub*>>& stubs) const {
     // aplly truncation
     if (enableTruncation_) {
-      if ((int)tracks.size() > setup_->numFrames())
-        tracks.resize(setup_->numFrames());
+      if ((int)tracks.size() > setup_->numFramesHigh())
+        tracks.resize(setup_->numFramesHigh());
       for (deque<Stub*>& stream : stubs)
-        if ((int)stream.size() > setup_->numFrames())
-          stream.resize(setup_->numFrames());
+        if ((int)stream.size() > setup_->numFramesHigh())
+          stream.resize(setup_->numFramesHigh());
     }
     // cycle event, remove all gaps
     tracks.erase(remove(tracks.begin(), tracks.end(), nullptr), tracks.end());

@@ -77,7 +77,7 @@ namespace trklet {
 
   ProducerKF::ProducerKF(const ParameterSet& iConfig) : iConfig_(iConfig) {
     printDebug_ = iConfig.getParameter<bool>("PrintKFDebug");
-    const string& label = iConfig.getParameter<string>("LabelCTB");
+    const string& label = iConfig.getParameter<string>("LabelDR");
     const string& branchStubs = iConfig.getParameter<string>("BranchStubsAccepted");
     const string& branchTracks = iConfig.getParameter<string>("BranchTracksAccepted");
     const string& branchTracksLost = iConfig.getParameter<string>("BranchTracksTruncated");
@@ -107,108 +107,31 @@ namespace trklet {
   }
 
   void ProducerKF::produce(Event& iEvent, const EventSetup& iSetup) {
-    static const int numChannel = dataFormats_->numChannel(Process::kf);
     static const int numRegions = setup_->numRegions();
     static const int numLayers = setup_->numLayers();
     // empty KF products
-    StreamsStub acceptedStubs(numRegions * numChannel * numLayers);
-    StreamsTrack acceptedTracks(numRegions * numChannel);
+    StreamsStub streamsStub(numRegions * numLayers);
+    StreamsTrack streamsTrack(numRegions);
     int numStatesAccepted(0);
     int numStatesLost(0);
-    // read in SF Product and produce KF product
+    // read in DR Product and produce KF product
     Handle<StreamsStub> handleStubs;
     iEvent.getByToken<StreamsStub>(edGetTokenStubs_, handleStubs);
-    const StreamsStub& allStubs = *handleStubs;
+    const StreamsStub& stubs = *handleStubs;
     Handle<StreamsTrack> handleTracks;
     iEvent.getByToken<StreamsTrack>(edGetTokenTracks_, handleTracks);
-    const StreamsTrack& allTracks = *handleTracks;
-    // helper
-    auto validFrameT = [](int& sum, const FrameTrack& frame) { return sum += (frame.first.isNonnull() ? 1 : 0); };
-    auto validFrameS = [](int& sum, const FrameStub& frame) { return sum += (frame.first.isNonnull() ? 1 : 0); };
-    auto putT = [](const vector<TrackKF*>& objects, StreamTrack& stream) {
-      auto toFrame = [](TrackKF* object) { return object ? object->frame() : FrameTrack(); };
-      stream.reserve(objects.size());
-      transform(objects.begin(), objects.end(), back_inserter(stream), toFrame);
-    };
-    auto putS = [](const vector<StubKF*>& objects, StreamStub& stream) {
-      auto toFrame = [](StubKF* object) { return object ? object->frame() : FrameStub(); };
-      stream.reserve(objects.size());
-      transform(objects.begin(), objects.end(), back_inserter(stream), toFrame);
-    };
-    for (int region = 0; region < numRegions; region++) {
-      const int offset = region * numChannel;
-      // count input objects
-      int nTracks(0);
-      int nStubs(0);
-      for (int channel = 0; channel < numChannel; channel++) {
-        const int index = offset + channel;
-        const int offsetStubs = index * numLayers;
-        const StreamTrack& tracks = allTracks[index];
-        nTracks += accumulate(tracks.begin(), tracks.end(), 0, validFrameT);
-        for (int layer = 0; layer < numLayers; layer++) {
-          const StreamStub& stubs = allStubs[offsetStubs + layer];
-          nStubs += accumulate(stubs.begin(), stubs.end(), 0, validFrameS);
-        }
-      }
-      // storage of input data
-      vector<TrackCTB> tracksCTB;
-      tracksCTB.reserve(nTracks);
-      vector<StubCTB> stubsCTB;
-      stubsCTB.reserve(nStubs);
-      // h/w liked organized pointer to input data
-      vector<vector<TrackCTB*>> regionTracks(numChannel);
-      vector<vector<StubCTB*>> regionStubs(numChannel * numLayers);
-      // read input data
-      for (int channel = 0; channel < numChannel; channel++) {
-        const int index = offset + channel;
-        const int offsetAll = index * numLayers;
-        const int offsetRegion = channel * numLayers;
-        const StreamTrack& streamTrack = allTracks[index];
-        vector<TrackCTB*>& tracks = regionTracks[channel];
-        tracks.reserve(streamTrack.size());
-        for (const FrameTrack& frame : streamTrack) {
-          TrackCTB* track = nullptr;
-          if (frame.first.isNonnull()) {
-            tracksCTB.emplace_back(frame, dataFormats_);
-            track = &tracksCTB.back();
-          }
-          tracks.push_back(track);
-        }
-        for (int layer = 0; layer < numLayers; layer++) {
-          for (const FrameStub& frame : allStubs[offsetAll + layer]) {
-            StubCTB* stub = nullptr;
-            if (frame.first.isNonnull()) {
-              stubsCTB.emplace_back(frame, dataFormats_);
-              stub = &stubsCTB.back();
-            }
-            regionStubs[offsetRegion + layer].push_back(stub);
-          }
-        }
-      }
-      // empty storage of output data
-      vector<TrackKF> tracksKF;
-      tracksKF.reserve(nTracks);
-      vector<StubKF> stubsKF;
-      stubsKF.reserve(nStubs);
+    const StreamsTrack& tracks = *handleTracks;
+    for (int region = 0; region < setup_->numRegions(); region++) {
       // object to fit tracks in a processing region
-      KalmanFilter kf(iConfig_, setup_, dataFormats_, layerEncoding_, kalmanFilterFormats_, tracksKF, stubsKF);
-      // empty h/w liked organized pointer to output data
-      vector<vector<TrackKF*>> streamsTrack(numChannel);
-      vector<vector<vector<StubKF*>>> streamsStub(numChannel, vector<vector<StubKF*>>(numLayers));
+      KalmanFilter kf(iConfig_, setup_, dataFormats_, layerEncoding_, kalmanFilterFormats_, region);
+      // read in and organize input tracks and stubs
+      kf.consume(tracks, stubs);
       // fill output products
-      kf.produce(regionTracks, regionStubs, streamsTrack, streamsStub, numStatesAccepted, numStatesLost);
-      // convert data to ed products
-      for (int channel = 0; channel < numChannel; channel++) {
-        const int index = offset + channel;
-        const int offsetStubs = index * numLayers;
-        putT(streamsTrack[channel], acceptedTracks[index]);
-        for (int layer = 0; layer < numLayers; layer++)
-          putS(streamsStub[channel][layer], acceptedStubs[offsetStubs + layer]);
-      }
+      kf.produce(streamsStub, streamsTrack, numStatesAccepted, numStatesLost);
     }
     // store products
-    iEvent.emplace(edPutTokenStubs_, move(acceptedStubs));
-    iEvent.emplace(edPutTokenTracks_, move(acceptedTracks));
+    iEvent.emplace(edPutTokenStubs_, move(streamsStub));
+    iEvent.emplace(edPutTokenTracks_, move(streamsTrack));
     iEvent.emplace(edPutTokenNumAcceptedStates_, numStatesAccepted);
     iEvent.emplace(edPutTokenNumLostStates_, numStatesLost);
   }

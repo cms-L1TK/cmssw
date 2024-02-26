@@ -53,6 +53,9 @@ namespace trklet {
     // calculate digitisation granularity used for inverted cot(theta)
     const int baseShiftInvCot = ceil(log2(setup_->outerRadius() / setup_->hybridRangeR())) - setup_->widthDSPbu();
     baseInvCot_ = pow(2, baseShiftInvCot);
+    // cot
+    baseHcot_ = dataFormats->base(Variable::cot, Process::kf);
+    baseLcot_ = baseHcot_ * pow(2, ceil(log2(baseUcot_ / baseHcot_)));
   }
 
   // read in and organize input tracks and stubs
@@ -199,8 +202,9 @@ namespace trklet {
             stubs_.emplace_back(ttStubRef, layerId, stubId, r, phi, z, psTilt);
           stubs.push_back(&stubs_.back());
         }
-        const bool valid = frame < setup_->numFrames() ? true : enableTruncation_;
-        tracks_.emplace_back(ttTrackRef, valid, r2Inv, phiT, cot, zT, stubs);
+        const bool valid = frame < setup_->numFramesHigh() ? true : enableTruncation_;
+        const bool badSeed = ttTrackRef->trackSeedType() == 2 || ttTrackRef->trackSeedType() == 3;
+        tracks_.emplace_back(ttTrackRef, valid, r2Inv, phiT, cot, zT, stubs, badSeed);
         input.push_back(&tracks_.back());
       }
     }
@@ -220,6 +224,7 @@ namespace trklet {
     for (Track& track : tracks_) {
       track.inv2R_ = redigi(track.inv2R_, baseUinv2R_, baseHinv2R_, setup_->widthDSPbu());
       track.phiT_ = redigi(track.phiT_, baseUphiT_, baseHphiT_, setup_->widthDSPbu());
+      track.cot_ = redigi(track.cot_, baseUcot_, baseHcot_, setup_->widthDSPbu());
       track.zT_ = redigi(track.zT_, baseUzT_, baseHzT_, setup_->widthDSPbu());
       for (Stub* stub : track.stubs_) {
         stub->r_ = redigi(stub->r_, baseUr_, baseHr_, setup_->widthDSPbu());
@@ -333,78 +338,14 @@ namespace trklet {
         stub->dPhi_ = digi(stub->dPhi_, baseLphi_) + baseLphi_;
       }
     }
-    // recalculate track parameter use first two layers
-    for (Track& track : tracks_) {
-      if (!track.valid_)
-        continue;
-      // identify first two layers
-      vector<Stub*> stubs = track.stubs_;
-      stubs.erase(remove_if(stubs.begin(), stubs.end(), [](Stub* stub){ return !stub->valid_; }), stubs.end());
-      sort(stubs.begin(), stubs.end(), [](Stub* lhs, Stub* rhs){ return lhs->layer_ < rhs->layer_; });
-      // calculate track paramter shifts
-      const double dR = stubs[1]->r_ - stubs[0]->r_;
-      const double dPhi = stubs[1]->phi_ - stubs[0]->phi_;
-      const double dZ = stubs[1]->z_ - stubs[0]->z_;
-      const double aRphi = (stubs[1]->r_ + stubs[0]->r_) / 2.;
-      const double aRz = aRphi + setup_->chosenRofPhi() - setup_->chosenRofZ();;
-      const double aPhi = (stubs[1]->phi_ + stubs[0]->phi_) / 2.;
-      const double aZ = (stubs[1]->z_ + stubs[0]->z_) / 2.;
-      const double dInv2R = dPhi / dR;
-      const double dCot = dZ / dR;
-      const double dPhiT = aPhi - aRphi * dInv2R;
-      const double dZT = aZ - aRz * dCot;
-      const double Dinv2R = digi(track.inv2R_ + dInv2R, baseLinv2R_) - track.inv2R_;
-      const double DphiT = digi(track.phiT_ + dPhiT, baseLphiT_) - track.phiT_;
-      const double DzT = digi(track.zT_ + dZT, baseLphiT_) - track.zT_;
-      const double Dcot = DzT / setup_->chosenRofZ();
-      // shift track parameters
-      track.inv2R_ = digi(track.inv2R_ + dInv2R, baseLinv2R_);
-      track.phiT_ = digi(track.phiT_ + dPhiT, baseLphiT_);
-      track.zT_ = digi(track.zT_ + dZT, baseLphiT_);
-      track.cot_ = track.zT_ / setup_->chosenRofZ();
-      // range checks
-      if (!dataFormats_->format(Variable::inv2R, Process::ctb).inRange(track.inv2R_, true))
-        track.valid_ = false;
-      if (!dataFormats_->format(Variable::phiT, Process::ctb).inRange(track.phiT_, true))
-        track.valid_ = false;
-      if (!dataFormats_->format(Variable::zT, Process::ctb).inRange(track.zT_, true))
-        track.valid_ = false;
-      if (!track.valid_)
-        continue;
-      // shift stub parameters
-      for (Stub*& stub : track.stubs_) {
-        const double dphi = DphiT + stub->r_ * Dinv2R;
-        const double r = stub->r_ + setup_->chosenRofPhi() - setup_->chosenRofZ();
-        const double dz = DzT + r * Dcot;
-        stub->phi_ = digi(stub->phi_ - dphi, baseLphi_);
-        stub->z_ = digi(stub->z_ - dz, baseLz_);
-        // range checks
-        if (!dataFormats_->format(Variable::phi, Process::ctb).inRange(stub->phi_))
-          stub->valid_ = false;
-        if (!dataFormats_->format(Variable::z, Process::ctb).inRange(stub->z_))
-          stub->valid_ = false;
-      }
-    }
-    // kill tracks with not enough layer
-    for (Track& track : tracks_) {
-      if (!track.valid_)
-        continue;
-      TTBV hits(0, setup_->numLayers());
-      for (const Stub* stub : track.stubs_)
-        if (stub->valid_)
-          hits.set(stub->layer_);
-      if (hits.count() < setup_->kfMinLayers())
-        track.valid_ = false;
-    }
     // store helper
     auto frameTrack = [this](Track* track) {
       if (!track->valid_)
         return FrameTrack();
-      const TTBV maybe(track->maybe_);
       const TTBV inv2R(dataFormats_->format(Variable::inv2R, Process::ctb).ttBV(track->inv2R_));
       const TTBV phiT(dataFormats_->format(Variable::phiT, Process::ctb).ttBV(track->phiT_));
       const TTBV zT(dataFormats_->format(Variable::zT, Process::ctb).ttBV(track->zT_));
-      return FrameTrack(track->ttTrackRef_, "1" + maybe.str() + inv2R.str() + phiT.str() + zT.str());
+      return FrameTrack(track->ttTrackRef_, "1" + inv2R.str() + phiT.str() + zT.str());
     };
     auto frameStub = [this](Track* track, int layer) {
       auto equal = [layer](Stub* stub) { return stub->valid_ && stub->layer_ == layer; };
@@ -421,87 +362,83 @@ namespace trklet {
       return FrameStub(stub->ttStubRef_,
                        Frame("1" + stubId.str() + r.str() + phi.str() + z.str() + dPhi.str() + dZ.str()));
     };
-    // route tracks into pt bins and store result
-    const int offsetTrack = region_ * channelAssignment_->numNodesDR();
-    for (int nodeDR = 0; nodeDR < channelAssignment_->numNodesDR(); nodeDR++) {
-      deque<Track*> accepted;
-      deque<Track*> lost;
-      vector<deque<Track*>> stacks(channelAssignment_->numChannelsTrack());
-      vector<deque<Track*>> inputs(channelAssignment_->numChannelsTrack());
+    // route into single channel
+    deque<Track*> accepted;
+    deque<Track*> lost;
+    vector<deque<Track*>> stacks(channelAssignment_->numChannelsTrack());
+    vector<deque<Track*>> inputs(channelAssignment_->numChannelsTrack());
+    for (int channel = 0; channel < channelAssignment_->numChannelsTrack(); channel++) {
+      for (Track* track : input_[channel]) {
+        //const bool match = track && channelAssignment_->isNodeDR(track->ttTrackRef_, nodeDR);
+        const bool match = track;
+        //if (match && !track->valid_)
+          //lost.push_back(track);
+        inputs[channel].push_back(match && track->valid_ ? track : nullptr);
+      }
+    }
+    // remove all gaps between end and last track
+    for (deque<Track*>& input : inputs)
+      for (auto it = input.end(); it != input.begin();)
+        it = (*--it) ? input.begin() : input.erase(it);
+    // clock accurate firmware emulation, each while trip describes one clock tick, one stub in and one stub out per tick
+    while (!all_of(inputs.begin(), inputs.end(), [](const deque<Track*>& tracks) { return tracks.empty(); }) or
+            !all_of(stacks.begin(), stacks.end(), [](const deque<Track*>& tracks) { return tracks.empty(); })) {
+      // fill input fifos
       for (int channel = 0; channel < channelAssignment_->numChannelsTrack(); channel++) {
-        for (Track* track : input_[channel]) {
-          const bool match = track && channelAssignment_->nodeDR(track->ttTrackRef_) == nodeDR;
-          if (match && !track->valid_)
-            lost.push_back(track);
-          inputs[channel].push_back(match && track->valid_ ? track : nullptr);
+        deque<Track*>& stack = stacks[channel];
+        Track* track = pop_front(inputs[channel]);
+        if (track) {
+          if (enableTruncation_ && (int)stack.size() == channelAssignment_->depthMemory() - 1)
+            lost.push_back(pop_front(stack));
+          stack.push_back(track);
         }
       }
-      // remove all gaps between end and last track
-      for (deque<Track*>& input : inputs)
-        for (auto it = input.end(); it != input.begin();)
-          it = (*--it) ? input.begin() : input.erase(it);
-      // clock accurate firmware emulation, each while trip describes one clock tick, one stub in and one stub out per tick
-      while (!all_of(inputs.begin(), inputs.end(), [](const deque<Track*>& tracks) { return tracks.empty(); }) or
-             !all_of(stacks.begin(), stacks.end(), [](const deque<Track*>& tracks) { return tracks.empty(); })) {
-        // fill input fifos
-        for (int channel = 0; channel < channelAssignment_->numChannelsTrack(); channel++) {
-          deque<Track*>& stack = stacks[channel];
-          Track* track = pop_front(inputs[channel]);
-          if (track) {
-            if (enableTruncation_ && (int)stack.size() == channelAssignment_->depthMemory() - 1)
-              lost.push_back(pop_front(stack));
-            stack.push_back(track);
-          }
+      // merge input fifos to one stream, prioritizing higher input channel over lower channel
+      bool nothingToRoute(true);
+      for (int channel = channelAssignment_->numChannelsTrack() - 1; channel >= 0; channel--) {
+        Track* track = pop_front(stacks[channel]);
+        if (track) {
+          nothingToRoute = false;
+          accepted.push_back(track);
+          break;
         }
-        // merge input fifos to one stream, prioritizing higher input channel over lower channel
-        bool nothingToRoute(true);
-        for (int channel = channelAssignment_->numChannelsTrack() - 1; channel >= 0; channel--) {
-          Track* track = pop_front(stacks[channel]);
-          if (track) {
-            nothingToRoute = false;
-            accepted.push_back(track);
-            break;
-          }
-        }
-        if (nothingToRoute)
-          accepted.push_back(nullptr);
       }
-      // truncate if desired
-      if (enableTruncation_ && (int)accepted.size() > setup_->numFrames()) {
-        const auto limit = next(accepted.begin(), setup_->numFrames());
-        copy_if(limit, accepted.end(), back_inserter(lost), [](const Track* track) { return track; });
-        accepted.erase(limit, accepted.end());
-      }
-      // remove all gaps between end and last track
-      for (auto it = accepted.end(); it != accepted.begin();)
-        it = (*--it) ? accepted.begin() : accepted.erase(it);
-      // fill products StreamsStub& accpetedStubs, StreamsTrack& acceptedTracks, StreamsStub& lostStubs, StreamsTrack& lostTracks
-      const int channelTrack = offsetTrack + nodeDR;
-      const int offsetStub = channelTrack * setup_->numLayers();
-      // fill lost tracks and stubs without gaps
-      lostTracks[channelTrack].reserve(lost.size());
+      if (nothingToRoute)
+        accepted.push_back(nullptr);
+    }
+    // truncate if desired
+    if (enableTruncation_ && (int)accepted.size() > setup_->numFramesHigh()) {
+      const auto limit = next(accepted.begin(), setup_->numFramesHigh());
+      copy_if(limit, accepted.end(), back_inserter(lost), [](const Track* track) { return track; });
+      accepted.erase(limit, accepted.end());
+    }
+    // remove all gaps between end and last track
+    for (auto it = accepted.end(); it != accepted.begin();)
+      it = (*--it) ? accepted.begin() : accepted.erase(it);
+    const int offsetStub = region_ * setup_->numLayers();
+    // fill lost tracks and stubs without gaps
+    lostTracks[region_].reserve(lost.size());
+    for (int layer = 0; layer < setup_->numLayers(); layer++)
+      lostStubs[offsetStub + layer].reserve(lost.size());
+    for (Track* track : lost) {
+      lostTracks[region_].emplace_back(frameTrack(track));
       for (int layer = 0; layer < setup_->numLayers(); layer++)
-        lostStubs[offsetStub + layer].reserve(lost.size());
-      for (Track* track : lost) {
-        lostTracks[channelTrack].emplace_back(frameTrack(track));
+        lostStubs[offsetStub + layer].emplace_back(frameStub(track, layer));
+    }
+    // fill accepted tracks and stubs with gaps
+    acceptedTracks[region_].reserve(accepted.size());
+    for (int layer = 0; layer < setup_->numLayers(); layer++)
+      accpetedStubs[offsetStub + layer].reserve(accepted.size());
+    for (Track* track : accepted) {
+      if (!track) {  // fill gap
+        acceptedTracks[region_].emplace_back(FrameTrack());
         for (int layer = 0; layer < setup_->numLayers(); layer++)
-          lostStubs[offsetStub + layer].emplace_back(frameStub(track, layer));
+          accpetedStubs[offsetStub + layer].emplace_back(FrameStub());
+        continue;
       }
-      // fill accepted tracks and stubs with gaps
-      acceptedTracks[channelTrack].reserve(accepted.size());
+      acceptedTracks[region_].emplace_back(frameTrack(track));
       for (int layer = 0; layer < setup_->numLayers(); layer++)
-        accpetedStubs[offsetStub + layer].reserve(accepted.size());
-      for (Track* track : accepted) {
-        if (!track) {  // fill gap
-          acceptedTracks[channelTrack].emplace_back(FrameTrack());
-          for (int layer = 0; layer < setup_->numLayers(); layer++)
-            accpetedStubs[offsetStub + layer].emplace_back(FrameStub());
-          continue;
-        }
-        acceptedTracks[channelTrack].emplace_back(frameTrack(track));
-        for (int layer = 0; layer < setup_->numLayers(); layer++)
-          accpetedStubs[offsetStub + layer].emplace_back(frameStub(track, layer));
-      }
+        accpetedStubs[offsetStub + layer].emplace_back(frameStub(track, layer));
     }
   }
 

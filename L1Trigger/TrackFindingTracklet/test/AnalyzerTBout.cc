@@ -24,6 +24,7 @@
 #include <TH2F.h>
 
 #include <vector>
+#include <utility>
 #include <deque>
 #include <set>
 #include <cmath>
@@ -61,10 +62,10 @@ namespace trklet {
     //
     void formTracks(const StreamsTrack& streamsTrack,
                     const StreamsStub& streamsStubs,
-                    vector<vector<TTStubRef>>& tracks,
+                    vector<pair<TTTrackRef, vector<TTStubRef>>>& tracks,
                     int channel);
     //
-    void associate(const vector<vector<TTStubRef>>& tracks, const StubAssociation* ass, set<TPPtr>& tps, int& sum) const;
+    void associate(const vector<pair<TTTrackRef, vector<TTStubRef>>>& tracks, const StubAssociation* ass, set<TPPtr>& tps, int& sum, bool fill = false) const;
     //
     void fill(const FrameTrack& frameTrack, const FrameStub& frameStub);
 
@@ -115,6 +116,8 @@ namespace trklet {
     vector<TH1F*> hisResolutionMe_;
     vector<TH1F*> hisResolutionThey_;
     vector<TH2F*> his2Resolution_;
+    TH1F* hisResZ0_;
+    TProfile* profResZ0_;
 
     // printout
     stringstream log_;
@@ -176,9 +179,12 @@ namespace trklet {
     prof_->GetXaxis()->SetBinLabel(9, "All TPs");
     // channel occupancy
     constexpr int maxOcc = 180;
-    const int numChannels = channelAssignment_->numChannelsStub() * setup_->numRegions();
+    const int numChannels = channelAssignment_->numChannelsTrack() * setup_->numRegions();
     hisChannel_ = dir.make<TH1F>("His Channel Occupancy", ";", maxOcc, -.5, maxOcc - .5);
     profChannel_ = dir.make<TProfile>("Prof Channel Occupancy", ";", numChannels, -.5, numChannels - .5);
+    // Z0 resoultion
+    hisResZ0_ = dir.make<TH1F>("HisResZ0", ";", 100, -5., 5.);
+    profResZ0_ = dir.make<TProfile>("ProfResZ0", ";", 25, 0, 2.5);
     // stub parameter resolutions
     constexpr int bins = 400;
     constexpr int binsHis = 100;
@@ -252,13 +258,13 @@ namespace trklet {
       int nTracks(0);
       int nLost(0);
       for (int channel = 0; channel < channelAssignment_->numChannelsTrack(); channel++) {
-        vector<vector<TTStubRef>> tracks;
+        vector<pair<TTTrackRef, vector<TTStubRef>>> tracks;
         formTracks(acceptedTracks, acceptedStubs, tracks, offset + channel);
-        vector<vector<TTStubRef>> lost;
+        vector<pair<TTTrackRef, vector<TTStubRef>>> lost;
         formTracks(lostTracks, lostStubs, lost, offset + channel);
         nTracks += tracks.size();
         nStubs +=
-            accumulate(tracks.begin(), tracks.end(), 0, [](int sum, const auto& v) { return sum + (int)v.size(); });
+            accumulate(tracks.begin(), tracks.end(), 0, [](int sum, const auto& v) { return sum + (int)v.second.size(); });
         nLost += lost.size();
         allTracks += tracks.size();
         if (!useMCTruth_)
@@ -266,7 +272,9 @@ namespace trklet {
         int tmp(0);
         associate(tracks, selection, tpPtrsSelection, tmp);
         associate(lost, selection, tpPtrsLost, tmp);
-        associate(tracks, reconstructable, tpPtrs, allMatched);
+        associate(tracks, reconstructable, tpPtrs, allMatched, true);
+        hisChannel_->Fill(tracks.size());
+        profChannel_->Fill(channel, tracks.size());
       }
       prof_->Fill(1, nStubs);
       prof_->Fill(2, nTracks);
@@ -328,7 +336,7 @@ namespace trklet {
   //
   void AnalyzerTBout::formTracks(const StreamsTrack& streamsTrack,
                                  const StreamsStub& streamsStubs,
-                                 vector<vector<TTStubRef>>& tracks,
+                                 vector<pair<TTTrackRef, vector<TTStubRef>>>& tracks,
                                  int channel) {
     const int seedType = channel % channelAssignment_->numChannelsTrack();
     const int offset = channelAssignment_->offsetStub(channel);
@@ -353,21 +361,34 @@ namespace trklet {
           this->fill(frameTrack, stub);
         ttStubRefs.push_back(stub.first);
       }
-      tracks.push_back(ttStubRefs);
+      tracks.emplace_back(frameTrack.first, ttStubRefs);
     }
   }
 
   //
-  void AnalyzerTBout::associate(const vector<vector<TTStubRef>>& tracks,
+  void AnalyzerTBout::associate(const vector<pair<TTTrackRef, vector<TTStubRef>>>& tracks,
                                 const StubAssociation* ass,
                                 set<TPPtr>& tps,
-                                int& sum) const {
-    for (const vector<TTStubRef>& ttStubRefs : tracks) {
+                                int& sum,
+                                bool fill) const {
+    for (const pair<TTTrackRef, vector<TTStubRef>>& track : tracks) {
+      const vector<TTStubRef>& ttStubRefs = track.second;
       const vector<TPPtr>& tpPtrs = ass->associate(ttStubRefs);
       if (tpPtrs.empty())
         continue;
       sum++;
       copy(tpPtrs.begin(), tpPtrs.end(), inserter(tps, tps.begin()));
+      if (!fill)
+        continue;
+      for (const TPPtr& tpPtr : tpPtrs) {
+        const double phi0 = tpPtr->phi();
+        const double cot = sinh(tpPtr->eta());
+        const math::XYZPointD& v = tpPtr->vertex();
+        const double z0 = v.z() - cot * (v.x() * cos(phi0) + v.y() * sin(phi0));
+        const double dZ0 = z0 - track.first->z0();
+        hisResZ0_->Fill(dZ0);
+        profResZ0_->Fill(abs(tpPtr->eta()), abs(dZ0));
+      }
     }
   }
 

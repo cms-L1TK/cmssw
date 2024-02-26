@@ -19,45 +19,9 @@ namespace trackerTFP {
         trackId_(trackId),
         parent_(nullptr),
         stub_(nullptr),
-        layer_(-1),
         hitPattern_(0, setup_->numLayers()),
         trackPattern_(0, setup_->numLayers()),
         type_(combSkip) {
-    const DataFormats* dataFormats = formats_->dataFormats();
-    const DataFormat& dfInv2R = dataFormats->format(Variable::inv2R, Process::ht);
-    const DataFormat& dfPhiT = dataFormats->format(Variable::phiT, Process::ht);
-    const DataFormat& dfCot = dataFormats->format(Variable::cot, Process::gp);
-    const DataFormat& dfZT = dataFormats->format(Variable::zT, Process::gp);
-    DataFormatKF& dfX0 = formats_->format(VariableKF::x0);
-    DataFormatKF& dfX1 = formats_->format(VariableKF::x1);
-    DataFormatKF& dfX2 = formats_->format(VariableKF::x2);
-    DataFormatKF& dfX3 = formats_->format(VariableKF::x3);
-    DataFormatKF& dfC00 = formats_->format(VariableKF::C00);
-    DataFormatKF& dfC11 = formats_->format(VariableKF::C11);
-    DataFormatKF& dfC22 = formats_->format(VariableKF::C22);
-    DataFormatKF& dfC33 = formats_->format(VariableKF::C33);
-    DataFormatKF& dfC01 = formats_->format(VariableKF::C01);
-    DataFormatKF& dfC23 = formats_->format(VariableKF::C23);
-    DataFormatKF& dfH00 = formats_->format(VariableKF::H00);
-    DataFormatKF& dfv0 = formats_->format(VariableKF::v0);
-    DataFormatKF& dfv1 = formats_->format(VariableKF::v1);
-    DataFormatKF& dfChi20 = formats_->format(VariableKF::chi20);
-    DataFormatKF& dfChi21 = formats_->format(VariableKF::chi21);
-    // initial track parameter residuals w.r.t. found track
-    x0_ = dfX0.digi(0.);
-    x1_ = dfX1.digi(0.);
-    x2_ = dfX2.digi(0.);
-    x3_ = dfX3.digi(0.);
-    //
-    chi20_ = dfChi20.digi(0.);
-    chi21_ = dfChi21.digi(0.);
-    // initial uncertainties
-    C00_ = dfC00.digi(pow(dfInv2R.base(), 2) * pow(2, setup_->kfShiftInitialC00()) - .5 * dfC00.base());
-    C11_ = dfC11.digi(pow(dfPhiT.base(), 2) * pow(2, setup_->kfShiftInitialC11()) - .5 * dfC11.base());
-    C22_ = dfC22.digi(pow(dfCot.base(), 2) * pow(2, setup_->kfShiftInitialC22()) - .5 * dfC22.base());
-    C33_ = dfC33.digi(pow(dfZT.base(), 2) * pow(2, setup_->kfShiftInitialC33()) - .5 * dfC33.base());
-    C01_ = dfC01.digi(0.);
-    C23_ = dfC23.digi(0.);
     // first stub from first layer on input track with stubs
     for (int layer = setup_->numLayers() - 1; layer >= 0; layer--) {
       const vector<StubCTB*>& stubs = stubs_[layer];
@@ -67,18 +31,59 @@ namespace trackerTFP {
       stub_ = stubs.front();
       layer_ = layer;
     }
+    const DataFormats* dataFormats = formats_->dataFormats();
+    const DataFormat& dfInv2R = dataFormats->format(Variable::inv2R, Process::ht);
+    const DataFormat& dfPhiT = dataFormats->format(Variable::phiT, Process::ht);
+    const DataFormat& dfZT = dataFormats->format(Variable::zT, Process::gp);
+    DataFormatKF& dfX0 = formats_->format(VariableKF::x0, layer_);
+    DataFormatKF& dfX1 = formats_->format(VariableKF::x1, layer_);
+    DataFormatKF& dfX2 = formats_->format(VariableKF::x2, layer_);
+    DataFormatKF& dfX3 = formats_->format(VariableKF::x3, layer_);
+    DataFormatKF& dfC00 = formats_->format(VariableKF::C00, layer_);
+    DataFormatKF& dfC11 = formats_->format(VariableKF::C11, layer_);
+    DataFormatKF& dfC22 = formats_->format(VariableKF::C22, layer_);
+    DataFormatKF& dfC33 = formats_->format(VariableKF::C33, layer_);
+    DataFormatKF& dfC01 = formats_->format(VariableKF::C01, layer_);
+    DataFormatKF& dfC23 = formats_->format(VariableKF::C23, layer_);
+    DataFormatKF& dfH00 = formats_->format(VariableKF::H00, layer_);
+    DataFormatKF& dfv0 = formats_->format(VariableKF::v0, layer_);
+    DataFormatKF& dfv1 = formats_->format(VariableKF::v1, layer_);
+    DataFormatKF& dfChi20 = formats_->format(VariableKF::chi20, layer_);
+    DataFormatKF& dfChi21 = formats_->format(VariableKF::chi21, layer_);
+    // stub parameter
     H12_ = stub_->r() + dfH00.digi(setup_->chosenRofPhi() - setup_->chosenRofZ());
+    //cout << stub_->dPhi() << " " << pow(stub_->dPhi(), 2) << " " << dfv0.digi(pow(stub_->dPhi(), 2)) << " " << &dfv0 << " " << dfv0.base() << " " << dfv0.range() << " " << dfv0.width() << " " << layer_ << endl;
     v0_ = dfv0.digi(pow(stub_->dPhi(), 2));
     v1_ = dfv1.digi(pow(stub_->dZ(), 2));
     if (layer_ > 0)
       type_ = skip;
+    // initial track parameter residuals w.r.t. found track
+    x0_ = dfX0.digi(0.);
+    x1_ = dfX1.digi(0.);
+    x2_ = dfX2.digi(0.);
+    x3_ = dfX3.digi(0.);
+    //
+    chi20_ = dfChi20.digi(0.);
+    chi21_ = dfChi21.digi(0.);
+    // initial uncertainties
+    C00_ = dfC00.digi(pow(setup_->kfRangeFactor() * dfInv2R.base(), 2) * pow(2, setup_->kfShiftInitialC00()));
+    C11_ = dfC11.digi(pow(setup_->kfRangeFactor() * dfPhiT.base(), 2) * pow(2, setup_->kfShiftInitialC11()));
+    const double baseCot = (setup_->kfRangeFactor() * dfZT.base() + 2. * setup_->beamWindowZ()) / setup_->chosenRofZ();
+    C22_ = dfC22.digi(pow(baseCot, 2) * pow(2, setup_->kfShiftInitialC22()));
+    C33_ = dfC33.digi(pow(setup_->kfRangeFactor() * dfZT.base(), 2) * pow(2, setup_->kfShiftInitialC33()));
+    /*C00_ = dfC00.digi(dfC00.range() - .5 * dfC00.base());
+    C11_ = dfC11.digi(dfC11.range() - .5 * dfC11.base());
+    C22_ = dfC22.digi(dfC22.range() - .5 * dfC22.base());
+    C33_ = dfC33.digi(dfC33.range() - .5 * dfC33.base());*/
+    C01_ = dfC01.digi(0.);
+    C23_ = dfC23.digi(0.);
   }
 
   // combinatoric state constructor
   State::State(State* state, StubCTB* stub, int layer, Type type) : State(state) {
-    DataFormatKF& dfH00 = formats_->format(VariableKF::H00);
-    DataFormatKF& dfv0 = formats_->format(VariableKF::v0);
-    DataFormatKF& dfv1 = formats_->format(VariableKF::v1);
+    DataFormatKF& dfH00 = formats_->format(VariableKF::H00, layer);
+    DataFormatKF& dfv0 = formats_->format(VariableKF::v0, layer);
+    DataFormatKF& dfv1 = formats_->format(VariableKF::v1, layer);
     parent_ = state->parent();
     stub_ = stub;
     layer_ = layer;
@@ -90,9 +95,9 @@ namespace trackerTFP {
 
   // updated state constructor
   State::State(State* state, const vector<double>& doubles) : State(state) {
-    DataFormatKF& dfH00 = formats_->format(VariableKF::H00);
-    DataFormatKF& dfv0 = formats_->format(VariableKF::v0);
-    DataFormatKF& dfv1 = formats_->format(VariableKF::v1);
+    DataFormatKF& dfH00 = formats_->format(VariableKF::H00, layer_);
+    DataFormatKF& dfv0 = formats_->format(VariableKF::v0, layer_);
+    DataFormatKF& dfv1 = formats_->format(VariableKF::v1, layer_);
     parent_ = state;
     // updated track parameter and uncertainties
     x0_ = doubles[0];
@@ -162,6 +167,11 @@ namespace trackerTFP {
         post = false;
     }
     const int needed = setup_->kfMinLayers() - hits;
+    int availableSeed(0);
+    for (int k = setup_->kfMaxSeedLayer() - 1; k > layer; k--)
+      if (trackPattern_[k])
+        availableSeed++;
+    const int neededSeed = 2 - hits;
     const vector<StubCTB*>& stubs = stubs_[layer];
     const int pos = distance(stubs.begin(), find(stubs.begin(), stubs.end(), stub_)) + 1;
     // non trivial state handling
@@ -182,7 +192,7 @@ namespace trackerTFP {
       if (pos < (int)stubs.size()) {
         states.emplace_back(this, stubs[pos], layer, combSkip);
         return &states.back();
-      } else if (available > 0 && available >= needed && gaps < setup_->kfMaxGaps() && pre && post) {
+      } else if (available > 0 && available >= needed && gaps < setup_->kfMaxGaps() && pre && post && availableSeed >= neededSeed) {
         // pick first stub on next layer with stubs
         StubCTB* stub = nullptr;
         int nextLayer = layer + 1;

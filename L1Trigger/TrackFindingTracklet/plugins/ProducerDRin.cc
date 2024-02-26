@@ -112,7 +112,7 @@ namespace trklet {
 
   void ProducerDRin::produce(Event& iEvent, const EventSetup& iSetup) {
     // empty KFin products
-    const int numStreamsTracks = channelAssignment_->numNodesDR() * setup_->numRegions();
+    const int numStreamsTracks = setup_->numRegions();
     const int numStreamsStubs = numStreamsTracks * setup_->numLayers();
     StreamsStub acceptedStubs(numStreamsStubs);
     StreamsTrack acceptedTracks(numStreamsTracks);

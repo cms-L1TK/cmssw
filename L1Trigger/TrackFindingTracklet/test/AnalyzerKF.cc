@@ -22,6 +22,7 @@
 #include <TEfficiency.h>
 
 #include <vector>
+#include <utility>
 #include <deque>
 #include <set>
 #include <cmath>
@@ -156,7 +157,7 @@ namespace trklet {
     prof_->GetXaxis()->SetBinLabel(12, "max tp");
     // channel occupancy
     constexpr int maxOcc = 180;
-    const int numChannels = dataFormats_->numChannel(Process::kf);
+    const int numChannels = 1;
     hisChannel_ = dir.make<TH1F>("His Channel Occupancy", ";", maxOcc, -.5, maxOcc - .5);
     profChannel_ = dir.make<TProfile>("Prof Channel Occupancy", ";", numChannels, -.5, numChannels - .5);
     // resoultions
@@ -187,7 +188,6 @@ namespace trklet {
   }
 
   void AnalyzerKF::analyze(const Event& iEvent, const EventSetup& iSetup) {
-    static const int numChannel = dataFormats_->numChannel(Process::kf);
     static const int numLayers = setup_->numLayers();
     auto fill = [this](const TPPtr& tpPtr, TH1F* hisEta, TH1F* hisInv2R, TH1F* hisPT) {
       hisEta->Fill(tpPtr->eta());
@@ -228,45 +228,42 @@ namespace trklet {
     for (int region = 0; region < setup_->numRegions(); region++) {
       int nRegionStubs(0);
       int nRegionTracks(0);
-      for (int channel = 0; channel < numChannel; channel++) {
-        const int index = region * numChannel + channel;
-        const int offset = index * numLayers;
-        const StreamTrack& channelTracks = allTracks[index];
-        hisChannel_->Fill(channelTracks.size());
-        profChannel_->Fill(channel, channelTracks.size());
-        vector<TrackKF> tracks;
-        vector<StubKF> stubs;
-        vector<vector<StubKF*>> tracksStubs(channelTracks.size(), vector<StubKF*>(numLayers, nullptr));
-        tracks.reserve(channelTracks.size());
-        stubs.reserve(channelTracks.size() * numLayers);
-        for (int frame = 0; frame < (int)channelTracks.size(); frame++) {
-          tracks.emplace_back(channelTracks[frame], dataFormats_);
-          const double zT = dataFormats_->format(Variable::zT, Process::gp).digi(tracks.back().zT());
-          const double cot = zT / setup_->chosenRofZ() + tracks.back().cot();
-          const double eta = abs(asinh(cot));
-          int nLayers(0);
-          for (int layer = 0; layer < numLayers; layer++) {
-            const FrameStub& fs = allStubs[offset + layer][frame];
-            if (fs.first.isNull())
-              continue;
-            stubs.emplace_back(fs, dataFormats_);
-            tracksStubs[frame][layer] = &stubs.back();
-            hisLayers_->Fill(layer);
-            nLayers++;
-          }
-          hisNumLayers_->Fill(nLayers);
-          profNumLayers_->Fill(eta, nLayers);
+      const int offset = region * numLayers;
+      const StreamTrack& channelTracks = allTracks[region];
+      hisChannel_->Fill(channelTracks.size());
+      profChannel_->Fill(1, channelTracks.size());
+      vector<TrackKF> tracks;
+      vector<StubKF> stubs;
+      vector<vector<StubKF*>> tracksStubs(channelTracks.size(), vector<StubKF*>(numLayers, nullptr));
+      tracks.reserve(channelTracks.size());
+      stubs.reserve(channelTracks.size() * numLayers);
+      for (int frame = 0; frame < (int)channelTracks.size(); frame++) {
+        tracks.emplace_back(channelTracks[frame], dataFormats_);
+        const double zT = dataFormats_->format(Variable::zT, Process::gp).digi(tracks.back().zT());
+        const double cot = zT / setup_->chosenRofZ() + tracks.back().cot();
+        const double eta = abs(asinh(cot));
+        int nLayers(0);
+        for (int layer = 0; layer < numLayers; layer++) {
+          const FrameStub& fs = allStubs[offset + layer][frame];
+          if (fs.first.isNull())
+            continue;
+          stubs.emplace_back(fs, dataFormats_);
+          tracksStubs[frame][layer] = &stubs.back();
+          hisLayers_->Fill(layer);
+          nLayers++;
         }
-        nRegionStubs += stubs.size();
-        nRegionTracks += tracks.size();
-        if (!useMCTruth_)
-          continue;
-        int tmp(0);
-        associate(tracks, tracksStubs, region, selection, tpPtrsSelection, tmp, hisRes_, profRes_);
-        associate(
-            tracks, tracksStubs, region, reconstructable, tpPtrs, numMatched, vector<TH1F*>(), vector<TProfile*>());
-        associate(tracks, tracksStubs, region, selection, tpPtrsMax, tmp, vector<TH1F*>(), vector<TProfile*>(), false);
+        hisNumLayers_->Fill(nLayers);
+        profNumLayers_->Fill(eta, nLayers);
       }
+      nRegionStubs += stubs.size();
+      nRegionTracks += tracks.size();
+      if (!useMCTruth_)
+        continue;
+      int tmp(0);
+      associate(tracks, tracksStubs, region, selection, tpPtrsSelection, tmp, hisRes_, profRes_);
+      associate(
+          tracks, tracksStubs, region, reconstructable, tpPtrs, numMatched, vector<TH1F*>(), vector<TProfile*>());
+      associate(tracks, tracksStubs, region, selection, tpPtrsMax, tmp, vector<TH1F*>(), vector<TProfile*>(), false);
       numTracks += nRegionTracks;
       prof_->Fill(1, nRegionStubs);
       prof_->Fill(2, nRegionTracks);
@@ -376,7 +373,7 @@ namespace trklet {
         const double tpCot = sinh(tpPtr->eta());
         const double tpInv2R = -setup_->invPtToDphi() * tpPtr->charge() / tpPtr->pt();
         const math::XYZPointD& v = tpPtr->vertex();
-        const double tpZ0 = v.z() - cot * (v.x() * cos(phi0) + v.y() * sin(phi0));
+        const double tpZ0 = v.z() - tpCot * (v.x() * cos(tpPhi0) + v.y() * sin(tpPhi0));
         const double dCot = tpCot - cot;
         const double dZ0 = tpZ0 - z0;
         const double dInv2R = tpInv2R - inv2R;

@@ -79,10 +79,12 @@ namespace tt {
     TTDTC ttDTC() const { return TTDTC(numRegions_, numOverlappingRegions_, numDTCsPerRegion_); }
     // checks if stub collection is considered forming a reconstructable track
     bool reconstructable(const std::vector<TTStubRef>& ttStubRefs) const;
+    // cuts on tp phase space
+    bool tpCuts(const TrackingParticle& tp) const;
     // checks if tracking particle is selected for efficiency measurements
     bool useForAlgEff(const TrackingParticle& tp) const;
     // checks if tracking particle is selected for fake and duplicate rate measurements
-    bool useForReconstructable(const TrackingParticle& tp) const { return tpSelectorLoose_(tp); }
+    bool useForReconstructable(const TrackingParticle& tp) const;
     // stub layer id (barrel: 1 - 6, endcap: 11 - 15)
     int layerId(const TTStubRef& ttStubRef) const;
     // return tracklet layerId (barrel: [0-5], endcap: [6-10]) for given TTStubRef
@@ -149,11 +151,15 @@ namespace tt {
     // smallest address width of an BRAM18 configured as broadest simple dual port memory
     int widthAddrBRAM18() const { return widthAddrBRAM18_; }
     // number of frames betwen 2 resets of 18 BX packets
-    int numFrames() const { return numFrames_; }
+    int numFramesHigh() const { return numFramesHigh_; }
+    // number of frames betwen 2 resets of 18 BX packets
+    int numFramesLow() const { return numFramesLow_; }
     // number of frames needed per reset
     int numFramesInfra() const { return numFramesInfra_; }
     // number of valid frames per 18 BX packet
-    int numFramesIO() const { return numFramesIO_; }
+    int numFramesIOHigh() const { return numFramesIOHigh_; }
+    // number of valid frames per 18 BX packet
+    int numFramesIOLow() const { return numFramesIOLow_; }
     // number of valid frames per 8 BX packet
     int numFramesFE() const { return numFramesFE_; }
 
@@ -464,6 +470,8 @@ namespace tt {
     int kfMaxLayers() const { return kfMaxLayers_; }
     //
     int kfMaxGaps() const { return kfMaxGaps_; }
+    //
+    int kfMaxSeedLayer() const { return kfMaxSeedLayer_; }
     // search window of each track parameter in initial uncertainties
     double kfRangeFactor() const { return kfRangeFactor_; }
     // bases get shifted by this power of two wrt tfp output bases
@@ -660,7 +668,9 @@ namespace tt {
     // LHC bunch crossing rate in MHz
     double freqLHC_;
     // processing Frequency of DTC & TFP in MHz, has to be integer multiple of FreqLHC
-    double freqBE_;
+    double freqBEHigh_;
+    // processing Frequency of DTC & TFP in MHz, has to be integer multiple of FreqLHC
+    double freqBELow_;
     // number of events collected in front-end
     int tmpFE_;
     // time multiplexed period of track finding processor
@@ -843,6 +853,8 @@ namespace tt {
     int kfMaxLayers_;
     //
     int kfMaxGaps_;
+    //
+    int kfMaxSeedLayer_;
     // search window of each track parameter in initial uncertainties
     double kfRangeFactor_;
     // bases get shifted by this power of two wrt tfp output bases
@@ -911,9 +923,13 @@ namespace tt {
     // common Track finding
 
     // number of frames betwen 2 resets of 18 BX packets
-    int numFrames_;
+    int numFramesHigh_;
+    // number of frames betwen 2 resets of 18 BX packets
+    int numFramesLow_;
     // number of valid frames per 18 BX packet
-    int numFramesIO_;
+    int numFramesIOHigh_;
+    // number of valid frames per 18 BX packet
+    int numFramesIOLow_;
     // number of valid frames per 8 BX packet
     int numFramesFE_;
     // converts GeV in 1/cm

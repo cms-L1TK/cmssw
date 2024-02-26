@@ -4,6 +4,7 @@
 #include "DataFormats/L1TrackTrigger/interface/TTTypes.h"
 #include "L1Trigger/TrackTrigger/interface/Setup.h"
 #include "L1Trigger/TrackerTFP/interface/DataFormats.h"
+#include "L1Trigger/TrackerTFP/interface/LayerEncoding.h"
 #include "DataFormats/L1TrackTrigger/interface/TTTypes.h"
 
 #include <vector>
@@ -17,6 +18,7 @@ namespace trackerTFP {
     CleanTrackBuilder(const edm::ParameterSet& iConfig,
                       const tt::Setup* setup,
                       const DataFormats* dataFormats,
+                      const LayerEncoding* layerEncoding,
                       std::vector<StubCTB>& stubs,
                       std::vector<TrackCTB>& tracks);
     ~CleanTrackBuilder() {}
@@ -94,6 +96,7 @@ namespace trackerTFP {
                     std::deque<Track*>& tracks,
                     std::deque<Stub*>& stubs,
                     double inv2R,
+                    int zT,
                     int trackId);
     //
     void route(std::vector<std::deque<Track*>>& inputs, std::deque<Track*>& output) const;
@@ -115,6 +118,8 @@ namespace trackerTFP {
     const tt::Setup* setup_;
     // provides dataformats
     const DataFormats* dataFormats_;
+    //
+    const LayerEncoding* layerEncoding_;
     // container of internal stubs
     std::vector<Stub> stubs_;
     // container of internal tracks

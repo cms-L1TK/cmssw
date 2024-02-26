@@ -81,14 +81,36 @@ namespace trackerTFP {
           output.push_back(nullptr);
       }
       // truncate if desired
-      if (enableTruncation_ && (int)output.size() > setup_->numFrames()) {
-        const auto limit = next(output.begin(), setup_->numFrames());
+      if (enableTruncation_ && (int)output.size() > setup_->numFramesHigh()) {
+        const auto limit = next(output.begin(), setup_->numFramesHigh());
         copy_if(limit, output.end(), back_inserter(truncated), [](const StubGP* stub) { return stub; });
         output.erase(limit, output.end());
       }
       // remove all gaps between end and last stub
       for (auto it = output.end(); it != output.begin();)
         it = (*--it) ? output.begin() : output.erase(it);
+      /*if (channelOut == 8) {
+        for (StubGP* stub : output) {
+          if (!stub)
+            continue;
+          const TTStubRef& ttStubRef = stub->frame().first;
+          const int layerId = setup_->layerId(ttStubRef);
+          const vector<int>& le = layerEncoding_->layerEncoding(zT);
+          for (int i : le)
+            cout << i << " ";
+          cout << "| " << zT << " ";
+          const auto it = find(le.begin(), le.end(), layerId);
+          const int kfLayerId = min((int)distance(le.begin(), it), setup_->numLayers() - 1);
+          cout << stub->layer() << " " << layerId << " " << kfLayerId << " ";
+          int i(0);
+          for (const vector<StubPP*>& stream : streamsIn) {
+            if (find_if(stream.begin(), stream.end(), [&ttStubRef]( StubPP* stub ){ return stub && stub->frame().first == ttStubRef; }) != stream.end())
+              cout << i << endl;
+            i++;
+          }
+          throw cms::Exception("...");
+        }
+      }*/
     }
   }
 

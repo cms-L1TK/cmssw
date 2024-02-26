@@ -67,7 +67,7 @@ namespace trackerTFP {
     // converts double to int
     int integer(double d) const { return std::floor(d / base_ + 1.e-12); }
     // converts double to int, shifts value to fit into range
-    int integerF(double d) const { return integer(std::max((twos_ ? -limit() : 0), std::min(d, limit()))); }
+    //int integerF(double d) const { return integer(std::max((twos_ ? -limit() : 0), std::min(d, limit()))); }
     // converts double to int and back to double
     double digi(double d) const { return floating(integer(d)); }
     // converts binary integer value to twos complement integer value
@@ -77,7 +77,7 @@ namespace trackerTFP {
     // converts floating point value to binary integer value
     int toUnsigned(double d) const { return this->integer(d) + std::pow(2, width_) / 2; }
     // biggest representable floating point value
-    double limit() const { return (range_ - base_) / (twos_ ? 2. : 1.); }
+    //double limit() const { return (range_ - base_) / (twos_ ? 2. : 1.); }
     // returns false if data format would oferflow for this double value
     bool inRange(double d, bool digi = false) const {
       const double range = digi ? base_ * pow(2, width_) : range_;
