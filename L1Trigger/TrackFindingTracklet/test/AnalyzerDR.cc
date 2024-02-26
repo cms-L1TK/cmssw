@@ -151,7 +151,7 @@ namespace trklet {
     prof_->GetXaxis()->SetBinLabel(10, "Perfect TPs");
     // channel occupancy
     constexpr int maxOcc = 180;
-    const int numChannels = channelAssignment_->numNodesDR();
+    const int numChannels = 1;
     hisChannel_ = dir.make<TH1F>("His Channel Occupancy", ";", maxOcc, -.5, maxOcc - .5);
     profChannel_ = dir.make<TProfile>("Prof Channel Occupancy", ";", numChannels, -.5, numChannels - .5);
   }
@@ -190,44 +190,41 @@ namespace trklet {
     int allMatched(0);
     int allTracks(0);
     for (int region = 0; region < setup_->numRegions(); region++) {
-      const int offset = region * channelAssignment_->numNodesDR();
       int nStubs(0);
       int nTracks(0);
       int nLost(0);
-      for (int channel = 0; channel < channelAssignment_->numNodesDR(); channel++) {
-        vector<vector<TTStubRef>> tracks;
-        formTracks(acceptedTracks, acceptedStubs, tracks, offset + channel);
-        vector<vector<TTStubRef>> lost;
-        formTracks(lostTracks, lostStubs, lost, offset + channel);
-        nTracks += tracks.size();
-        nStubs += accumulate(tracks.begin(), tracks.end(), 0, [](int& sum, const vector<TTStubRef>& track) {
-          return sum += (int)track.size();
-        });
-        nLost += lost.size();
-        allTracks += tracks.size();
-        if (!useMCTruth_)
-          continue;
-        int tmp(0);
-        associate(tracks, selection, tpPtrsSelection, tmp);
-        associate(tracks, selection, tpPtrsPerfect, tmp, true);
-        associate(lost, selection, tpPtrsLost, tmp);
-        associate(tracks, reconstructable, tpPtrs, allMatched);
-        const StreamTrack& stream = acceptedTracks[offset + channel];
-        const auto end =
-            find_if(stream.rbegin(), stream.rend(), [](const FrameTrack& frame) { return frame.first.isNonnull(); });
-        const int size = distance(stream.begin(), end.base()) - 1;
-        hisChannel_->Fill(size);
-        profChannel_->Fill(channel, size);
-      }
+      vector<vector<TTStubRef>> tracks;
+      formTracks(acceptedTracks, acceptedStubs, tracks, region);
+      vector<vector<TTStubRef>> lost;
+      formTracks(lostTracks, lostStubs, lost, region);
+      nTracks += tracks.size();
+      nStubs += accumulate(tracks.begin(), tracks.end(), 0, [](int& sum, const vector<TTStubRef>& track) {
+        return sum += (int)track.size();
+      });
+      nLost += lost.size();
+      allTracks += tracks.size();
+      if (!useMCTruth_)
+        continue;
+      int tmp(0);
+      associate(tracks, selection, tpPtrsSelection, tmp);
+      associate(tracks, selection, tpPtrsPerfect, tmp, true);
+      associate(lost, selection, tpPtrsLost, tmp);
+      associate(tracks, reconstructable, tpPtrs, allMatched);
+      const StreamTrack& stream = acceptedTracks[region];
+      const auto end =
+          find_if(stream.rbegin(), stream.rend(), [](const FrameTrack& frame) { return frame.first.isNonnull(); });
+      const int size = distance(stream.begin(), end.base()) - 1;
+      hisChannel_->Fill(size);
+      profChannel_->Fill(1, size);
       prof_->Fill(1, nStubs);
       prof_->Fill(2, nTracks);
       prof_->Fill(3, nLost);
+      vector<TPPtr> recovered;
+      recovered.reserve(tpPtrsLost.size());
+      set_intersection(tpPtrsLost.begin(), tpPtrsLost.end(), tpPtrs.begin(), tpPtrs.end(), back_inserter(recovered));
+      for (const TPPtr& tpPtr : recovered)
+        tpPtrsLost.erase(tpPtr);
     }
-    vector<TPPtr> recovered;
-    recovered.reserve(tpPtrsLost.size());
-    set_intersection(tpPtrsLost.begin(), tpPtrsLost.end(), tpPtrs.begin(), tpPtrs.end(), back_inserter(recovered));
-    for (const TPPtr& tpPtr : recovered)
-      tpPtrsLost.erase(tpPtr);
     prof_->Fill(4, allMatched);
     prof_->Fill(5, allTracks);
     prof_->Fill(6, tpPtrs.size());

@@ -18,6 +18,7 @@
 
 #include <TProfile.h>
 #include <TH1F.h>
+#include <TEfficiency.h>
 
 #include <vector>
 #include <deque>
@@ -81,6 +82,18 @@ namespace trackerTFP {
     TH1F* hisLayers_;
     TH1F* hisNumLayers_;
     TProfile* profNumLayers_;
+    TH1F* hisEffEta_;
+    TH1F* hisEffEtaTotal_;
+    TEfficiency* effEta_;
+    TH1F* hisEffZT_;
+    TH1F* hisEffZTTotal_;
+    TEfficiency* effZT_;
+    TH1F* hisEffInv2R_;
+    TH1F* hisEffInv2RTotal_;
+    TEfficiency* effInv2R_;
+    TH1F* hisEffPT_;
+    TH1F* hisEffPTTotal_;
+    TEfficiency* effPT_;
 
     // printout
     stringstream log_;
@@ -127,6 +140,21 @@ namespace trackerTFP {
     prof_->GetXaxis()->SetBinLabel(7, "Found selected TPs");
     prof_->GetXaxis()->SetBinLabel(8, "Truncated TPs");
     prof_->GetXaxis()->SetBinLabel(9, "All TPs");
+    // Efficiencies
+    hisEffEtaTotal_ = dir.make<TH1F>("HisTPEtaTotal", ";", 48, -2.4, 2.4);
+    hisEffEta_ = dir.make<TH1F>("HisTPEta", ";", 48, -2.4, 2.4);
+    effEta_ = dir.make<TEfficiency>("EffEta", ";", 48, -2.4, 2.4);
+    const int zTBins = setup_->gpNumBinsZT();
+    hisEffZTTotal_ = dir.make<TH1F>("HisTPZTTotal", ";", zTBins, -zTBins / 2, zTBins / 2);
+    hisEffZT_ = dir.make<TH1F>("HisTPZT", ";", zTBins, -zTBins / 2, zTBins / 2);
+    effZT_ = dir.make<TEfficiency>("EffZT", ";", zTBins, -zTBins / 2, zTBins / 2);
+    const double rangeInv2R = dataFormats_->format(Variable::inv2R, Process::dr).range();
+    hisEffInv2R_ = dir.make<TH1F>("HisTPInv2R", ";", 32, -rangeInv2R / 2., rangeInv2R / 2.);
+    hisEffInv2RTotal_ = dir.make<TH1F>("HisTPInv2RTotal", ";", 32, -rangeInv2R / 2., rangeInv2R / 2.);
+    effInv2R_ = dir.make<TEfficiency>("EffInv2R", ";", 32, -rangeInv2R / 2., rangeInv2R / 2.);
+    hisEffPT_ = dir.make<TH1F>("HisTPPT", ";", 100, 0, 100);
+    hisEffPTTotal_ = dir.make<TH1F>("HisTPPTTotal", ";", 100, 0, 100);
+    effPT_ = dir.make<TEfficiency>("EffPT", ";", 100, 0, 100);
     // binInv2R occupancy
     constexpr int maxOcc = 180;
     const int numChannel = dataFormats_->numChannel(Process::ht);
@@ -139,6 +167,17 @@ namespace trackerTFP {
   }
 
   void AnalyzerHT::analyze(const Event& iEvent, const EventSetup& iSetup) {
+    auto fill = [this](const TPPtr& tpPtr, TH1F* hisEta, TH1F* hisZT, TH1F* hisInv2R, TH1F* hisPT) {
+      const double tpPhi0 = tpPtr->phi();
+      const double tpCot = sinh(tpPtr->eta());
+      const math::XYZPointD& v = tpPtr->vertex();
+      const double tpZ0 = v.z() - tpCot * (v.x() * cos(tpPhi0) + v.y() * sin(tpPhi0));
+      const double tpZT = tpZ0 + tpCot * setup_->chosenRofZ();
+      hisEta->Fill(tpPtr->eta());
+      hisZT->Fill(dataFormats_->format(Variable::zT, Process::gp).integer(tpZT));
+      hisInv2R->Fill(tpPtr->charge() / tpPtr->pt() * setup_->invPtToDphi());
+      hisPT->Fill(tpPtr->pt());
+    };
     // read in ht products
     Handle<StreamsStub> handleAccepted;
     iEvent.getByToken<StreamsStub>(edGetTokenAccepted_, handleAccepted);
@@ -155,6 +194,8 @@ namespace trackerTFP {
       Handle<StubAssociation> handleReconstructable;
       iEvent.getByToken<StubAssociation>(edGetTokenReconstructable_, handleReconstructable);
       reconstructable = handleReconstructable.product();
+      for (const auto& p : selection->getTrackingParticleToTTStubsMap())
+        fill(p.first, hisEffEtaTotal_, hisEffZTTotal_, hisEffInv2RTotal_, hisEffPTTotal_);
     }
     // analyze ht products and associate found tracks with reconstrucable TrackingParticles
     set<TPPtr> tpPtrs;
@@ -190,6 +231,8 @@ namespace trackerTFP {
       prof_->Fill(2, nTracks);
       prof_->Fill(3, nTruncated);
     }
+    for (const TPPtr& tpPtr : tpPtrsSelection)
+      fill(tpPtr, hisEffEta_, hisEffZT_, hisEffInv2R_, hisEffPT_);
     vector<TPPtr> recovered;
     recovered.reserve(tpPtrsTruncated.size());
     set_intersection(
@@ -207,6 +250,15 @@ namespace trackerTFP {
   void AnalyzerHT::endJob() {
     if (nEvents_ == 0)
       return;
+    // effi
+    effEta_->SetPassedHistogram(*hisEffEta_, "f");
+    effEta_->SetTotalHistogram(*hisEffEtaTotal_, "f");
+    effZT_->SetPassedHistogram(*hisEffZT_, "f");
+    effZT_->SetTotalHistogram(*hisEffZTTotal_, "f");
+    effInv2R_->SetPassedHistogram(*hisEffInv2R_, "f");
+    effInv2R_->SetTotalHistogram(*hisEffInv2RTotal_, "f");
+    effPT_->SetPassedHistogram(*hisEffPT_, "f");
+    effPT_->SetTotalHistogram(*hisEffPTTotal_, "f");
     // printout HT summary
     const double totalTPs = prof_->GetBinContent(9);
     const double numStubs = prof_->GetBinContent(1);

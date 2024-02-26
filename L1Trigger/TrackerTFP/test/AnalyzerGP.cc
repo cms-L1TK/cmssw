@@ -14,9 +14,11 @@
 
 #include "SimTracker/TrackTriggerAssociation/interface/StubAssociation.h"
 #include "L1Trigger/TrackTrigger/interface/Setup.h"
+#include "L1Trigger/TrackerTFP/interface/DataFormats.h"
 
 #include <TProfile.h>
 #include <TH1F.h>
+#include <TEfficiency.h>
 
 #include <vector>
 #include <set>
@@ -51,9 +53,13 @@ namespace trackerTFP {
     // ED input token of TTStubRef to TPPtr association for tracking efficiency
     EDGetTokenT<StubAssociation> edGetTokenAss_;
     // Setup token
-    ESGetToken<Setup, SetupRcd> esGetToken_;
+    ESGetToken<Setup, SetupRcd> esGetTokenSetup_;
+    // DataFormats token
+    ESGetToken<DataFormats, DataFormatsRcd> esGetTokenDataFormats_;
     // stores, calculates and provides run-time constants
     const Setup* setup_ = nullptr;
+    // helper class to extract structured data from tt::Frames
+    const DataFormats* dataFormats_ = nullptr;
     // enables analyze of TPs
     bool useMCTruth_;
     //
@@ -64,6 +70,18 @@ namespace trackerTFP {
     TProfile* prof_;
     TProfile* profChannel_;
     TH1F* hisChannel_;
+    TH1F* hisEffEta_;
+    TH1F* hisEffEtaTotal_;
+    TEfficiency* effEta_;
+    TH1F* hisEffZT_;
+    TH1F* hisEffZTTotal_;
+    TEfficiency* effZT_;
+    TH1F* hisEffInv2R_;
+    TH1F* hisEffInv2RTotal_;
+    TEfficiency* effInv2R_;
+    TH1F* hisEffPT_;
+    TH1F* hisEffPTTotal_;
+    TEfficiency* effPT_;
 
     // printout
     stringstream log_;
@@ -81,8 +99,9 @@ namespace trackerTFP {
       const auto& inputTagAss = iConfig.getParameter<InputTag>("InputTagSelection");
       edGetTokenAss_ = consumes<StubAssociation>(inputTagAss);
     }
-    // book ES product
-    esGetToken_ = esConsumes<Setup, SetupRcd, Transition::BeginRun>();
+    // book ES products
+    esGetTokenSetup_ = esConsumes<Setup, SetupRcd, Transition::BeginRun>();
+    esGetTokenDataFormats_ = esConsumes<DataFormats, DataFormatsRcd, Transition::BeginRun>();
     // log config
     log_.setf(ios::fixed, ios::floatfield);
     log_.precision(4);
@@ -90,7 +109,9 @@ namespace trackerTFP {
 
   void AnalyzerGP::beginRun(const Run& iEvent, const EventSetup& iSetup) {
     // helper class to store configurations
-    setup_ = &iSetup.getData(esGetToken_);
+    setup_ = &iSetup.getData(esGetTokenSetup_);
+    // helper class to extract structured data from tt::Frames
+    dataFormats_ = &iSetup.getData(esGetTokenDataFormats_);
     // book histograms
     Service<TFileService> fs;
     TFileDirectory dir;
@@ -100,6 +121,21 @@ namespace trackerTFP {
     prof_->GetXaxis()->SetBinLabel(2, "Truncated Stubs");
     prof_->GetXaxis()->SetBinLabel(3, "Found TPs");
     prof_->GetXaxis()->SetBinLabel(4, "Selected TPs");
+    // Efficiencies
+    hisEffEtaTotal_ = dir.make<TH1F>("HisTPEtaTotal", ";", 48, -2.4, 2.4);
+    hisEffEta_ = dir.make<TH1F>("HisTPEta", ";", 48, -2.4, 2.4);
+    effEta_ = dir.make<TEfficiency>("EffEta", ";", 48, -2.4, 2.4);
+    const int zTBins = setup_->gpNumBinsZT();
+    hisEffZTTotal_ = dir.make<TH1F>("HisTPZTTotal", ";", zTBins, -zTBins / 2, zTBins / 2);
+    hisEffZT_ = dir.make<TH1F>("HisTPZT", ";", zTBins, -zTBins / 2, zTBins / 2);
+    effZT_ = dir.make<TEfficiency>("EffZT", ";", zTBins, -zTBins / 2, zTBins / 2);
+    const double rangeInv2R = dataFormats_->format(Variable::inv2R, Process::dr).range();
+    hisEffInv2R_ = dir.make<TH1F>("HisTPInv2R", ";", 32, -rangeInv2R / 2., rangeInv2R / 2.);
+    hisEffInv2RTotal_ = dir.make<TH1F>("HisTPInv2RTotal", ";", 32, -rangeInv2R / 2., rangeInv2R / 2.);
+    effInv2R_ = dir.make<TEfficiency>("EffInv2R", ";", 32, -rangeInv2R / 2., rangeInv2R / 2.);
+    hisEffPT_ = dir.make<TH1F>("HisTPPT", ";", 100, 0, 100);
+    hisEffPTTotal_ = dir.make<TH1F>("HisTPPTTotal", ";", 100, 0, 100);
+    effPT_ = dir.make<TEfficiency>("EffPT", ";", 100, 0, 100);
     // channel occupancy
     constexpr int maxOcc = 180;
     const int numChannels = setup_->numSectors();
@@ -108,6 +144,17 @@ namespace trackerTFP {
   }
 
   void AnalyzerGP::analyze(const Event& iEvent, const EventSetup& iSetup) {
+    auto fill = [this](const TPPtr& tpPtr, TH1F* hisEta, TH1F* hisZT, TH1F* hisInv2R, TH1F* hisPT) {
+      const double tpPhi0 = tpPtr->phi();
+      const double tpCot = sinh(tpPtr->eta());
+      const math::XYZPointD& v = tpPtr->vertex();
+      const double tpZ0 = v.z() - tpCot * (v.x() * cos(tpPhi0) + v.y() * sin(tpPhi0));
+      const double tpZT = tpZ0 + tpCot * setup_->chosenRofZ();
+      hisEta->Fill(tpPtr->eta());
+      hisZT->Fill(dataFormats_->format(Variable::zT, Process::gp).integer(tpZT));
+      hisInv2R->Fill(tpPtr->charge() / tpPtr->pt() * setup_->invPtToDphi());
+      hisPT->Fill(tpPtr->pt());
+    };
     // read in gp products
     Handle<StreamsStub> handleAccepted;
     iEvent.getByToken<StreamsStub>(edGetTokenAccepted_, handleAccepted);
@@ -120,6 +167,8 @@ namespace trackerTFP {
       iEvent.getByToken<StubAssociation>(edGetTokenAss_, handleAss);
       stubAssociation = handleAss.product();
       prof_->Fill(4, stubAssociation->numTPs());
+      for (const auto& p : stubAssociation->getTrackingParticleToTTStubsMap())
+        fill(p.first, hisEffEtaTotal_, hisEffZTTotal_, hisEffInv2RTotal_, hisEffPTTotal_);
     }
     // analyze gp products and find still reconstrucable TrackingParticles
     set<TPPtr> setTPPtr;
@@ -156,6 +205,8 @@ namespace trackerTFP {
       prof_->Fill(1, nStubsAccepted);
       prof_->Fill(2, nStubsTruncated);
     }
+    for (const TPPtr& tpPtr : setTPPtr)
+      fill(tpPtr, hisEffEta_, hisEffZT_, hisEffInv2R_, hisEffPT_);
     prof_->Fill(3, setTPPtr.size());
     nEvents_++;
   }
@@ -163,6 +214,15 @@ namespace trackerTFP {
   void AnalyzerGP::endJob() {
     if (nEvents_ == 0)
       return;
+    // effi
+    effEta_->SetPassedHistogram(*hisEffEta_, "f");
+    effEta_->SetTotalHistogram(*hisEffEtaTotal_, "f");
+    effZT_->SetPassedHistogram(*hisEffZT_, "f");
+    effZT_->SetTotalHistogram(*hisEffZTTotal_, "f");
+    effInv2R_->SetPassedHistogram(*hisEffInv2R_, "f");
+    effInv2R_->SetTotalHistogram(*hisEffInv2RTotal_, "f");
+    effPT_->SetPassedHistogram(*hisEffPT_, "f");
+    effPT_->SetTotalHistogram(*hisEffPTTotal_, "f");
     // printout GP summary
     const double numStubs = prof_->GetBinContent(1);
     const double numStubsLost = prof_->GetBinContent(2);

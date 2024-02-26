@@ -30,58 +30,88 @@ namespace trackerTFP {
         tracks_(tracks),
         stubs_(stubs),
         layer_(0),
-        x0_(&kalmanFilterFormats_->format(VariableKF::x0)),
-        x1_(&kalmanFilterFormats_->format(VariableKF::x1)),
-        x2_(&kalmanFilterFormats_->format(VariableKF::x2)),
-        x3_(&kalmanFilterFormats_->format(VariableKF::x3)),
-        H00_(&kalmanFilterFormats_->format(VariableKF::H00)),
-        H12_(&kalmanFilterFormats_->format(VariableKF::H12)),
-        m0_(&kalmanFilterFormats_->format(VariableKF::m0)),
-        m1_(&kalmanFilterFormats_->format(VariableKF::m1)),
-        v0_(&kalmanFilterFormats_->format(VariableKF::v0)),
-        v1_(&kalmanFilterFormats_->format(VariableKF::v1)),
-        r0_(&kalmanFilterFormats_->format(VariableKF::r0)),
-        r1_(&kalmanFilterFormats_->format(VariableKF::r1)),
-        S00_(&kalmanFilterFormats_->format(VariableKF::S00)),
-        S01_(&kalmanFilterFormats_->format(VariableKF::S01)),
-        S12_(&kalmanFilterFormats_->format(VariableKF::S12)),
-        S13_(&kalmanFilterFormats_->format(VariableKF::S13)),
-        K00_(&kalmanFilterFormats_->format(VariableKF::K00)),
-        K10_(&kalmanFilterFormats_->format(VariableKF::K10)),
-        K21_(&kalmanFilterFormats_->format(VariableKF::K21)),
-        K31_(&kalmanFilterFormats_->format(VariableKF::K31)),
-        R00_(&kalmanFilterFormats_->format(VariableKF::R00)),
-        R11_(&kalmanFilterFormats_->format(VariableKF::R11)),
-        R00Rough_(&kalmanFilterFormats_->format(VariableKF::R00Rough)),
-        R11Rough_(&kalmanFilterFormats_->format(VariableKF::R11Rough)),
-        invR00Approx_(&kalmanFilterFormats_->format(VariableKF::invR00Approx)),
-        invR11Approx_(&kalmanFilterFormats_->format(VariableKF::invR11Approx)),
-        invR00Cor_(&kalmanFilterFormats_->format(VariableKF::invR00Cor)),
-        invR11Cor_(&kalmanFilterFormats_->format(VariableKF::invR11Cor)),
-        invR00_(&kalmanFilterFormats_->format(VariableKF::invR00)),
-        invR11_(&kalmanFilterFormats_->format(VariableKF::invR11)),
-        C00_(&kalmanFilterFormats_->format(VariableKF::C00)),
-        C01_(&kalmanFilterFormats_->format(VariableKF::C01)),
-        C11_(&kalmanFilterFormats_->format(VariableKF::C11)),
-        C22_(&kalmanFilterFormats_->format(VariableKF::C22)),
-        C23_(&kalmanFilterFormats_->format(VariableKF::C23)),
-        C33_(&kalmanFilterFormats_->format(VariableKF::C33)),
-        r02_(&kalmanFilterFormats_->format(VariableKF::r02)),
-        r12_(&kalmanFilterFormats_->format(VariableKF::r12)),
-        chi20_(&kalmanFilterFormats_->format(VariableKF::chi20)),
-        chi21_(&kalmanFilterFormats_->format(VariableKF::chi21)) {
-    C00_->updateRangeActual(pow(dataFormats_->base(Variable::inv2R, Process::ht), 2) *
-                                pow(2, setup_->kfShiftInitialC00()) -
-                            .5 * C00_->base());
-    C11_->updateRangeActual(pow(dataFormats_->base(Variable::phiT, Process::ht), 2) *
-                                pow(2, setup_->kfShiftInitialC11()) -
-                            .5 * C11_->base());
-    C22_->updateRangeActual(pow(dataFormats_->base(Variable::cot, Process::gp), 2) *
-                                pow(2, setup_->kfShiftInitialC22()) -
-                            .5 * C22_->base());
-    C33_->updateRangeActual(pow(dataFormats_->base(Variable::zT, Process::gp), 2) *
-                                pow(2, setup_->kfShiftInitialC33()) -
-                            .5 * C33_->base());
+        x0_(setup_->numLayers()),
+        x1_(setup_->numLayers()),
+        x2_(setup_->numLayers()),
+        x3_(setup_->numLayers()),
+        H00_(setup_->numLayers()),
+        H12_(setup_->numLayers()),
+        m0_(setup_->numLayers()),
+        m1_(setup_->numLayers()),
+        v0_(setup_->numLayers()),
+        v1_(setup_->numLayers()),
+        r0_(setup_->numLayers()),
+        r1_(setup_->numLayers()),
+        S00_(setup_->numLayers()),
+        S01_(setup_->numLayers()),
+        S12_(setup_->numLayers()),
+        S13_(setup_->numLayers()),
+        K00_(setup_->numLayers()),
+        K10_(setup_->numLayers()),
+        K21_(setup_->numLayers()),
+        K31_(setup_->numLayers()),
+        R00_(setup_->numLayers()),
+        R11_(setup_->numLayers()),
+        R00Rough_(setup_->numLayers()),
+        R11Rough_(setup_->numLayers()),
+        invR00Approx_(setup_->numLayers()),
+        invR11Approx_(setup_->numLayers()),
+        invR00Cor_(setup_->numLayers()),
+        invR11Cor_(setup_->numLayers()),
+        invR00_(setup_->numLayers()),
+        invR11_(setup_->numLayers()),
+        C00_(setup_->numLayers()),
+        C01_(setup_->numLayers()),
+        C11_(setup_->numLayers()),
+        C22_(setup_->numLayers()),
+        C23_(setup_->numLayers()),
+        C33_(setup_->numLayers()),
+        r02_(setup_->numLayers()),
+        r12_(setup_->numLayers()),
+        chi20_(setup_->numLayers()),
+        chi21_(setup_->numLayers()) {
+    for (int layer = 0; layer < setup_->numLayers(); layer++) {
+      x0_[layer] = &kalmanFilterFormats_->format(VariableKF::x0, layer);
+      x1_[layer] = &kalmanFilterFormats_->format(VariableKF::x1, layer);
+      x2_[layer] = &kalmanFilterFormats_->format(VariableKF::x2, layer);
+      x3_[layer] = &kalmanFilterFormats_->format(VariableKF::x3, layer);
+      H00_[layer] = &kalmanFilterFormats_->format(VariableKF::H00, layer);
+      H12_[layer] = &kalmanFilterFormats_->format(VariableKF::H12, layer);
+      m0_[layer] = &kalmanFilterFormats_->format(VariableKF::m0, layer);
+      m1_[layer] = &kalmanFilterFormats_->format(VariableKF::m1, layer);
+      v0_[layer] = &kalmanFilterFormats_->format(VariableKF::v0, layer);
+      v1_[layer] = &kalmanFilterFormats_->format(VariableKF::v1, layer);
+      r0_[layer] = &kalmanFilterFormats_->format(VariableKF::r0, layer);
+      r1_[layer] = &kalmanFilterFormats_->format(VariableKF::r1, layer);
+      S00_[layer] = &kalmanFilterFormats_->format(VariableKF::S00, layer);
+      S01_[layer] = &kalmanFilterFormats_->format(VariableKF::S01, layer);
+      S12_[layer] = &kalmanFilterFormats_->format(VariableKF::S12, layer);
+      S13_[layer] = &kalmanFilterFormats_->format(VariableKF::S13, layer);
+      K00_[layer] = &kalmanFilterFormats_->format(VariableKF::K00, layer);
+      K10_[layer] = &kalmanFilterFormats_->format(VariableKF::K10, layer);
+      K21_[layer] = &kalmanFilterFormats_->format(VariableKF::K21, layer);
+      K31_[layer] = &kalmanFilterFormats_->format(VariableKF::K31, layer);
+      R00_[layer] = &kalmanFilterFormats_->format(VariableKF::R00, layer);
+      R11_[layer] = &kalmanFilterFormats_->format(VariableKF::R11, layer);
+      R00Rough_[layer] = &kalmanFilterFormats_->format(VariableKF::R00Rough, layer);
+      R11Rough_[layer] = &kalmanFilterFormats_->format(VariableKF::R11Rough, layer);
+      invR00Approx_[layer] = &kalmanFilterFormats_->format(VariableKF::invR00Approx, layer);
+      invR11Approx_[layer] = &kalmanFilterFormats_->format(VariableKF::invR11Approx, layer);
+      invR00Cor_[layer] = &kalmanFilterFormats_->format(VariableKF::invR00Cor, layer);
+      invR11Cor_[layer] = &kalmanFilterFormats_->format(VariableKF::invR11Cor, layer);
+      invR00_[layer] = &kalmanFilterFormats_->format(VariableKF::invR00, layer);
+      invR11_[layer] = &kalmanFilterFormats_->format(VariableKF::invR11, layer);
+      C00_[layer] = &kalmanFilterFormats_->format(VariableKF::C00, layer);
+      C01_[layer] = &kalmanFilterFormats_->format(VariableKF::C01, layer);
+      C11_[layer] = &kalmanFilterFormats_->format(VariableKF::C11, layer);
+      C22_[layer] = &kalmanFilterFormats_->format(VariableKF::C22, layer);
+      C23_[layer] = &kalmanFilterFormats_->format(VariableKF::C23, layer);
+      C33_[layer] = &kalmanFilterFormats_->format(VariableKF::C33, layer);
+      r02_[layer] = &kalmanFilterFormats_->format(VariableKF::r02, layer);
+      r12_[layer] = &kalmanFilterFormats_->format(VariableKF::r12, layer);
+      chi20_[layer] = &kalmanFilterFormats_->format(VariableKF::chi20, layer);
+      chi21_[layer] = &kalmanFilterFormats_->format(VariableKF::chi21, layer);
+    }
   }
 
   // fill output products
@@ -126,7 +156,33 @@ namespace trackerTFP {
         const TTBV& maybePattern = layerEncoding_->maybePattern(track->zT());
         states_.emplace_back(kalmanFilterFormats_, track, stubs, maybePattern, trackId++);
         stream.insert(stream.end(), size - 1, nullptr);
-        stream.push_back(&states_.back());
+        State* state = &states_.back();
+        const TTBV& pattern = state->trackPattern();
+        const int zT = dataFormats_->format(Variable::zT, Process:: ctb).integer(track->zT());
+        bool invalid = false;
+        const int minLayers = ((zT == -4 || zT == 3) && (!pattern.test(5) && !pattern.test(7))) ? 4 : setup_->htMinLayers();
+        // check min layers req
+        int nHits(0);
+        int last(-1);
+        for (int layer = 0; layer < setup_->numLayers(); layer++)
+          if(pattern.test(layer))
+            if(++nHits == minLayers)
+              last = layer;
+        if (nHits < minLayers)
+          invalid = true;
+        // double gap
+        TTBV p = pattern;
+        p |= maybePattern;
+        for (int layer = 1; layer < last; layer++)
+          if (!p.test(layer - 1) && !p.test(layer))
+            invalid =  true;
+        // too many gaps
+        if (p.count(0, last, false) > setup_->kfMaxGaps())
+          invalid =  true;
+        // not enough seeding layer
+        if (pattern.count(0, setup_->kfMaxSeedLayer()) < 2)
+          invalid = true;
+        stream.push_back(invalid ? nullptr : state);
         frame += size;
       }
       // Propagate state to each layer in turn, updating it with all viable stub combinations there, using KF maths
@@ -138,8 +194,8 @@ namespace trackerTFP {
       const int nStates =
           accumulate(stream.begin(), stream.end(), 0, [](int& sum, State* state) { return sum += (state ? 1 : 0); });
       // apply truncation
-      if (enableTruncation_ && (int)stream.size() > setup_->numFrames())
-        stream.resize(setup_->numFrames());
+      if (enableTruncation_ && (int)stream.size() > setup_->numFramesHigh())
+        stream.resize(setup_->numFramesHigh());
       // cycle event, remove gaps
       stream.erase(remove(stream.begin(), stream.end(), nullptr), stream.end());
       // store number of states which got taken into account
@@ -148,15 +204,11 @@ namespace trackerTFP {
       numLostStates += nStates - (int)stream.size();
       // best track per candidate selection
       accumulator(stream);
-      /*for (State* state : stream) {
-        State* s = state;
-        cout << s->x2() << " " << s->x3() << " " << dataFormats_->base(Variable::zT, Process::gp) / 2. << endl;
-        while((s = s->parent()))
-          cout << s->H12() << " " << s->m1() << " " << s->dZ() << " | " << s->x2() << " " << s->x3() << " | " << s->C22() << " " << s->C23() << " " << s->C33() << " | " << s->chi21() << " " << s->hitPattern() << endl;
-      }*/
       // store chi2s
-      for (State* state : stream)
-        chi2s.emplace_back(state->chi20(), state->chi21());
+      for (State* state : stream) {
+        const int dof = state->hitPattern().count() - 2;
+        chi2s.emplace_back(state->chi20() / dof, state->chi21() / dof);
+      }
       // Transform States into Tracks
       vector<TrackKF*>& tracks = tracksOut[channel];
       vector<vector<StubKF*>>& stubs = stubsOut[channel];
@@ -180,7 +232,7 @@ namespace trackerTFP {
           abs(state->x1() + state->track()->phiT()) > dataFormats_->format(Variable::phiT, Process::gp).range() / 2.;
       // z0 cut
       static const DataFormat& dfZT = dataFormats_->format(Variable::zT, Process::kf);
-      const double z0 = dfZT.digi(state->x3() - H12_->digi(setup_->chosenRofZ()) * state->x2());
+      const double z0 = dfZT.digi(state->x3() - H12_[0]->digi(setup_->chosenRofZ()) * state->x2());
       const bool invaldiZ0 = abs(z0) > dfZT.digi(setup_->beamWindowZ());
       // stub residual cut
       State* s = state;
@@ -189,7 +241,7 @@ namespace trackerTFP {
         StubCTB* stub = s->stub();
         const double r = stub->r();
         const double phi = stub->phi() - (state->x1() + r * state->x0());
-        const double rz = r + H00_->digi(setup_->chosenRofPhi() - setup_->chosenRofZ());
+        const double rz = r + H00_[0]->digi(setup_->chosenRofPhi() - setup_->chosenRofZ());
         const double z = stub->z() - (state->x3() + rz * state->x2());
         if (dataFormats_->format(Variable::phi, Process::kf).inRange(phi) &&
             dataFormats_->format(Variable::z, Process::kf).inRange(z))
@@ -218,7 +270,7 @@ namespace trackerTFP {
         StubCTB* stub = s->stub();
         const double r = stub->r();
         const double phi = stub->phi() - (state->x1() + r * state->x0());
-        const double rz = r + H00_->digi(setup_->chosenRofPhi() - setup_->chosenRofZ());
+        const double rz = r + H00_[0]->digi(setup_->chosenRofPhi() - setup_->chosenRofZ());
         const double z = stub->z() - (state->x3() + rz * state->x2());
         const double dPhi = stub->dPhi();
         const double dZ = stub->dZ();
@@ -289,7 +341,7 @@ namespace trackerTFP {
         trackIds.push_back(trackId);
     }
     // remove states with less then 2 consistent ps layers
-    auto isConsistentRZ = [this](State* state, StubCTB* stub) {
+    /*auto isConsistentRZ = [this](State* state, StubCTB* stub) {
       const double rz = stub->r() + H00_->digi(setup_->chosenRofPhi() - setup_->chosenRofZ());
       const double z = stub->z() - (state->x3() + rz * state->x2());
       return m1_->digi(abs(z)) - 1.e-12 < stub->dZ() / 2.;
@@ -302,7 +354,7 @@ namespace trackerTFP {
           num++;
       return num < 2;
     };
-    stream.erase(remove_if(stream.begin(), stream.end(), notEnoughConsistentLayersPS), stream.end());
+    stream.erase(remove_if(stream.begin(), stream.end(), notEnoughConsistentLayersPS), stream.end());*/
     // sort in chi2
     auto chi2 = [this](State* state) {
       static const double baseChi2 = pow(2., setup_->kfPowCutChi2() - setup_->kfWidthChi2());
@@ -325,9 +377,9 @@ namespace trackerTFP {
     // sort in number of consistent stubs
     auto isConsistent = [this](State* state, StubCTB* stub) {
       const double phi = stub->phi() - (state->x1() + stub->r() * state->x0());
-      const double rz = stub->r() + H00_->digi(setup_->chosenRofPhi() - setup_->chosenRofZ());
+      const double rz = stub->r() + H00_[0]->digi(setup_->chosenRofPhi() - setup_->chosenRofZ());
       const double z = stub->z() - (state->x3() + rz * state->x2());
-      return m0_->digi(abs(phi)) - 1.e-12 < stub->dPhi() / 2. && m1_->digi(abs(z)) - 1.e-12 < stub->dZ() / 2.;
+      return m0_[0]->digi(abs(phi)) - 1.e-12 < stub->dPhi() / 2. && m1_[0]->digi(abs(z)) - 1.e-12 < stub->dZ() / 2.;
     };
     auto numConsistentLayers = [isConsistent](State* state) {
       int num(0);
@@ -356,6 +408,9 @@ namespace trackerTFP {
 
   // updates state
   void KalmanFilter::update(State*& state) {
+    static const int shifChi20 = setup_->kfShiftChi20();
+    static const int shifChi21 = setup_->kfShiftChi21();
+    static const double chi2cut = pow(2.0, setup_->kfPowCutChi2());
     if (state->isSkip()) {
       if (layer_ == setup_->numLayers() - 1)
         throw cms::Exception("logic");
@@ -363,10 +418,6 @@ namespace trackerTFP {
         state = state->unskip(states_, layer_ + 1);
       return;
     }
-    static const int shifChi20 = setup_->kfShiftChi20();
-    static const int shifChi21 = setup_->kfShiftChi21();
-    static const double chi2cut = pow(2.0, setup_->kfPowCutChi2());
-    //static const vector<double> chi2cuts = {9.e9, 1., 2., 3., 4., 5., 6., 7.};
     // All variable names & equations come from Fruhwirth KF paper http://dx.doi.org/10.1016/0168-9002%2887%2990887-4", where F taken as unit matrix. Stub uncertainties projected onto (phi,z), assuming no correlations between r-phi & r-z planes.
     // stub phi residual wrt input helix
     const double m0 = state->m0();
@@ -376,76 +427,163 @@ namespace trackerTFP {
     const double v0 = state->v0();
     // stub projected z uncertainty squared
     const double v1 = state->v1();
-    // helix inv2R wrt input helix
-    double x0 = state->x0();
-    // helix phi at radius ChosenRofPhi wrt input helix
-    double x1 = state->x1();
-    // helix cot(Theta) wrt input helix
-    double x2 = state->x2();
-    // helix z at radius chosenRofZ wrt input helix
-    double x3 = state->x3();
     // Derivative of predicted stub coords wrt helix params: stub radius minus chosenRofPhi
     const double H00 = state->H00();
     // Derivative of predicted stub coords wrt helix params: stub radius minus chosenRofZ
     const double H12 = state->H12();
+    m0_[layer_]->updateRangeActual(m0);
+    m1_[layer_]->updateRangeActual(m1);
+    v0_[layer_]->updateRangeActual(v0);
+    v1_[layer_]->updateRangeActual(v1);
+    H00_[layer_]->updateRangeActual(H00);
+    H12_[layer_]->updateRangeActual(H12);
+    // helix inv2R wrt input helix
+    double x0 = 0.;
+    // helix phi at radius ChosenRofPhi wrt input helix
+    double x1 = 0.;
+    // helix cot(Theta) wrt input helix
+    double x2 = 0.;
+    // helix z at radius chosenRofZ wrt input helix
+    double x3 = 0.;
     // cov. matrix
-    double C00 = state->C00();
-    double C01 = state->C01();
-    double C11 = state->C11();
-    double C22 = state->C22();
-    double C23 = state->C23();
-    double C33 = state->C33();
+    double C00 = 0.;
+    double C01 = 0.;
+    double C11 = 0.;
+    double C22 = 0.;
+    double C23 = 0.;
+    double C33 = 0.;
     // chi2s
-    double chi20 = state->chi20();
-    double chi21 = state->chi21();
-    // stub phi residual wrt current state
-    const double r0C = x1_->digi(m0 - x1);
-    const double r0 = r0_->digi(r0C - x0 * H00);
-    // stub z residual wrt current state
-    const double r1C = x3_->digi(m1 - x3);
-    const double r1 = r1_->digi(r1C - x2 * H12);
-    // squared residuals
-    const double r02 = r02_->digi(r0 * r0);
-    const double r12 = r12_->digi(r1 * r1);
-    // matrix S = H*C
-    const double S00 = S00_->digi(C01 + H00 * C00);
-    const double S01 = S01_->digi(C11 + H00 * C01);
-    const double S12 = S12_->digi(C23 + H12 * C22);
-    const double S13 = S13_->digi(C33 + H12 * C23);
-    // Cov. matrix of predicted residuals R = V+HCHt = C+H*St
-    const double R00C = S01_->digi(v0 + S01);
-    const double R00 = R00_->digi(R00C + H00 * S00);
-    const double R11C = S13_->digi(v1 + S13);
-    const double R11 = R11_->digi(R11C + H12 * S12);
-    // improved dynamic cancelling
-    const int msb0 = max(0, (int)ceil(log2(R00 / R00_->base())));
-    const int msb1 = max(0, (int)ceil(log2(R11 / R11_->base())));
-    const double R00Rough = R00Rough_->digi(R00 * pow(2., 16 - msb0));
-    const double invR00Approx = invR00Approx_->digi(1. / R00Rough);
-    const double invR00Cor = invR00Cor_->digi(2. - invR00Approx * R00Rough);
-    const double invR00 = invR00_->digi(invR00Approx * invR00Cor * pow(2., 16 - msb0));
-    const double R11Rough = R11Rough_->digi(R11 * pow(2., 16 - msb1));
-    const double invR11Approx = invR11Approx_->digi(1. / R11Rough);
-    const double invR11Cor = invR11Cor_->digi(2. - invR11Approx * R11Rough);
-    const double invR11 = invR11_->digi(invR11Approx * invR11Cor * pow(2., 16 - msb1));
-    // Kalman gain matrix K = S*R(inv)
-    const double K00 = K00_->digi(S00 * invR00);
-    const double K10 = K10_->digi(S01 * invR00);
-    const double K21 = K21_->digi(S12 * invR11);
-    const double K31 = K31_->digi(S13 * invR11);
-    // Updated helix params, their cov. matrix & chi2s
-    x0 = x0_->digi(x0 + r0 * K00);
-    x1 = x1_->digi(x1 + r0 * K10);
-    x2 = x2_->digi(x2 + r1 * K21);
-    x3 = x3_->digi(x3 + r1 * K31);
-    C00 = C00_->digi(C00 - S00 * K00);
-    C01 = C01_->digi(C01 - S01 * K00);
-    C11 = C11_->digi(C11 - S01 * K10);
-    C22 = C22_->digi(C22 - S12 * K21);
-    C23 = C23_->digi(C23 - S13 * K21);
-    C33 = C33_->digi(C33 - S13 * K31);
-    chi20 = chi20_->digi(chi20 + r02 * invR00 * pow(2., shifChi20));
-    chi21 = chi21_->digi(chi21 + r12 * invR11 * pow(2., shifChi21));
+    double chi20 = 0.;
+    double chi21 = 0.;
+    stringstream ss00;
+    stringstream ss22;
+    stringstream ss33;
+    if (state->hitPattern().count() == 1) {
+      const State* p = state->parent();
+      const double dH00 = H00 - p->H00();
+      const double dH002 = dH00 * dH00;
+      const double dH12 = H12 - p->H12();
+      const double dH122 = dH12 * dH12;
+      x0 = (m0 - p->m0()) / dH00;
+      x1 = (H00 * p->m0() - m0 * p->H00()) / dH00;
+      x2 = (m1 - p->m1()) / dH12;
+      x3 = (H12 * p->m1() - m1 * p->H12()) / dH12;
+      C00 = (v0 + p->v0()) / dH002;
+      C01 = -(H00 * p->v0() + p->H00() * v0) / dH002;
+      C11 = (H00 * H00 * p->v0() + p->H00() * p->H00() * v0) / dH002;
+      C22 = (v1 + p->v1()) / dH122;
+      C23 = -(H12 * p->v1() + p->H12() * v1) / dH122;
+      C33 = (H12 * H12 * p->v1() + p->H12() * p->H12() * v1) / dH122;
+    } else if (state->hitPattern().count() > 1) {
+      x0 = state->x0();
+      x1 = state->x1();
+      x2 = state->x2();
+      x3 = state->x3();
+      C00 = state->C00();
+      C01 = state->C01();
+      C11 = state->C11();
+      C22 = state->C22();
+      C23 = state->C23();
+      C33 = state->C33();
+      chi20 = state->chi20();
+      chi21 = state->chi21();
+      // stub phi residual wrt current state
+      const double r0C = x1_[layer_]->digi(m0 - x1);
+      const double r0 = r0_[layer_]->digi(r0C - x0 * H00);
+      // stub z residual wrt current state
+      const double r1C = x3_[layer_]->digi(m1 - x3);
+      const double r1 = r1_[layer_]->digi(r1C - x2 * H12);
+      // matrix S = H*C
+      const double S00 = S00_[layer_]->digi(C01 + H00 * C00);
+      const double S01 = S01_[layer_]->digi(C11 + H00 * C01);
+      const double S12 = S12_[layer_]->digi(C23 + H12 * C22);
+      const double S13 = S13_[layer_]->digi(C33 + H12 * C23);
+      // Cov. matrix of predicted residuals R = V+HCHt = C+H*St
+      const double R00C = S01_[layer_]->digi(v0 + S01);
+      const double R00 = R00_[layer_]->digi(R00C + H00 * S00);
+      const double R11C = S13_[layer_]->digi(v1 + S13);
+      const double R11 = R11_[layer_]->digi(R11C + H12 * S12);
+      // improved dynamic cancelling
+      //const int msb0 = max(0, (int)ceil(log2(R00 / R00_[layer_]->base()) - 1.e-12));
+      const int msb0 = R00_[layer_]->width();
+      const double R00Rough = R00Rough_[layer_]->digi(R00 * pow(2., R00_[layer_]->width() - msb0));
+      const double invR00Approx = invR00Approx_[layer_]->digi(1. / R00Rough);
+      const double invR00Cor = invR00Cor_[layer_]->digi(2. - invR00Approx * R00);
+      const double invR00 = invR00_[layer_]->digi(invR00Approx * invR00Cor * pow(2., R00_[layer_]->width() - msb0));
+      //const int msb1 = max(0, (int)ceil(log2(R11 / R11_[layer_]->base()) - 1.e-12));
+      const int msb1 = R11_[layer_]->width();
+      const double R11Rough = R11Rough_[layer_]->digi(R11 * pow(2., R11_[layer_]->width() - msb1));
+      const double invR11Approx = invR11Approx_[layer_]->digi(1. / R11Rough);
+      const double invR11Cor = invR11Cor_[layer_]->digi(2. - invR11Approx * R11);
+      const double invR11 = invR11_[layer_]->digi(invR11Approx * invR11Cor * pow(2., R11_[layer_]->width() - msb1));
+      // Kalman gain matrix K = S*R(inv)
+      const double K00 = K00_[layer_]->digi(S00 * invR00);
+      const double K10 = K10_[layer_]->digi(S01 * invR00);
+      const double K21 = K21_[layer_]->digi(S12 * invR11);
+      const double K31 = K31_[layer_]->digi(S13 * invR11);
+      ss00 << std::fixed << std::showpoint << std::setprecision(12);
+      ss00 << C00 << " " << C00 / C00_[layer_]->base() << endl;
+      ss00 << R00 << " " << (v0 + S01 + H00 * S00) << " " << (R00) / R00_[layer_]->base() << " " << (v0 + S01 + H00 * S00) / R00_[layer_]->base() << endl;
+      ss00 << invR00 << " " << (1. / R00) << " " << (invR00) / invR00_[layer_]->base() << " " << (1. / R00) / invR00_[layer_]->base() << endl;
+      ss00 << K00 << " " << K00_[layer_]->digi((C01 + H00 * C00) / R00) << " " << K00_[layer_]->integer(K00) << " " << K00_[layer_]->integer((C01 + H00 * C00) / R00) << " " << K00_[layer_]->integer(S00 / R00) << " " << K00_[layer_]->integer((C01 + H00 * C00) * invR00) << endl;
+      ss00 << S00 << " " << (C01 + H00 * C00) << " " << S00 / S00_[layer_]->base() << " " << (C01 + H00 * C00) / S00_[layer_]->base() << endl;
+      ss00 << C00_[layer_]->digi(C00 - S00 * K00) << " " << (C00 - (C01 + H00 * C00) * (C01 + H00 * C00) / R00) << " " << (C00 - S00 * K00) / C00_[layer_]->base() << " " << (C00 - (C01 + H00 * C00) * (C01 + H00 * C00) / R00) / C00_[layer_]->base() << endl;
+      ss22 << R11 << " " << R11_[layer_]->digi(v1 + S13 + H12 * S12) << " " << R11_[layer_]->integer(R11) << " " << R11_[layer_]->integer(v1 + S13 + H12 * S12) << endl;
+      ss22 << invR11 << " " << invR11_[layer_]->digi(1. / R11) << " " << invR11_[layer_]->integer(invR11) << " " << invR11_[layer_]->integer(1. / R11) << endl;
+      ss22 << K21 << " " << K21_[layer_]->digi((C23 + H12 * C22) / R11) << " " << K21_[layer_]->integer(K21) << " " << K21_[layer_]->integer((C23 + H12 * C22) / R11) << " " << K21_[layer_]->integer(S12 / R11) << " " << K21_[layer_]->integer((C23 + H12 * C22) * invR11) << endl;
+      ss22 << S12 << " " << (C23 + H12 * C22) << " " << S12 / S12_[layer_]->base() << " " << (C23 + H12 * C22) / S12_[layer_]->base() << endl;
+      ss22 << C22_[layer_]->digi(C22 - S12 * K21) << " " << (C22 - (C23 + H12 * C22) * (C23 + H12 * C22) / R11) << " " << (C22 - S12 * K21) / C22_[layer_]->base() << " " << (C22 - (C23 + H12 * C22) * (C23 + H12 * C22) / R11) / C22_[layer_]->base() << endl;
+      ss33 << R11 << " " << R11_[layer_]->digi(v1 + S13 + H12 * S12) << " " << R11_[layer_]->integer(R11) << " " << R11_[layer_]->integer(v1 + S13 + H12 * S12) << endl;
+      ss33 << invR11 << " " << invR11_[layer_]->digi(1. / R11) << " " << invR11_[layer_]->integer(invR11) << " " << invR11_[layer_]->integer(1. / R11) << endl;
+      ss33 << K31 << " " << K31_[layer_]->digi((C33 + H12 * C23) / R11) << " " << K31_[layer_]->integer(K31) << " " << K31_[layer_]->integer((C33 + H12 * C23) / R11) << " " << K31_[layer_]->integer(S13 / R11) << " " << K31_[layer_]->integer((C33 + H12 * C23) * invR11) << endl;
+      ss33 << S13 << " " << (C33 + H12 * C23) << " " << S13 / S13_[layer_]->base() << " " << (C33 + H12 * C23) / S13_[layer_]->base() << endl;
+      ss33 << C33_[layer_]->digi(C33 - S13 * K31) << " " << (C33 - (C33 + H12 * C23) * (C33 + H12 * C23) / R11) << " " << (C33 - S13 * K31) / C33_[layer_]->base() << " " << (C33 - (C33 + H12 * C23) * (C33 + H12 * C23) / R11) / C33_[layer_]->base() << endl;
+      // Updated helix params, their cov. matrix & chi2s
+      x0 = x0_[layer_]->digi(x0 + r0 * K00);
+      x1 = x1_[layer_]->digi(x1 + r0 * K10);
+      x2 = x2_[layer_]->digi(x2 + r1 * K21);
+      x3 = x3_[layer_]->digi(x3 + r1 * K31);
+      C00 = C00_[layer_]->digi(C00 - S00 * K00);
+      C01 = C01_[layer_]->digi(C01 - S01 * K00);
+      C11 = C11_[layer_]->digi(C11 - S01 * K10);
+      C22 = C22_[layer_]->digi(C22 - S12 * K21);
+      C23 = C23_[layer_]->digi(C23 - S13 * K21);
+      C33 = C33_[layer_]->digi(C33 - S13 * K31);
+      // squared residuals
+      const double r02 = r02_[layer_]->digi(r0 * r0);
+      const double r12 = r12_[layer_]->digi(r1 * r1);
+      chi20 = chi20_[layer_]->digi(chi20 + r02 * invR00 * pow(2., shifChi20));
+      chi21 = chi21_[layer_]->digi(chi21 + r12 * invR11 * pow(2., shifChi21));
+      // update variable ranges to tune variable granularity
+      r0_[layer_]->updateRangeActual(r0);
+      r1_[layer_]->updateRangeActual(r1);
+      S00_[layer_]->updateRangeActual(S00);
+      S01_[layer_]->updateRangeActual(S01);
+      S12_[layer_]->updateRangeActual(S12);
+      S13_[layer_]->updateRangeActual(S13);
+      R00_[layer_]->updateRangeActual(R00);
+      R11_[layer_]->updateRangeActual(R11);
+      R00Rough_[layer_]->updateRangeActual(R00Rough);
+      invR00Approx_[layer_]->updateRangeActual(invR00Approx);
+      invR00Cor_[layer_]->updateRangeActual(invR00Cor);
+      invR00_[layer_]->updateRangeActual(invR00);
+      R11Rough_[layer_]->updateRangeActual(R11Rough);
+      invR11Approx_[layer_]->updateRangeActual(invR11Approx);
+      invR11Cor_[layer_]->updateRangeActual(invR11Cor);
+      invR11_[layer_]->updateRangeActual(invR11);
+      K00_[layer_]->updateRangeActual(K00);
+      K10_[layer_]->updateRangeActual(K10);
+      K21_[layer_]->updateRangeActual(K21);
+      K31_[layer_]->updateRangeActual(K31);
+      r02_[layer_]->updateRangeActual(r02);
+      r12_[layer_]->updateRangeActual(r12);
+      /*if (C00 < 0.)
+        cout << ss00.str();
+      if (C22 < 0.)
+        cout << ss22.str();
+      if (C33 < 0.)
+        cout << ss33.str();*/
+    }
     // cut on eta sector boundaries
     const bool invalidX3 = abs(x3) > dataFormats_->format(Variable::zT, Process::gp).base() / 2.;
     // cut on triple found inv2R window
@@ -455,59 +593,55 @@ namespace trackerTFP {
     // cot cut
     const bool invalidX2 = abs(x2) > dataFormats_->format(Variable::cot, Process::gp).base() / 2.;
     // chi2 cut
-    const double chi2 = chi20 + chi21;
+    const double dof = state->hitPattern().count() - 1;
+    const double chi2 = dof > 0 ? (chi20 + chi21) / 2. / dof : 0.;
     const bool validChi2 = chi2 < chi2cut;
-    //const bool validChi20 = chi20 < chi2cuts[state->hitPattern().count()];
-    //const bool validChi21 = chi21 < chi2cuts[state->hitPattern().count()];
-    // update variable ranges to tune variable granularity
-    m0_->updateRangeActual(m0);
-    m1_->updateRangeActual(m1);
-    v0_->updateRangeActual(v0);
-    v1_->updateRangeActual(v1);
-    H00_->updateRangeActual(H00);
-    H12_->updateRangeActual(H12);
-    r0_->updateRangeActual(r0);
-    r1_->updateRangeActual(r1);
-    S00_->updateRangeActual(S00);
-    S01_->updateRangeActual(S01);
-    S12_->updateRangeActual(S12);
-    S13_->updateRangeActual(S13);
-    R00_->updateRangeActual(R00);
-    R11_->updateRangeActual(R11);
-    R00Rough_->updateRangeActual(R00Rough);
-    invR00Approx_->updateRangeActual(invR00Approx);
-    invR00Cor_->updateRangeActual(invR00Cor);
-    invR00_->updateRangeActual(invR00);
-    R11Rough_->updateRangeActual(R11Rough);
-    invR11Approx_->updateRangeActual(invR11Approx);
-    invR11Cor_->updateRangeActual(invR11Cor);
-    invR11_->updateRangeActual(invR11);
-    K00_->updateRangeActual(K00);
-    K10_->updateRangeActual(K10);
-    K21_->updateRangeActual(K21);
-    K31_->updateRangeActual(K31);
-    r02_->updateRangeActual(r02);
-    r12_->updateRangeActual(r12);
     if (invalidX3 || invalidX0 || invalidX1 || invalidX2 || !validChi2) {
-    //if (invalidX3 || invalidX0 || invalidX1 || invalidX2 || !validChi20 || !validChi21) {
       state = nullptr;
       return;
     }
     // create updated state
     states_.emplace_back(State(state, {x0, x1, x2, x3, chi20, chi21, C00, C11, C22, C33, C01, C23}));
     state = &states_.back();
-    x0_->updateRangeActual(x0);
-    x1_->updateRangeActual(x1);
-    x2_->updateRangeActual(x2);
-    x3_->updateRangeActual(x3);
-    C00_->updateRangeActual(C00);
-    C01_->updateRangeActual(C01);
-    C11_->updateRangeActual(C11);
-    C22_->updateRangeActual(C22);
-    C23_->updateRangeActual(C23);
-    C33_->updateRangeActual(C33);
-    chi20_->updateRangeActual(chi20);
-    chi21_->updateRangeActual(chi21);
+    //if (C00 < 0. || C11 < 0. || C00 >= 9.13655e-07 || C11 >= 0.00190386/2.) {
+    /*if (C00 < 0. || C11 < 0.) {
+      State* s = state;
+      stringstream ss;
+      cout << s->maybePattern() << " " << s->trackPattern() << endl;
+      cout << endl;
+      cout << ss00.str();
+      cout << endl;
+      ss << s->hitPattern() << " " << s->x0() << " " << s->x1() << " " << s->C00() << " " << s->C01() << " " << s->C11() << endl;
+      while ((s = s->parent())) {
+        cout << s->H00() << " " << s->m0() << " " << s->v0() << " " << setup_->psModule(s->stub()->frame().first) << " " << ss.str();
+        ss.str("");
+        ss << s->hitPattern() << " " << s->x0() << " " << s->x1() << " " << s->C00() << " " << s->C01() << " " << s->C11() << endl;
+      }
+    }
+    if (C22 < 0. || C33 < 0.) {
+      State* s = state;
+      stringstream ss;
+      ss << s->hitPattern() << " " << s->x2() << " " << s->x3() << " " << s->C22() << " " << s->C23() << " " << s->C33();
+      while ((s = s->parent())) {
+        cout << s->H12() << " " << s->m1() << " " << s->v1() << " " << ss.str() << " " << s << endl;
+        ss.str("");
+        ss << s->hitPattern() << " " << s->x2() << " " << s->x3() << " " << s->C22() << " " << s->C23() << " " << s->C33();
+      }
+    }*/
+    if (state->hitPattern().count() > 0) {
+      x0_[layer_]->updateRangeActual(x0);
+      x1_[layer_]->updateRangeActual(x1);
+      x2_[layer_]->updateRangeActual(x2);
+      x3_[layer_]->updateRangeActual(x3);
+      C00_[layer_]->updateRangeActual(C00);
+      C01_[layer_]->updateRangeActual(C01);
+      C11_[layer_]->updateRangeActual(C11);
+      C22_[layer_]->updateRangeActual(C22);
+      C23_[layer_]->updateRangeActual(C23);
+      C33_[layer_]->updateRangeActual(C33);
+      chi20_[layer_]->updateRangeActual(chi20);
+      chi21_[layer_]->updateRangeActual(chi21);
+    }
   }
 
   // remove and return first element of deque, returns nullptr if empty

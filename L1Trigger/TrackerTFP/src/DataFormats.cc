@@ -192,7 +192,7 @@ namespace trackerTFP {
   Format<Variable::dPhi, Process::ctb>::Format(const Setup* setup) : DataFormat(false) {
     const Format<Variable::phi, Process::dtc> phi(setup);
     const Format<Variable::inv2R, Process::ht> inv2R(setup);
-    range_ = setup->pitchRowPS() / setup->innerRadius() + (setup->pitchCol2S() + setup->scattering()) * inv2R.limit() +
+    range_ = setup->pitchRowPS() / setup->innerRadius() + (setup->pitchCol2S() + setup->scattering()) * inv2R.range() / 2. +
              phi.base();
     base_ = phi.base();
     width_ = ceil(log2(range_ / base_));

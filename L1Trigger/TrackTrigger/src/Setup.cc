@@ -79,7 +79,8 @@ namespace tt {
         widthAddrBRAM18_(pSetFW_.getParameter<int>("WidthAddrBRAM18")),
         numFramesInfra_(pSetFW_.getParameter<int>("NumFramesInfra")),
         freqLHC_(pSetFW_.getParameter<double>("FreqLHC")),
-        freqBE_(pSetFW_.getParameter<double>("FreqBE")),
+        freqBEHigh_(pSetFW_.getParameter<double>("FreqBEHigh")),
+        freqBELow_(pSetFW_.getParameter<double>("FreqBELow")),
         tmpFE_(pSetFW_.getParameter<int>("TMP_FE")),
         tmpTFP_(pSetFW_.getParameter<int>("TMP_TFP")),
         speedOfLight_(pSetFW_.getParameter<double>("SpeedOfLight")),
@@ -172,6 +173,7 @@ namespace tt {
         kfMinLayers_(pSetKF_.getParameter<int>("MinLayers")),
         kfMaxLayers_(pSetKF_.getParameter<int>("MaxLayers")),
         kfMaxGaps_(pSetKF_.getParameter<int>("MaxGaps")),
+        kfMaxSeedLayer_(pSetKF_.getParameter<int>("MaxSeedLayer")),
         kfRangeFactor_(pSetKF_.getParameter<double>("RangeFactor")),
         kfBaseShift_(pSetKF_.getParameter<int>("BaseShift")),
         kfShiftInitialC00_(pSetKF_.getParameter<int>("ShiftInitialC00")),
@@ -380,6 +382,7 @@ namespace tt {
     const double ptMin = tpMinPt_;
     constexpr double ptMax = 9.e9;
     const double etaMax = tpMaxEta_;
+    const double etaMaxLoose = asinh(sinh(tpMaxEta_) + beamWindowZ_ / chosenRofZ_);
     const double tip = tpMaxVertR_;
     const double lip = tpMaxVertZ_;
     constexpr int minHit = 0;
@@ -390,7 +393,7 @@ namespace tt {
     tpSelector_ = TrackingParticleSelector(
         ptMin, ptMax, -etaMax, etaMax, tip, lip, minHit, signalOnly, intimeOnly, chargedOnly, stableOnly);
     tpSelectorLoose_ =
-        TrackingParticleSelector(ptMin, ptMax, -etaMax, etaMax, tip, lip, minHit, false, false, false, stableOnly);
+        TrackingParticleSelector(ptMin, ptMax, -etaMaxLoose, etaMaxLoose, tip, lip, minHit, false, false, false, stableOnly);
   }
 
   // stub layer id (barrel: 1 - 6, endcap: 11 - 15)
@@ -512,16 +515,27 @@ namespace tt {
     return (int)hitPattern.size() >= tpMinLayers_;
   }
 
-  // checks if tracking particle is selected for efficiency measurements
-  bool Setup::useForAlgEff(const TrackingParticle& tp) const {
-    const bool selected = tpSelector_(tp);
+  // cuts on tp phase space
+  bool Setup::tpCuts(const TrackingParticle& tp) const {
     const double cot = sinh(tp.eta());
     const double s = sin(tp.phi());
     const double c = cos(tp.phi());
     const TrackingParticle::Point& v = tp.vertex();
     const double z0 = v.z() - (v.x() * c + v.y() * s) * cot;
     const double d0 = v.x() * s - v.y() * c;
-    return selected && (abs(d0) < tpMaxD0_) && (abs(z0) < tpMaxVertZ_);
+    const double zT = z0 + cot * chosenRofZ_;
+    static const double zTmax = sinh(tpMaxEta_) * chosenRofZ_;
+    return (abs(d0) < tpMaxD0_) && (abs(z0) < beamWindowZ_) && (abs(zT) < zTmax);
+  }
+
+  // checks if tracking particle is selected for efficiency measurements
+  bool Setup::useForAlgEff(const TrackingParticle& tp) const {
+    return tpSelector_(tp) && tpCuts(tp);
+  }
+
+  // checks if tracking particle is selected for fake and duplicate rate measurements
+  bool Setup::useForReconstructable(const TrackingParticle& tp) const {
+    return tpSelectorLoose_(tp) && tpCuts(tp);
   }
 
   //
@@ -579,10 +593,13 @@ namespace tt {
   // derive constants
   void Setup::calculateConstants() {
     // emp
-    const int numFramesPerBX = freqBE_ / freqLHC_;
-    numFrames_ = numFramesPerBX * tmpTFP_ - 1;
-    numFramesIO_ = numFramesPerBX * tmpTFP_ - numFramesInfra_;
-    numFramesFE_ = numFramesPerBX * tmpFE_ - numFramesInfra_;
+    const int numFramesPerBXHigh = freqBEHigh_ / freqLHC_;
+    numFramesHigh_ = numFramesPerBXHigh * tmpTFP_ - 1;
+    numFramesIOHigh_ = numFramesPerBXHigh * tmpTFP_ - numFramesInfra_;
+    const int numFramesPerBXLow = freqBELow_ / freqLHC_;
+    numFramesLow_ = numFramesPerBXLow * tmpTFP_ - 1;
+    numFramesIOLow_ = numFramesPerBXLow * tmpTFP_ - numFramesInfra_;
+    numFramesFE_ = numFramesPerBXHigh * tmpFE_ - numFramesInfra_;
     // dsp
     widthDSPab_ = widthDSPa_ - 1;
     widthDSPau_ = widthDSPab_ - 1;

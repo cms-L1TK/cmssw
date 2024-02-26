@@ -3,6 +3,7 @@
 
 #include "L1Trigger/TrackTrigger/interface/Setup.h"
 #include "L1Trigger/TrackerTFP/interface/DataFormats.h"
+#include "L1Trigger/TrackerTFP/interface/LayerEncoding.h"
 #include "DataFormats/L1TrackTrigger/interface/TTTypes.h"
 
 #include <vector>
@@ -16,6 +17,7 @@ namespace trackerTFP {
     HoughTransform(const edm::ParameterSet& iConfig,
                    const tt::Setup* setup,
                    const DataFormats* dataFormats,
+                  const LayerEncoding* layerEncoding,
                    std::deque<StubHT>& stubs);
     ~HoughTransform() {}
     // fill output products
@@ -35,12 +37,16 @@ namespace trackerTFP {
                 std::deque<StubHT*>& tuncated);
     // identify tracks
     void readOut(const std::deque<StubHT*>& input, std::deque<StubHT*>& output) const;
+    //
+    bool noTrack(const TTBV& pattern, int zT) const;
     // true if truncation is enbaled
     bool enableTruncation_;
     // provides run-time constants
     const tt::Setup* setup_;
     // provides dataformats
     const DataFormats* dataFormats_;
+    //
+    const LayerEncoding* layerEncoding_;
     // data format of inv2R
     const DataFormat* inv2R_;
     // data format of phiT

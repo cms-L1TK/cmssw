@@ -67,8 +67,8 @@ namespace trackerTFP {
       }
     }
     // truncate if desired
-    if (enableTruncation_ && (int)stream.size() > setup_->numFrames()) {
-      const auto limit = next(stream.begin(), setup_->numFrames());
+    if (enableTruncation_ && (int)stream.size() > setup_->numFramesHigh()) {
+      const auto limit = next(stream.begin(), setup_->numFramesHigh());
       stream.erase(limit, stream.end());
     }
     // remove duplicates
@@ -95,8 +95,8 @@ namespace trackerTFP {
       stream.push_back(track);
     }
     // truncate
-    if (enableTruncation_ && (int)stream.size() > setup_->numFrames()) {
-      const auto limit = next(stream.begin(), setup_->numFrames());
+    if (enableTruncation_ && (int)stream.size() > setup_->numFramesHigh()) {
+      const auto limit = next(stream.begin(), setup_->numFramesHigh());
       stream.erase(limit, stream.end());
     }
     // remove trailing nullptr

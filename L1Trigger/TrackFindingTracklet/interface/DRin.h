@@ -53,8 +53,9 @@ namespace trklet {
             psTilt_(psTilt) {}
       bool valid_;
       TTStubRef ttStubRef_;
+      // kf layer id
       int layer_;
-      //
+      // tracklet stub id, used to identify duplicates
       int stubId_;
       // radius w.r.t. chosenRofPhi in cm
       double r_;
@@ -78,7 +79,8 @@ namespace trklet {
             double phiT,
             double cot,
             double zT,
-            const std::vector<Stub*>& stubs)
+            const std::vector<Stub*>& stubs,
+            bool badSeed = false)
           : ttTrackRef_(ttTrackRef),
             valid_(valid),
             sector_(-1),
@@ -86,7 +88,8 @@ namespace trklet {
             phiT_(phiT),
             cot_(cot),
             zT_(zT),
-            stubs_(stubs) {}
+            stubs_(stubs),
+            badSeed_(badSeed) {}
       TTTrackRef ttTrackRef_;
       bool valid_;
       TTBV maybe_;
@@ -96,6 +99,7 @@ namespace trklet {
       double cot_;
       double zT_;
       std::vector<Stub*> stubs_;
+      bool badSeed_;
     };
     // remove and return first element of deque, returns nullptr if empty
     template <class T>

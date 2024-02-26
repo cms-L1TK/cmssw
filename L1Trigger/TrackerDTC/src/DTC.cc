@@ -123,8 +123,8 @@ namespace trackerDTC {
         output.push_back(nullptr);
     }
     // truncate if desired
-    if (enableTruncation_ && (int)output.size() > setup_->numFramesIO()) {
-      const auto limit = next(output.begin(), setup_->numFramesIO());
+    if (enableTruncation_ && (int)output.size() > setup_->numFramesIOHigh()) {
+      const auto limit = next(output.begin(), setup_->numFramesIOHigh());
       copy_if(limit, output.end(), back_inserter(lost), [](Stub* stub) { return stub; });
       output.erase(limit, output.end());
     }

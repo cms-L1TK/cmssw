@@ -27,18 +27,24 @@ namespace trackerTFP {
         strlen(*max_element(variableKFstrs_.begin(), variableKFstrs_.end(), [](const auto& a, const auto& b) {
           return strlen(a) < strlen(b);
         }));
-    static constexpr int wWidth = 3;
     for (VariableKF v = VariableKF::begin; v != VariableKF::end; v = VariableKF(+v + 1)) {
-      const pair<double, double>& range = format(v).rangeActual();
-      const double r = format(v).twos() ? max(abs(range.first), abs(range.second)) * 2. : range.second;
-      const int width = ceil(log2(r / format(v).base()));
-      cout << setw(wName) << *next(variableKFstrs_.begin(), +v) << ": " << setw(wWidth) << width << " " << setw(wWidth)
-           << format(v).width() << " | " << setw(wWidth) << format(v).width() - width << endl;
+      double min = 1.e12;
+      double abs = 1.e12;
+      double max = -1.e12;
+      vector<int> deltas;
+      deltas.reserve(setup_->numLayers());
+      for (int layer = 0; layer < setup_->numLayers(); layer++) {
+        min = std::min(min, format(v, layer).min());
+        abs = std::min(abs, format(v, layer).abs());
+        max = std::max(max, format(v, layer).max());
+        const double r = format(v, layer).twos() ? std::max(std::abs(format(v, layer).min()), std::abs(format(v, layer).max())) * 2. : format(v, layer).max();
+        deltas.emplace_back(format(v, layer).width() - ceil(log2(r / format(v, layer).base())));
+      }
+      cout << setw(wName) << *next(variableKFstrs_.begin(), +v) << ": ";
+      for (int delta : deltas)
+        cout << setw(3) << (delta == -2147483648 ? "-" : to_string(delta)) << " ";
+      cout << "| " << setw(14) << min << " " << setw(14) << max << " " <<  setw(14) << abs << " " <<  setw(14) << format(v, 0).base() << endl;
     }
-  }
-
-  KalmanFilterFormats::KalmanFilterFormats() : iConfig_(), dataFormats_(nullptr), setup_(nullptr) {
-    formats_.reserve(+VariableKF::end);
   }
 
   KalmanFilterFormats::KalmanFilterFormats(const ParameterSet& iConfig, const DataFormats* dataFormats)
@@ -49,18 +55,31 @@ namespace trackerTFP {
 
   template <VariableKF it>
   void KalmanFilterFormats::fillFormats() {
-    formats_.emplace_back(FormatKF<it>(dataFormats_, iConfig_));
+    vector<DataFormatKF> v;
+    v.reserve(8);
+    fillFormats<it>(v);
+    formats_.push_back(v);
     if constexpr (++it != VariableKF::end)
       fillFormats<++it>();
   }
 
-  DataFormatKF::DataFormatKF(const VariableKF& v, bool twos)
+  template <VariableKF it, int layer>
+  void KalmanFilterFormats::fillFormats(vector<DataFormatKF>& v) {
+    v.emplace_back(FormatKF<it>(dataFormats_, iConfig_, layer));
+    if constexpr (layer < 7)
+      fillFormats<it, layer + 1>(v);
+  }
+
+  DataFormatKF::DataFormatKF(const VariableKF& v, int layer, bool twos)
       : v_(v),
+        layer_(layer),
         twos_(twos),
         width_(0),
         base_(1.),
         range_(0.),
-        rangeActual_(numeric_limits<double>::max(), numeric_limits<double>::lowest()) {}
+        min_(numeric_limits<double>::max()),
+        abs_(numeric_limits<double>::max()),
+        max_(numeric_limits<double>::lowest()) {}
 
   // returns false if data format would oferflow for this double value
   bool DataFormatKF::inRange(double d) const {
@@ -70,242 +89,243 @@ namespace trackerTFP {
   }
 
   void DataFormatKF::updateRangeActual(double d) {
-    rangeActual_ = make_pair(min(rangeActual_.first, d), max(rangeActual_.second, d));
+    min_ = std::min(min_, d);
+    abs_ = std::min(abs_, std::abs(d));
+    max_ = std::max(max_, d);
     if (!inRange(d)) {
       string v = *next(variableKFstrs_.begin(), +v_);
       cms::Exception exception("out_of_range");
       exception.addContext("trackerTFP:DataFormatKF::updateRangeActual");
-      exception << "Variable " << v << " = " << d << " is out of range " << (twos_ ? -range_ / 2. : 0) << " to "
+      exception << "Variable " << v << " = " << d << " in layer " << to_string(layer_) << " is out of range " << (twos_ ? -range_ / 2. : 0) << " to "
                 << (twos_ ? range_ / 2. : range_) << "." << endl;
       if (twos_ || d >= 0.)
-        exception.addAdditionalInfo("Consider raising BaseShift" + v + " in KalmnaFilterFormats_cfi.py.");
+        exception.addAdditionalInfo("Consider raising BaseShift" + v + " for layer " + to_string(layer_) + " in KalmnaFilterFormats_cfi.py.");
       throw exception;
     }
   }
 
   template <>
-  FormatKF<VariableKF::x0>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig)
-      : DataFormatKF(VariableKF::x0, true) {
+  FormatKF<VariableKF::x0>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig, int layer)
+      : DataFormatKF(VariableKF::x0, layer, true) {
     const DataFormat& input = dataFormats->format(Variable::inv2R, Process::kf);
-    const int baseShift = iConfig.getParameter<int>("BaseShiftx0");
+    const int baseShift = iConfig.getParameter<vector<int>>("BaseShiftx0")[layer];
     base_ = pow(2, baseShift) * input.base();
     width_ = dataFormats->setup()->widthDSPbb();
     calcRange();
   }
 
   template <>
-  FormatKF<VariableKF::x1>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig)
-      : DataFormatKF(VariableKF::x1, true) {
+  FormatKF<VariableKF::x1>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig, int layer)
+      : DataFormatKF(VariableKF::x1, layer, true) {
     const DataFormat& input = dataFormats->format(Variable::phiT, Process::kf);
-    const int baseShift = iConfig.getParameter<int>("BaseShiftx1");
+    const int baseShift = iConfig.getParameter<vector<int>>("BaseShiftx1")[layer];
     base_ = pow(2, baseShift) * input.base();
     width_ = dataFormats->setup()->widthDSPbb();
     calcRange();
   }
 
   template <>
-  FormatKF<VariableKF::x2>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig)
-      : DataFormatKF(VariableKF::x2, true) {
+  FormatKF<VariableKF::x2>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig, int layer)
+      : DataFormatKF(VariableKF::x2, layer, true) {
     const DataFormat& input = dataFormats->format(Variable::cot, Process::kf);
-    const int baseShift = iConfig.getParameter<int>("BaseShiftx2");
+    const int baseShift = iConfig.getParameter<vector<int>>("BaseShiftx2")[layer];
     base_ = pow(2, baseShift) * input.base();
     width_ = dataFormats->setup()->widthDSPbb();
     calcRange();
   }
 
   template <>
-  FormatKF<VariableKF::x3>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig)
-      : DataFormatKF(VariableKF::x3, true) {
+  FormatKF<VariableKF::x3>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig, int layer)
+      : DataFormatKF(VariableKF::x3, layer, true) {
     const DataFormat& input = dataFormats->format(Variable::zT, Process::kf);
-    const int baseShift = iConfig.getParameter<int>("BaseShiftx3");
+    const int baseShift = iConfig.getParameter<vector<int>>("BaseShiftx3")[layer];
     base_ = pow(2, baseShift) * input.base();
     width_ = dataFormats->setup()->widthDSPbb();
     calcRange();
   }
 
   template <>
-  FormatKF<VariableKF::H00>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig)
-      : DataFormatKF(VariableKF::H00, true) {
+  FormatKF<VariableKF::H00>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig, int layer)
+      : DataFormatKF(VariableKF::H00, layer, true) {
     const DataFormat& ctb = dataFormats->format(Variable::r, Process::ctb);
     base_ = ctb.base();
     width_ = ctb.width();
-    range_ = ctb.range();
+    calcRange();
   }
 
   template <>
-  FormatKF<VariableKF::H12>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig)
-      : DataFormatKF(VariableKF::H12, true) {
+  FormatKF<VariableKF::H12>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig, int layer)
+      : DataFormatKF(VariableKF::H12, layer, true) {
     const Setup* setup = dataFormats->setup();
     const DataFormat& ctb = dataFormats->format(Variable::r, Process::ctb);
     base_ = ctb.base();
     range_ = 2. * setup->maxRz();
     width_ = ceil(log2(range_ / base_));
+    calcRange();
   }
 
   template <>
-  FormatKF<VariableKF::m0>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig)
-      : DataFormatKF(VariableKF::m0, true) {
+  FormatKF<VariableKF::m0>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig, int layer)
+      : DataFormatKF(VariableKF::m0, layer, true) {
     const DataFormat& ctb = dataFormats->format(Variable::phi, Process::ctb);
     base_ = ctb.base();
     width_ = ctb.width();
-    range_ = ctb.range();
+    calcRange();
   }
 
   template <>
-  FormatKF<VariableKF::m1>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig)
-      : DataFormatKF(VariableKF::m1, true) {
+  FormatKF<VariableKF::m1>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig, int layer)
+      : DataFormatKF(VariableKF::m1, layer, true) {
     const DataFormat& ctb = dataFormats->format(Variable::z, Process::ctb);
     base_ = ctb.base();
     width_ = ctb.width();
-    range_ = ctb.range();
-  }
-
-  template <>
-  FormatKF<VariableKF::v0>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig)
-      : DataFormatKF(VariableKF::v0, false) {
-    const DataFormat& x1 = dataFormats->format(Variable::phiT, Process::kf);
-    const int baseShift = iConfig.getParameter<int>("BaseShiftv0");
-    base_ = pow(2., baseShift) * x1.base() * x1.base();
-    width_ = dataFormats->setup()->widthDSPbu();
     calcRange();
   }
 
   template <>
-  FormatKF<VariableKF::v1>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig)
-      : DataFormatKF(VariableKF::v1, false) {
-    const DataFormat& x3 = dataFormats->format(Variable::zT, Process::kf);
-    const int baseShift = iConfig.getParameter<int>("BaseShiftv1");
-    base_ = pow(2., baseShift) * x3.base() * x3.base();
-    width_ = dataFormats->setup()->widthDSPbu();
+  FormatKF<VariableKF::v0>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig, int layer)
+      : DataFormatKF(VariableKF::v0, layer, false) {
+    const DataFormat& ctb = dataFormats->format(Variable::dPhi, Process::ctb);
+    base_ = ctb.base() * ctb.base();
+    width_ = ctb.width() + ctb.width();
     calcRange();
   }
 
   template <>
-  FormatKF<VariableKF::r0>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig)
-      : DataFormatKF(VariableKF::r0, true) {
+  FormatKF<VariableKF::v1>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig, int layer)
+      : DataFormatKF(VariableKF::v1, layer, false) {
+    const DataFormat& ctb = dataFormats->format(Variable::dZ, Process::ctb);
+    base_ = ctb.base() * ctb.base();
+    width_ = ctb.width() + ctb.width();
+    calcRange();
+  }
+
+  template <>
+  FormatKF<VariableKF::r0>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig, int layer)
+      : DataFormatKF(VariableKF::r0, layer, true) {
     const DataFormat& x1 = dataFormats->format(Variable::phiT, Process::kf);
-    const int baseShift = iConfig.getParameter<int>("BaseShiftr0");
+    const int baseShift = iConfig.getParameter<vector<int>>("BaseShiftr0")[layer];
     base_ = pow(2., baseShift) * x1.base();
     width_ = dataFormats->setup()->widthDSPbb();
     calcRange();
   }
 
   template <>
-  FormatKF<VariableKF::r1>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig)
-      : DataFormatKF(VariableKF::r1, true) {
+  FormatKF<VariableKF::r1>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig, int layer)
+      : DataFormatKF(VariableKF::r1, layer, true) {
     const DataFormat& x3 = dataFormats->format(Variable::zT, Process::kf);
-    const int baseShift = iConfig.getParameter<int>("BaseShiftr1");
+    const int baseShift = iConfig.getParameter<vector<int>>("BaseShiftr1")[layer];
     base_ = pow(2., baseShift) * x3.base();
     width_ = dataFormats->setup()->widthDSPbb();
     calcRange();
   }
 
   template <>
-  FormatKF<VariableKF::S00>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig)
-      : DataFormatKF(VariableKF::S00, true) {
+  FormatKF<VariableKF::S00>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig, int layer)
+      : DataFormatKF(VariableKF::S00, layer, true) {
     const DataFormat& x0 = dataFormats->format(Variable::inv2R, Process::kf);
     const DataFormat& x1 = dataFormats->format(Variable::phiT, Process::kf);
-    const int baseShift = iConfig.getParameter<int>("BaseShiftS00");
+    const int baseShift = iConfig.getParameter<vector<int>>("BaseShiftS00")[layer];
     base_ = pow(2., baseShift) * x0.base() * x1.base();
     width_ = dataFormats->setup()->widthDSPbb();
     calcRange();
   }
 
   template <>
-  FormatKF<VariableKF::S01>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig)
-      : DataFormatKF(VariableKF::S01, true) {
+  FormatKF<VariableKF::S01>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig, int layer)
+      : DataFormatKF(VariableKF::S01, layer, true) {
     const DataFormat& x1 = dataFormats->format(Variable::phiT, Process::kf);
-    const int baseShift = iConfig.getParameter<int>("BaseShiftS01");
+    const int baseShift = iConfig.getParameter<vector<int>>("BaseShiftS01")[layer];
     base_ = pow(2., baseShift) * x1.base() * x1.base();
     width_ = dataFormats->setup()->widthDSPbb();
     calcRange();
   }
 
   template <>
-  FormatKF<VariableKF::S12>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig)
-      : DataFormatKF(VariableKF::S12, true) {
+  FormatKF<VariableKF::S12>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig, int layer)
+      : DataFormatKF(VariableKF::S12, layer, true) {
     const DataFormat& x2 = dataFormats->format(Variable::cot, Process::kf);
     const DataFormat& x3 = dataFormats->format(Variable::zT, Process::kf);
-    const int baseShift = iConfig.getParameter<int>("BaseShiftS12");
+    const int baseShift = iConfig.getParameter<vector<int>>("BaseShiftS12")[layer];
     base_ = pow(2., baseShift) * x2.base() * x3.base();
     width_ = dataFormats->setup()->widthDSPbb();
     calcRange();
   }
 
   template <>
-  FormatKF<VariableKF::S13>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig)
-      : DataFormatKF(VariableKF::S13, true) {
+  FormatKF<VariableKF::S13>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig, int layer)
+      : DataFormatKF(VariableKF::S13, layer, true) {
     const DataFormat& x3 = dataFormats->format(Variable::zT, Process::kf);
-    const int baseShift = iConfig.getParameter<int>("BaseShiftS13");
+    const int baseShift = iConfig.getParameter<vector<int>>("BaseShiftS13")[layer];
     base_ = pow(2., baseShift) * x3.base() * x3.base();
     width_ = dataFormats->setup()->widthDSPbb();
     calcRange();
   }
 
   template <>
-  FormatKF<VariableKF::K00>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig)
-      : DataFormatKF(VariableKF::K00, true) {
+  FormatKF<VariableKF::K00>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig, int layer)
+      : DataFormatKF(VariableKF::K00, layer, true) {
     const DataFormat& x0 = dataFormats->format(Variable::inv2R, Process::kf);
     const DataFormat& x1 = dataFormats->format(Variable::phiT, Process::kf);
-    const int baseShift = iConfig.getParameter<int>("BaseShiftK00");
+    const int baseShift = iConfig.getParameter<vector<int>>("BaseShiftK00")[layer];
     base_ = pow(2., baseShift) * x0.base() / x1.base();
-    width_ = dataFormats->setup()->widthDSPab();
+    width_ = dataFormats->setup()->widthDSPbb();
     calcRange();
   }
 
   template <>
-  FormatKF<VariableKF::K10>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig)
-      : DataFormatKF(VariableKF::K10, true) {
-    const int baseShift = iConfig.getParameter<int>("BaseShiftK10");
+  FormatKF<VariableKF::K10>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig, int layer)
+      : DataFormatKF(VariableKF::K10, layer, true) {
+    const int baseShift = iConfig.getParameter<vector<int>>("BaseShiftK10")[layer];
     base_ = pow(2., baseShift);
-    width_ = dataFormats->setup()->widthDSPab();
+    width_ = dataFormats->setup()->widthDSPbb();
     calcRange();
   }
 
   template <>
-  FormatKF<VariableKF::K21>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig)
-      : DataFormatKF(VariableKF::K21, true) {
+  FormatKF<VariableKF::K21>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig, int layer)
+      : DataFormatKF(VariableKF::K21, layer, true) {
     const DataFormat& x2 = dataFormats->format(Variable::cot, Process::kf);
     const DataFormat& x3 = dataFormats->format(Variable::zT, Process::kf);
-    const int baseShift = iConfig.getParameter<int>("BaseShiftK21");
+    const int baseShift = iConfig.getParameter<vector<int>>("BaseShiftK21")[layer];
     base_ = pow(2., baseShift) * x2.base() / x3.base();
-    width_ = dataFormats->setup()->widthDSPab();
+    width_ = dataFormats->setup()->widthDSPbb();
     calcRange();
   }
 
   template <>
-  FormatKF<VariableKF::K31>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig)
-      : DataFormatKF(VariableKF::K31, true) {
-    const int baseShift = iConfig.getParameter<int>("BaseShiftK31");
+  FormatKF<VariableKF::K31>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig, int layer)
+      : DataFormatKF(VariableKF::K31, layer, true) {
+    const int baseShift = iConfig.getParameter<vector<int>>("BaseShiftK31")[layer];
     base_ = pow(2., baseShift);
-    width_ = dataFormats->setup()->widthDSPab();
+    width_ = dataFormats->setup()->widthDSPbb();
     calcRange();
   }
 
   template <>
-  FormatKF<VariableKF::R00>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig)
-      : DataFormatKF(VariableKF::R00, false) {
+  FormatKF<VariableKF::R00>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig, int layer)
+      : DataFormatKF(VariableKF::R00, layer, false) {
     const DataFormat& x1 = dataFormats->format(Variable::phiT, Process::kf);
-    const int baseShift = iConfig.getParameter<int>("BaseShiftR00");
+    const int baseShift = iConfig.getParameter<vector<int>>("BaseShiftR00")[layer];
     base_ = pow(2., baseShift) * x1.base() * x1.base();
     width_ = dataFormats->setup()->widthDSPbu();
     calcRange();
   }
 
   template <>
-  FormatKF<VariableKF::R11>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig)
-      : DataFormatKF(VariableKF::R11, false) {
+  FormatKF<VariableKF::R11>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig, int layer)
+      : DataFormatKF(VariableKF::R11, layer, false) {
     const DataFormat& x3 = dataFormats->format(Variable::zT, Process::kf);
-    const int baseShift = iConfig.getParameter<int>("BaseShiftR11");
+    const int baseShift = iConfig.getParameter<vector<int>>("BaseShiftR11")[layer];
     base_ = pow(2., baseShift) * x3.base() * x3.base();
     width_ = dataFormats->setup()->widthDSPbu();
     calcRange();
   }
 
   template <>
-  FormatKF<VariableKF::R00Rough>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig)
-      : DataFormatKF(VariableKF::R00Rough, false) {
-    const FormatKF<VariableKF::R00> R00(dataFormats, iConfig);
+  FormatKF<VariableKF::R00Rough>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig, int layer)
+      : DataFormatKF(VariableKF::R00Rough, layer, false) {
+    const FormatKF<VariableKF::R00> R00(dataFormats, iConfig, layer);
     width_ = dataFormats->setup()->widthAddrBRAM18();
     range_ = R00.range();
     const int baseShift = R00.width() - width_;
@@ -313,9 +333,9 @@ namespace trackerTFP {
   }
 
   template <>
-  FormatKF<VariableKF::R11Rough>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig)
-      : DataFormatKF(VariableKF::R11Rough, false) {
-    const FormatKF<VariableKF::R11> R11(dataFormats, iConfig);
+  FormatKF<VariableKF::R11Rough>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig, int layer)
+      : DataFormatKF(VariableKF::R11Rough, layer, false) {
+    const FormatKF<VariableKF::R11> R11(dataFormats, iConfig, layer);
     width_ = dataFormats->setup()->widthAddrBRAM18();
     range_ = R11.range();
     const int baseShift = R11.width() - width_;
@@ -323,158 +343,158 @@ namespace trackerTFP {
   }
 
   template <>
-  FormatKF<VariableKF::invR00Approx>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig)
-      : DataFormatKF(VariableKF::invR00Approx, false) {
+  FormatKF<VariableKF::invR00Approx>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig, int layer)
+      : DataFormatKF(VariableKF::invR00Approx, layer, false) {
     const DataFormat& x1 = dataFormats->format(Variable::phiT, Process::kf);
-    const int baseShift = iConfig.getParameter<int>("BaseShiftInvR00Approx");
+    const int baseShift = iConfig.getParameter<vector<int>>("BaseShiftInvR00Approx")[layer];
     base_ = pow(2., baseShift) / x1.base() / x1.base();
     width_ = dataFormats->setup()->widthDSPbu();
     calcRange();
   }
 
   template <>
-  FormatKF<VariableKF::invR11Approx>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig)
-      : DataFormatKF(VariableKF::invR11Approx, false) {
+  FormatKF<VariableKF::invR11Approx>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig, int layer)
+      : DataFormatKF(VariableKF::invR11Approx, layer, false) {
     const DataFormat& x3 = dataFormats->format(Variable::zT, Process::kf);
-    const int baseShift = iConfig.getParameter<int>("BaseShiftInvR11Approx");
+    const int baseShift = iConfig.getParameter<vector<int>>("BaseShiftInvR11Approx")[layer];
     base_ = pow(2., baseShift) / x3.base() / x3.base();
     width_ = dataFormats->setup()->widthDSPbu();
     calcRange();
   }
 
   template <>
-  FormatKF<VariableKF::invR00Cor>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig)
-      : DataFormatKF(VariableKF::invR00Cor, false) {
-    const int baseShift = iConfig.getParameter<int>("BaseShiftInvR00Cor");
+  FormatKF<VariableKF::invR00Cor>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig, int layer)
+      : DataFormatKF(VariableKF::invR00Cor, layer, false) {
+    const int baseShift = iConfig.getParameter<vector<int>>("BaseShiftInvR00Cor")[layer];
     base_ = pow(2., baseShift);
     width_ = dataFormats->setup()->widthDSPbu();
     calcRange();
   }
 
   template <>
-  FormatKF<VariableKF::invR11Cor>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig)
-      : DataFormatKF(VariableKF::invR11Cor, false) {
-    const int baseShift = iConfig.getParameter<int>("BaseShiftInvR11Cor");
+  FormatKF<VariableKF::invR11Cor>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig, int layer)
+      : DataFormatKF(VariableKF::invR11Cor, layer, false) {
+    const int baseShift = iConfig.getParameter<vector<int>>("BaseShiftInvR11Cor")[layer];
     base_ = pow(2., baseShift);
     width_ = dataFormats->setup()->widthDSPbu();
     calcRange();
   }
 
   template <>
-  FormatKF<VariableKF::invR00>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig)
-      : DataFormatKF(VariableKF::invR00, false) {
+  FormatKF<VariableKF::invR00>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig, int layer)
+      : DataFormatKF(VariableKF::invR00, layer, false) {
     const DataFormat& x1 = dataFormats->format(Variable::phiT, Process::kf);
-    const int baseShift = iConfig.getParameter<int>("BaseShiftInvR00");
+    const int baseShift = iConfig.getParameter<vector<int>>("BaseShiftInvR00")[layer];
     base_ = pow(2., baseShift) / x1.base() / x1.base();
     width_ = dataFormats->setup()->widthDSPau();
     calcRange();
   }
 
   template <>
-  FormatKF<VariableKF::invR11>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig)
-      : DataFormatKF(VariableKF::invR11, false) {
+  FormatKF<VariableKF::invR11>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig, int layer)
+      : DataFormatKF(VariableKF::invR11, layer, false) {
     const DataFormat& x3 = dataFormats->format(Variable::zT, Process::kf);
-    const int baseShift = iConfig.getParameter<int>("BaseShiftInvR11");
+    const int baseShift = iConfig.getParameter<vector<int>>("BaseShiftInvR11")[layer];
     base_ = pow(2., baseShift) / x3.base() / x3.base();
     width_ = dataFormats->setup()->widthDSPau();
     calcRange();
   }
 
   template <>
-  FormatKF<VariableKF::C00>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig)
-      : DataFormatKF(VariableKF::C00, false) {
+  FormatKF<VariableKF::C00>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig, int layer)
+      : DataFormatKF(VariableKF::C00, layer, false) {
     const DataFormat& x0 = dataFormats->format(Variable::inv2R, Process::kf);
-    const int baseShift = iConfig.getParameter<int>("BaseShiftC00");
+    const int baseShift = iConfig.getParameter<vector<int>>("BaseShiftC00")[layer];
     base_ = pow(2., baseShift) * x0.base() * x0.base();
     width_ = dataFormats->setup()->widthDSPbu();
     calcRange();
   }
 
   template <>
-  FormatKF<VariableKF::C01>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig)
-      : DataFormatKF(VariableKF::C01, true) {
+  FormatKF<VariableKF::C01>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig, int layer)
+      : DataFormatKF(VariableKF::C01, layer, true) {
     const DataFormat& x0 = dataFormats->format(Variable::inv2R, Process::kf);
     const DataFormat& x1 = dataFormats->format(Variable::phiT, Process::kf);
-    const int baseShift = iConfig.getParameter<int>("BaseShiftC01");
+    const int baseShift = iConfig.getParameter<vector<int>>("BaseShiftC01")[layer];
     base_ = pow(2., baseShift) * x0.base() * x1.base();
     width_ = dataFormats->setup()->widthDSPbb();
     calcRange();
   }
 
   template <>
-  FormatKF<VariableKF::C11>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig)
-      : DataFormatKF(VariableKF::C11, false) {
+  FormatKF<VariableKF::C11>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig, int layer)
+      : DataFormatKF(VariableKF::C11, layer, false) {
     const DataFormat& x1 = dataFormats->format(Variable::phiT, Process::kf);
-    const int baseShift = iConfig.getParameter<int>("BaseShiftC11");
+    const int baseShift = iConfig.getParameter<vector<int>>("BaseShiftC11")[layer];
     base_ = pow(2., baseShift) * x1.base() * x1.base();
     width_ = dataFormats->setup()->widthDSPbu();
     calcRange();
   }
 
   template <>
-  FormatKF<VariableKF::C22>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig)
-      : DataFormatKF(VariableKF::C22, false) {
+  FormatKF<VariableKF::C22>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig, int layer)
+      : DataFormatKF(VariableKF::C22, layer, false) {
     const DataFormat& x2 = dataFormats->format(Variable::cot, Process::kf);
-    const int baseShift = iConfig.getParameter<int>("BaseShiftC22");
+    const int baseShift = iConfig.getParameter<vector<int>>("BaseShiftC22")[layer];
     base_ = pow(2., baseShift) * x2.base() * x2.base();
     width_ = dataFormats->setup()->widthDSPbu();
     calcRange();
   }
 
   template <>
-  FormatKF<VariableKF::C23>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig)
-      : DataFormatKF(VariableKF::C23, true) {
+  FormatKF<VariableKF::C23>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig, int layer)
+      : DataFormatKF(VariableKF::C23, layer, true) {
     const DataFormat& x2 = dataFormats->format(Variable::cot, Process::kf);
     const DataFormat& x3 = dataFormats->format(Variable::zT, Process::kf);
-    const int baseShift = iConfig.getParameter<int>("BaseShiftC23");
+    const int baseShift = iConfig.getParameter<vector<int>>("BaseShiftC23")[layer];
     base_ = pow(2., baseShift) * x2.base() * x3.base();
     width_ = dataFormats->setup()->widthDSPbb();
     calcRange();
   }
 
   template <>
-  FormatKF<VariableKF::C33>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig)
-      : DataFormatKF(VariableKF::C33, false) {
+  FormatKF<VariableKF::C33>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig, int layer)
+      : DataFormatKF(VariableKF::C33, layer, false) {
     const DataFormat& x3 = dataFormats->format(Variable::zT, Process::kf);
-    const int baseShift = iConfig.getParameter<int>("BaseShiftC33");
+    const int baseShift = iConfig.getParameter<vector<int>>("BaseShiftC33")[layer];
     base_ = pow(2., baseShift) * x3.base() * x3.base();
     width_ = dataFormats->setup()->widthDSPbu();
     calcRange();
   }
 
   template <>
-  FormatKF<VariableKF::r02>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig)
-      : DataFormatKF(VariableKF::r02, false) {
+  FormatKF<VariableKF::r02>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig, int layer)
+      : DataFormatKF(VariableKF::r02, layer, false) {
     const DataFormat& x1 = dataFormats->format(Variable::phiT, Process::kf);
-    const int baseShift = iConfig.getParameter<int>("BaseShiftr02");
+    const int baseShift = iConfig.getParameter<vector<int>>("BaseShiftr02")[layer];
     base_ = pow(2., baseShift) * x1.base() * x1.base();
     width_ = dataFormats->setup()->widthDSPbu();
     calcRange();
   }
 
   template <>
-  FormatKF<VariableKF::r12>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig)
-      : DataFormatKF(VariableKF::r12, false) {
+  FormatKF<VariableKF::r12>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig, int layer)
+      : DataFormatKF(VariableKF::r12, layer, false) {
     const DataFormat& x3 = dataFormats->format(Variable::zT, Process::kf);
-    const int baseShift = iConfig.getParameter<int>("BaseShiftr12");
+    const int baseShift = iConfig.getParameter<vector<int>>("BaseShiftr12")[layer];
     base_ = pow(2., baseShift) * x3.base() * x3.base();
     width_ = dataFormats->setup()->widthDSPbu();
     calcRange();
   }
 
   template <>
-  FormatKF<VariableKF::chi20>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig)
-      : DataFormatKF(VariableKF::chi20, false) {
-    const int baseShift = iConfig.getParameter<int>("BaseShiftchi20");
+  FormatKF<VariableKF::chi20>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig, int layer)
+      : DataFormatKF(VariableKF::chi20, layer, false) {
+    const int baseShift = iConfig.getParameter<vector<int>>("BaseShiftchi20")[layer];
     base_ = pow(2., baseShift);
     width_ = dataFormats->setup()->widthDSPbu();
     calcRange();
   }
 
   template <>
-  FormatKF<VariableKF::chi21>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig)
-      : DataFormatKF(VariableKF::chi21, false) {
-    const int baseShift = iConfig.getParameter<int>("BaseShiftchi21");
+  FormatKF<VariableKF::chi21>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig, int layer)
+      : DataFormatKF(VariableKF::chi21, layer, false) {
+    const int baseShift = iConfig.getParameter<vector<int>>("BaseShiftchi21")[layer];
     base_ = pow(2., baseShift);
     width_ = dataFormats->setup()->widthDSPbu();
     calcRange();

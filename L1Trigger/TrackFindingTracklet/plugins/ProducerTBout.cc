@@ -136,8 +136,8 @@ namespace trklet {
       StreamTrack& accepted = streamAcceptedTracks[channelId];
       StreamTrack& lost = streamLostTracks[channelId];
       auto limit = streamTrack.end();
-      if (enableTruncation_ && (int)streamTrack.size() > setup_->numFrames())
-        limit = next(streamTrack.begin(), setup_->numFrames());
+      if (enableTruncation_ && (int)streamTrack.size() > setup_->numFramesLow())
+        limit = next(streamTrack.begin(), setup_->numFramesLow());
       accepted.reserve(distance(streamTrack.begin(), limit));
       lost.reserve(distance(limit, streamTrack.end()));
       int nFrame(0);
@@ -167,8 +167,8 @@ namespace trklet {
     channelId = 0;
     for (const StreamStub& streamStub : streamsStub) {
       auto limit = streamStub.end();
-      if (enableTruncation_ && (int)streamStub.size() > setup_->numFrames())
-        limit = next(streamStub.begin(), setup_->numFrames());
+      if (enableTruncation_ && (int)streamStub.size() > setup_->numFramesLow())
+        limit = next(streamStub.begin(), setup_->numFramesLow());
       streamAcceptedStubs[channelId] = StreamStub(streamStub.begin(), limit);
       streamLostStubs[channelId++] = StreamStub(limit, streamStub.end());
     }

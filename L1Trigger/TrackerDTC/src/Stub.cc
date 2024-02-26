@@ -70,7 +70,8 @@ namespace trackerDTC {
     const double dInv2R = setup_->bendCut() * inv2ROverBend;
     inv2R_.first = dfInv2R.digi(inv2R - dInv2R);
     inv2R_.second = dfInv2R.digi(inv2R + dInv2R);
-    static const double maxInv2R = dfInv2R.limit();
+    //static const double maxInv2R = dfInv2R.limit();
+    static const double maxInv2R = dfInv2R.range() / 2.;
     // cut on pt
     if (inv2R_.first > maxInv2R || inv2R_.second < -maxInv2R)
       valid_ = false;
@@ -115,19 +116,15 @@ namespace trackerDTC {
     // apply "eta" cut
     const DataFormat& dfZT = dataFormats->format(Variable::zT, Process::gp);
     const double r = r_ + setup->chosenRofPhi();
-    if (hybrid_) {
-      if (abs(z_ / r) > setup->hybridMaxCot())
-        valid_ = false;
-    } else {
-      const double ratioRZ = setup->chosenRofZ() / r;
-      // extrapolated z at radius T assuming z0=0
-      const double zT = z_ * ratioRZ;
-      // extrapolated z0 window at radius T
-      const double dZT = setup->beamWindowZ() * abs(1. - ratioRZ);
-      zT_ = {zT - dZT, zT + dZT};
-      if (abs(zT) > dfZT.limit() + dZT)
-        valid_ = false;
-    }
+    const double ratioRZ = setup->chosenRofZ() / r;
+    // extrapolated z at radius T assuming z0=0
+    const double zT = z_ * ratioRZ;
+    // extrapolated z0 window at radius T
+    const double dZT = setup->beamWindowZ() * abs(1. - ratioRZ);
+    zT_ = {zT - dZT, zT + dZT};
+    //if (abs(zT) > dfZT.limit() + dZT)
+    if (abs(zT) > dfZT.range() / 2. + dZT)
+      valid_ = false;
     // apply data format specific manipulations
     if (!hybrid_)
       return;
@@ -195,12 +192,16 @@ namespace trackerDTC {
         layer.set(3);
     } else if (sm_->psModule())
       layer.set(3);
-    const int phiTMin = dfPhiT.integerF(phiT_.first - offset);
-    const int phiTMax = dfPhiT.integerF(phiT_.second - offset);
-    const int zTMin = dfZT.integerF(zT_.first);
-    const int zTMax = dfZT.integerF(zT_.second);
-    const int inv2RMin = dfInv2R.integer(inv2R_.first);
-    const int inv2RMax = dfInv2R.integer(inv2R_.second);
+    int phiTMin = max(dfPhiT.integer(phiT_.first - offset), -setup_->gpNumBinsPhiT() / 2);
+    int phiTMax = min(dfPhiT.integer(phiT_.second - offset), setup_->gpNumBinsPhiT() / 2 - 1);
+    if (phiTMin > setup_->gpNumBinsPhiT() / 2 - 1)
+      phiTMin = setup_->gpNumBinsPhiT() / 2 - 1;
+    if (phiTMax < -setup_->gpNumBinsPhiT() / 2)
+      phiTMax = -setup_->gpNumBinsPhiT() / 2;
+    const int zTMin = max(dfZT.integer(zT_.first), -setup_->gpNumBinsZT() / 2);
+    const int zTMax = min(dfZT.integer(zT_.second), setup_->gpNumBinsZT() / 2 - 1);
+    const int inv2RMin = max(dfInv2R.integer(inv2R_.first), -setup_->htNumBinsInv2R() / 2);
+    const int inv2RMax = min(dfInv2R.integer(inv2R_.second), setup_->htNumBinsInv2R() / 2 - 1);
     const StubDTC stub(ttStubRef_, dataFormats_, r, phi, z, layer, phiTMin, phiTMax, zTMin, zTMax, inv2RMin, inv2RMax);
     return stub.frame().second;
   }

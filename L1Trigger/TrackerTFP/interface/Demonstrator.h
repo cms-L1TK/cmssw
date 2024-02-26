@@ -48,9 +48,9 @@ namespace trackerTFP {
     // runtime in ms
     double runTime_;
     //
-    std::vector<int> linkMappingIn_;
+    const std::vector<int> linkMappingIn_;
     //
-    std::vector<int> linkMappingOut_;
+    const std::vector<int> linkMappingOut_;
     // path to input text file
     std::string dirIn_;
     // path to output text file

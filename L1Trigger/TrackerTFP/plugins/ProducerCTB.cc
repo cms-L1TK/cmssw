@@ -55,12 +55,16 @@ namespace trackerTFP {
     ESGetToken<Setup, SetupRcd> esGetTokenSetup_;
     // DataFormats token
     ESGetToken<DataFormats, DataFormatsRcd> esGetTokenDataFormats_;
+    // LayerEncoding token
+    ESGetToken<LayerEncoding, LayerEncodingRcd> esGetTokenLayerEncoding_;
     // configuration
     ParameterSet iConfig_;
     // helper class to store configurations
     const Setup* setup_ = nullptr;
     // helper class to extract structured data from tt::Frames
     const DataFormats* dataFormats_ = nullptr;
+    //
+    const LayerEncoding* layerEncoding_ = nullptr;
     //
     bool enableTruncation_;
   };
@@ -77,6 +81,7 @@ namespace trackerTFP {
     // book ES products
     esGetTokenSetup_ = esConsumes<Setup, SetupRcd, Transition::BeginRun>();
     esGetTokenDataFormats_ = esConsumes<DataFormats, DataFormatsRcd, Transition::BeginRun>();
+    esGetTokenLayerEncoding_ = esConsumes<LayerEncoding, LayerEncodingRcd, Transition::BeginRun>();
     //
     enableTruncation_ = iConfig.getParameter<bool>("EnableTruncation");
   }
@@ -86,6 +91,8 @@ namespace trackerTFP {
     setup_ = &iSetup.getData(esGetTokenSetup_);
     // helper class to extract structured data from tt::Frames
     dataFormats_ = &iSetup.getData(esGetTokenDataFormats_);
+    //
+    layerEncoding_ = &iSetup.getData(esGetTokenLayerEncoding_);
   }
 
   void ProducerCTB::produce(Event& iEvent, const EventSetup& iSetup) {
@@ -131,7 +138,7 @@ namespace trackerTFP {
     vector<TrackCTB> tracksCTB;
     tracksCTB.reserve(nTracksHT);
     stubsCTB.reserve(nStubsHT);
-    CleanTrackBuilder ctb(iConfig_, setup_, dataFormats_, stubsCTB, tracksCTB);
+    CleanTrackBuilder ctb(iConfig_, setup_, dataFormats_, layerEncoding_, stubsCTB, tracksCTB);
     int iStub(0);
     for (int region = 0; region < numRegions; region++) {
       const int offsetIn = region * numChannelIn;

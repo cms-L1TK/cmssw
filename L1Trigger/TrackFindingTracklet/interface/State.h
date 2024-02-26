@@ -18,7 +18,7 @@ namespace trklet {
     // proto state constructor
     State(trackerTFP::KalmanFilterFormats* formats,
           trackerTFP::TrackCTB* track,
-          const std::vector<std::vector<trackerTFP::StubCTB*>>& stubs,
+          const std::vector<trackerTFP::StubCTB*>& stubs,
           const TTBV& maybe,
           int trackId);
     // updated state constructor
@@ -54,6 +54,10 @@ namespace trklet {
     double x2() const { return x2_; }
     // helix z at radius chosenRofZ wrt input helix
     double x3() const { return x3_; }
+    //
+    double chi20() const { return chi20_; }
+    //
+    double chi21() const { return chi21_; }
     // cov. matrix element
     double C00() const { return C00_; }
     // cov. matrix element
@@ -86,7 +90,7 @@ namespace trklet {
     bool isDone() const { return type_ == done; }
     //
     bool isSkip() const { return type_ == skip; }
-    const std::vector<std::vector<trackerTFP::StubCTB*>>& stubs() const { return stubs_; }
+    const std::vector<trackerTFP::StubCTB*>& stubs() const { return stubs_; }
 
   private:
     // provides data fomats
@@ -96,7 +100,7 @@ namespace trklet {
     // input track
     trackerTFP::TrackCTB* track_;
     // input track stubs
-    std::vector<std::vector<trackerTFP::StubCTB*>> stubs_;
+    std::vector<trackerTFP::StubCTB*> stubs_;
     // pattern of maybe layers for input track
     TTBV maybePattern_;
     // track id

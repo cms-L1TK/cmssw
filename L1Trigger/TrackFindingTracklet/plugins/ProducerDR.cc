@@ -100,7 +100,7 @@ namespace trklet {
 
   void ProducerDR::produce(Event& iEvent, const EventSetup& iSetup) {
     // empty DR products
-    const int numStreamsTracks = channelAssignment_->numNodesDR() * setup_->numRegions();
+    const int numStreamsTracks = setup_->numRegions();
     const int numStreamsStubs = numStreamsTracks * setup_->numLayers();
     StreamsStub acceptedStubs(numStreamsStubs);
     StreamsTrack acceptedTracks(numStreamsTracks);

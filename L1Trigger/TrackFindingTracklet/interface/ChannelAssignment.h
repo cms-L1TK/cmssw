@@ -42,8 +42,6 @@ namespace trklet {
     int numComparisonModules() const { return numComparisonModules_; }
     // min number of shared stubs to identify duplicates
     int minIdenticalStubs() const { return minIdenticalStubs_; }
-    // number of DR nodes
-    int numNodesDR() const { return numNodesDR_; }
     // number of used seed types in tracklet algorithm
     int numSeedTypes() const { return numSeedTypes_; }
     // sets layerId (0-7 in sequence the seed type projects to) of given TTStubRef and seedType, returns false if seeed stub
@@ -66,8 +64,6 @@ namespace trklet {
     int channelId(int seedType, int layerId) const;
     // max number of seeding layers
     int numSeedingLayers() const { return numSeedingLayers_; }
-    // return DR node for given ttTrackRef
-    int nodeDR(const TTTrackRef& ttTrackRef) const;
 
   private:
     // helper class to store configurations
@@ -84,16 +80,12 @@ namespace trklet {
     int widthPSTilt_;
     // depth of fifos within systolic array
     int depthMemory_;
-    // positive pt Boundaries in GeV (symmetric negatives are assumed), first boundary is pt cut, last boundary is infinity, defining ot bins used by DR
-    std::vector<double> ptBoundaries_;
     // DRin parameter
     edm::ParameterSet pSetDR_;
     // number of comparison modules used in each DR node
     int numComparisonModules_;
     // min number of shared stubs to identify duplicates [default: 3]
     int minIdenticalStubs_;
-    // number of DR nodes
-    int numNodesDR_;
     // seed type names
     std::vector<std::string> seedTypeNames_;
     // number of used seed types in tracklet algorithm
