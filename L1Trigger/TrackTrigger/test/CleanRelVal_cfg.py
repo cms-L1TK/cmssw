@@ -10,8 +10,8 @@ import FWCore.ParameterSet.Config as cms
 
 process = cms.Process( "CleanUp" )
 process.load( 'FWCore.MessageService.MessageLogger_cfi' )
-process.load('Configuration.Geometry.GeometryExtended2026D88Reco_cff')
-process.load('Configuration.Geometry.GeometryExtended2026D88_cff')
+process.load('Configuration.Geometry.GeometryExtended2026D98Reco_cff')
+process.load('Configuration.Geometry.GeometryExtended2026D98_cff')
 process.load( 'Configuration.StandardSequences.MagneticField_cff' )
 process.load( 'Configuration.StandardSequences.FrontierConditions_GlobalTag_cff' )
 process.load( 'Configuration.EventContent.EventContent_cff' )
@@ -36,7 +36,7 @@ import FWCore.ParameterSet.VarParsing as VarParsing
 options = VarParsing.VarParsing( 'analysis' )
 # specify input MC
 Samples = [
-  '/store/relvalOrig/CMSSW_12_6_0_pre4/RelValSingleMuPt100/GEN-SIM-DIGI-RAW/125X_mcRun4_realistic_v2_2026D88noPU-v1/2580000/b46f31f3-ba67-421f-8ad8-c9ff53f487ed.root'
+  '/store/relvalOrig/CMSSW_14_0_0_pre2/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU_133X_mcRun4_realistic_v1_STD_2026D98_PU200_RV229-v1/2580000/1d057884-72bd-4353-8375-ec4616c00a33.root'
 ]
 options.register( 'inputMC', Samples, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.string, "Files to be processed" )
 # specify number of events to process.
@@ -61,7 +61,7 @@ if True :
     splitLevel = cms.untracked.int32(0),
     eventAutoFlushCompressedSize = cms.untracked.int32(5242880),
     outputCommands = process.RAWSIMEventContent.outputCommands,
-    fileName = cms.untracked.string('/heplnw039/store/relvalTrimmed/CMSSW_12_6_0_pre4/RelValSingleMuPt100/GEN-SIM-DIGI-RAW/125X_mcRun4_realistic_v2_2026D88noPU-v1/2580000/b46f31f3-ba67-421f-8ad8-c9ff53f487ed.root'),
+    fileName = cms.untracked.string('/heplnw039/store/relvalTrimmed/CMSSW_14_0_0_pre2/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU_133X_mcRun4_realistic_v1_STD_2026D98_PU200_RV229-v1/2580000/1d057884-72bd-4353-8375-ec4616c00a33.root'),
     dataset = cms.untracked.PSet(
       filterName = cms.untracked.string(''),
       dataTier = cms.untracked.string('GEN-SIM')
