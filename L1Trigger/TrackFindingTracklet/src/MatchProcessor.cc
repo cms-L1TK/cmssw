@@ -117,7 +117,6 @@ MatchProcessor::MatchProcessor(string name, Settings const& settings, Globals* g
   best_ideltar_disk = 0xFFFF;
   curr_tracklet = nullptr;
   next_tracklet = nullptr;
-  first_ = false;
 }
 
 void MatchProcessor::addOutput(MemoryBase* memory, string output) {
@@ -213,6 +212,9 @@ void MatchProcessor::execute(unsigned int iSector, double phimin) {
   ProjectionTemp tmpProj_, tmpProj__;
   bool good_ = false;
   bool good__ = false;
+  // Reset so events avoids stale pointers
+  curr_tracklet = nullptr;
+  next_tracklet = nullptr;
 
   for (unsigned int istep = 0; istep < settings_.maxStep("MP"); istep++) {
     // This print statement is useful for detailed comparison with the HLS code
@@ -484,7 +486,6 @@ void MatchProcessor::execute(unsigned int iSector, double phimin) {
       break;
     }
   }
-  first_ = false; // Reset so next event avoids stale pointers
 
   if (settings_.writeMonitorData("MC")) {
     globals_->ofstream("matchcalculator.txt") << getName() << " " << countall << " " << countsel << endl;
@@ -542,8 +543,7 @@ bool MatchProcessor::matchCalculator(Tracklet* tracklet, const Stub* fpgastub, b
     next_tracklet = tracklet;
 
     // Do we have a new tracklet?
-    bool newtracklet = (!first_ || next_tracklet != curr_tracklet);
-    first_ = newtracklet ? true : first_;
+    bool newtracklet = next_tracklet != curr_tracklet;
     if (istep == 0)
       best_ideltar_disk = (1 << (fpgastub->r().nbits() - 1));  // Set to the maximum possible
     // If so, replace the "best" values with the cut tables
@@ -745,8 +745,7 @@ bool MatchProcessor::matchCalculator(Tracklet* tracklet, const Stub* fpgastub, b
     curr_tracklet = next_tracklet;
     next_tracklet = tracklet;
     // Do we have a new tracklet?
-    bool newtracklet = (!first_ || next_tracklet != curr_tracklet);
-    first_ = newtracklet ? true : first_;
+    bool newtracklet = next_tracklet != curr_tracklet;
     // If so, replace the "best" values with the cut tables
     if (newtracklet) {
       best_ideltaphi_disk = idrphicut;
