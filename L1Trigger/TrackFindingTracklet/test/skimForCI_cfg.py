@@ -11,7 +11,10 @@
 # It should be copied somewhere like /eos/user/t/tomalin/
 # using cp on lxplus. And a link created to it from 
 # somewhere like 
-# https://cernbox.cern.ch/index.php/apps/files/?dir=/&
+# https://cernbox.cern.ch/index.php/apps/files/?dir=/& .
+# N.B. The "quicklink" this gives is buggy. Take the encoded 
+# string from it and insert it into something like:
+#https://cernbox.cern.ch/remote.php/dav/public-files/4wMLEX986bdIs8U/skimmedForCI_14_0_0.root
 # The link to the skimmed dataset should be referred to in
 # https://gitlab.cern.ch/cms-l1tk/cmssw_CI .
 #-----------------------------------------------------------
