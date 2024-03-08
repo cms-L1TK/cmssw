@@ -73,7 +73,7 @@ void MatchEngineUnit::init(VMStubsMEMemory* vmstubsmemory,
   good__ = false;
 }
 
-void MatchEngineUnit::step() {
+void MatchEngineUnit::step(bool print) {
   good__ = !idle() && !almostfullsave_;
 
   if (!good__)
@@ -95,6 +95,11 @@ void MatchEngineUnit::step() {
   }
 
   vmstub__ = vmstubsmemory_->getVMStubMEBin(slot, istub_);
+
+  if (print) {
+    std::cout << "Read vmstub MEU "<<imeu_<<" "<<slot<<" "<<istub_<<" "<<vmstub__.bend().value() << std::endl;
+  }
+
   rzbin__ = rzbin_ + use_[iuse_].first;
 
   isPSseed__ = isPSseed_;
@@ -112,7 +117,7 @@ void MatchEngineUnit::step() {
   }
 }
 
-void MatchEngineUnit::processPipeline() {
+void MatchEngineUnit::processPipeline(bool print) {
   if (good____) {
     int stubfinerz = vmstub____.finerz().value();
     int stubfinephi = vmstub____.finephi().value();
@@ -141,6 +146,9 @@ void MatchEngineUnit::processPipeline() {
     int diskps = (!barrel_) && isPSmodule;
 
     //here we always use the larger number of bits for the bend
+
+    //unsigned int index = (diskps << (N_BENDBITS_2S + NRINVBITS)) + (projrinv___ << nbits) + vmstub___.bend().value(); ????
+
     unsigned int index = (diskps << (N_BENDBITS_2S + NRINVBITS)) + (projrinv____ << nbits) + vmstub____.bend().value();
 
     //Check if stub z position consistent
@@ -165,11 +173,19 @@ void MatchEngineUnit::processPipeline() {
       }
     }
 
+    if (print) {
+      std::cout << "MEU: "<< imeu_ << " " << dphicut << " " << pass << " " << index << " " 
+		<< vmstub____.bend().value() << " " << luttable_.lookup(index) << std::endl;
+    }
+
     bool goodpair = (pass && dphicut) && luttable_.lookup(index);
 
     std::pair<Tracklet*, const Stub*> tmppair(proj____, vmstub____.stub());
 
     if (goodpair) {
+      if (print) {
+	std::cout << "Write tp match buffer : " << imeu_ << " " <<candmatches_.rptr() << std::endl;
+      }
       candmatches_.store(tmppair);
     }
   }

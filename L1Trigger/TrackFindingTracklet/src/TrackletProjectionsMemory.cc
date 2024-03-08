@@ -14,7 +14,6 @@ TrackletProjectionsMemory::TrackletProjectionsMemory(string name, Settings const
   initLayerDisk(pos + 1, layer_, disk_);
   hasProj_ = false;
   npage_ = name.size()-17;
-  std::cout << "Name, size:" << name << " " << npage_ << std::endl;
   tracklets_.resize(npage_);
 }
 
@@ -35,13 +34,10 @@ void TrackletProjectionsMemory::addProj(Tracklet* tracklet, unsigned int page) {
 
   hasProj_ = true;
 
-  std::cout << "Adding tracklet " << tracklet << " in " << getName() << "in page = " << page << std::endl;
-
   tracklets_[page].push_back(tracklet);
 }
 
 void TrackletProjectionsMemory::clean() {
-  cout << "cleanTPROJ:" << getName() << endl;
   for (unsigned int i = 0; i < tracklets_.size() ; i++){
     tracklets_[i].clear(); 
   }
@@ -61,8 +57,6 @@ void TrackletProjectionsMemory::writeTPROJ(bool first, unsigned int iSector) {
   out_ << "BX = " << (bitset<3>)bx_ << " Event : " << event_ << endl;
 
   for (unsigned int j = 0; j < tracklets_.size(); j++) {
-    cout << "WriteTPROJ:" << getName() << " " << tracklets_.size() << " " << tracklets_[j].size() << endl;
-    //out_ << tracklets_.size() << " " << tracklets_[j].size() << endl;
     for (unsigned int i = 0; i < tracklets_[j].size(); i++) {
     
       string proj = (layer_ > 0 && tracklets_[j][i]->validProj(layer_ - 1)) ? tracklets_[j][i]->trackletprojstrlayer(layer_)

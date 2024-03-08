@@ -614,6 +614,9 @@ void TrackletConfigBuilder::writeMergedProjectionMemories(std::ostream& os, std:
   for (unsigned int iSeed = 0; iSeed < 8; iSeed++){
     for (unsigned int iPC = 0; iPC < nMergedTC[iSeed]; iPC++) {
       process << "ProjectionCalculator: " << PCName(iSeed, iPC) << std::endl;
+      memories << "TrackletParameters: MPAR_" << iSeedStr(iSeed) << iMergedTCStr(iSeed,iPC) << " [73]" << std::endl;
+      os << "MPAR_"<<iSeedStr(iSeed) << iMergedTCStr(iSeed,iPC) << " input=> " << PCName(iSeed, iPC) << ".tparout"
+	 << " output=> FT_" <<iSeedStr(iSeed) << ".tparin" << std::endl;
     }
   } 
 
@@ -1219,13 +1222,20 @@ void TrackletConfigBuilder::writeTPARMemories(std::ostream& os, std::ostream& me
   // Each TC module (e.g. TC_L1L2A) stores helix params in a single TPAR memory of similar name
   // (e.g. TPAR_L1L2A). The TPAR is subsequently read by the TrackBuilder (FT).
 
+  unsigned int nMergedTC[8] = {6, 1, 2, 1, 1, 1, 2, 1};
+
   if (combinedmodules_) {
     for (unsigned int iSeed = 0; iSeed < N_SEED_PROMPT; iSeed++) {
       for (unsigned int iTP = 0; iTP < TC_[iSeed].size(); iTP++) {
         memories << "TrackletParameters: TPAR_" << iSeedStr(iSeed) << iTCStr(iTP) << " [56]" << std::endl;
         modules << "TrackletProcessor: TP_" << iSeedStr(iSeed) << iTCStr(iTP) << std::endl;
-        os << "TPAR_" << iSeedStr(iSeed) << iTCStr(iTP) << " input=> TP_" << iSeedStr(iSeed) << iTCStr(iTP)
-           << ".trackpar output=> FT_" << iSeedStr(iSeed) << ".tparin" << std::endl;
+	for (unsigned int iMergedTC = 0 ; iMergedTC<nMergedTC[iSeed]; iMergedTC++) { 
+	  std::string mergetcstr = iMergedTCStr(iSeed, iMergedTC);
+	  if (mergetcstr.find(iTCStr(iTP)) != std::string::npos) {
+	    os << "TPAR_" << iSeedStr(iSeed) << iTCStr(iTP) << " input=> TP_" << iSeedStr(iSeed) << iTCStr(iTP)
+	       << ".trackpar output=> " << PCName(iSeed, iMergedTC) << ".tparin" << std::endl;
+	  }
+	}
       }
     }
   } else {
