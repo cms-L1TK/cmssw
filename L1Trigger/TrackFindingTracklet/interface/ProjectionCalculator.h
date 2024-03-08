@@ -4,6 +4,7 @@
 #include "L1Trigger/TrackFindingTracklet/interface/ProcessBase.h"
 #include "L1Trigger/TrackFindingTracklet/interface/TrackletLUT.h"
 #include "L1Trigger/TrackFindingTracklet/interface/TrackletProjectionsMemory.h"
+#include "L1Trigger/TrackFindingTracklet/interface/TrackletParametersMemory.h"
 
 namespace trklet {
 
@@ -25,8 +26,10 @@ namespace trklet {
   private:
 
     std::vector<TrackletProjectionsMemory*> inputproj_;
-
     std::vector<TrackletProjectionsMemory*> outputproj_;
+
+    std::vector<TrackletParametersMemory*> inputpars_;
+    std::vector<TrackletParametersMemory*> outputpars_;
 
   };
 

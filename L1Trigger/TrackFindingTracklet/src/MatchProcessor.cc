@@ -180,7 +180,9 @@ void MatchProcessor::execute(unsigned int iSector, double phimin) {
     
   */
 
-  bool print = getName() == "MP_L3PHIC" && iSector == 3;
+  //std::cout << getName()<< " In execute" << std::endl;
+
+  bool print = getName() == "MP_L2PHIC" && iSector == 3;
   print = false;
 
   phimin_ = phimin;
@@ -222,27 +224,29 @@ void MatchProcessor::execute(unsigned int iSector, double phimin) {
   next_tracklet = nullptr;
 
   for (unsigned int istep = 0; istep < settings_.maxStep("MP"); istep++) {
-    // This print statement is useful for detailed comparison with the HLS code
-    // It prints out detailed status information for each clock step
-    /* 
-    if (print) {
-      cout << "istep = "<<istep<<" projBuff: "<<inputProjBuffer_.rptr()<<" "<<inputProjBuffer_.wptr()<<" "<<projBuffNearFull;
-      unsigned int iMEU = 0;
-      for (auto& matchengine : matchengines_) {
-	cout <<" MEU"<<iMEU<<": "<<matchengine.rptr()<<" "<<matchengine.wptr()
-	     <<" "<<matchengine.idle()<<" "<<matchengine.empty()
-	     <<" "<<matchengine.TCID();
-	iMEU++;
-      }
-      cout << std::endl;
-    }
-    */
-
-    //First do some caching of state at the start of the clock
 
     bool projdone = false;
 
     bool projBuffNearFull = inputProjBuffer_.nearfull();
+
+    // This print statement is useful for detailed comparison with the HLS code
+    // It prints out detailed status information for each clock step
+    
+    if (print) {
+      std::cout << "istep = "<<istep<<" projBuff: "<<inputProjBuffer_.rptr()<<" "<<inputProjBuffer_.wptr()<<" "<<projBuffNearFull;
+      unsigned int iMEU = 0;
+      for (auto& matchengine : matchengines_) {
+	std::cout <<" MEU"<<iMEU<<": "<<matchengine.rptr()<<" "<<matchengine.wptr()
+	     <<" "<<matchengine.idle()<<" "<<matchengine.empty()
+	     <<" "<<matchengine.TCID();
+	iMEU++;
+      }
+      std::cout << std::endl;
+    }
+    
+
+    //First do some caching of state at the start of the clock
+
 
     for (unsigned int iME = 0; iME < nMatchEngines_; iME++) {
       matchengines_[iME].setAlmostFull();
@@ -280,7 +284,7 @@ void MatchProcessor::execute(unsigned int iSector, double phimin) {
       oldTracklet = tracklet;
 
       bool match = matchCalculator(tracklet, fpgastub, print, istep);
-
+      
       if (settings_.debugTracklet() && match) {
         edm::LogVerbatim("Tracklet") << getName() << " have match";
       }
@@ -328,9 +332,9 @@ void MatchProcessor::execute(unsigned int iSector, double phimin) {
         meactive = true;
         addedProjection = true;
       } else {
-        matchengines_[iME].step();
+        matchengines_[iME].step(print);
       }
-      matchengines_[iME].processPipeline();
+      matchengines_[iME].processPipeline(print);
     }
 
     //Step 1
@@ -448,6 +452,7 @@ void MatchProcessor::execute(unsigned int iSector, double phimin) {
         good_ = usefirstPlus || usesecondPlus || usefirstMinus || usesecondMinus;
 
         if (good_) {
+
           ProjectionTemp tmpProj(proj,
                                  slot,
                                  projrinv,
