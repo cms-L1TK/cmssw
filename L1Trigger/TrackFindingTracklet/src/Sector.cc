@@ -31,6 +31,7 @@
 #include "L1Trigger/TrackFindingTracklet/interface/TrackletProcessorDisplaced.h"
 #include "L1Trigger/TrackFindingTracklet/interface/TrackletCalculatorDisplaced.h"
 #include "L1Trigger/TrackFindingTracklet/interface/ProjectionRouter.h"
+#include "L1Trigger/TrackFindingTracklet/interface/ProjectionCalculator.h"
 #include "L1Trigger/TrackFindingTracklet/interface/MatchEngine.h"
 #include "L1Trigger/TrackFindingTracklet/interface/MatchCalculator.h"
 #include "L1Trigger/TrackFindingTracklet/interface/MatchProcessor.h"
@@ -166,6 +167,8 @@ void Sector::addProc(string procType, string procName) {
     addProcToVec(TCD_, procName, settings_, globals_);
   } else if (procType == "ProjectionRouter:") {
     addProcToVec(PR_, procName, settings_, globals_);
+  } else if (procType == "ProjectionCalculator:") {
+    addProcToVec(PC_, procName, settings_, globals_);
   } else if (procType == "MatchEngine:") {
     addProcToVec(ME_, procName, settings_, globals_);
   } else if (procType == "MatchCalculator:" ||
@@ -401,6 +404,12 @@ void Sector::executeTCD() {
 
 void Sector::executePR() {
   for (auto& i : PR_) {
+    i->execute();
+  }
+}
+
+void Sector::executePC() {
+  for (auto& i : PC_) {
     i->execute();
   }
 }

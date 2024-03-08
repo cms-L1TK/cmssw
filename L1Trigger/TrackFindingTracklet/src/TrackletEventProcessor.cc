@@ -335,10 +335,6 @@ void TrackletEventProcessor::event(SLHCEvent& ev,
     sector_->executeTPD();
     TPDTimer_.stop();
 
-    if (settings_->writeMem() && k == settings_->writememsect()) {
-      sector_->writeTPAR(first);
-    }
-
     // projection router
     PRTimer_.start();
     sector_->executePR();
@@ -353,6 +349,7 @@ void TrackletEventProcessor::event(SLHCEvent& ev,
     sector_->executePC();
     if (settings_->writeMem() && k == settings_->writememsect()) {
       sector_->writeTPROJ(first);
+      sector_->writeTPAR(first);
     }
     PCTimer_.stop();
 
