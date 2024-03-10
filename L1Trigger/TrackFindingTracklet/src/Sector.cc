@@ -135,18 +135,8 @@ void Sector::addProc(string procType, string procName) {
     addProcToVec(TPD_, procName, settings_, globals_);
   } else if (procType == "TrackletCalculatorDisplaced:") {
     addProcToVec(TCD_, procName, settings_, globals_);
-<<<<<<< HEAD
-=======
-  } else if (procType == "ProjectionRouter:") {
-    addProcToVec(PR_, procName, settings_, globals_);
   } else if (procType == "ProjectionCalculator:") {
     addProcToVec(PC_, procName, settings_, globals_);
-  } else if (procType == "MatchEngine:") {
-    addProcToVec(ME_, procName, settings_, globals_);
-  } else if (procType == "MatchCalculator:" ||
-             procType == "DiskMatchCalculator:") {  //TODO should not be used in configurations
-    addProcToVec(MC_, procName, settings_, globals_);
->>>>>>> 7e5b8beccdf (Set of changes to make a configuration that uses the Projection Calculator module)
   } else if (procType == "MatchProcessor:") {
     addProcToVec(MP_, procName, settings_, globals_);
   } else if (procType == "FitTrack:") {
@@ -317,33 +307,12 @@ void Sector::executeTCD() {
   }
 }
 
-<<<<<<< HEAD
-=======
-void Sector::executePR() {
-  for (auto& i : PR_) {
-    i->execute();
-  }
-}
-
 void Sector::executePC() {
   for (auto& i : PC_) {
     i->execute();
   }
 }
 
-void Sector::executeME() {
-  for (auto& i : ME_) {
-    i->execute(isector_);
-  }
-}
-
-void Sector::executeMC() {
-  for (auto& i : MC_) {
-    i->execute(isector_, phimin_);
-  }
-}
-
->>>>>>> 7e5b8beccdf (Set of changes to make a configuration that uses the Projection Calculator module)
 void Sector::executeMP() {
   for (auto& i : MP_) {
     i->execute(isector_, phimin_);

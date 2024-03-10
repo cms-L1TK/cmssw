@@ -44,6 +44,7 @@ namespace trklet {
   class TrackletProcessor;
   class TrackletProcessorDisplaced;
   class TrackletCalculatorDisplaced;
+  class ProjectionCalculator;
   class MatchProcessor;
   class FitTrack;
   class PurgeDuplicate;
@@ -95,6 +96,7 @@ namespace trklet {
     void executeTP();
     void executeTPD();
     void executeTCD();
+    void executePC();
     void executeMP();
     void executeFT(std::vector<std::vector<std::string>>& streamsTrackRaw,
                    std::vector<std::vector<StubStreamData>>& streamsStubRaw);
@@ -149,6 +151,7 @@ namespace trklet {
     std::vector<std::unique_ptr<TrackletProcessor>> TP_;
     std::vector<std::unique_ptr<TrackletProcessorDisplaced>> TPD_;
     std::vector<std::unique_ptr<TrackletCalculatorDisplaced>> TCD_;
+    std::vector<std::unique_ptr<ProjectionCalculator>> PC_;
     std::vector<std::unique_ptr<MatchProcessor>> MP_;
     std::vector<std::unique_ptr<FitTrack>> FT_;
     std::vector<std::unique_ptr<PurgeDuplicate>> PD_;

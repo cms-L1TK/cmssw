@@ -1350,7 +1350,6 @@ void TrackletConfigBuilder::writeAll(std::ostream& wires, std::ostream& memories
   writeASMemories(wires, memories, modules);
   writeVMSMemories(wires, memories, modules);
   writeSPMemories(wires, memories, modules);
-  writeSPDMemories(wires, memories, modules);
   writeMergedProjectionMemories(wires, memories, modules);
   writeProjectionMemories(wires, memories, modules);
   writeTPARMemories(wires, memories, modules);
