@@ -33,7 +33,7 @@ ChannelAssignment_params = cms.PSet (
   ),
   SeedTypesProjectionLayers = cms.PSet ( # layers a seed types can project to using default layer id [barrel: 1-6, discs: 11-15]
     L1L2 = cms.vint32(  3,  4,  5,  6, 11, 12, 13, 14 ),
-    L2L3 = cms.vint32(  1,  4,  5,  6, 11, 12, 13, 14 ),
+    L2L3 = cms.vint32(  1,  4,  5, 11, 12, 13, 14 ),
     L3L4 = cms.vint32(  1,  2,  5,  6, 11, 12 ),
     L5L6 = cms.vint32(  1,  2,  3,  4 ),
     D1D2 = cms.vint32(  1,  2, 13, 14, 15 ),
