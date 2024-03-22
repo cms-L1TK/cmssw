@@ -152,13 +152,17 @@ namespace trklet {
         throw exception;
       }
       auto toFrameTrack = [&nFrame, &ttTracks](const Frame& frame) {
-        if (frame.any())
-          return FrameTrack(ttTracks[nFrame++], frame);
+        Frame new_frame = frame << 1; // Shift everything to the left to make space for last track bit
+        if (frame.any()) {
+          return FrameTrack(ttTracks[nFrame++], new_frame);
+        }
         return FrameTrack();
       };
       transform(streamTrack.begin(), limit, back_inserter(accepted), toFrameTrack);
       transform(limit, streamTrack.end(), back_inserter(lost), toFrameTrack);
     }
+    // Set last track
+    streamAcceptedTracks[0].back().second.set(0); // The frame track remains unchanged for now, it is changed in DRin... Why is the channelId = 0 the last?!
     // get and trunacte stubs
     Handle<StreamsStub> handleStubs;
     iEvent.getByToken<StreamsStub>(edGetTokenStubs_, handleStubs);

@@ -40,7 +40,8 @@ namespace trklet {
     stubs_.reserve(sizeStubs);
     // transform input data into handy structs
     for (int frame = 0; frame < (int)streamTrack.size(); frame++) {
-      const FrameTrack& frameTrack = streamTrack[frame];
+      FrameTrack frameTrack = streamTrack[frame];
+      frameTrack.second = frameTrack.second >> 1; // Remove last track bit
       if (frameTrack.first.isNull()) {
         input_.push_back(nullptr);
         continue;

@@ -102,6 +102,7 @@ namespace trklet {
         const double z0 = digi(ttTrackRef->z0(), baseUzT_);
         const double phiT = digi(phi0S + r2Inv * digi(setup_->chosenRofPhi(), baseUr_), baseUphiT_);
         const double zT = digi(z0 + cot * digi(setup_->chosenRofZ(), baseUr_), baseUzT_);
+        const bool lastTrack = streamTrack[frame].second[0]; // The rightmost bit
         // kill tracks outside of fiducial range
         if (abs(phiT) > setup_->baseRegion() / 2. || abs(zT) > setup_->hybridMaxCot() * setup_->chosenRofZ() ||
             abs(z0) > setup_->beamWindowZ()) {
@@ -204,7 +205,7 @@ namespace trklet {
         }
         const bool valid = frame < setup_->numFramesHigh() ? true : enableTruncation_;
         const bool badSeed = ttTrackRef->trackSeedType() == 2 || ttTrackRef->trackSeedType() == 3;
-        tracks_.emplace_back(ttTrackRef, valid, r2Inv, phiT, cot, zT, stubs, badSeed);
+        tracks_.emplace_back(ttTrackRef, valid, r2Inv, phiT, cot, zT, stubs, badSeed, lastTrack);
         input.push_back(&tracks_.back());
       }
     }
@@ -345,7 +346,8 @@ namespace trklet {
       const TTBV inv2R(dataFormats_->format(Variable::inv2R, Process::ctb).ttBV(track->inv2R_));
       const TTBV phiT(dataFormats_->format(Variable::phiT, Process::ctb).ttBV(track->phiT_));
       const TTBV zT(dataFormats_->format(Variable::zT, Process::ctb).ttBV(track->zT_));
-      return FrameTrack(track->ttTrackRef_, "1" + inv2R.str() + phiT.str() + zT.str());
+      const TTBV lastTrack(dataFormats_->format(Variable::lastTrack, Process::dr).ttBV(track->lastTrack_));
+      return FrameTrack(track->ttTrackRef_, "1" + inv2R.str() + phiT.str() + zT.str() + lastTrack.str()); // Add last track bit
     };
     auto frameStub = [this](Track* track, int layer) {
       auto equal = [layer](Stub* stub) { return stub->valid_ && stub->layer_ == layer; };
@@ -353,7 +355,7 @@ namespace trklet {
       if (!track->valid_ || it == track->stubs_.end() || !(*it)->valid_)
         return FrameStub();
       Stub* stub = *it;
-      const TTBV stubId(stub->stubId_, channelAssignment_->widthStubId(), true);
+      const TTBV stubId(stub->stubId_, channelAssignment_->widthStubId(), true); // why not use false as stub ID is always positive?
       const TTBV r(dataFormats_->format(Variable::r, Process::ctb).ttBV(stub->r_));
       const TTBV phi(dataFormats_->format(Variable::phi, Process::ctb).ttBV(stub->phi_));
       const TTBV z(dataFormats_->format(Variable::z, Process::ctb).ttBV(stub->z_));

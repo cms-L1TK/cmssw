@@ -26,7 +26,7 @@ namespace trackerTFP {
   // track trigger processes
   enum class Process { begin, dtc = begin, pp, gp, ht, ctb, kf, dr, end, x };
   // track trigger variables
-  enum class Variable { begin, r = begin, phi, z, dPhi, dZ, inv2R, phiT, cot, zT, layer, match, end, x };
+  enum class Variable { begin, r = begin, phi, z, dPhi, dZ, inv2R, phiT, cot, zT, layer, match, lastTrack, end, x };
   // track trigger process order
   constexpr std::initializer_list<Process> Processes = {
       Process::dtc, Process::pp, Process::gp, Process::ht, Process::ctb, Process::kf, Process::dr};
@@ -170,6 +170,8 @@ namespace trackerTFP {
   Format<Variable::cot, Process::dr>::Format(const tt::Setup* setup);
   template <>
   Format<Variable::zT, Process::dr>::Format(const tt::Setup* setup);
+  template <>
+  Format<Variable::lastTrack, Process::dr>::Format(const tt::Setup* setup);
 
   /*! \class  trackerTFP::DataFormats
    *  \brief  Class to calculate and provide dataformats used by Track Trigger emulator
@@ -191,7 +193,8 @@ namespace trackerTFP {
         {{Process::x, Process::x, Process::gp, Process::x, Process::gp, Process::kf, Process::kf}},     // Variable::cot
         {{Process::gp, Process::gp, Process::gp, Process::gp, Process::gp, Process::kf, Process::kf}},  // Variable::zT
         {{Process::dtc, Process::dtc, Process::gp, Process::gp, Process::ctb, Process::x, Process::x}},  // Variable::layer
-        {{Process::x, Process::x, Process::x, Process::x, Process::x, Process::kf, Process::x}}  // Variable::match
+        {{Process::x, Process::x, Process::x, Process::x, Process::x, Process::kf, Process::x}},  // Variable::match
+        {{Process::x, Process::x, Process::x, Process::x, Process::x, Process::x, Process::dr}}  // Variable::lastTrack
     }};
     // stub word assembly, shows which stub variables are used by each process
     static constexpr std::array<std::initializer_list<Variable>, +Process::end> stubs_ = {{
@@ -223,13 +226,13 @@ namespace trackerTFP {
     }};
     // track word assembly, shows which track variables are used by each process
     static constexpr std::array<std::initializer_list<Variable>, +Process::end> tracks_ = {{
-        {},                                                                               // Process::dtc
-        {},                                                                               // Process::pp
-        {},                                                                               // Process::gp
-        {},                                                                               // Process::ht
-        {Variable::inv2R, Variable::phiT, Variable::zT},                                  // Process::ctb
-        {Variable::inv2R, Variable::phiT, Variable::cot, Variable::zT, Variable::match},  // Process::kf
-        {Variable::inv2R, Variable::phiT, Variable::cot, Variable::zT}                    // Process::dr
+        {},                                                                                // Process::dtc
+        {},                                                                                // Process::pp
+        {},                                                                                // Process::gp
+        {},                                                                                // Process::ht
+        {Variable::inv2R, Variable::phiT, Variable::zT},                                   // Process::ctb
+        {Variable::inv2R, Variable::phiT, Variable::cot, Variable::zT, Variable::match},   // Process::kf
+        {Variable::inv2R, Variable::phiT, Variable::cot, Variable::zT, Variable::lastTrack}// Process::dr
     }};
 
   public:

@@ -292,5 +292,9 @@ namespace trackerTFP {
     const int shift = ceil(log2(range_ / base_)) - width_;
     base_ *= pow(2., shift);
   }
+  template <>
+  Format<Variable::lastTrack, Process::dr>::Format(const Setup* setup) : DataFormat(false) {
+    width_ = 1;
+  }
 
 }  // namespace trackerTFP

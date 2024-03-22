@@ -80,7 +80,8 @@ namespace trklet {
             double cot,
             double zT,
             const std::vector<Stub*>& stubs,
-            bool badSeed = false)
+            bool badSeed = false,
+            bool lastTrack = false)
           : ttTrackRef_(ttTrackRef),
             valid_(valid),
             sector_(-1),
@@ -89,7 +90,8 @@ namespace trklet {
             cot_(cot),
             zT_(zT),
             stubs_(stubs),
-            badSeed_(badSeed) {}
+            badSeed_(badSeed),
+            lastTrack_(lastTrack) {}
       TTTrackRef ttTrackRef_;
       bool valid_;
       TTBV maybe_;
@@ -100,6 +102,7 @@ namespace trklet {
       double zT_;
       std::vector<Stub*> stubs_;
       bool badSeed_;
+      bool lastTrack_;
     };
     // remove and return first element of deque, returns nullptr if empty
     template <class T>
