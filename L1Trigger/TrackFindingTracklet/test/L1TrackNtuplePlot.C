@@ -3637,9 +3637,9 @@ void L1TrackNtuplePlot(TString type,
 
   // Sample z0 resolution at a couple of rapidity points.
   float etaSample1 = h2_resVsEta_z0_68->GetXaxis()->GetBinCenter(1);
-  float etaSample2 = h2_resVsEta_z0_68->GetXaxis()->GetBinCenter(0.8*nETARANGE);
+  float etaSample2 = h2_resVsEta_z0_68->GetXaxis()->GetBinCenter(0.8 * nETARANGE);
   float z0ResSample1 = h2_resVsEta_z0_68->GetBinContent(1);
-  float z0ResSample2 = h2_resVsEta_z0_68->GetBinContent(0.8*nETARANGE);
+  float z0ResSample2 = h2_resVsEta_z0_68->GetBinContent(0.8 * nETARANGE);
 
   fout->Close();
 
@@ -3701,11 +3701,11 @@ void L1TrackNtuplePlot(TString type,
   cout << "# tracks/event (no pt cut)= " << (float)ntrk / nevt << endl;
   cout << "# tracks/event (pt > " << std::max(TP_minPt, 2.0f) << ") = " << (float)ntrk_pt2 / nevt << endl;
   cout << "# tracks/event (pt > 3.0) = " << (float)ntrk_pt3 / nevt << endl;
-  cout << "# tracks/event (pt > 10.0) = " << (float)ntrk_pt10 / nevt << endl<<endl;
+  cout << "# tracks/event (pt > 10.0) = " << (float)ntrk_pt10 / nevt << endl << endl;
 
   // z0 resolution
-  cout<<"z0 resolution = "<<z0ResSample1<<"cm at |eta| = "<<etaSample1<<endl;
-  cout<<"z0 resolution = "<<z0ResSample2<<"cm at |eta| = "<<etaSample2<<endl;
+  cout << "z0 resolution = " << z0ResSample1 << "cm at |eta| = " << etaSample1 << endl;
+  cout << "z0 resolution = " << z0ResSample2 << "cm at |eta| = " << etaSample2 << endl;
 }
 
 void SetPlotStyle() {
