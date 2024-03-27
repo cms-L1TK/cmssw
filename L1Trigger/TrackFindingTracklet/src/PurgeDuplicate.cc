@@ -163,7 +163,8 @@ void PurgeDuplicate::execute(std::vector<Track>& outputtracks, unsigned int iSec
               } else if (settings_.extended()) {
                 seedRank.push_back(9);
               } else {
-                throw cms::Exception("LogError") << __FILE__ << " " << __LINE__ << " Seed type " << curSeed << " not found in list, and settings->extended() not set.";
+                throw cms::Exception("LogError") << __FILE__ << " " << __LINE__ << " Seed type " << curSeed
+                                                 << " not found in list, and settings->extended() not set.";
               }
 
               if (stublist.size() != stubidslist.size())
