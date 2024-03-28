@@ -196,6 +196,8 @@ elif (L1TRKALGO == 'TRACKLET'):
     print("\n To run the Tracklet-only algorithm, ensure you have commented out 'CXXFLAGS=-DUSEHYBRID' in BuildFile.xml & recompiled! \n")
     process.TTTracksEmulation = cms.Path(process.L1THybridTracks)
     process.TTTracksEmulationWithTruth = cms.Path(process.L1THybridTracksWithAssociators)
+    from L1Trigger.TrackFindingTracklet.Customize_cff import *
+    trackletConfig( process )
     NHELIXPAR = 4
     L1TRK_NAME  = "l1tTTTracksFromTrackletEmulation"
     L1TRK_LABEL = "Level1TTTracks"

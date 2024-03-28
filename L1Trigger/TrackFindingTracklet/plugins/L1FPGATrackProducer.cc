@@ -154,7 +154,9 @@ private:
   bool readMoreMcTruth_;
 
   /// File path for configuration files
+#ifndef USEHYBRID  
   edm::FileInPath fitPatternFile;
+#endif
   edm::FileInPath memoryModulesFile;
   edm::FileInPath processingModulesFile;
   edm::FileInPath wiresFile;
@@ -255,7 +257,6 @@ L1FPGATrackProducer::L1FPGATrackProducer(edm::ParameterSet const& iConfig)
 
   asciiEventOutName_ = iConfig.getUntrackedParameter<string>("asciiFileName", "");
 
-  fitPatternFile = iConfig.getParameter<edm::FileInPath>("fitPatternFile");
   processingModulesFile = iConfig.getParameter<edm::FileInPath>("processingModulesFile");
   memoryModulesFile = iConfig.getParameter<edm::FileInPath>("memoryModulesFile");
   wiresFile = iConfig.getParameter<edm::FileInPath>("wiresFile");
@@ -287,7 +288,10 @@ L1FPGATrackProducer::L1FPGATrackProducer(edm::ParameterSet const& iConfig)
   if (extended_)
     settings_.setCombined(false);
 
+#ifndef USEHYBRID  
+  fitPatternFile = iConfig.getParameter<edm::FileInPath>("fitPatternFile");
   settings_.setFitPatternFile(fitPatternFile.fullPath());
+#endif
   settings_.setProcessingModulesFile(processingModulesFile.fullPath());
   settings_.setMemoryModulesFile(memoryModulesFile.fullPath());
   settings_.setWiresFile(wiresFile.fullPath());
@@ -313,7 +317,10 @@ L1FPGATrackProducer::L1FPGATrackProducer(edm::ParameterSet const& iConfig)
   }
 
   if (settings_.debugTracklet()) {
-    edm::LogVerbatim("Tracklet") << "fit pattern :     " << fitPatternFile.fullPath()
+    edm::LogVerbatim("Tracklet") 
+#ifndef USEHYBRID  
+                                 << "fit pattern :     " << fitPatternFile.fullPath()
+#endif
                                  << "\n process modules : " << processingModulesFile.fullPath()
                                  << "\n memory modules :  " << memoryModulesFile.fullPath()
                                  << "\n wires          :  " << wiresFile.fullPath();
