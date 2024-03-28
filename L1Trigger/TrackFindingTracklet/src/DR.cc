@@ -41,7 +41,7 @@ namespace trklet {
     // transform input data into handy structs
     for (int frame = 0; frame < (int)streamTrack.size(); frame++) {
       FrameTrack frameTrack = streamTrack[frame];
-      frameTrack.second = frameTrack.second >> 1; // Remove last track bit
+      frameTrack.second = frameTrack.second >> 1; // Remove last track bit, only needed by FW
       if (frameTrack.first.isNull()) {
         input_.push_back(nullptr);
         continue;
@@ -55,7 +55,7 @@ namespace trklet {
         double dZ, dPhi, z, phi;
         TTBV ttBV = frameStub.second;
         dataFormats_->format(Variable::dZ, Process::ctb).extract(ttBV, dZ);
-        dataFormats_->format(Variable::dPhi, Process::ctb).extract(ttBV, dPhi);;
+        dataFormats_->format(Variable::dPhi, Process::ctb).extract(ttBV, dPhi);
         dataFormats_->format(Variable::z, Process::ctb).extract(ttBV, z);
         dataFormats_->format(Variable::phi, Process::ctb).extract(ttBV, phi);
         ttBV >>= dataFormats_->format(Variable::r, Process::ctb).width();
@@ -64,6 +64,20 @@ namespace trklet {
         const FrameStub fs(frameStub.first, "1" + ctb.str());
         stubs_.emplace_back(fs, stubId.val(), layer, phi, z, dPhi, dZ);
         stubs.push_back(&stubs_.back());
+
+        // DEBUG
+        std::cout << "Track: " << frameTrack.second.to_string() << std::endl;
+        TTBV dZ2, dPhi2, z2, phi2;
+        TTBV ttBV2 = frameStub.second; // REMOVE ONCE DONE
+        dataFormats_->format(Variable::dZ, Process::ctb).extract(ttBV2, dZ2);
+        dataFormats_->format(Variable::dPhi, Process::ctb).extract(ttBV2, dPhi2);
+        dataFormats_->format(Variable::z, Process::ctb).extract(ttBV2, z2);
+        dataFormats_->format(Variable::phi, Process::ctb).extract(ttBV2, phi2);
+        std::cout << "Stub: 1" << ctb.str() << std::endl;
+        std::cout << "dZ = " << dZ << " or " << dZ2.str() << ", is twos = " << dataFormats_->format(Variable::dZ, Process::ctb).twos() << std::endl;
+        std::cout << "dPhi = " << dPhi << " or " << dPhi2.str() << ", is twos = " << dataFormats_->format(Variable::dPhi, Process::ctb).twos()<< std::endl;
+        std::cout << "z = " << z << " or " << z2.str() << ", is twos = " << dataFormats_->format(Variable::z, Process::ctb).twos() << std::endl;
+        std::cout << "phi = " << phi << " or " << phi2.str() << ", is twos = " << dataFormats_->format(Variable::phi, Process::ctb).twos() << std::endl;
       }
       tracks_.emplace_back(frameTrack, stubs);
       input_.push_back(&tracks_.back());
@@ -148,12 +162,12 @@ namespace trklet {
 
   bool DR::better(Track* lhs, Track* rhs) const {
     if (lhs->nConsistentStubs_ > rhs->nConsistentStubs_)
-      return lhs;
+      return true;
     else if (lhs->nConsistentStubs_ == rhs->nConsistentStubs_) {
       if (lhs->chi2_ < rhs->chi2_)
-        return lhs;
+        return true;
     }
-    return rhs;
+    return false;
   }
 
 }  // namespace trklet
