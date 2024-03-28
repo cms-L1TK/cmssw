@@ -137,7 +137,7 @@ void FitTrack::trackFitKF(Tracklet* tracklet,
   }
 }
 
-#else // Code for pure Tracklet algo.
+#else  // Code for pure Tracklet algo.
 
 void FitTrack::trackFitChisq(Tracklet* tracklet, std::vector<const Stub*>&, std::vector<std::pair<int, int>>&) {
   if (globals_->trackDerTable() == nullptr) {

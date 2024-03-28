@@ -154,7 +154,7 @@ private:
   bool readMoreMcTruth_;
 
   /// File path for configuration files
-#ifndef USEHYBRID  
+#ifndef USEHYBRID
   edm::FileInPath fitPatternFile;
 #endif
   edm::FileInPath memoryModulesFile;
@@ -288,7 +288,7 @@ L1FPGATrackProducer::L1FPGATrackProducer(edm::ParameterSet const& iConfig)
   if (extended_)
     settings_.setCombined(false);
 
-#ifndef USEHYBRID  
+#ifndef USEHYBRID
   fitPatternFile = iConfig.getParameter<edm::FileInPath>("fitPatternFile");
   settings_.setFitPatternFile(fitPatternFile.fullPath());
 #endif
@@ -317,13 +317,12 @@ L1FPGATrackProducer::L1FPGATrackProducer(edm::ParameterSet const& iConfig)
   }
 
   if (settings_.debugTracklet()) {
-    edm::LogVerbatim("Tracklet") 
-#ifndef USEHYBRID  
-                                 << "fit pattern :     " << fitPatternFile.fullPath()
+    edm::LogVerbatim("Tracklet")
+#ifndef USEHYBRID
+        << "fit pattern :     " << fitPatternFile.fullPath()
 #endif
-                                 << "\n process modules : " << processingModulesFile.fullPath()
-                                 << "\n memory modules :  " << memoryModulesFile.fullPath()
-                                 << "\n wires          :  " << wiresFile.fullPath();
+        << "\n process modules : " << processingModulesFile.fullPath()
+        << "\n memory modules :  " << memoryModulesFile.fullPath() << "\n wires          :  " << wiresFile.fullPath();
     if (extended_) {
       edm::LogVerbatim("Tracklet") << "table_TED    :  " << tableTEDFile.fullPath()
                                    << "\n table_TRE    :  " << tableTREFile.fullPath();
