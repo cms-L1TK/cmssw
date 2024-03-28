@@ -15,10 +15,7 @@ l1tTTTracksFromTrackletEmulation = cms.EDProducer("L1FPGATrackProducer",
                                                Extended = cms.bool(False),
                                                Reduced = cms.bool(False),
                                                Hnpar = cms.uint32(4),
-                                               # This file not used with Hybrid algo.
-                                               # (if running on CRAB use "../../fitpattern.txt" etc instead)
-                                               fitPatternFile = cms.FileInPath('L1Trigger/TrackFindingTracklet/data/fitpattern.txt'),
-                                              # These 3 files only used for extended or reduced mode.
+                                               # These 3 files only used for extended or reduced mode.
                                                memoryModulesFile = cms.FileInPath('L1Trigger/TrackFindingTracklet/data/memorymodules_hourglassExtendedCombined.dat'),
                                                processingModulesFile = cms.FileInPath('L1Trigger/TrackFindingTracklet/data/processingmodules_hourglassExtendedCombined.dat'),
                                                wiresFile = cms.FileInPath('L1Trigger/TrackFindingTracklet/data/wires_hourglassExtendedCombined.dat'),
