@@ -13,9 +13,11 @@
 #include "L1Trigger/TrackFindingTracklet/interface/HybridFit.h"
 #endif
 
+#include "DataFormats/Math/interface/deltaPhi.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 #include "FWCore/Utilities/interface/Exception.h"
 
+#include "TString.h"
 #include <unordered_set>
 #include <algorithm>
 
@@ -618,6 +620,7 @@ std::pair<int, int> PurgeDuplicate::findLayerDisk(const Stub* st) const {
 }
 
 std::string PurgeDuplicate::l1tinfo(const L1TStub* l1stub, std::string str = "") const {
+  // Uses ROOT::TString
   std::string thestr = Form("\t %s stub info:  r/z/phi:\t%f\t%f\t%f\t%d\t%f\t%d",
                             str.c_str(),
                             l1stub->r(),
