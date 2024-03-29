@@ -200,25 +200,24 @@ void PurgeDuplicate::execute(std::vector<Track>& outputtracks, unsigned int iSec
         // numStublists-1 since last track has no other to compare to
         unsigned int CM = 0;
         for (unsigned int itrk = 0; itrk < numStublists - 1; itrk++) {
-
-        // Create a flag to check if itrk is a duplicate track
+          // Create a flag to check if itrk is a duplicate track
           bool dupTrk = false;
-        //Check the tracks before it, if it's a duplicate, mark the flag true
-          if (std::find(dupMap[itrk].begin(), dupMap[itrk].end(), true)  != dupMap[itrk].end()) {
+          //Check the tracks before it, if it's a duplicate, mark the flag true
+          if (std::find(dupMap[itrk].begin(), dupMap[itrk].end(), true) != dupMap[itrk].end()) {
             dupTrk = true;
-          }   
-        // If itrk is not a duplicate, or if it is a duplicate, but was not the merged track, increment CM, to keep track of how many tracks are being assigned to comparison modules. 
-        // If itrk is a duplicate and it is the merged track, then continue
+          }
+          // If itrk is not a duplicate, or if it is a duplicate, but was not the merged track, increment CM, to keep track of how many tracks are being assigned to comparison modules.
+          // If itrk is a duplicate and it is the merged track, then continue
           if ((dupTrk == false)) {
             CM += 1;
           } else if ((dupTrk == true)) {
             continue;
-          }   
+          }
           // If the number of tracks able to be compared is more than the number of comparison modules, continue
           if (CM > settings_.numTracksComparedPerBin()) {
             continue;
-          }   
-         
+          }
+
           for (unsigned int jtrk = itrk + 1; jtrk < numStublists; jtrk++) {
             // Get primary track stubids = (layer, unique stub index within layer)
             const std::vector<std::pair<int, int>>& stubsTrk1 = inputstubidslists_[itrk];
