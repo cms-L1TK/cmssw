@@ -45,9 +45,14 @@ Stub::Stub(L1TStub& stub, Settings const& settings, Globals& globals) : settings
   int newbend = bendbits.to_ulong();
 
   int newr = rbits.to_ulong();
+  int diskpswrittenr;
   if (layerdisk_ < N_LAYER) {
     if (newr >= (1 << (nrbits - 1)))
       newr = newr - (1 << nrbits);
+  }
+  else if (stub.isPSmodule()){
+    diskpswrittenr = newr - (1 << (nrbits - 4)); 
+    diskpswrittenr_.set(diskpswrittenr, nrbits - 1, true, __LINE__, __FILE__);
   }
 
   int newz = zbits.to_ulong();
