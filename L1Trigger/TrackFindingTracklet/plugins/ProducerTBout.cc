@@ -161,8 +161,23 @@ namespace trklet {
       transform(streamTrack.begin(), limit, back_inserter(accepted), toFrameTrack);
       transform(limit, streamTrack.end(), back_inserter(lost), toFrameTrack);
     }
-    // Set last track
-    streamAcceptedTracks[0].back().second.set(0); // The frame track remains unchanged for now, it is changed in DRin... Why is the channelId = 0 the last?!
+    // Set last track (only change FrameTrack for now... TTTrack is changed in DRin)
+    for (int channelId = 0; channelId < numStreamsTracks; channelId += channelAssignment_->numChannelsTrack()) {  // WHY start from channel 0 and not 8?!
+      int channelId_tmp = channelId; // Used in case channelId is empty
+      auto track_it = streamAcceptedTracks[channelId_tmp].end(); // Start look for the last track at the end of this channel
+      while (track_it != streamAcceptedTracks[channelId_tmp].begin() and channelId_tmp < channelId + channelAssignment_->numChannelsTrack()) {
+        track_it--;
+        // Found the last track
+        if (track_it->second.any()) {
+          track_it->second.set(0);
+          break;
+        }
+        // If the last track is not in this channel...
+        if (track_it == streamAcceptedTracks[channelId_tmp].begin()) {
+          track_it = streamAcceptedTracks[++channelId_tmp].end(); // Check next channel
+        }
+      }
+    }
     // get and trunacte stubs
     Handle<StreamsStub> handleStubs;
     iEvent.getByToken<StreamsStub>(edGetTokenStubs_, handleStubs);

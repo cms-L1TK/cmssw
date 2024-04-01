@@ -106,7 +106,7 @@ namespace trklet {
         // kill tracks outside of fiducial range
         if (abs(phiT) > setup_->baseRegion() / 2. || abs(zT) > setup_->hybridMaxCot() * setup_->chosenRofZ() ||
             abs(z0) > setup_->beamWindowZ()) {
-          input.push_back(nullptr);
+          input.push_back(nullptr); // What if this is the last track, then no last track signal?!
           continue;
         }
         // convert stubs
