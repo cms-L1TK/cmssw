@@ -675,54 +675,55 @@ std::vector<double> PurgeDuplicate::getInventedCoordsExtended(unsigned int iSect
   double rho = 1 / tracklet->rinv();
   double rho_minus_d0 = rho + tracklet->d0();  // should be -, but otherwise does not work
 
-  // exact helix
-  if (st->isBarrel()) {
-    stub_r = settings_.rmean(stubLayer - 1);
-
-    // The expanded version of this expression is more stable for very low-pT
-    // (high-rho) tracks. But we also explicitly restrict sin_val to the domain
-    // of asin.
-    double sin_val =
-        0.5 * (stub_r / rho_minus_d0) + 0.5 * (rho_minus_d0 / stub_r) - 0.5 * ((rho * rho) / (rho_minus_d0 * stub_r));
-    sin_val = std::max(std::min(sin_val, 1.0), -1.0);
-    stub_phi = tracklet->phi0() - std::asin(sin_val);
-    stub_phi = stub_phi + iSector * settings_.dphisector() - 0.5 * settings_.dphisectorHG();
-    stub_phi = reco::reduceRange(stub_phi);
-
-    // The expanded version of this expression is more stable for very low-pT
-    // (high-rho) tracks. But we also explicitly restrict cos_val to the domain
-    // of acos.
-    double cos_val =
-        0.5 * (rho / rho_minus_d0) + 0.5 * (rho_minus_d0 / rho) - 0.5 * ((stub_r * stub_r) / (rho * rho_minus_d0));
-    cos_val = std::max(std::min(cos_val, 1.0), -1.0);
-    double beta = std::acos(cos_val);
-    stub_z = tracklet->z0() + tracklet->t() * std::abs(rho * beta);
-  } else {
-    stub_z = settings_.zmean(stubDisk - 1) * tracklet->disk() / abs(tracklet->disk());
-
-    double beta = (stub_z - tracklet->z0()) / (tracklet->t() * std::abs(rho));  // maybe rho should be abs value
-    double r_square = -2 * rho * rho_minus_d0 * std::cos(beta) + rho * rho + rho_minus_d0 * rho_minus_d0;
-    stub_r = sqrt(r_square);
-
-    // The expanded version of this expression is more stable for very low-pT
-    // (high-rho) tracks. But we also explicitly restrict sin_val to the domain
-    // of asin.
-    double sin_val =
-        0.5 * (stub_r / rho_minus_d0) + 0.5 * (rho_minus_d0 / stub_r) - 0.5 * ((rho * rho) / (rho_minus_d0 * stub_r));
-    sin_val = std::max(std::min(sin_val, 1.0), -1.0);
-    stub_phi = tracklet->phi0() - std::asin(sin_val);
-    stub_phi = stub_phi + iSector * settings_.dphisector() - 0.5 * settings_.dphisectorHG();
-    stub_phi = reco::reduceRange(stub_phi);
-  }
+  int seed = tracklet->seedIndex();
 
   // TMP: for displaced tracking, exclude one of the 3 seeding stubs
   // to be discussed
-  int seed = tracklet->seedIndex();
-  if ((seed == 8 && stubLayer == 4) || (seed == 9 && stubLayer == 5) || (seed == 10 && stubLayer == 3) ||
-      (seed == 11 && abs(stubDisk) == 1)) {
+  if ((seed == L2L3L4 && stubLayer == 4) || (seed == L4L5L6 && stubLayer == 5) || (seed == L2L3D1 && stubLayer == 3) ||
+      (seed == D1D2L2 && abs(stubDisk) == 1)) {
     stub_phi = st->l1tstub()->phi();
     stub_z = st->l1tstub()->z();
     stub_r = st->l1tstub()->r();
+  } else {
+    // exact helix
+    if (st->isBarrel()) {
+      stub_r = settings_.rmean(stubLayer - 1);
+
+      // The expanded version of this expression is more stable for extremely
+      // high-pT (high-rho) tracks. But we also explicitly restrict sin_val to
+      // the domain of asin.
+      double sin_val =
+          0.5 * (stub_r / rho_minus_d0) + 0.5 * (rho_minus_d0 / stub_r) - 0.5 * ((rho * rho) / (rho_minus_d0 * stub_r));
+      sin_val = std::max(std::min(sin_val, 1.0), -1.0);
+      stub_phi = tracklet->phi0() - std::asin(sin_val);
+      stub_phi = stub_phi + iSector * settings_.dphisector() - 0.5 * settings_.dphisectorHG();
+      stub_phi = reco::reduceRange(stub_phi);
+
+      // The expanded version of this expression is more stable for extremely
+      // high-pT (high-rho) tracks. But we also explicitly restrict cos_val to
+      // the domain of acos.
+      double cos_val =
+          0.5 * (rho / rho_minus_d0) + 0.5 * (rho_minus_d0 / rho) - 0.5 * ((stub_r * stub_r) / (rho * rho_minus_d0));
+      cos_val = std::max(std::min(cos_val, 1.0), -1.0);
+      double beta = std::acos(cos_val);
+      stub_z = tracklet->z0() + tracklet->t() * std::abs(rho * beta);
+    } else {
+      stub_z = settings_.zmean(stubDisk - 1) * tracklet->disk() / abs(tracklet->disk());
+
+      double beta = (stub_z - tracklet->z0()) / (tracklet->t() * std::abs(rho));  // maybe rho should be abs value
+      double r_square = -2 * rho * rho_minus_d0 * std::cos(beta) + rho * rho + rho_minus_d0 * rho_minus_d0;
+      stub_r = sqrt(r_square);
+
+      // The expanded version of this expression is more stable for extremely
+      // high-pT (high-rho) tracks. But we also explicitly restrict sin_val to
+      // the domain of asin.
+      double sin_val =
+          0.5 * (stub_r / rho_minus_d0) + 0.5 * (rho_minus_d0 / stub_r) - 0.5 * ((rho * rho) / (rho_minus_d0 * stub_r));
+      sin_val = std::max(std::min(sin_val, 1.0), -1.0);
+      stub_phi = tracklet->phi0() - std::asin(sin_val);
+      stub_phi = stub_phi + iSector * settings_.dphisector() - 0.5 * settings_.dphisectorHG();
+      stub_phi = reco::reduceRange(stub_phi);
+    }
   }
 
   std::vector<double> invented_coords{stub_r, stub_z, stub_phi};
