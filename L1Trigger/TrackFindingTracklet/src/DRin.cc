@@ -106,7 +106,7 @@ namespace trklet {
         // kill tracks outside of fiducial range
         if (abs(phiT) > setup_->baseRegion() / 2. || abs(zT) > setup_->hybridMaxCot() * setup_->chosenRofZ() ||
             abs(z0) > setup_->beamWindowZ()) {
-          input.push_back(nullptr); // What if this is the last track, then no last track signal?!
+          input.push_back(nullptr);
           continue;
         }
         // convert stubs
@@ -341,13 +341,20 @@ namespace trklet {
     }
     // store helper
     auto frameTrack = [this](Track* track) {
-      if (!track->valid_)
+      if (!track->valid_ && !track->lastTrack_)
         return FrameTrack();
+      if (!track->valid_ && track->lastTrack_) {
+        const TTBV inv2R(dataFormats_->format(Variable::inv2R, Process::ctb).ttBV(0));
+        const TTBV phiT(dataFormats_->format(Variable::phiT, Process::ctb).ttBV(0));
+        const TTBV zT(dataFormats_->format(Variable::zT, Process::ctb).ttBV(0));
+        const TTBV lastTrack(dataFormats_->format(Variable::lastTrack, Process::dr).ttBV(track->lastTrack_));
+        return FrameTrack(track->ttTrackRef_, "0" + inv2R.str() + phiT.str() + zT.str() + lastTrack.str()); // Invalid last track
+      }
       const TTBV inv2R(dataFormats_->format(Variable::inv2R, Process::ctb).ttBV(track->inv2R_));
       const TTBV phiT(dataFormats_->format(Variable::phiT, Process::ctb).ttBV(track->phiT_));
       const TTBV zT(dataFormats_->format(Variable::zT, Process::ctb).ttBV(track->zT_));
       const TTBV lastTrack(dataFormats_->format(Variable::lastTrack, Process::dr).ttBV(track->lastTrack_));
-      return FrameTrack(track->ttTrackRef_, "1" + inv2R.str() + phiT.str() + zT.str() + lastTrack.str()); // Add last track bit
+      return FrameTrack(track->ttTrackRef_, "1" + inv2R.str() + phiT.str() + zT.str() + lastTrack.str());
     };
     auto frameStub = [this](Track* track, int layer) {
       auto equal = [layer](Stub* stub) { return stub->valid_ && stub->layer_ == layer; };
@@ -375,7 +382,7 @@ namespace trklet {
         const bool match = track;
         //if (match && !track->valid_)
           //lost.push_back(track);
-        inputs[channel].push_back(match && track->valid_ ? track : nullptr);
+        inputs[channel].push_back(match && (track->valid_ || track->lastTrack_) ? track : nullptr);
       }
     }
     // remove all gaps between end and last track

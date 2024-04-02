@@ -173,9 +173,8 @@ namespace trklet {
           break;
         }
         // If the last track is not in this channel...
-        if (track_it == streamAcceptedTracks[channelId_tmp].begin()) {
+        if (track_it == streamAcceptedTracks[channelId_tmp].begin())
           track_it = streamAcceptedTracks[++channelId_tmp].end(); // Check next channel
-        }
       }
     }
     // get and trunacte stubs
