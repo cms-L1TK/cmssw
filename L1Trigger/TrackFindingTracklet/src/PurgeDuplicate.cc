@@ -665,17 +665,17 @@ std::vector<double> PurgeDuplicate::getInventedCoords(unsigned int iSector,
 std::vector<double> PurgeDuplicate::getInventedCoordsExtended(unsigned int iSector,
                                                               const Stub* st,
                                                               const Tracklet* tracklet) const {
-  int stubLayer = (findLayerDisk(st)).first;
-  int stubDisk = (findLayerDisk(st)).second;
+  const int stubLayer = (findLayerDisk(st)).first;
+  const int stubDisk = (findLayerDisk(st)).second;
 
   double stub_phi = -99;
   double stub_z = -99;
   double stub_r = -99;
 
-  double rho = 1 / tracklet->rinv();
-  double rho_minus_d0 = rho + tracklet->d0();  // should be -, but otherwise does not work
+  const double rho = 1 / tracklet->rinv();
+  const double rho_minus_d0 = rho + tracklet->d0();  // should be -, but otherwise does not work
 
-  int seed = tracklet->seedIndex();
+  const int seed = tracklet->seedIndex();
 
   // TMP: for displaced tracking, exclude one of the 3 seeding stubs
   // to be discussed
