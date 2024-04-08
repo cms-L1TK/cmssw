@@ -397,6 +397,10 @@ void PurgeDuplicate::execute(std::vector<Track>& outputtracks, unsigned int iSec
         }
 
         // Need to clear all the vectors which will be used in the next bin
+        for (auto& stublist : inputstublists_)
+          for (auto& istub : stublist)
+            istub->~Stub();
+
         seedRank.clear();
         trackInfo.clear();
         trackBinInfo.clear();
