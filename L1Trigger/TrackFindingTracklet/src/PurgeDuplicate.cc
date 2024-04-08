@@ -679,7 +679,7 @@ std::vector<double> PurgeDuplicate::getInventedCoordsExtended(unsigned int iSect
 
   // TMP: for displaced tracking, exclude one of the 3 seeding stubs
   // to be discussed
-  if ((seed == L2L3L4 && stubLayer == 4) || (seed == L4L5L6 && stubLayer == 5) || 
+  if ((seed == L2L3L4 && stubLayer == 4) || (seed == L4L5L6 && stubLayer == 5) ||
       (seed == L2L3D1 && abs(stubDisk) == 1) || (seed == D1D2L2 && abs(stubDisk) == 1)) {
     stub_phi = st->l1tstub()->phi();
     stub_z = st->l1tstub()->z();
