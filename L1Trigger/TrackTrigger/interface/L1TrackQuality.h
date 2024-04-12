@@ -28,9 +28,6 @@ C.Brown 28/07/20
 
 class L1TrackQuality {
 public:
-  // Enum class used for determining prediction behaviour in setL1TrackQuality
-  enum class QualityAlgorithm { Cut, GBDT, GBDT_cpp, NN, None };
-
   //Default Constructor
   L1TrackQuality();
 
@@ -49,17 +46,8 @@ public:
   // and a single output to be returned which is then used to fill the bits in the Track Word for situations
   // where a TTTrack datatype is unavailable to be passed to the track quality
   float runEmulatedTQ(std::vector<ap_fixed<10, 5>> inputFeatures);
-  // To set private member data
-  void setCutParameters(std::string const& AlgorithmString,
-                        float maxZ0,
-                        float maxEta,
-                        float chi2dofMax,
-                        float bendchi2Max,
-                        float minPt,
-                        int nStubmin);
 
-  void setONNXModel(std::string const& AlgorithmString,
-                    edm::FileInPath const& ONNXmodel,
+  void setONNXModel(edm::FileInPath const& ONNXmodel,
                     std::string const& ONNXInputName,
                     std::vector<std::string> const& featureNames);
 
@@ -67,16 +55,9 @@ public:
 
 private:
   // Private Member Data
-  QualityAlgorithm qualityAlgorithm_ = QualityAlgorithm::None;
   edm::FileInPath ONNXmodel_;
   std::string ONNXInputName_;
   std::vector<std::string> featureNames_;
-  float maxZ0_;
-  float maxEta_;
-  float chi2dofMax_;
-  float bendchi2Max_;
-  float minPt_;
-  int nStubsmin_;
   bool useHPH_;
   std::vector<float> bonusFeatures_;
   std::unique_ptr<cms::Ort::ONNXRuntime> runTime_;
