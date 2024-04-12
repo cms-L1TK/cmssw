@@ -374,7 +374,7 @@ double TTTrack<T>::chi2ZRed() const {
 
 template <typename T>
 double TTTrack<T>::trkMVA1() const {
-  return theTrkMVA1_;
+  return 1. / (1. + exp(-theTrkMVA1_));
 }
 
 template <typename T>
@@ -443,7 +443,6 @@ void TTTrack<T>::setTrackWordBits() {
   }
 
   unsigned int valid = true;
-  double mvaQuality = -1 * log(1 / theTrkMVA1_ - 1); //inverse logistic sigmoid
   unsigned int mvaOther = 0;
 
   // missing conversion of global phi to difference from sector center phi
@@ -457,7 +456,7 @@ void TTTrack<T>::setTrackWordBits() {
                  0,
                  theStubPtConsistency_,
                  theHitPattern_,
-                 mvaQuality,
+                 theTrkMVA1_,
                  mvaOther,
                  thePhiSector_);
   } else {
@@ -469,7 +468,7 @@ void TTTrack<T>::setTrackWordBits() {
                  chi2ZRed(),
                  chi2BendRed(),
                  theHitPattern_,
-                 mvaQuality,
+                 theTrkMVA1_,
                  mvaOther,
                  thePhiSector_);
   }
