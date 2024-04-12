@@ -749,9 +749,6 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
     aTrack.setStubPtConsistency(
         StubPtConsistency::getConsistency(aTrack, theTrackerGeom, tTopo, settings_.bfield(), settings_.nHelixPar()));
 
-    // set TTTrack word
-    aTrack.setTrackWordBits();
-
     if (trackQuality_) {
       trackQualityModel_->setL1TrackQuality(aTrack);
     }
@@ -763,6 +760,9 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
 
     // test track word
     //aTrack.testTrackWordBits();
+
+    // set TTTrack word
+    aTrack.setTrackWordBits();
 
     L1TkTracksForOutput->push_back(aTrack);
   }

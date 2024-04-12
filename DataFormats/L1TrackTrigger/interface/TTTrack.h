@@ -443,7 +443,7 @@ void TTTrack<T>::setTrackWordBits() {
   }
 
   unsigned int valid = true;
-  unsigned int mvaQuality = 0;
+  double mvaQuality = -1 * log(1 / theTrkMVA1_ - 1); //inverse logistic sigmoid
   unsigned int mvaOther = 0;
 
   // missing conversion of global phi to difference from sector center phi

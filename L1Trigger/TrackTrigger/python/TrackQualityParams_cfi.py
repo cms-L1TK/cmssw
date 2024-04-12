@@ -18,7 +18,6 @@ TrackQualityParams = cms.PSet(qualityAlgorithm = cms.string("GBDT_cpp"), #None, 
                               bendchi2Max = cms.double( 2.4 ),
                               minPt = cms.double( 2. ),       # in GeV
                               nStubsmin = cms.int32( 4 ),
-                              tqemu_bins = cms.vint32( [-480, -62, -35, -16, 0, 16, 35, 62, 480] ),
                               tqemu_TanlScale = cms.double( 128.0),
                               tqemu_Z0Scale = cms.double( 64.0 ),
                               )

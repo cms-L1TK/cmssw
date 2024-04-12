@@ -68,7 +68,6 @@ namespace trklet {
     vector<double> dZBins_;
 
     std::unique_ptr<L1TrackQuality> trackQualityModel_;
-    vector<int> tqBins_;
     double tqTanlScale_;
     double tqZ0Scale_;
     static constexpr double ap_fixed_rescale = 32.0;
@@ -111,7 +110,6 @@ namespace trklet {
 
     trackQualityModel_ = std::make_unique<L1TrackQuality>(iConfig.getParameter<edm::ParameterSet>("TrackQualityPSet"));
     edm::ParameterSet trackQualityPSset = iConfig.getParameter<edm::ParameterSet>("TrackQualityPSet");
-    tqBins_ = trackQualityPSset.getParameter<vector<int>>("tqemu_bins");
     tqTanlScale_ = trackQualityPSset.getParameter<double>("tqemu_TanlScale");
     tqZ0Scale_ = trackQualityPSset.getParameter<double>("tqemu_Z0Scale");
   }
@@ -298,7 +296,7 @@ namespace trklet {
 
           tempTQMVA = trackQualityModel_->runEmulatedTQ(trackQuality_inputs);
           tempTQMVA = std::trunc(tempTQMVA * ap_fixed_rescale);
-          TTBV tqMVA(digitise(tqBins_, tempTQMVA, 1.0), TTTrack_TrackWord::TrackBitWidths::kMVAQualitySize, false);
+          TTBV tqMVA(digitise(TTTrack_TrackWord::tqMVABins, tempTQMVA, 1.0), TTTrack_TrackWord::TrackBitWidths::kMVAQualitySize, false);
 
           // Build 32 bit partial tracks for outputting in 64 bit packets
           //                  12 +  3       +  7         +  3    +  6
