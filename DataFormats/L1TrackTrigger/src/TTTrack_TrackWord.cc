@@ -35,10 +35,10 @@ TTTrack_TrackWord::TTTrack_TrackWord(unsigned int valid,
                                      double chi2RZ,
                                      double bendChi2,
                                      unsigned int hitPattern,
-                                     double mvaQuality,
+                                     double mvaQualityPre,
                                      unsigned int mvaOther,
                                      unsigned int sector) {
-  setTrackWord(valid, momentum, POCA, rInv, chi2RPhi, chi2RZ, bendChi2, hitPattern, mvaQuality, mvaOther, sector);
+  setTrackWord(valid, momentum, POCA, rInv, chi2RPhi, chi2RZ, bendChi2, hitPattern, mvaQualityPre, mvaOther, sector);
 }
 
 TTTrack_TrackWord::TTTrack_TrackWord(unsigned int valid,
@@ -51,9 +51,9 @@ TTTrack_TrackWord::TTTrack_TrackWord(unsigned int valid,
                                      unsigned int chi2RZ,
                                      unsigned int bendChi2,
                                      unsigned int hitPattern,
-                                     unsigned int mvaQuality,
+                                     unsigned int mvaQualityPre,
                                      unsigned int mvaOther) {
-  setTrackWord(valid, rInv, phi0, tanl, z0, d0, chi2RPhi, chi2RZ, bendChi2, hitPattern, mvaQuality, mvaOther);
+  setTrackWord(valid, rInv, phi0, tanl, z0, d0, chi2RPhi, chi2RZ, bendChi2, hitPattern, mvaQualityPre, mvaOther);
 }
 
 // A setter for the floating point values
@@ -65,7 +65,7 @@ void TTTrack_TrackWord::setTrackWord(unsigned int valid,
                                      double chi2RZ,
                                      double bendChi2,
                                      unsigned int hitPattern,
-                                     double mvaQuality,
+                                     double mvaQualityPre,
                                      unsigned int mvaOther,
                                      unsigned int sector) {
   // first, derive quantities to be packed
@@ -85,7 +85,7 @@ void TTTrack_TrackWord::setTrackWord(unsigned int valid,
   chi2rz_t chi2RZ_ = getBin(chi2RZ, chi2RZBins);
   bendChi2_t bendChi2_ = getBin(bendChi2, bendChi2Bins);
   hit_t hitPattern_ = hitPattern;
-  qualityMVA_t mvaQuality_ = getBin(mvaQuality, tqMVABins);
+  qualityMVA_t mvaQuality_ = getBin(mvaQualityPre, tqMVAPreBins);
   otherMVA_t mvaOther_ = mvaOther;
 
   // pack the track word
@@ -105,7 +105,7 @@ void TTTrack_TrackWord::setTrackWord(unsigned int valid,
                                      unsigned int chi2RZ,
                                      unsigned int bendChi2,
                                      unsigned int hitPattern,
-                                     unsigned int mvaQuality,
+                                     unsigned int mvaQualityPre,
                                      unsigned int mvaOther) {
   // bin and convert to integers
   valid_t valid_ = valid;
@@ -118,7 +118,7 @@ void TTTrack_TrackWord::setTrackWord(unsigned int valid,
   chi2rz_t chi2RZ_ = chi2RZ;
   bendChi2_t bendChi2_ = bendChi2;
   hit_t hitPattern_ = hitPattern;
-  qualityMVA_t mvaQuality_ = mvaQuality;
+  qualityMVA_t mvaQuality_ = mvaQualityPre;
   otherMVA_t mvaOther_ = mvaOther;
 
   // pack the track word
@@ -140,7 +140,7 @@ void TTTrack_TrackWord::setTrackWord(
     ap_uint<TrackBitWidths::kChi2RZSize> chi2RZ,
     ap_uint<TrackBitWidths::kBendChi2Size> bendChi2,
     ap_uint<TrackBitWidths::kHitPatternSize> hitPattern,
-    ap_uint<TrackBitWidths::kMVAQualitySize> mvaQuality,
+    ap_uint<TrackBitWidths::kMVAQualitySize> mvaQualityPre,
     ap_uint<TrackBitWidths::kMVAOtherSize> mvaOther) {
   // pack the track word
   unsigned int offset = 0;
@@ -149,7 +149,7 @@ void TTTrack_TrackWord::setTrackWord(
   }
   offset += TrackBitWidths::kMVAOtherSize;
   for (unsigned int b = offset; b < (offset + TrackBitWidths::kMVAQualitySize); b++) {
-    trackWord_.set(b, mvaQuality[b - offset]);
+    trackWord_.set(b, mvaQualityPre[b - offset]);
   }
   offset += TrackBitWidths::kMVAQualitySize;
   for (unsigned int b = offset; b < (offset + TrackBitWidths::kHitPatternSize); b++) {

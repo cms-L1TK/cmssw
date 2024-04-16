@@ -504,13 +504,13 @@ namespace trackerTFP {
     }
     static constexpr int nPar = 4;
     static constexpr double d0 = 0.;
-    static constexpr double trkMVA1 = 0.;
+    static constexpr double trkMVA1Pre = -480.;
     static constexpr double trkMVA2 = 0.;
     static constexpr double trkMVA3 = 0.;
     const int hitPattern = hitVector.val();
     const double bField = setup()->bField();
     TTTrack<Ref_Phase2TrackerDigi_> ttTrack(
-        invR, phi0, cot, z0, d0, chi2phi, chi2z, trkMVA1, trkMVA2, trkMVA3, hitPattern, nPar, bField);
+        invR, phi0, cot, z0, d0, chi2phi, chi2z, trkMVA1Pre, trkMVA2, trkMVA3, hitPattern, nPar, bField);
     ttTrack.setStubRefs(ttStubRefs);
     ttTrack.setPhiSector(frame_.first->phiSector());
     ttTrack.setEtaSector(this->sectorEta());

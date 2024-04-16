@@ -45,7 +45,7 @@ private:
   double theChi2_Z_;
   unsigned int theNumFitPars_;
   unsigned int theHitPattern_;
-  double theTrkMVA1_;
+  double theTrkMVA1Pre_;
   double theTrkMVA2_;
   double theTrkMVA3_;
   int theTrackSeedType_;
@@ -65,7 +65,7 @@ public:
           double az0,
           double ad0,
           double aChi2,
-          double trkMVA1,
+          double trkMVA1Pre,
           double trkMVA2,
           double trkMVA3,
           unsigned int aHitpattern,
@@ -79,7 +79,7 @@ public:
           double ad0,
           double aChi2xyfit,
           double aChi2zfit,
-          double trkMVA1,
+          double trkMVA1Pre,
           double trkMVA2,
           double trkMVA3,
           unsigned int aHitpattern,
@@ -125,7 +125,8 @@ public:
 
   /// MVA Track quality variables
   double trkMVA1() const;
-  void settrkMVA1(double atrkMVA1);
+  double trkMVA1Pre() const;
+  void settrkMVA1Pre(double atrkMVA1Pre);
   double trkMVA2() const;
   void settrkMVA2(double atrkMVA2);
   double trkMVA3() const;
@@ -195,7 +196,7 @@ TTTrack<T>::TTTrack() {
   theZ0_ = 0.;
   theTanL_ = 0;
   thePhi_ = 0;
-  theTrkMVA1_ = 0;
+  theTrkMVA1Pre_ = 0;
   theTrkMVA2_ = 0;
   theTrkMVA3_ = 0;
   thePhiSector_ = 0;
@@ -216,7 +217,7 @@ TTTrack<T>::TTTrack(double aRinv,
                     double az0,
                     double ad0,
                     double aChi2,
-                    double trkMVA1,
+                    double trkMVA1Pre,
                     double trkMVA2,
                     double trkMVA3,
                     unsigned int aHitPattern,
@@ -235,7 +236,7 @@ TTTrack<T>::TTTrack(double aRinv,
   theEtaSector_ = 0;      // must be set externally
   theTrackSeedType_ = 0;  // must be set externally
   theChi2_ = aChi2;
-  theTrkMVA1_ = trkMVA1;
+  theTrkMVA1Pre_ = trkMVA1Pre;
   theTrkMVA2_ = trkMVA2;
   theTrkMVA3_ = trkMVA3;
   theStubPtConsistency_ = 0.0;  // must be set externally
@@ -255,7 +256,7 @@ TTTrack<T>::TTTrack(double aRinv,
                     double ad0,
                     double aChi2XY,
                     double aChi2Z,
-                    double trkMVA1,
+                    double trkMVA1Pre,
                     double trkMVA2,
                     double trkMVA3,
                     unsigned int aHitPattern,
@@ -267,7 +268,7 @@ TTTrack<T>::TTTrack(double aRinv,
               az0,
               ad0,
               aChi2XY + aChi2Z,  // add chi2 values
-              trkMVA1,
+              trkMVA1Pre,
               trkMVA2,
               trkMVA3,
               aHitPattern,
@@ -372,14 +373,21 @@ double TTTrack<T>::chi2ZRed() const {
   return theChi2_Z_ / (theStubRefs.size() - 2.);
 }
 
+/// prompt track quality MVA pre-logistic sigmoid
+template <typename T>
+double TTTrack<T>::trkMVA1Pre() const {
+  return theTrkMVA1Pre_;
+}
+
+/// prompt track quality MVA post-logistic sigmoid
 template <typename T>
 double TTTrack<T>::trkMVA1() const {
-  return 1. / (1. + exp(-theTrkMVA1_));
+  return 1. / (1. + exp(-theTrkMVA1Pre_));
 }
 
 template <typename T>
-void TTTrack<T>::settrkMVA1(double atrkMVA1) {
-  theTrkMVA1_ = atrkMVA1;
+void TTTrack<T>::settrkMVA1Pre(double atrkMVA1Pre) {
+  theTrkMVA1Pre_ = atrkMVA1Pre;
   return;
 }
 
@@ -456,7 +464,7 @@ void TTTrack<T>::setTrackWordBits() {
                  0,
                  theStubPtConsistency_,
                  theHitPattern_,
-                 theTrkMVA1_,
+                 theTrkMVA1Pre_,
                  mvaOther,
                  thePhiSector_);
   } else {
@@ -468,7 +476,7 @@ void TTTrack<T>::setTrackWordBits() {
                  chi2ZRed(),
                  chi2BendRed(),
                  theHitPattern_,
-                 theTrkMVA1_,
+                 theTrkMVA1Pre_,
                  mvaOther,
                  thePhiSector_);
   }
