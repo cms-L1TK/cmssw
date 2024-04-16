@@ -296,7 +296,9 @@ namespace trklet {
 
           tempTQMVAPre = trackQualityModel_->runEmulatedTQ(trackQuality_inputs);
           tempTQMVAPre = std::trunc(tempTQMVAPre * ap_fixed_rescale);
-          TTBV tqMVA(digitise(TTTrack_TrackWord::tqMVAPreBins, tempTQMVAPre, 1.0), TTTrack_TrackWord::TrackBitWidths::kMVAQualitySize, false);
+          TTBV tqMVA(digitise(TTTrack_TrackWord::tqMVAPreBins, tempTQMVAPre, 1.0),
+                     TTTrack_TrackWord::TrackBitWidths::kMVAQualitySize,
+                     false);
 
           // Build 32 bit partial tracks for outputting in 64 bit packets
           //                  12 +  3       +  7         +  3    +  6

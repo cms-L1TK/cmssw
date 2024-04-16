@@ -85,7 +85,6 @@ std::vector<float> L1TrackQuality::featureTransform(TTTrack<Ref_Phase2TrackerDig
 }
 
 void L1TrackQuality::setL1TrackQuality(TTTrack<Ref_Phase2TrackerDigi_>& aTrack) {
-
   // load in bdt
   conifer::BDT<float, float> bdt(this->ONNXmodel_.fullPath());
 
