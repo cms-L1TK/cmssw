@@ -22,6 +22,7 @@
 #include "L1Trigger/TrackFindingTracklet/interface/TrackletProcessorDisplaced.h"
 #include "L1Trigger/TrackFindingTracklet/interface/TrackletCalculatorDisplaced.h"
 #include "L1Trigger/TrackFindingTracklet/interface/ProjectionCalculator.h"
+#include "L1Trigger/TrackFindingTracklet/interface/VMStubMERouter.h"
 #include "L1Trigger/TrackFindingTracklet/interface/MatchProcessor.h"
 #include "L1Trigger/TrackFindingTracklet/interface/FitTrack.h"
 #include "L1Trigger/TrackFindingTracklet/interface/PurgeDuplicate.h"
@@ -137,6 +138,8 @@ void Sector::addProc(string procType, string procName) {
     addProcToVec(TCD_, procName, settings_, globals_);
   } else if (procType == "ProjectionCalculator:") {
     addProcToVec(PC_, procName, settings_, globals_);
+  } else if (procType == "VMStubMERouter:") {
+    addProcToVec(VMSMER_, procName, settings_, globals_);
   } else if (procType == "MatchProcessor:") {
     addProcToVec(MP_, procName, settings_, globals_);
   } else if (procType == "FitTrack:") {
@@ -310,6 +313,12 @@ void Sector::executeTCD() {
 void Sector::executePC() {
   for (auto& i : PC_) {
     i->execute();
+  }
+}
+
+void Sector::executeVMSMER() {
+  for (auto& i : VMSMER_) {
+    i->execute(isector_);
   }
 }
 
