@@ -27,6 +27,8 @@ namespace trklet {
 
     void resize(int nbins) { binnedstubs_.resize(nbins); }
 
+    unsigned int size() { return binnedstubs_.size(); }
+
     unsigned int nStubsBin(unsigned int bin) const {
       assert(bin < binnedstubs_.size());
       return binnedstubs_[bin].size();

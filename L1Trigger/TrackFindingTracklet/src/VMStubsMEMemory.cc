@@ -25,7 +25,7 @@ void VMStubsMEMemory::writeStubs(bool first, unsigned int iSector) {
   //get rid of duplicates
   auto const& tmp = oss.str();
   int len = tmp.size();
-  if (tmp[len - 2] == 'n' && tmp[len - 1] > '1' && tmp[len - 1] <= '9')
+  if (tmp[len - 2] == 'n' && tmp[len - 1] > '2' && tmp[len - 1] <= '9')
     return;
   oss << "_" << std::setfill('0') << std::setw(2) << (iSector_ + 1) << ".dat";
   auto const& fname = oss.str();
