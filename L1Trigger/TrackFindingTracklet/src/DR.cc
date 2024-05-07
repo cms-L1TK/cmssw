@@ -89,23 +89,16 @@ namespace trklet {
         if (!trackCM) {
           // tracks used in CMs don't propagate trough chain and do not appear in output stream unaltered
           trackCM = track;
-          track = nullptr;
           break;
         }
         if (equalEnough(track, trackCM)) {
           // tracks compared in CMs propagate trough chain and appear in output stream as gap if identified as duplicate or unaltered elsewise
-          if (better(track, trackCM))
-            trackCM = track;
           track = nullptr;
           break;
         }
       }
     }
-    // remove first number of CMs nullptr
-    const int gaps = min((int)tracks.size(), channelAssignment_->numComparisonModules());
-    tracks.erase(tracks.begin(), next(tracks.begin(), gaps));
-    // add cms tracks
-    tracks.insert(tracks.end(), cms.begin(), cms.end());
+
     // remove all gaps between end and last track
     for (auto it = tracks.end(); it != tracks.begin();)
       it = (*--it) ? tracks.begin() : tracks.erase(it);
@@ -143,16 +136,6 @@ namespace trklet {
         same++;
     }
     return same >= channelAssignment_->minIdenticalStubs();
-  }
-
-  bool DR::better(Track* lhs, Track* rhs) const {
-    if (lhs->nConsistentStubs_ > rhs->nConsistentStubs_)
-      return lhs;
-    else if (lhs->nConsistentStubs_ == rhs->nConsistentStubs_) {
-      if (lhs->chi2_ < rhs->chi2_)
-        return lhs;
-    }
-    return rhs;
   }
 
 }  // namespace trklet

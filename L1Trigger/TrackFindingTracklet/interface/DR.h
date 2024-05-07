@@ -66,8 +66,6 @@ namespace trklet {
     };
     // compares two tracks, returns true if those are considered duplicates
     bool equalEnough(Track* t0, Track* t1) const;
-    //
-    bool better(Track* lhs, Track* rhs) const;
     // true if truncation is enbaled
     bool enableTruncation_;
     // provides run-time constants
