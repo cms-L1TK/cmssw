@@ -104,10 +104,9 @@ public:
   static constexpr std::array<double, 1 << TrackBitWidths::kBendChi2Size> bendChi2Bins = {
       {0.0, 0.75, 1.0, 1.5, 2.25, 3.5, 5.0, 20.0}};
 
-  // Bin edges for TQ MVA, pre-logistic sigmoid,
-  // corresponds to {0, 0.1, 0.2, 0.4, 0.6, 0.8, 0.9, 0.95} on (0,1) range with 2 decimal precision
-  static constexpr std::array<double, 1 << TrackBitWidths::kMVAQualitySize> tqMVAPreBins = {
-      {-480, -2.197, -1.386, -0.405, 0.405, 1.386, 2.197, 2.944}};
+  // Bin edges for TQ MVA
+  static constexpr std::array<double, 1 << TrackBitWidths::kMVAQualitySize> tqMVABins = {
+      {0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.750, 0.875}};
 
   // Sector constants
   static constexpr unsigned int nSectors = 9;
@@ -146,8 +145,8 @@ public:
                     double chi2RZ,
                     double bendChi2,
                     unsigned int hitPattern,
-                    double mvaQualityPre,
-                    unsigned int mvaOther,
+                    double mvaQuality,
+                    double mvaOther,
                     unsigned int sector);
   TTTrack_TrackWord(unsigned int valid,
                     unsigned int rInv,
@@ -159,7 +158,7 @@ public:
                     unsigned int chi2RZ,
                     unsigned int bendChi2,
                     unsigned int hitPattern,
-                    unsigned int mvaQualityPre,
+                    unsigned int mvaQuality,
                     unsigned int mvaOther);
 
   // ----------copy constructor ----------------------
@@ -229,10 +228,8 @@ public:
   double getBendChi2() const { return bendChi2Bins[getBendChi2Bits()]; }
   unsigned int getHitPattern() const { return getHitPatternBits(); }
   unsigned int getNStubs() const { return countSetBits(getHitPatternBits()); }
-  double getMVAQualityPre() const { return tqMVAPreBins[getMVAQualityBits()]; }
-  // convert to MVA post-logistic sigmoid to 2 decimals, returns 0-1 range bins
-  double getMVAQuality() const { return std::round(100. / (1. + exp(-tqMVAPreBins[getMVAQualityBits()]))) / 100.; }
-  unsigned int getMVAOther() const { return getMVAOtherBits(); }
+  double getMVAQuality() const { return tqMVABins[getMVAQualityBits()]; }
+  double getMVAOther() const { return getMVAOtherBits(); }
 
   // ----------member functions (setters) ------------
   void setTrackWord(unsigned int valid,
@@ -243,8 +240,8 @@ public:
                     double chi2RZ,
                     double bendChi2,
                     unsigned int hitPattern,
-                    double mvaQualityPre,
-                    unsigned int mvaOther,
+                    double mvaQuality,
+                    double mvaOther,
                     unsigned int sector);
 
   void setTrackWord(unsigned int valid,
@@ -257,7 +254,7 @@ public:
                     unsigned int chi2RZ,
                     unsigned int bendChi2,
                     unsigned int hitPattern,
-                    unsigned int mvaQualityPre,
+                    unsigned int mvaQuality,
                     unsigned int mvaOther);
 
   void setTrackWord(ap_uint<TrackBitWidths::kValidSize> valid,
@@ -270,7 +267,7 @@ public:
                     ap_uint<TrackBitWidths::kChi2RZSize> chi2RZ,
                     ap_uint<TrackBitWidths::kBendChi2Size> bendChi2,
                     ap_uint<TrackBitWidths::kHitPatternSize> hitPattern,
-                    ap_uint<TrackBitWidths::kMVAQualitySize> mvaQualityPre,
+                    ap_uint<TrackBitWidths::kMVAQualitySize> mvaQuality,
                     ap_uint<TrackBitWidths::kMVAOtherSize> mvaOther);
 
   // ----------member functions (testers) ------------

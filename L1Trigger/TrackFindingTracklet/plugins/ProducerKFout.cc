@@ -198,7 +198,7 @@ namespace trklet {
       StreamsTrack outputStreamsTracks(setup_->numRegions() * setup_->tfpNumChannel());
 
       // Setup containers for track quality
-      float tempTQMVAPre = 0.0;
+      float tempTQMVAPreSig = 0.0;
       // Due to ap_fixed implementation in CMSSW this 10,5 must be specified at compile time, TODO make this a changeable parameter
       std::vector<ap_fixed<10, 5>> trackQuality_inputs = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 
@@ -293,10 +293,10 @@ namespace trklet {
               digitise(TTTrack_TrackWord::chi2RZBins, tempchi2rz, (double)setup_->kfoutchi2rzConv())};
 
           // Run BDT emulation and package output into 3 bits
-
-          tempTQMVAPre = trackQualityModel_->runEmulatedTQ(trackQuality_inputs);
-          tempTQMVAPre = std::trunc(tempTQMVAPre * ap_fixed_rescale);
-          TTBV tqMVA(digitise(TTTrack_TrackWord::tqMVAPreBins, tempTQMVAPre, 1.0),
+          // output needs sigmoid transformation applied
+          tempTQMVAPreSig = trackQualityModel_->runEmulatedTQ(trackQuality_inputs);
+          tempTQMVAPreSig = std::trunc(tempTQMVAPreSig * ap_fixed_rescale);
+          TTBV tqMVA(digitise(TTTrack_TrackWord::tqMVABins, 1. / (1. + exp(-tempTQMVAPreSig)), 1.0),
                      TTTrack_TrackWord::TrackBitWidths::kMVAQualitySize,
                      false);
 

@@ -91,7 +91,7 @@ void L1TrackQuality::setL1TrackQuality(TTTrack<Ref_Phase2TrackerDigi_>& aTrack) 
   // collect features and classify using bdt
   std::vector<float> inputs = featureTransform(aTrack, this->featureNames_);
   std::vector<float> output = bdt.decision_function(inputs);
-  aTrack.settrkMVA1Pre(output.at(0));
+  aTrack.settrkMVA1(1. / (1. + exp(-output.at(0))));
 }
 
 float L1TrackQuality::runEmulatedTQ(std::vector<ap_fixed<10, 5>> inputFeatures) {
