@@ -11,9 +11,8 @@ L1TrackQuality::L1TrackQuality() {}
 
 L1TrackQuality::L1TrackQuality(const edm::ParameterSet& qualityParams) : useHPH_(false), bonusFeatures_() {
   // Unpacks EDM parameter set itself to save unecessary processing within TrackProducers
-  setONNXModel(qualityParams.getParameter<edm::FileInPath>("ONNXmodel"),
-               qualityParams.getParameter<std::string>("ONNXInputName"),
-               qualityParams.getParameter<std::vector<std::string>>("featureNames"));
+  setModel(qualityParams.getParameter<edm::FileInPath>("model"),
+           qualityParams.getParameter<std::vector<std::string>>("featureNames"));
 }
 
 std::vector<float> L1TrackQuality::featureTransform(TTTrack<Ref_Phase2TrackerDigi_>& aTrack,
@@ -86,7 +85,7 @@ std::vector<float> L1TrackQuality::featureTransform(TTTrack<Ref_Phase2TrackerDig
 
 void L1TrackQuality::setL1TrackQuality(TTTrack<Ref_Phase2TrackerDigi_>& aTrack) {
   // load in bdt
-  conifer::BDT<float, float> bdt(this->ONNXmodel_.fullPath());
+  conifer::BDT<float, float> bdt(this->model_.fullPath());
 
   // collect features and classify using bdt
   std::vector<float> inputs = featureTransform(aTrack, this->featureNames_);
@@ -97,19 +96,16 @@ void L1TrackQuality::setL1TrackQuality(TTTrack<Ref_Phase2TrackerDigi_>& aTrack) 
 float L1TrackQuality::runEmulatedTQ(std::vector<ap_fixed<10, 5>> inputFeatures) {
   // load in bdt
 
-  conifer::BDT<ap_fixed<10, 5>, ap_fixed<10, 5>> bdt(this->ONNXmodel_.fullPath());
+  conifer::BDT<ap_fixed<10, 5>, ap_fixed<10, 5>> bdt(this->model_.fullPath());
 
   // collect features and classify using bdt
   std::vector<ap_fixed<10, 5>> output = bdt.decision_function(inputFeatures);
   return output.at(0).to_float();  // need logistic sigmoid fcn applied to xgb output
 }
 
-void L1TrackQuality::setONNXModel(edm::FileInPath const& ONNXmodel,
-                                  std::string const& ONNXInputName,
-                                  std::vector<std::string> const& featureNames) {
+void L1TrackQuality::setModel(edm::FileInPath const& model, std::vector<std::string> const& featureNames) {
   //Convert algorithm string to Enum class for track by track comparison
-  ONNXmodel_ = ONNXmodel;
-  ONNXInputName_ = ONNXInputName;
+  model_ = model;
   featureNames_ = featureNames;
 }
 

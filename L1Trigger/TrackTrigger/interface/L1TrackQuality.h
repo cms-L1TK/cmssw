@@ -20,7 +20,6 @@ C.Brown 28/07/20
 #include "DataFormats/L1TrackTrigger/interface/TTTrack.h"
 #include "DataFormats/L1TrackTrigger/interface/TTTrack_TrackWord.h"
 #include "DataFormats/L1TrackTrigger/interface/TTTypes.h"
-#include "PhysicsTools/ONNXRuntime/interface/ONNXRuntime.h"
 #include <memory>
 
 #include "conifer.h"
@@ -47,19 +46,15 @@ public:
   // where a TTTrack datatype is unavailable to be passed to the track quality
   float runEmulatedTQ(std::vector<ap_fixed<10, 5>> inputFeatures);
 
-  void setONNXModel(edm::FileInPath const& ONNXmodel,
-                    std::string const& ONNXInputName,
-                    std::vector<std::string> const& featureNames);
+  void setModel(edm::FileInPath const& model, std::vector<std::string> const& featureNames);
 
   void setBonusFeatures(std::vector<float> bonusFeatures);
 
 private:
   // Private Member Data
-  edm::FileInPath ONNXmodel_;
-  std::string ONNXInputName_;
+  edm::FileInPath model_;
   std::vector<std::string> featureNames_;
   bool useHPH_;
   std::vector<float> bonusFeatures_;
-  std::unique_ptr<cms::Ort::ONNXRuntime> runTime_;
 };
 #endif
