@@ -88,6 +88,7 @@ namespace trklet {
     void setTableTEDFile(std::string tableTEDFileName) { tableTEDFile_ = tableTEDFileName; }
     void setTableTREFile(std::string tableTREFileName) { tableTREFile_ = tableTREFileName; }
 
+    unsigned int nndbitsstub(unsigned int layerdisk) const { return nndbitsstub_[layerdisk]; }
     unsigned int nzbitsstub(unsigned int layerdisk) const { return nzbitsstub_[layerdisk]; }
     unsigned int nphibitsstub(unsigned int layerdisk) const { return nphibitsstub_[layerdisk]; }
     unsigned int nrbitsstub(unsigned int layerdisk) const { return nrbitsstub_[layerdisk]; }
@@ -341,7 +342,7 @@ namespace trklet {
 
     double kz() const { return 2.0 * zlength_ / (1 << nzbitsstub_[0]); }
     double kz(unsigned int layerdisk) const { return 2.0 * zlength_ / (1 << nzbitsstub_[layerdisk]); }
-    double kr() const { return rmaxdisk_ / (1 << nrbitsstub_[N_LAYER]); }
+    double kr() const { return rmaxdisk_ / (1 << (nrbitsstub_[N_LAYER] + 1)); }
     double krbarrel() const { return 2.0 * drmax() / (1 << nrbitsstub_[0]); }
 
     double maxrinv() const { return maxrinv_; }
@@ -524,9 +525,10 @@ namespace trklet {
     std::array<unsigned int, N_LAYER> irmean_{{851, 1269, 1784, 2347, 2936, 3697}};
     std::array<unsigned int, N_DISK> izmean_{{2239, 2645, 3163, 3782, 4523}};
 
+    std::array<unsigned int, N_LAYER + N_DISK> nndbitsstub_{{0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1}};
     std::array<unsigned int, N_LAYER + N_DISK> nzbitsstub_{{12, 12, 12, 8, 8, 8, 7, 7, 7, 7, 7}};
     std::array<unsigned int, N_LAYER + N_DISK> nphibitsstub_{{14, 14, 14, 17, 17, 17, 14, 14, 14, 14, 14}};
-    std::array<unsigned int, N_LAYER + N_DISK> nrbitsstub_{{7, 7, 7, 7, 7, 7, 12, 12, 12, 12, 12}};
+    std::array<unsigned int, N_LAYER + N_DISK> nrbitsstub_{{7, 7, 7, 7, 7, 7, 11, 11, 11, 11, 11}};
 
     unsigned int nrbitsprojderdisk_{9};
     unsigned int nbitsphiprojderL123_{10};

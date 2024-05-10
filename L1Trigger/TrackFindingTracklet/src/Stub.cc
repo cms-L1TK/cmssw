@@ -18,6 +18,7 @@ Stub::Stub(L1TStub& stub, Settings const& settings, Globals& globals) : settings
   const string& stubwordhex = stub.stubword();
 
   const string stubwordbin = convertHexToBin(stubwordhex);
+  std::cout << "stubwordbin: " << stubwordbin << "\n";
 
   layerdisk_ = stub.layerdisk();
 
@@ -25,30 +26,41 @@ Stub::Stub(L1TStub& stub, Settings const& settings, Globals& globals) : settings
 
   int nalphabits = 0;
 
+  int nndbits = settings_.nndbitsstub(layerdisk_);
   int nrbits = settings_.nrbitsstub(layerdisk_);
   int nzbits = settings_.nzbitsstub(layerdisk_);
   int nphibits = settings_.nphibitsstub(layerdisk_);
 
   if (layerdisk_ >= N_LAYER && !stub.isPSmodule()) {
     nalphabits = settings.nbitsalpha();
-    nrbits = 7;
+    nrbits = 6;
   }
+  
+  assert(nndbits + nbendbits + nalphabits + nrbits + nzbits + nphibits == 36);
 
-  assert(nbendbits + nalphabits + nrbits + nzbits + nphibits == 36);
-
-  bitset<32> rbits(stubwordbin.substr(0, nrbits));
+  bitset<32> rbits(stubwordbin.substr(0, nrbits + 1));
   bitset<32> zbits(stubwordbin.substr(nrbits, nzbits));
   bitset<32> phibits(stubwordbin.substr(nrbits + nzbits, nphibits));
   bitset<32> alphabits(stubwordbin.substr(nphibits + nzbits + nrbits, nalphabits));
   bitset<32> bendbits(stubwordbin.substr(nphibits + nzbits + nrbits + nalphabits, nbendbits));
 
   int newbend = bendbits.to_ulong();
+  std::cout << "newbend: " << newbend << "\n";
 
   int newr = rbits.to_ulong();
+  std::cout << "rbits: " << rbits << "\n";
+  int diskpswrittenr;
   if (layerdisk_ < N_LAYER) {
     if (newr >= (1 << (nrbits - 1)))
       newr = newr - (1 << nrbits);
   }
+  else if (stub.isPSmodule()){
+    diskpswrittenr = newr - (1 << (nrbits - 3)); 
+    std::cout << "newr: " << std::dec << newr << "\n";
+    std::cout << "nrbits: " << std::dec << nrbits << "\n";
+    diskpswrittenr_.set(diskpswrittenr, nrbits, true, __LINE__, __FILE__);
+  }
+  else std::cout << "disk2s newr: " << std::dec << newr << "\n";
 
   int newz = zbits.to_ulong();
   if (newz >= (1 << (nzbits - 1)))
