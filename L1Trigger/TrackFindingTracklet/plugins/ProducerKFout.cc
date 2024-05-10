@@ -77,13 +77,14 @@ namespace trklet {
 
     int partialTrackWordBits_;
 
-    // Helper function to convert floating chi2 to chi2 bin
+    // Helper function to convert floating value to bin
     template <typename T>
     unsigned int digitise(const T& bins, double value, double factor) {
       unsigned int bin = 0;
       for (unsigned int i = 0; i < bins.size() - 1; i++) {
         if (value * factor > bins[i] && value * factor <= bins[i + 1])
-          bin = i;
+          break;
+        bin++;
       }
       return bin;
     }
@@ -295,8 +296,7 @@ namespace trklet {
           // Run BDT emulation and package output into 3 bits
           // output needs sigmoid transformation applied
           tempTQMVAPreSig = trackQualityModel_->runEmulatedTQ(trackQuality_inputs);
-          tempTQMVAPreSig = std::trunc(tempTQMVAPreSig * ap_fixed_rescale);
-          TTBV tqMVA(digitise(TTTrack_TrackWord::tqMVABins, 1. / (1. + exp(-tempTQMVAPreSig)), 1.0),
+          TTBV tqMVA(digitise(TTTrack_TrackWord::getTqMVAPreSigBins(), tempTQMVAPreSig, 1.0),
                      TTTrack_TrackWord::TrackBitWidths::kMVAQualitySize,
                      false);
 
