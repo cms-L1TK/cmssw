@@ -17,7 +17,7 @@ namespace trackerTFP {
     HoughTransform(const edm::ParameterSet& iConfig,
                    const tt::Setup* setup,
                    const DataFormats* dataFormats,
-                  const LayerEncoding* layerEncoding,
+                   const LayerEncoding* layerEncoding,
                    std::deque<StubHT>& stubs);
     ~HoughTransform() {}
     // fill output products

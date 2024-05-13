@@ -179,8 +179,8 @@ namespace trackerTFP {
     int nHits(0);
     int last(-1);
     for (int layer = 0; layer < setup_->numLayers(); layer++)
-      if(pattern.test(layer))
-        if(++nHits == minLayers)
+      if (pattern.test(layer))
+        if (++nHits == minLayers)
           last = layer;
     if (nHits < minLayers)
       return true;

@@ -117,11 +117,15 @@ namespace trklet {
     static const int numLayers = setup_->numLayers();
     const int offset = region_ * numLayers;
     const StreamTrack& streamTrack = streamsTrack[region_];
-    const int numTracks = accumulate(streamTrack.begin(), streamTrack.end(), 0, [](int& sum, const FrameTrack& f){ return sum += (f.first.isNull() ? 0 : 1); });
+    const int numTracks = accumulate(streamTrack.begin(), streamTrack.end(), 0, [](int& sum, const FrameTrack& f) {
+      return sum += (f.first.isNull() ? 0 : 1);
+    });
     int numStubs(0);
     for (int layer = 0; layer < numLayers; layer++) {
       const StreamStub& streamStub = streamsStub[offset + layer];
-      numStubs += accumulate(streamStub.begin(), streamStub.end(), 0, [](int& sum, const FrameStub& f){ return sum += (f.first.isNull() ? 0 : 1); });
+      numStubs += accumulate(streamStub.begin(), streamStub.end(), 0, [](int& sum, const FrameStub& f) {
+        return sum += (f.first.isNull() ? 0 : 1);
+      });
     }
     tracks_.reserve(numTracks);
     stubs_.reserve(numStubs);
@@ -243,7 +247,8 @@ namespace trklet {
         const double z = stub->z() - (state->x3() + rz * state->x2());
         const double dPhi = stub->dPhi();
         const double dZ = stub->dZ();
-        if (!dataFormats_->format(Variable::phi, Process::kf).inRange(phi) || !dataFormats_->format(Variable::z, Process::kf).inRange(z))
+        if (!dataFormats_->format(Variable::phi, Process::kf).inRange(phi) ||
+            !dataFormats_->format(Variable::z, Process::kf).inRange(z))
           continue;
         const TTStubRef& ttStubRef = stub->frame().first;
         const TTBV hwr(dataFormats_->format(Variable::r, Process::kf).ttBV(r));
@@ -251,7 +256,8 @@ namespace trklet {
         const TTBV hwz(dataFormats_->format(Variable::z, Process::kf).ttBV(z));
         const TTBV hwdPhi(dataFormats_->format(Variable::dPhi, Process::ctb).ttBV(dPhi));
         const TTBV hwdZ(dataFormats_->format(Variable::dZ, Process::ctb).ttBV(dZ));
-        streamsStub[offset + s->layer()].emplace_back(ttStubRef, "1" + hwr.str() + hwphi.str() + hwz.str() + hwdPhi.str() + hwdZ.str());
+        streamsStub[offset + s->layer()].emplace_back(
+            ttStubRef, "1" + hwr.str() + hwphi.str() + hwz.str() + hwdPhi.str() + hwdZ.str());
       }
       for (int layer : state->hitPattern().ids(false))
         streamsStub[offset + layer].emplace_back(FrameStub());
@@ -444,13 +450,15 @@ namespace trklet {
       //const int msb0 = max(0, (int)ceil(log2(R00 / R00_[layer_]->base()) - 1.e-12));
       const double R00Rough = R00Rough_[layer_]->digi(R00 * pow(2., R00_[layer_]->width() - msb0));
       const double invR00Approx = invR00Approx_[layer_]->digi(1. / R00Rough);
-      const double invR00Cor = invR00Cor_[layer_]->digi(2. - invR00Approx * R00 * pow(2., R00_[layer_]->width() - msb0));
+      const double invR00Cor =
+          invR00Cor_[layer_]->digi(2. - invR00Approx * R00 * pow(2., R00_[layer_]->width() - msb0));
       const double invR00 = invR00_[layer_]->digi(invR00Approx * invR00Cor);
       const int msb1 = R11_[layer_]->width();
       //const int msb1 = max(0, (int)ceil(log2(R11 / R11_[layer_]->base()) - 1.e-12));
       const double R11Rough = R11Rough_[layer_]->digi(R11 * pow(2., R11_[layer_]->width() - msb1));
       const double invR11Approx = invR11Approx_[layer_]->digi(1. / R11Rough);
-      const double invR11Cor = invR11Cor_[layer_]->digi(2. - invR11Approx * R11 * pow(2., R11_[layer_]->width() - msb1));
+      const double invR11Cor =
+          invR11Cor_[layer_]->digi(2. - invR11Approx * R11 * pow(2., R11_[layer_]->width() - msb1));
       const double invR11 = invR11_[layer_]->digi(invR11Approx * invR11Cor);
       // Kalman gain matrix K = S*R(inv)
       const double K00 = K00_[layer_]->digi(S00 * invR00 * pow(2., R00_[layer_]->width() - msb0));
@@ -532,7 +540,7 @@ namespace trklet {
       return;
     }
     //if (C00 < 0)
-      //cout << ss00.str();
+    //cout << ss00.str();
     // create updated state
     states_.emplace_back(State(state, {x0, x1, x2, x3, chi20, chi21, C00, C11, C22, C33, C01, C23}));
     state = &states_.back();

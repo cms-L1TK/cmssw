@@ -158,13 +158,21 @@ namespace trackerTFP {
   template <>
   FormatKF<VariableKF::R11Rough>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig, int layer);
   template <>
-  FormatKF<VariableKF::invR00Approx>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig, int layer);
+  FormatKF<VariableKF::invR00Approx>::FormatKF(const DataFormats* dataFormats,
+                                               const edm::ParameterSet& iConfig,
+                                               int layer);
   template <>
-  FormatKF<VariableKF::invR11Approx>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig, int layer);
+  FormatKF<VariableKF::invR11Approx>::FormatKF(const DataFormats* dataFormats,
+                                               const edm::ParameterSet& iConfig,
+                                               int layer);
   template <>
-  FormatKF<VariableKF::invR00Cor>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig, int layer);
+  FormatKF<VariableKF::invR00Cor>::FormatKF(const DataFormats* dataFormats,
+                                            const edm::ParameterSet& iConfig,
+                                            int layer);
   template <>
-  FormatKF<VariableKF::invR11Cor>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig, int layer);
+  FormatKF<VariableKF::invR11Cor>::FormatKF(const DataFormats* dataFormats,
+                                            const edm::ParameterSet& iConfig,
+                                            int layer);
   template <>
   FormatKF<VariableKF::invR00>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig, int layer);
   template <>

@@ -372,7 +372,7 @@ namespace trklet {
         //const bool match = track && channelAssignment_->isNodeDR(track->ttTrackRef_, nodeDR);
         const bool match = track;
         //if (match && !track->valid_)
-          //lost.push_back(track);
+        //lost.push_back(track);
         inputs[channel].push_back(match && track->valid_ ? track : nullptr);
       }
     }
@@ -382,7 +382,7 @@ namespace trklet {
         it = (*--it) ? input.begin() : input.erase(it);
     // clock accurate firmware emulation, each while trip describes one clock tick, one stub in and one stub out per tick
     while (!all_of(inputs.begin(), inputs.end(), [](const deque<Track*>& tracks) { return tracks.empty(); }) or
-            !all_of(stacks.begin(), stacks.end(), [](const deque<Track*>& tracks) { return tracks.empty(); })) {
+           !all_of(stacks.begin(), stacks.end(), [](const deque<Track*>& tracks) { return tracks.empty(); })) {
       // fill input fifos
       for (int channel = 0; channel < channelAssignment_->numChannelsTrack(); channel++) {
         deque<Track*>& stack = stacks[channel];
