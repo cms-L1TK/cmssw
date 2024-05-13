@@ -123,8 +123,8 @@ namespace trklet {
       streamTrack.push_back(track->frame_);
       TTBV hitPattern(0, setup_->numLayers());
       for (Stub* stub : track->stubs_) {
-        hitPattern.set(stub->channel_);
-        accpetedStubs[offset + stub->channel_].push_back(stub->frame_);
+        hitPattern.set(stub->layer_);
+        accpetedStubs[offset + stub->layer_].push_back(stub->frame_);
       }
       for (int layer : hitPattern.ids(false))
         accpetedStubs[offset + layer].emplace_back(FrameStub());
@@ -135,7 +135,7 @@ namespace trklet {
   bool DR::equalEnough(Track* t0, Track* t1) const {
     int same(0);
     for (int layer = 0; layer < setup_->numLayers(); layer++) {
-      auto onLayer = [layer](Stub* stub) { return stub->channel_ == layer; };
+      auto onLayer = [layer](Stub* stub) { return stub->layer_ == layer; };
       const auto s0 = find_if(t0->stubs_.begin(), t0->stubs_.end(), onLayer);
       const auto s1 = find_if(t1->stubs_.begin(), t1->stubs_.end(), onLayer);
       if (s0 != t0->stubs_.end() && s1 != t1->stubs_.end() && **s0 == **s1)

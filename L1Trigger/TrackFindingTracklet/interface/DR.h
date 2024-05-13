@@ -34,13 +34,13 @@ namespace trklet {
 
   private:
     struct Stub {
-      Stub(const tt::FrameStub& frame, int stubId, int channel) : frame_(frame), stubId_(stubId), channel_(channel) {}
+      Stub(const tt::FrameStub& frame, int stubId, int layer) : frame_(frame), stubId_(stubId), layer_(layer) {}
       bool operator==(const Stub& s) const { return s.stubId_ == stubId_; }
       tt::FrameStub frame_;
       // all stubs id
       int stubId_;
       // kf layer id
-      int channel_;
+      int layer_;
     };
     struct Track {
       // max number of stubs a track may formed of (we allow only one stub per layer)
