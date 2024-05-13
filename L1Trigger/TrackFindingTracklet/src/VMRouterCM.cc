@@ -21,7 +21,6 @@ VMRouterCM::VMRouterCM(string name, Settings const& settings, Globals* global)
   unsigned int region = name[9] - 'A';
   assert(region < settings_.nallstubs(layerdisk_));
 
-  vmstubsMEPHI_.resize(1, nullptr);
 
   overlapbits_ = 7;
   nextrabits_ = overlapbits_ - (settings_.nbitsallstubs(layerdisk_) + settings_.nbitsvmme(layerdisk_));
@@ -83,8 +82,7 @@ void VMRouterCM::addOutput(MemoryBase* memory, string output) {
       VMStubsMEMemory* tmp = dynamic_cast<VMStubsMEMemory*>(memory);
       assert(tmp != nullptr);
       tmp->resize(nvmmebins_ * settings_.nvmme(layerdisk_));
-      assert(vmstubsMEPHI_[0] == nullptr);
-      vmstubsMEPHI_[0] = tmp;
+      vmstubsMEPHI_.push_back(tmp);
     } else {
       throw cms::Exception("LogicError") << __FILE__ << " " << __LINE__ << " memory: " << memory->getName()
                                          << " => should never get here!";
