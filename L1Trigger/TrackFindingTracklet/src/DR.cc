@@ -83,7 +83,7 @@ namespace trklet {
     vector<Track*>& tracks = input_;
     for (Track*& track : tracks) {
       if (!track)
-        // gaps propagate trough chain and appear in output stream
+        // gaps propagate trough chain and appear in output stream 
         continue;
       for (Track*& trackCM : cms) {
         if (!trackCM) {
