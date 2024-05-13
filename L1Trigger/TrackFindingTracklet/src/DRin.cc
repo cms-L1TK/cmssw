@@ -395,7 +395,7 @@ namespace trklet {
       }
       // merge input fifos to one stream, prioritizing higher input channel over lower channel
       bool nothingToRoute(true);
-      for (int channel = channelAssignment_->numChannelsTrack() - 1; channel >= 0; channel--) {
+      for (int channel = 0; channel < channelAssignment_->numChannelsTrack(); channel++) {
         Track* track = pop_front(stacks[channel]);
         if (track) {
           nothingToRoute = false;
