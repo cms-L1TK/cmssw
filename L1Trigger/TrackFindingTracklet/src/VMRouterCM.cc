@@ -21,7 +21,6 @@ VMRouterCM::VMRouterCM(string name, Settings const& settings, Globals* global)
   unsigned int region = name[9] - 'A';
   assert(region < settings_.nallstubs(layerdisk_));
 
-
   overlapbits_ = 7;
   nextrabits_ = overlapbits_ - (settings_.nbitsallstubs(layerdisk_) + settings_.nbitsvmme(layerdisk_));
 
@@ -256,10 +255,11 @@ void VMRouterCM::execute(unsigned int) {
           FPGAWord(stub->bend().value(), nbendbits, true, __LINE__, __FILE__),
           allStubIndex);
 
-      unsigned int nmems = vmstubsMEPHI_.size(); 
+      unsigned int nmems = vmstubsMEPHI_.size();
 
-      for(unsigned int i = 0; i < nmems; i++){ // allows multiple VMStubs to be written for duplicated MPs 
-        if (vmstubsMEPHI_[i] != nullptr) vmstubsMEPHI_[i]->addStub(vmstub, ivm * nvmmebins_ + vmbin);
+      for (unsigned int i = 0; i < nmems; i++) {  // allows multiple VMStubs to be written for duplicated MPs
+        if (vmstubsMEPHI_[i] != nullptr)
+          vmstubsMEPHI_[i]->addStub(vmstub, ivm * nvmmebins_ + vmbin);
       }
 
       //Fill the TE VM memories
