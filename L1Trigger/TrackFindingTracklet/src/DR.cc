@@ -83,16 +83,16 @@ namespace trklet {
     vector<Track*>& tracks = input_;
     for (Track*& track : tracks) {
       if (!track)
-        // gaps propagate trough chain and appear in output stream
+        // gaps propagate through chain and appear in output stream
         continue;
       for (Track*& trackCM : cms) {
         if (!trackCM) {
-          // tracks used in CMs don't propagate trough chain and do not appear in output stream unaltered
+          // tracks used in CMs don't propagate through chain and do not appear in output stream unaltered
           trackCM = track;
           break;
         }
         if (equalEnough(track, trackCM)) {
-          // tracks compared in CMs propagate trough chain and appear in output stream as gap if identified as duplicate or unaltered elsewise
+          // tracks compared in CMs propagate through chain and appear in output stream as gap if identified as duplicate or unaltered elsewise
           track = nullptr;
           break;
         }
