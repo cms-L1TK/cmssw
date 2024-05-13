@@ -192,7 +192,8 @@ namespace trackerTFP {
       if (pos < (int)stubs.size()) {
         states.emplace_back(this, stubs[pos], layer, combSkip);
         return &states.back();
-      } else if (available > 0 && available >= needed && gaps < setup_->kfMaxGaps() && pre && post && availableSeed >= neededSeed) {
+      } else if (available > 0 && available >= needed && gaps < setup_->kfMaxGaps() && pre && post &&
+                 availableSeed >= neededSeed) {
         // pick first stub on next layer with stubs
         StubCTB* stub = nullptr;
         int nextLayer = layer + 1;

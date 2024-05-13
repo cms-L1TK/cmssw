@@ -158,15 +158,16 @@ namespace trackerTFP {
         stream.insert(stream.end(), size - 1, nullptr);
         State* state = &states_.back();
         const TTBV& pattern = state->trackPattern();
-        const int zT = dataFormats_->format(Variable::zT, Process:: ctb).integer(track->zT());
+        const int zT = dataFormats_->format(Variable::zT, Process::ctb).integer(track->zT());
         bool invalid = false;
-        const int minLayers = ((zT == -4 || zT == 3) && (!pattern.test(5) && !pattern.test(7))) ? 4 : setup_->htMinLayers();
+        const int minLayers =
+            ((zT == -4 || zT == 3) && (!pattern.test(5) && !pattern.test(7))) ? 4 : setup_->htMinLayers();
         // check min layers req
         int nHits(0);
         int last(-1);
         for (int layer = 0; layer < setup_->numLayers(); layer++)
-          if(pattern.test(layer))
-            if(++nHits == minLayers)
+          if (pattern.test(layer))
+            if (++nHits == minLayers)
               last = layer;
         if (nHits < minLayers)
           invalid = true;
@@ -175,10 +176,10 @@ namespace trackerTFP {
         p |= maybePattern;
         for (int layer = 1; layer < last; layer++)
           if (!p.test(layer - 1) && !p.test(layer))
-            invalid =  true;
+            invalid = true;
         // too many gaps
         if (p.count(0, last, false) > setup_->kfMaxGaps())
-          invalid =  true;
+          invalid = true;
         // not enough seeding layer
         if (pattern.count(0, setup_->kfMaxSeedLayer()) < 2)
           invalid = true;
@@ -523,21 +524,42 @@ namespace trackerTFP {
       const double K31 = K31_[layer_]->digi(S13 * invR11);
       ss00 << std::fixed << std::showpoint << std::setprecision(12);
       ss00 << C00 << " " << C00 / C00_[layer_]->base() << endl;
-      ss00 << R00 << " " << (v0 + S01 + H00 * S00) << " " << (R00) / R00_[layer_]->base() << " " << (v0 + S01 + H00 * S00) / R00_[layer_]->base() << endl;
-      ss00 << invR00 << " " << (1. / R00) << " " << (invR00) / invR00_[layer_]->base() << " " << (1. / R00) / invR00_[layer_]->base() << endl;
-      ss00 << K00 << " " << K00_[layer_]->digi((C01 + H00 * C00) / R00) << " " << K00_[layer_]->integer(K00) << " " << K00_[layer_]->integer((C01 + H00 * C00) / R00) << " " << K00_[layer_]->integer(S00 / R00) << " " << K00_[layer_]->integer((C01 + H00 * C00) * invR00) << endl;
-      ss00 << S00 << " " << (C01 + H00 * C00) << " " << S00 / S00_[layer_]->base() << " " << (C01 + H00 * C00) / S00_[layer_]->base() << endl;
-      ss00 << C00_[layer_]->digi(C00 - S00 * K00) << " " << (C00 - (C01 + H00 * C00) * (C01 + H00 * C00) / R00) << " " << (C00 - S00 * K00) / C00_[layer_]->base() << " " << (C00 - (C01 + H00 * C00) * (C01 + H00 * C00) / R00) / C00_[layer_]->base() << endl;
-      ss22 << R11 << " " << R11_[layer_]->digi(v1 + S13 + H12 * S12) << " " << R11_[layer_]->integer(R11) << " " << R11_[layer_]->integer(v1 + S13 + H12 * S12) << endl;
-      ss22 << invR11 << " " << invR11_[layer_]->digi(1. / R11) << " " << invR11_[layer_]->integer(invR11) << " " << invR11_[layer_]->integer(1. / R11) << endl;
-      ss22 << K21 << " " << K21_[layer_]->digi((C23 + H12 * C22) / R11) << " " << K21_[layer_]->integer(K21) << " " << K21_[layer_]->integer((C23 + H12 * C22) / R11) << " " << K21_[layer_]->integer(S12 / R11) << " " << K21_[layer_]->integer((C23 + H12 * C22) * invR11) << endl;
-      ss22 << S12 << " " << (C23 + H12 * C22) << " " << S12 / S12_[layer_]->base() << " " << (C23 + H12 * C22) / S12_[layer_]->base() << endl;
-      ss22 << C22_[layer_]->digi(C22 - S12 * K21) << " " << (C22 - (C23 + H12 * C22) * (C23 + H12 * C22) / R11) << " " << (C22 - S12 * K21) / C22_[layer_]->base() << " " << (C22 - (C23 + H12 * C22) * (C23 + H12 * C22) / R11) / C22_[layer_]->base() << endl;
-      ss33 << R11 << " " << R11_[layer_]->digi(v1 + S13 + H12 * S12) << " " << R11_[layer_]->integer(R11) << " " << R11_[layer_]->integer(v1 + S13 + H12 * S12) << endl;
-      ss33 << invR11 << " " << invR11_[layer_]->digi(1. / R11) << " " << invR11_[layer_]->integer(invR11) << " " << invR11_[layer_]->integer(1. / R11) << endl;
-      ss33 << K31 << " " << K31_[layer_]->digi((C33 + H12 * C23) / R11) << " " << K31_[layer_]->integer(K31) << " " << K31_[layer_]->integer((C33 + H12 * C23) / R11) << " " << K31_[layer_]->integer(S13 / R11) << " " << K31_[layer_]->integer((C33 + H12 * C23) * invR11) << endl;
-      ss33 << S13 << " " << (C33 + H12 * C23) << " " << S13 / S13_[layer_]->base() << " " << (C33 + H12 * C23) / S13_[layer_]->base() << endl;
-      ss33 << C33_[layer_]->digi(C33 - S13 * K31) << " " << (C33 - (C33 + H12 * C23) * (C33 + H12 * C23) / R11) << " " << (C33 - S13 * K31) / C33_[layer_]->base() << " " << (C33 - (C33 + H12 * C23) * (C33 + H12 * C23) / R11) / C33_[layer_]->base() << endl;
+      ss00 << R00 << " " << (v0 + S01 + H00 * S00) << " " << (R00) / R00_[layer_]->base() << " "
+           << (v0 + S01 + H00 * S00) / R00_[layer_]->base() << endl;
+      ss00 << invR00 << " " << (1. / R00) << " " << (invR00) / invR00_[layer_]->base() << " "
+           << (1. / R00) / invR00_[layer_]->base() << endl;
+      ss00 << K00 << " " << K00_[layer_]->digi((C01 + H00 * C00) / R00) << " " << K00_[layer_]->integer(K00) << " "
+           << K00_[layer_]->integer((C01 + H00 * C00) / R00) << " " << K00_[layer_]->integer(S00 / R00) << " "
+           << K00_[layer_]->integer((C01 + H00 * C00) * invR00) << endl;
+      ss00 << S00 << " " << (C01 + H00 * C00) << " " << S00 / S00_[layer_]->base() << " "
+           << (C01 + H00 * C00) / S00_[layer_]->base() << endl;
+      ss00 << C00_[layer_]->digi(C00 - S00 * K00) << " " << (C00 - (C01 + H00 * C00) * (C01 + H00 * C00) / R00) << " "
+           << (C00 - S00 * K00) / C00_[layer_]->base() << " "
+           << (C00 - (C01 + H00 * C00) * (C01 + H00 * C00) / R00) / C00_[layer_]->base() << endl;
+      ss22 << R11 << " " << R11_[layer_]->digi(v1 + S13 + H12 * S12) << " " << R11_[layer_]->integer(R11) << " "
+           << R11_[layer_]->integer(v1 + S13 + H12 * S12) << endl;
+      ss22 << invR11 << " " << invR11_[layer_]->digi(1. / R11) << " " << invR11_[layer_]->integer(invR11) << " "
+           << invR11_[layer_]->integer(1. / R11) << endl;
+      ss22 << K21 << " " << K21_[layer_]->digi((C23 + H12 * C22) / R11) << " " << K21_[layer_]->integer(K21) << " "
+           << K21_[layer_]->integer((C23 + H12 * C22) / R11) << " " << K21_[layer_]->integer(S12 / R11) << " "
+           << K21_[layer_]->integer((C23 + H12 * C22) * invR11) << endl;
+      ss22 << S12 << " " << (C23 + H12 * C22) << " " << S12 / S12_[layer_]->base() << " "
+           << (C23 + H12 * C22) / S12_[layer_]->base() << endl;
+      ss22 << C22_[layer_]->digi(C22 - S12 * K21) << " " << (C22 - (C23 + H12 * C22) * (C23 + H12 * C22) / R11) << " "
+           << (C22 - S12 * K21) / C22_[layer_]->base() << " "
+           << (C22 - (C23 + H12 * C22) * (C23 + H12 * C22) / R11) / C22_[layer_]->base() << endl;
+      ss33 << R11 << " " << R11_[layer_]->digi(v1 + S13 + H12 * S12) << " " << R11_[layer_]->integer(R11) << " "
+           << R11_[layer_]->integer(v1 + S13 + H12 * S12) << endl;
+      ss33 << invR11 << " " << invR11_[layer_]->digi(1. / R11) << " " << invR11_[layer_]->integer(invR11) << " "
+           << invR11_[layer_]->integer(1. / R11) << endl;
+      ss33 << K31 << " " << K31_[layer_]->digi((C33 + H12 * C23) / R11) << " " << K31_[layer_]->integer(K31) << " "
+           << K31_[layer_]->integer((C33 + H12 * C23) / R11) << " " << K31_[layer_]->integer(S13 / R11) << " "
+           << K31_[layer_]->integer((C33 + H12 * C23) * invR11) << endl;
+      ss33 << S13 << " " << (C33 + H12 * C23) << " " << S13 / S13_[layer_]->base() << " "
+           << (C33 + H12 * C23) / S13_[layer_]->base() << endl;
+      ss33 << C33_[layer_]->digi(C33 - S13 * K31) << " " << (C33 - (C33 + H12 * C23) * (C33 + H12 * C23) / R11) << " "
+           << (C33 - S13 * K31) / C33_[layer_]->base() << " "
+           << (C33 - (C33 + H12 * C23) * (C33 + H12 * C23) / R11) / C33_[layer_]->base() << endl;
       // Updated helix params, their cov. matrix & chi2s
       x0 = x0_[layer_]->digi(x0 + r0 * K00);
       x1 = x1_[layer_]->digi(x1 + r0 * K10);

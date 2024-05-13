@@ -261,8 +261,7 @@ namespace trklet {
         continue;
       int tmp(0);
       associate(tracks, tracksStubs, region, selection, tpPtrsSelection, tmp, hisRes_, profRes_);
-      associate(
-          tracks, tracksStubs, region, reconstructable, tpPtrs, numMatched, vector<TH1F*>(), vector<TProfile*>());
+      associate(tracks, tracksStubs, region, reconstructable, tpPtrs, numMatched, vector<TH1F*>(), vector<TProfile*>());
       associate(tracks, tracksStubs, region, selection, tpPtrsMax, tmp, vector<TH1F*>(), vector<TProfile*>(), false);
       numTracks += nRegionTracks;
       prof_->Fill(1, nRegionStubs);

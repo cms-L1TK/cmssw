@@ -54,7 +54,11 @@ namespace trackerTFP {
                     vector<vector<TTStubRef>>& tracks,
                     int channel) const;
     //
-    void associate(const vector<vector<TTStubRef>>& tracks, const StubAssociation* ass, set<TPPtr>& tps, int& sum, bool perfect = false) const;
+    void associate(const vector<vector<TTStubRef>>& tracks,
+                   const StubAssociation* ass,
+                   set<TPPtr>& tps,
+                   int& sum,
+                   bool perfect = false) const;
     // ED input token of stubs
     EDGetTokenT<StreamsStub> edGetTokenStubs_;
     // ED input token of tracks

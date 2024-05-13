@@ -32,7 +32,9 @@ namespace trackerTFP {
   // fill output products
   void CleanTrackBuilder::produce(const vector<vector<StubHT*>>& streamsIn,
                                   vector<deque<TrackCTB*>>& regionTracks,
-                                  vector<vector<deque<StubCTB*>>>& regionStubs) {static int region(-1);region++;              
+                                  vector<vector<deque<StubCTB*>>>& regionStubs) {
+    static int region(-1);
+    region++;
     static const int numChannelIn = dataFormats_->numChannel(Process::ht);
     static const int numChannelOut = dataFormats_->numChannel(Process::ctb);
     static const int numChannel = numChannelIn / numChannelOut;
@@ -104,7 +106,8 @@ namespace trackerTFP {
   }
 
   // run single track through r-phi and r-z hough transform
-  void CleanTrackBuilder::cleanTrack(const vector<StubHT*>& track, deque<Track*>& tracks, deque<Stub*>& stubs, double inv2R, int zT, int trackId) {
+  void CleanTrackBuilder::cleanTrack(
+      const vector<StubHT*>& track, deque<Track*>& tracks, deque<Stub*>& stubs, double inv2R, int zT, int trackId) {
     static const DataFormat& layer = dataFormats_->format(Variable::layer, Process::ctb);
     static const int numBinsInv2R = setup_->ctbNumBinsInv2R();
     static const int numBinsPhiT = setup_->ctbNumBinsPhiT();
@@ -118,12 +121,13 @@ namespace trackerTFP {
     const TTBV& maybePattern = layerEncoding_->maybePattern(zT);
     auto noTrack = [this, &maybePattern, zT](const TTBV& pattern) {
       // check min layers req
-      const int minLayers = ((zT == -4 || zT == 3) && (!pattern.test(5) && !pattern.test(7))) ? 4 : setup_->htMinLayers();
+      const int minLayers =
+          ((zT == -4 || zT == 3) && (!pattern.test(5) && !pattern.test(7))) ? 4 : setup_->htMinLayers();
       int nHits(0);
       int last(-1);
       for (int layer = 0; layer < setup_->numLayers(); layer++)
-        if(pattern.test(layer))
-          if(++nHits == minLayers)
+        if (pattern.test(layer))
+          if (++nHits == minLayers)
             last = layer;
       if (nHits < minLayers)
         return true;

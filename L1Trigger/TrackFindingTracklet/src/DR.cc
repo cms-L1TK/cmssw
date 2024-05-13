@@ -54,12 +54,18 @@ namespace trklet {
         double dZ, dPhi, z, phi;
         TTBV ttBV = frameStub.second;
         dataFormats_->format(Variable::dZ, Process::ctb).extract(ttBV, dZ);
-        dataFormats_->format(Variable::dPhi, Process::ctb).extract(ttBV, dPhi);;
+        dataFormats_->format(Variable::dPhi, Process::ctb).extract(ttBV, dPhi);
+        ;
         dataFormats_->format(Variable::z, Process::ctb).extract(ttBV, z);
         dataFormats_->format(Variable::phi, Process::ctb).extract(ttBV, phi);
         ttBV >>= dataFormats_->format(Variable::r, Process::ctb).width();
         const TTBV stubId(ttBV, channelAssignment_->widthStubId(), 0, true);
-        const TTBV ctb(frameStub.second, dataFormats_->width(Variable::dZ, Process::ctb) + dataFormats_->width(Variable::dPhi, Process::ctb) + dataFormats_->width(Variable::z, Process::ctb) + dataFormats_->width(Variable::phi, Process::ctb) + dataFormats_->width(Variable::r, Process::ctb), 0);
+        const TTBV ctb(
+            frameStub.second,
+            dataFormats_->width(Variable::dZ, Process::ctb) + dataFormats_->width(Variable::dPhi, Process::ctb) +
+                dataFormats_->width(Variable::z, Process::ctb) + dataFormats_->width(Variable::phi, Process::ctb) +
+                dataFormats_->width(Variable::r, Process::ctb),
+            0);
         const FrameStub fs(frameStub.first, "1" + ctb.str());
         stubs_.emplace_back(fs, stubId.val(), layer, phi, z, dPhi, dZ);
         stubs.push_back(&stubs_.back());
@@ -83,7 +89,7 @@ namespace trklet {
     vector<Track*>& tracks = input_;
     for (Track*& track : tracks) {
       if (!track)
-        // gaps propagate trough chain and appear in output stream 
+        // gaps propagate trough chain and appear in output stream
         continue;
       for (Track*& trackCM : cms) {
         if (!trackCM) {

@@ -392,8 +392,8 @@ namespace tt {
     constexpr bool stableOnly = false;
     tpSelector_ = TrackingParticleSelector(
         ptMin, ptMax, -etaMax, etaMax, tip, lip, minHit, signalOnly, intimeOnly, chargedOnly, stableOnly);
-    tpSelectorLoose_ =
-        TrackingParticleSelector(ptMin, ptMax, -etaMaxLoose, etaMaxLoose, tip, lip, minHit, false, false, false, stableOnly);
+    tpSelectorLoose_ = TrackingParticleSelector(
+        ptMin, ptMax, -etaMaxLoose, etaMaxLoose, tip, lip, minHit, false, false, false, stableOnly);
   }
 
   // stub layer id (barrel: 1 - 6, endcap: 11 - 15)
@@ -529,14 +529,10 @@ namespace tt {
   }
 
   // checks if tracking particle is selected for efficiency measurements
-  bool Setup::useForAlgEff(const TrackingParticle& tp) const {
-    return tpSelector_(tp) && tpCuts(tp);
-  }
+  bool Setup::useForAlgEff(const TrackingParticle& tp) const { return tpSelector_(tp) && tpCuts(tp); }
 
   // checks if tracking particle is selected for fake and duplicate rate measurements
-  bool Setup::useForReconstructable(const TrackingParticle& tp) const {
-    return tpSelectorLoose_(tp) && tpCuts(tp);
-  }
+  bool Setup::useForReconstructable(const TrackingParticle& tp) const { return tpSelectorLoose_(tp) && tpCuts(tp); }
 
   //
   TTBV Setup::module(double r, double z) const {

@@ -65,7 +65,11 @@ namespace trklet {
                     vector<pair<TTTrackRef, vector<TTStubRef>>>& tracks,
                     int channel);
     //
-    void associate(const vector<pair<TTTrackRef, vector<TTStubRef>>>& tracks, const StubAssociation* ass, set<TPPtr>& tps, int& sum, bool fill = false) const;
+    void associate(const vector<pair<TTTrackRef, vector<TTStubRef>>>& tracks,
+                   const StubAssociation* ass,
+                   set<TPPtr>& tps,
+                   int& sum,
+                   bool fill = false) const;
     //
     void fill(const FrameTrack& frameTrack, const FrameStub& frameStub);
 
@@ -263,8 +267,8 @@ namespace trklet {
         vector<pair<TTTrackRef, vector<TTStubRef>>> lost;
         formTracks(lostTracks, lostStubs, lost, offset + channel);
         nTracks += tracks.size();
-        nStubs +=
-            accumulate(tracks.begin(), tracks.end(), 0, [](int sum, const auto& v) { return sum + (int)v.second.size(); });
+        nStubs += accumulate(
+            tracks.begin(), tracks.end(), 0, [](int sum, const auto& v) { return sum + (int)v.second.size(); });
         nLost += lost.size();
         allTracks += tracks.size();
         if (!useMCTruth_)

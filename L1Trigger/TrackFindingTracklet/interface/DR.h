@@ -34,7 +34,8 @@ namespace trklet {
 
   private:
     struct Stub {
-      Stub(const tt::FrameStub& frame, int stubId, int channel, double phi, double z, double dPhi, double dZ) : frame_(frame), stubId_(stubId), channel_(channel), phi_(phi), z_(z), dPhi_(dPhi), dZ_(dZ) {}
+      Stub(const tt::FrameStub& frame, int stubId, int channel, double phi, double z, double dPhi, double dZ)
+          : frame_(frame), stubId_(stubId), channel_(channel), phi_(phi), z_(z), dPhi_(dPhi), dZ_(dZ) {}
       bool operator==(const Stub& s) const { return s.stubId_ == stubId_; }
       tt::FrameStub frame_;
       // all stubs id

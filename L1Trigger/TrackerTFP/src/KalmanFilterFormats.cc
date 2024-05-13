@@ -37,13 +37,16 @@ namespace trackerTFP {
         min = std::min(min, format(v, layer).min());
         abs = std::min(abs, format(v, layer).abs());
         max = std::max(max, format(v, layer).max());
-        const double r = format(v, layer).twos() ? std::max(std::abs(format(v, layer).min()), std::abs(format(v, layer).max())) * 2. : format(v, layer).max();
+        const double r = format(v, layer).twos()
+                             ? std::max(std::abs(format(v, layer).min()), std::abs(format(v, layer).max())) * 2.
+                             : format(v, layer).max();
         deltas.emplace_back(format(v, layer).width() - ceil(log2(r / format(v, layer).base())));
       }
       cout << setw(wName) << *next(variableKFstrs_.begin(), +v) << ": ";
       for (int delta : deltas)
         cout << setw(3) << (delta == -2147483648 ? "-" : to_string(delta)) << " ";
-      cout << "| " << setw(14) << min << " " << setw(14) << max << " " <<  setw(14) << abs << " " <<  setw(14) << format(v, 0).base() << endl;
+      cout << "| " << setw(14) << min << " " << setw(14) << max << " " << setw(14) << abs << " " << setw(14)
+           << format(v, 0).base() << endl;
     }
   }
 
@@ -96,10 +99,11 @@ namespace trackerTFP {
       string v = *next(variableKFstrs_.begin(), +v_);
       cms::Exception exception("out_of_range");
       exception.addContext("trackerTFP:DataFormatKF::updateRangeActual");
-      exception << "Variable " << v << " = " << d << " in layer " << to_string(layer_) << " is out of range " << (twos_ ? -range_ / 2. : 0) << " to "
-                << (twos_ ? range_ / 2. : range_) << "." << endl;
+      exception << "Variable " << v << " = " << d << " in layer " << to_string(layer_) << " is out of range "
+                << (twos_ ? -range_ / 2. : 0) << " to " << (twos_ ? range_ / 2. : range_) << "." << endl;
       if (twos_ || d >= 0.)
-        exception.addAdditionalInfo("Consider raising BaseShift" + v + " for layer " + to_string(layer_) + " in KalmnaFilterFormats_cfi.py.");
+        exception.addAdditionalInfo("Consider raising BaseShift" + v + " for layer " + to_string(layer_) +
+                                    " in KalmnaFilterFormats_cfi.py.");
       throw exception;
     }
   }
@@ -343,7 +347,9 @@ namespace trackerTFP {
   }
 
   template <>
-  FormatKF<VariableKF::invR00Approx>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig, int layer)
+  FormatKF<VariableKF::invR00Approx>::FormatKF(const DataFormats* dataFormats,
+                                               const edm::ParameterSet& iConfig,
+                                               int layer)
       : DataFormatKF(VariableKF::invR00Approx, layer, false) {
     const DataFormat& x1 = dataFormats->format(Variable::phiT, Process::kf);
     const int baseShift = iConfig.getParameter<vector<int>>("BaseShiftInvR00Approx")[layer];
@@ -353,7 +359,9 @@ namespace trackerTFP {
   }
 
   template <>
-  FormatKF<VariableKF::invR11Approx>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig, int layer)
+  FormatKF<VariableKF::invR11Approx>::FormatKF(const DataFormats* dataFormats,
+                                               const edm::ParameterSet& iConfig,
+                                               int layer)
       : DataFormatKF(VariableKF::invR11Approx, layer, false) {
     const DataFormat& x3 = dataFormats->format(Variable::zT, Process::kf);
     const int baseShift = iConfig.getParameter<vector<int>>("BaseShiftInvR11Approx")[layer];
