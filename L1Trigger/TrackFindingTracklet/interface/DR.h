@@ -34,35 +34,21 @@ namespace trklet {
 
   private:
     struct Stub {
-      Stub(const tt::FrameStub& frame, int stubId, int channel, double phi, double z, double dPhi, double dZ) : frame_(frame), stubId_(stubId), channel_(channel), phi_(phi), z_(z), dPhi_(dPhi), dZ_(dZ) {}
+      Stub(const tt::FrameStub& frame, int stubId, int channel) : frame_(frame), stubId_(stubId), channel_(channel) {}
       bool operator==(const Stub& s) const { return s.stubId_ == stubId_; }
       tt::FrameStub frame_;
       // all stubs id
       int stubId_;
       // kf layer id
       int channel_;
-      double phi_;
-      double z_;
-      double dPhi_;
-      double dZ_;
     };
     struct Track {
       // max number of stubs a track may formed of (we allow only one stub per layer)
       static constexpr int max_ = 8;
       Track() { stubs_.reserve(max_); }
-      Track(const tt::FrameTrack& frame, const std::vector<Stub*>& stubs) : frame_(frame), stubs_(stubs) {
-        for (Stub* stub : stubs) {
-          if (!stub)
-            continue;
-          chi2_ += pow(stub->phi_ / stub->dPhi_, 2) / 2. + pow(stub->z_ / stub->dZ_, 2) / 2.;
-          if (abs(stub->phi_) < stub->dPhi_ / 2. && abs(stub->z_) < stub->dZ_ / 2.)
-            nConsistentStubs_++;
-        }
-      }
+      Track(const tt::FrameTrack& frame, const std::vector<Stub*>& stubs) : frame_(frame), stubs_(stubs) {}
       tt::FrameTrack frame_;
       std::vector<Stub*> stubs_;
-      double chi2_ = 0.;
-      int nConsistentStubs_ = 0;
     };
     // compares two tracks, returns true if those are considered duplicates
     bool equalEnough(Track* t0, Track* t1) const;

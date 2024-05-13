@@ -61,7 +61,7 @@ namespace trklet {
         const TTBV stubId(ttBV, channelAssignment_->widthStubId(), 0, true);
         const TTBV ctb(frameStub.second, dataFormats_->width(Variable::dZ, Process::ctb) + dataFormats_->width(Variable::dPhi, Process::ctb) + dataFormats_->width(Variable::z, Process::ctb) + dataFormats_->width(Variable::phi, Process::ctb) + dataFormats_->width(Variable::r, Process::ctb), 0);
         const FrameStub fs(frameStub.first, "1" + ctb.str());
-        stubs_.emplace_back(fs, stubId.val(), layer, phi, z, dPhi, dZ);
+        stubs_.emplace_back(fs, stubId.val(), layer);
         stubs.push_back(&stubs_.back());
       }
       tracks_.emplace_back(frameTrack, stubs);
