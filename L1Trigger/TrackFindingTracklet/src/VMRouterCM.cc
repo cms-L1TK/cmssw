@@ -256,8 +256,10 @@ void VMRouterCM::execute(unsigned int) {
           FPGAWord(stub->bend().value(), nbendbits, true, __LINE__, __FILE__),
           allStubIndex);
 
-      if (vmstubsMEPHI_[0] != nullptr) {
-        vmstubsMEPHI_[0]->addStub(vmstub, ivm * nvmmebins_ + vmbin);
+      unsigned int nmems = vmstubsMEPHI_.size(); 
+
+      for(unsigned int i = 0; i < nmems; i++){ // allows multiple VMStubs to be written for duplicated MPs 
+        if (vmstubsMEPHI_[i] != nullptr) vmstubsMEPHI_[i]->addStub(vmstub, ivm * nvmmebins_ + vmbin);
       }
 
       //Fill the TE VM memories
