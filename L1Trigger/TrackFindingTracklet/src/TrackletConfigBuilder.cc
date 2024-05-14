@@ -516,7 +516,7 @@ void TrackletConfigBuilder::writeProjectionMemories(std::ostream& os, std::ostre
       for (unsigned int imem = 0; imem < projections_[ilayer][ireg].size(); imem++) {
         unsigned int iSeed = projections_[ilayer][ireg][imem].first;
         unsigned int iTC = projections_[ilayer][ireg][imem].second;
-        if ((ilayer == 2 || ilayer == 3) && (ireg == 1 || ireg == 2)) {
+        if ((ilayer == 2) && (ireg == 1 || ireg == 2)) {
           memories << "TrackletProjections: " + TPROJName(iSeed, iTC, ilayer, ireg) + " [54]" << std::endl;
           if (imem < projections_[ilayer][ireg].size() / 2) {
             os << TPROJName(iSeed, iTC, ilayer, ireg) << " input=> " << TCName(iSeed, iTC) << ".projout"
@@ -528,7 +528,21 @@ void TrackletConfigBuilder::writeProjectionMemories(std::ostream& os, std::ostre
                << ".projin"  // duplicate MPs
                << std::endl;
           }
-        } else {
+        } 
+        else if (ilayer == 3 && (ireg == 1 || ireg == 2)) {
+          memories << "TrackletProjections: " + TPROJName(iSeed, iTC, ilayer, ireg) + " [54]" << std::endl;
+          if (imem < 4 || imem > 9) { // FIXME need to replace magic numbers, corresponds to allowing MP1 4 L1L2 TCs, 3 L5L6 TCs, MP2 3 L1L2 3 L3L4 TCs
+            os << TPROJName(iSeed, iTC, ilayer, ireg) << " input=> " << TCName(iSeed, iTC) << ".projout"
+               << LayerName(ilayer) << "PHI" << iTCStr(ireg) << " output=> " << PRName(ilayer, ireg) << ".projin"
+               << std::endl;
+          } else {
+            os << TPROJName(iSeed, iTC, ilayer, ireg) << " input=> " << TCName(iSeed, iTC) << ".projout"
+               << LayerName(ilayer) << "PHI" << iTCStr(ireg) << " output=> " << PRName(ilayer, ireg) + "_E"
+               << ".projin"  // duplicate MPs
+               << std::endl;
+          }
+        } 
+        else {
           memories << "TrackletProjections: " + TPROJName(iSeed, iTC, ilayer, ireg) + " [54]" << std::endl;
           os << TPROJName(iSeed, iTC, ilayer, ireg) << " input=> " << TCName(iSeed, iTC) << ".projout"
              << LayerName(ilayer) << "PHI" << iTCStr(ireg) << " output=> " << PRName(ilayer, ireg) << ".projin"
