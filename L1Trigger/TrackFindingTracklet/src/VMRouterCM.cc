@@ -188,9 +188,9 @@ void VMRouterCM::execute(unsigned int) {
             absz > VMROUTERCUTZL1L3L5 / settings_.kz(layerdisk_))
           continue;
         if ((layerdisk_ == LayerDisk::D1 || layerdisk_ == LayerDisk::D3) &&
-            stub->r().value() > VMROUTERCUTRD1D3 / settings_.kr())
+            stub->rvalue() > VMROUTERCUTRD1D3 / settings_.kr())
           continue;
-        if ((layerdisk_ == LayerDisk::D1 || layerdisk_ == LayerDisk::D3) && stub->r().value() < 2 * int(N_DSS_MOD))
+        if ((layerdisk_ == LayerDisk::D1 || layerdisk_ == LayerDisk::D3) && stub->rvalue() < 2 * int(N_DSS_MOD))
           continue;
         if (layerdisk_ == LayerDisk::L1) {
           if (memtype == 'M' || memtype == 'R' || memtype == 'L') {
@@ -223,13 +223,13 @@ void VMRouterCM::execute(unsigned int) {
         if (negdisk) {
           indexz = ((1 << nbitszfinebintable_) - 1) - indexz;
         }
-        indexr = stub->r().value();
+        indexr = stub->rvalue();
         if (stub->isPSmodule()) {
-          indexr = stub->r().value() >> (stub->r().nbits() - nbitsrfinebintable_);
+          indexr = stub->rvalue() >> (stub->r().nbits() + 1 - nbitsrfinebintable_);
         }
       } else {
         //Take the top nbitsfinebintable_ bits of the z coordinate. The & is to handle the negative z values.
-        indexr = (stub->r().value() >> (stub->r().nbits() - nbitsrfinebintable_)) & ((1 << nbitsrfinebintable_) - 1);
+        indexr = (stub->rvalue() >> (stub->r().nbits() - nbitsrfinebintable_)) & ((1 << nbitsrfinebintable_) - 1);
       }
 
       assert(indexz >= 0);

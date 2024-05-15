@@ -496,7 +496,7 @@ bool MatchProcessor::matchCalculator(Tracklet* tracklet, const Stub* fpgastub, b
 
   if (layerdisk_ < N_LAYER) {
     const Projection& proj = tracklet->proj(layerdisk_);
-    int ir = fpgastub->r().value();
+    int ir = fpgastub->rvalue();
     int iphi = proj.fpgaphiproj().value();
     int icorr = (ir * proj.fpgaphiprojder().value()) >> icorrshift_;
     iphi += icorr;
@@ -660,7 +660,7 @@ bool MatchProcessor::matchCalculator(Tracklet* tracklet, const Stub* fpgastub, b
 
     int ideltaphi = fpgastub->phi().value() - iphi;
 
-    int irstub = fpgastub->r().value();
+    int irstub = fpgastub->rvalue();
     int ialphafact = 0;
     if (!stub->isPSmodule()) {
       assert(irstub < (int)N_DSS_MOD * 2);

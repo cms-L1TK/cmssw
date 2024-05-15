@@ -194,8 +194,8 @@ bool VMStubsTEMemory::addVMStub(VMStubTE vmstub) {
           if (vmstub.stub()->isPSmodule()) {
             bin = 0;
           } else {
-            bin = vmstub.stub()->r().value();  // 0 to 9
-            bin = bin >> 2;                    // 0 to 2
+            bin = vmstub.stub()->rvalue();  // 0 to 9
+            bin = bin >> 2;                 // 0 to 2
             bin += 1;
           }
         }

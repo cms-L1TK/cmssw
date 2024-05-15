@@ -32,7 +32,8 @@ namespace trklet {
         if (isPSmodule()) {
           return negdisk_.str() + "|" + diskpswrittenr_.str() + "|" + z_.str() + "|" + phi_.str() + "|" + bend_.str();
         } else {
-          return negdisk_.str() + "|" + "00" + r_.str() + "|" + z_.str() + "|" + phi_.str() + "|" + alpha_.str() + "|" + bend_.str();
+          return negdisk_.str() + "|" + "00" + r_.str() + "|" + z_.str() + "|" + phi_.str() + "|" + alpha_.str() + "|" +
+                 bend_.str();
         }
       }
     }
@@ -57,7 +58,9 @@ namespace trklet {
     void setPhiCorr(int phiCorr);
 
     const FPGAWord& bend() const { return bend_; }
-
+    const int rvalue() const {
+      return (layerdisk_ < N_LAYER) ? r_.value() : (r_.value() > 10) ? r_.value() + (1 << 8) : r_.value();
+    }
     const FPGAWord& r() const { return r_; }
     const FPGAWord& z() const { return z_; }
     const FPGAWord& negdisk() const { return negdisk_; }
