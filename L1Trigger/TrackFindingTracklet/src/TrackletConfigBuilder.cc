@@ -1106,9 +1106,6 @@ void TrackletConfigBuilder::writeVMSMemories(std::ostream& os, std::ostream& mem
       for (unsigned int iReg = 0; iReg < NRegions_[ilayer]; iReg++) {
         memories << "VMStubsME: VMSME_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << "n1 [18]" << std::endl;
         memories << "VMStubsME: VMSME_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << "n2 [18]" << std::endl;
-        os << "VMSME_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << "n1"
-           << " input=> VMR_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << ".vmstuboutPHI" << iTCStr(iReg)
-           << " output=> VMSMER_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << ".vmstubin" << std::endl;
         os << "VMSME_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << "n2"
            << " input=> VMSMER_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << ".vmstubout"
            << " output=> MP_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << ".vmstubin" << std::endl;
