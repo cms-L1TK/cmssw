@@ -53,7 +53,7 @@ public:
   // TQ MVA bin conversions
   static constexpr double invSigmoid(double value) { return -log(1. / value - 1.); }
   static constexpr std::array<double, 1 << TTTrack_TrackWord::TrackBitWidths::kMVAQualitySize> getTqMVAPreSigBins() {
-    return {{-15.,
+    return {{-16.,
              invSigmoid(TTTrack_TrackWord::tqMVABins[1]),
              invSigmoid(TTTrack_TrackWord::tqMVABins[2]),
              invSigmoid(TTTrack_TrackWord::tqMVABins[3]),
