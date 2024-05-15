@@ -296,7 +296,7 @@ namespace trklet {
           // Run BDT emulation and package output into 3 bits
           // output needs sigmoid transformation applied
           tempTQMVAPreSig = trackQualityModel_->runEmulatedTQ(trackQuality_inputs);
-          TTBV tqMVA(digitise(TTTrack_TrackWord::getTqMVAPreSigBins(), tempTQMVAPreSig, 1.0),
+          TTBV tqMVA(digitise(L1TrackQuality::getTqMVAPreSigBins(), tempTQMVAPreSig, 1.0),
                      TTTrack_TrackWord::TrackBitWidths::kMVAQualitySize,
                      false);
 

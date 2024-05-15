@@ -231,18 +231,6 @@ public:
   double getMVAQuality() const { return tqMVABins[getMVAQualityBits()]; }
   double getMVAOther() const { return getMVAOtherBits(); }
 
-  // Get pre-sigmoid TQ MVA bins
-  static constexpr std::array<double, 1 << TrackBitWidths::kMVAQualitySize> getTqMVAPreSigBins() {
-    return {{-480,
-             invSigmoid(tqMVABins[1]),
-             invSigmoid(tqMVABins[2]),
-             invSigmoid(tqMVABins[3]),
-             invSigmoid(tqMVABins[4]),
-             invSigmoid(tqMVABins[5]),
-             invSigmoid(tqMVABins[6]),
-             invSigmoid(tqMVABins[7])}};
-  }
-
   // ----------member functions (setters) ------------
   void setTrackWord(unsigned int valid,
                     const GlobalVector& momentum,
@@ -345,8 +333,6 @@ public:
     // Convert to floating point value
     return (double(digitizedValue) + offset) * lsb;
   }
-
-  static constexpr double invSigmoid(double value) { return -log(1. / value - 1.); }
 
   // ----------member data ---------------------------
   tkword_bs_t trackWord_;

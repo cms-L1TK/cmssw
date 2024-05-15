@@ -50,6 +50,19 @@ public:
 
   void setBonusFeatures(std::vector<float> bonusFeatures);
 
+  // TQ MVA bin conversions
+  static constexpr double invSigmoid(double value) { return -log(1. / value - 1.); }
+  static constexpr std::array<double, 1 << TTTrack_TrackWord::TrackBitWidths::kMVAQualitySize> getTqMVAPreSigBins() {
+    return {{-15.,
+             invSigmoid(TTTrack_TrackWord::tqMVABins[1]),
+             invSigmoid(TTTrack_TrackWord::tqMVABins[2]),
+             invSigmoid(TTTrack_TrackWord::tqMVABins[3]),
+             invSigmoid(TTTrack_TrackWord::tqMVABins[4]),
+             invSigmoid(TTTrack_TrackWord::tqMVABins[5]),
+             invSigmoid(TTTrack_TrackWord::tqMVABins[6]),
+             invSigmoid(TTTrack_TrackWord::tqMVABins[7])}};
+  }
+
 private:
   // Private Member Data
   edm::FileInPath model_;
