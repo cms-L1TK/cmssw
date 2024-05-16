@@ -44,15 +44,8 @@ namespace trklet {
     //0-5 are the layers and 6-10 are the disks
     unsigned int layerdisk_;
 
-    //overlapbits_ is the top bits of phicorr used to add or subtract one to see if stub should be added to
-    //two VMs. nextrabits_ is the number of bits beyond the bits for the phivm that is used by overlapbits_
-    unsigned int overlapbits_;
-    unsigned int nextrabits_;
-
     int nbitszfinebintable_;
     int nbitsrfinebintable_;
-
-    unsigned int nvmmebins_;  //number of long z/r bins in VM
 
     TrackletLUT meTable_;    //used for ME and outer TE barrel
     TrackletLUT diskTable_;  //outer disk used by D1, D2, and D4
@@ -63,9 +56,6 @@ namespace trklet {
     //The all stub memories
     std::vector<AllStubsMemory*> allstubs_;
     std::vector<std::pair<char, AllInnerStubsMemory*> > allinnerstubs_;
-
-    //The VM stubs memories used by the MEs
-    std::vector<VMStubsMEMemory*> vmstubsMEPHI_;
 
     //The VM stubs memories used by the TEs (using structure defined above)
     std::vector<VMStubsTEPHICM> vmstubsTEPHI_;

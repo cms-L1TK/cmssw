@@ -21,11 +21,6 @@ VMRouterCM::VMRouterCM(string name, Settings const& settings, Globals* global)
   unsigned int region = name[9] - 'A';
   assert(region < settings_.nallstubs(layerdisk_));
 
-  vmstubsMEPHI_.resize(1, nullptr);
-
-  overlapbits_ = 7;
-  nextrabits_ = overlapbits_ - (settings_.nbitsallstubs(layerdisk_) + settings_.nbitsvmme(layerdisk_));
-
   meTable_.initVMRTable(layerdisk_, TrackletLUT::VMRTableType::me, region);  //used for ME and outer TE barrel
 
   if (layerdisk_ == LayerDisk::D1 || layerdisk_ == LayerDisk::D2 || layerdisk_ == LayerDisk::D4) {
@@ -34,8 +29,6 @@ VMRouterCM::VMRouterCM(string name, Settings const& settings, Globals* global)
 
   nbitszfinebintable_ = settings_.vmrlutzbits(layerdisk_);
   nbitsrfinebintable_ = settings_.vmrlutrbits(layerdisk_);
-
-  nvmmebins_ = settings_.NLONGVMBINS() * ((layerdisk_ >= N_LAYER) ? 2 : 1);  //number of long z/r bins in VM
 }
 
 void VMRouterCM::addOutput(MemoryBase* memory, string output) {
@@ -79,12 +72,6 @@ void VMRouterCM::addOutput(MemoryBase* memory, string output) {
       tmp->resize(settings_.NLONGVMBINS() * settings_.nvmte(1, iseed));
       vmstubsTEPHI_[seedindex].vmstubmem.push_back(tmp);
 
-    } else if (memory->getName().substr(3, 2) == "ME") {
-      VMStubsMEMemory* tmp = dynamic_cast<VMStubsMEMemory*>(memory);
-      assert(tmp != nullptr);
-      tmp->resize(nvmmebins_ * settings_.nvmme(layerdisk_));
-      assert(vmstubsMEPHI_[0] == nullptr);
-      vmstubsMEPHI_[0] = tmp;
     } else {
       throw cms::Exception("LogicError") << __FILE__ << " " << __LINE__ << " memory: " << memory->getName()
                                          << " => should never get here!";
@@ -209,11 +196,6 @@ void VMRouterCM::execute(unsigned int) {
         allstub.second->addStub(stub);
       }
 
-      //Fill all the ME VM memories
-      unsigned int ivm =
-          iphi.bits(iphi.nbits() - (settings_.nbitsallstubs(layerdisk_) + settings_.nbitsvmme(layerdisk_)),
-                    settings_.nbitsvmme(layerdisk_));
-
       //Calculate the z and r position for the vmstub
 
       //Take the top nbitszfinebintable_ bits of the z coordinate
@@ -238,29 +220,7 @@ void VMRouterCM::execute(unsigned int) {
       assert(indexr < (1 << nbitsrfinebintable_));
 
       int melut = meTable_.lookup((indexz << nbitsrfinebintable_) + indexr);
-
       assert(melut >= 0);
-
-      int vmbin = melut >> NFINERZBITS;
-      if (negdisk)
-        vmbin += (1 << NFINERZBITS);
-      int rzfine = melut & ((1 << NFINERZBITS) - 1);
-
-      // pad disk PS bend word with a '0' in MSB so that all disk bends have 4 bits (for HLS compatibility)
-      int nbendbits = stub->bend().nbits();
-      if (layerdisk_ >= N_LAYER)
-        nbendbits = settings_.nbendbitsmedisk();
-
-      VMStubME vmstub(
-          stub,
-          stub->iphivmFineBins(settings_.nbitsallstubs(layerdisk_) + settings_.nbitsvmme(layerdisk_), NFINERZBITS),
-          FPGAWord(rzfine, NFINERZBITS, true, __LINE__, __FILE__),
-          FPGAWord(stub->bend().value(), nbendbits, true, __LINE__, __FILE__),
-          allStubIndex);
-
-      if (vmstubsMEPHI_[0] != nullptr) {
-        vmstubsMEPHI_[0]->addStub(vmstub, ivm * nvmmebins_ + vmbin);
-      }
 
       //Fill the TE VM memories
       if (layerdisk_ >= N_LAYER && (!stub->isPSmodule()))

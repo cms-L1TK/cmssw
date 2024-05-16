@@ -24,7 +24,6 @@ VMStubMERouter::VMStubMERouter(string name, Settings const& settings, Globals* g
 
   vmstubsMEPHI_.resize(1, nullptr);
   nvmmebins_ = settings_.NLONGVMBINS() * ((layerdisk_ >= N_LAYER) ? 2 : 1);
-
 }
 
 void VMStubMERouter::addOutput(MemoryBase* memory, string output) {
@@ -83,7 +82,7 @@ void VMStubMERouter::execute(unsigned int) {
         continue;
       if (allStubCounter >= (1 << N_BITSMEMADDRESS))
         continue;
-      
+
       FPGAWord allStubIndex(allStubCounter & ((1 << N_BITSMEMADDRESS) - 1), N_BITSMEMADDRESS, true, __LINE__, __FILE__);
       const Stub* stub = stubinput->getStub(i);
       allStubCounter++;
