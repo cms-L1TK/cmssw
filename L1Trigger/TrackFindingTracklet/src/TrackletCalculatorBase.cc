@@ -488,11 +488,11 @@ bool TrackletCalculatorBase::barrelSeeding(const Stub* innerFPGAStub,
   int iphiproj[N_LAYER - 2], izproj[N_LAYER - 2];
   int iphiprojdisk[N_DISK], irprojdisk[N_DISK];
 
-  int ir1 = innerFPGAStub->r().value();
+  int ir1 = innerFPGAStub->rvalue();
   int iphi1 = innerFPGAStub->phi().value();
   int iz1 = innerFPGAStub->z().value();
 
-  int ir2 = outerFPGAStub->r().value();
+  int ir2 = outerFPGAStub->rvalue();
   int iphi2 = outerFPGAStub->phi().value();
   int iz2 = outerFPGAStub->z().value();
 
@@ -907,11 +907,11 @@ bool TrackletCalculatorBase::diskSeeding(const Stub* innerFPGAStub,
 
   int iphiprojdisk[N_DISK - 2], irprojdisk[N_DISK - 2];
 
-  int ir1 = innerFPGAStub->r().value();
+  int ir1 = innerFPGAStub->rvalue();
   int iphi1 = innerFPGAStub->phi().value();
   int iz1 = innerFPGAStub->z().value();
 
-  int ir2 = outerFPGAStub->r().value();
+  int ir2 = outerFPGAStub->rvalue();
   int iphi2 = outerFPGAStub->phi().value();
   int iz2 = outerFPGAStub->z().value();
 
@@ -1263,11 +1263,11 @@ bool TrackletCalculatorBase::overlapSeeding(const Stub* innerFPGAStub,
   int iphiproj[N_LAYER - 2], izproj[N_LAYER - 2];
   int iphiprojdisk[N_DISK], irprojdisk[N_DISK];
 
-  int ir2 = innerFPGAStub->r().value();
+  int ir2 = innerFPGAStub->rvalue();
   int iphi2 = innerFPGAStub->phi().value();
   int iz2 = innerFPGAStub->z().value();
 
-  int ir1 = outerFPGAStub->r().value();
+  int ir1 = outerFPGAStub->rvalue();
   int iphi1 = outerFPGAStub->phi().value();
   int iz1 = outerFPGAStub->z().value();
 

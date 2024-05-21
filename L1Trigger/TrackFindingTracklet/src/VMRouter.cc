@@ -239,13 +239,13 @@ void VMRouter::execute() {
         if (negdisk) {
           indexz = (1 << nbitszfinebintable_) - indexz;
         }
-        indexr = stub->r().value();
+        indexr = stub->rvalue();
         if (stub->isPSmodule()) {
-          indexr = stub->r().value() >> (stub->r().nbits() - nbitsrfinebintable_);
+          indexr = stub->rvalue() >> (stub->r().nbits() + 1 - nbitsrfinebintable_);  // + 1 to adjust for r bit offset
         }
       } else {
         //Take the top nbitsfinebintable_ bits of the z coordinate. The & is to handle the negative z values.
-        indexr = (((1 << (stub->r().nbits() - 1)) + stub->r().value()) >> (stub->r().nbits() - nbitsrfinebintable_));
+        indexr = (((1 << (stub->r().nbits() - 1)) + stub->rvalue()) >> (stub->r().nbits() - nbitsrfinebintable_));
       }
 
       assert(indexz >= 0);
@@ -311,10 +311,10 @@ void VMRouter::execute() {
           } else {
             if (inner == 2 && iseed == Seed::L2L3D1) {
               lutval = 0;
-              if (stub->r().value() < 10) {
-                lutval = 8 * (1 + (stub->r().value() >> 2));
+              if (stub->rvalue() < 10) {
+                lutval = 8 * (1 + (stub->rvalue() >> 2));
               } else {
-                if (stub->r().value() < settings_.rmindiskl3overlapvm() / settings_.kr()) {
+                if (stub->rvalue() < settings_.rmindiskl3overlapvm() / settings_.kr()) {
                   lutval = -1;
                 }
               }

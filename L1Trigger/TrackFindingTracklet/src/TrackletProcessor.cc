@@ -402,9 +402,9 @@ void TrackletProcessor::execute(unsigned int iSector, double phimin, double phim
         if (negdisk) {
           indexz = ((1 << nbitszfinebintable_) - 1) - indexz;
         }
-        indexr = stub->r().value() >> (stub->r().nbits() - nbitsrfinebintable_);
+        indexr = stub->rvalue() >> (stub->r().nbits() + 1 - nbitsrfinebintable_);
       } else {  //Take the top nbitsfinebintable_ bits of the z coordinate
-        indexr = (stub->r().value() >> (stub->r().nbits() - nbitsrfinebintable_)) & ((1 << nbitsrfinebintable_) - 1);
+        indexr = (stub->rvalue() >> (stub->r().nbits() + 1 - nbitsrfinebintable_)) & ((1 << nbitsrfinebintable_) - 1);
       }
 
       int lutval = -1;

@@ -265,13 +265,13 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
         if (negdisk) {
           indexz = (1 << nbitszfinebintable_) - indexz;
         }
-        indexr = firstallstub->r().value();
+        indexr = firstallstub->rvalue();
         if (firstallstub->isPSmodule()) {
-          indexr = firstallstub->r().value() >> (firstallstub->r().nbits() - nbitsrfinebintable_);
+          indexr = firstallstub->rvalue() >> (firstallstub->r().nbits() - nbitsrfinebintable_);
         }
       } else {
         //Take the top nbitsfinebintable_ bits of the z coordinate. The & is to handle the negative z values.
-        indexr = (((1 << (firstallstub->r().nbits() - 1)) + firstallstub->r().value()) >>
+        indexr = (((1 << (firstallstub->r().nbits() - 1)) + firstallstub->rvalue()) >>
                   (firstallstub->r().nbits() - nbitsrfinebintable_));
       }
 

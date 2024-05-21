@@ -180,7 +180,7 @@ void MatchCalculator::execute(unsigned int iSector, double phioffset) {
 
       const Projection& proj = tracklet->proj(layerdisk_);
 
-      int ir = fpgastub->r().value();
+      int ir = fpgastub->rvalue();
       int iphi = proj.fpgaphiproj().value();
       int icorr = (ir * proj.fpgaphiprojder().value()) >> icorrshift_;
       iphi += icorr;
@@ -334,7 +334,7 @@ void MatchCalculator::execute(unsigned int iSector, double phioffset) {
 
       int ideltaphi = fpgastub->phi().value() * settings_.kphi() / settings_.kphi() - iphi;
 
-      int irstub = fpgastub->r().value();
+      int irstub = fpgastub->rvalue();
       int ialphafact = 0;
       if (!stub->isPSmodule()) {
         assert(irstub < (int)N_DSS_MOD * 2);
