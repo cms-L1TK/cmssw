@@ -33,6 +33,13 @@ namespace trklet {
     //0-5 are the layers and 6-10 are the disks
     unsigned int layerdisk_;
 
+    int nbitszfinebintable_;
+    int nbitsrfinebintable_;
+
+    unsigned int nvmmebins_;  //number of long z/r bins in VM
+
+    TrackletLUT meTable_;  //used for ME and outer TE barrel
+
     //The input stub memories
     std::vector<AllStubsMemory*> stubinputs_;
 
