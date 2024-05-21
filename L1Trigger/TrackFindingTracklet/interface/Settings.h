@@ -267,6 +267,7 @@ namespace trklet {
 
     bool extended() const { return extended_; }
     void setExtended(bool extended) { extended_ = extended; }
+    bool duplicateMPs() const { return duplicatedMPs_; }
     bool combined() const { return combined_; }
     void setCombined(bool combined) { combined_ = combined; }
     bool reduced() const { return reduced_; }
@@ -1034,6 +1035,10 @@ namespace trklet {
     // to false, but combined modules are nonetheless used by default.
     // If you don't want them, edit l1tTTTracksFromTrackletEmulation_cfi.py
     // to refer to *_hourglassExtended.dat .
+
+    // Use chain with duplicated MPs for L3,L4 to reduce truncation issue
+    // Balances load from projections roughly in half for each of the two MPs
+    bool duplicatedMPs_{false};
 
     std::string skimfile_{""};  //if not empty events will be written out in ascii format to this file
 
