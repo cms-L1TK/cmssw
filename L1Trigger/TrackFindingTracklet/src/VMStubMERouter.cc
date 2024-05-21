@@ -109,6 +109,7 @@ void VMStubMERouter::execute(unsigned int) {
       } else {
         //Take the top nbitsfinebintable_ bits of the z coordinate. The & is to handle the negative z values.
         indexr = (stub->rvalue() >> (stub->r().nbits() - nbitsrfinebintable_)) & ((1 << nbitsrfinebintable_) - 1);
+
       }
 
       assert(indexz >= 0);

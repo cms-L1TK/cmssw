@@ -554,6 +554,7 @@ bool TrackletCalculatorBase::barrelSeeding(const Stub* innerFPGAStub,
   Projection projs[N_LAYER + N_DISK];
 
   int ir1 = innerFPGAStub->rvalue();
+
   int iphi1 = innerFPGAStub->phi().value();
   int iz1 = innerFPGAStub->z().value();
 
@@ -874,6 +875,7 @@ bool TrackletCalculatorBase::diskSeeding(const Stub* innerFPGAStub,
   //now binary
 
   int ir1 = innerFPGAStub->rvalue();
+
   int iphi1 = innerFPGAStub->phi().value();
   int iz1 = innerFPGAStub->z().value();
 
@@ -1145,6 +1147,7 @@ bool TrackletCalculatorBase::overlapSeeding(const Stub* innerFPGAStub,
   //now binary
 
   int ir2 = innerFPGAStub->rvalue();
+
   int iphi2 = innerFPGAStub->phi().value();
   int iz2 = innerFPGAStub->z().value();
 
