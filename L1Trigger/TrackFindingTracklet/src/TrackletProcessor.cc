@@ -403,7 +403,10 @@ void TrackletProcessor::execute(unsigned int iSector, double phimin, double phim
         if (negdisk) {
           indexz = ((1 << nbitszfinebintable_) - 1) - indexz;
         }
-        indexr = stub->rvalue() >> (stub->r().nbits() + 1 - nbitsrfinebintable_);
+        indexr =
+            stub->rvalue() >>
+            (stub->r().nbits() + 1 -
+             nbitsrfinebintable_);  // + 1 required to offset artificial decrease in # of diskps r bits from 12 -> 11 to make space for negDisk bit
       } else {  //Take the top nbitsfinebintable_ bits of the z coordinate
         indexr = (stub->rvalue() >> (stub->r().nbits() + 1 - nbitsrfinebintable_)) & ((1 << nbitsrfinebintable_) - 1);
       }

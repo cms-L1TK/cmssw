@@ -25,6 +25,8 @@ Stub::Stub(L1TStub& stub, Settings const& settings, Globals& globals) : settings
 
   int nalphabits = 0;
 
+  r_offset_bits = 8;
+
   int nndbits = settings_.nndbitsstub(layerdisk_);
   int nrbits = settings_.nrbitsstub(layerdisk_);
   int nzbits = settings_.nzbitsstub(layerdisk_);
@@ -164,7 +166,7 @@ double Stub::rapprox() const {
     else
       return settings_.rDSSouter(r_.value());
   }
-  return (r_.value() + (1 << 8)) * settings_.kr();  // Incorporating r offset for disk PS stubs
+  return (r_.value() + (1 << r_offset_bits)) * settings_.kr();  // Incorporating r offset for disk PS stubs
 }
 
 double Stub::zapprox() const {

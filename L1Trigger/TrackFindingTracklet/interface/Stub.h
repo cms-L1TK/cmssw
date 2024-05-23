@@ -60,7 +60,7 @@ namespace trklet {
     const FPGAWord& bend() const { return bend_; }
 
     const int rvalue() const {
-      return (layerdisk_ < N_LAYER) ? r_.value() : (r_.value() > 10) ? r_.value() + (1 << 8) : r_.value();
+      return (layerdisk_ < N_LAYER) ? r_.value() : (r_.value() > 10) ? r_.value() + (1 << r_offset_bits) : r_.value();
     }
 
     const FPGAWord& r() const { return r_; }
@@ -104,6 +104,8 @@ namespace trklet {
     FPGAWord phicorr_;  //Corrected for bend to nominal radius
 
     FPGAWord stubindex_;
+
+    int r_offset_bits;
 
     L1TStub* l1tstub_;
     Settings const& settings_;

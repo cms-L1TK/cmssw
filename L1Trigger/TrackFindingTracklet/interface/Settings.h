@@ -171,12 +171,11 @@ namespace trklet {
     double rphicut2S(unsigned int iSeed, unsigned int idisk) const { return rphicut2S_[idisk][iSeed]; }
     double rcut2S(unsigned int iSeed, unsigned int idisk) const { return rcut2S_[idisk][iSeed]; }
 
-
     unsigned int irmean(unsigned int iLayer) const { return irmean_[iLayer]; }
     double rmean(unsigned int iLayer) const { return irmean_[iLayer] * rmaxdisk_ / 4096; }
     double rmax(unsigned int iLayer) const { return rmean(iLayer) + drmax(); }
     double rmin(unsigned int iLayer) const { return rmean(iLayer) - drmax(); }
-    unsigned int izmean(unsigned int iDisk) const { return izmean_[iDisk]; }    
+    unsigned int izmean(unsigned int iDisk) const { return izmean_[iDisk]; }
     double zmean(unsigned int iDisk) const { return izmean_[iDisk] * zlength_ / 2048; }
     double zmax(unsigned int iDisk) const { return zmean(iDisk) + dzmax(); }
     double zmin(unsigned int iDisk) const { return zmean(iDisk) - dzmax(); }
@@ -345,7 +344,9 @@ namespace trklet {
 
     double kz() const { return 2.0 * zlength_ / (1 << nzbitsstub_[0]); }
     double kz(unsigned int layerdisk) const { return 2.0 * zlength_ / (1 << nzbitsstub_[layerdisk]); }
-    double kr() const { return rmaxdisk_ / (1 << (nrbitsstub_[N_LAYER] + 1)); }
+    double kr() const {
+      return rmaxdisk_ / (1 << (nrbitsstub_[N_LAYER] + 1));
+    }  // + 1 required to offset artificial decrease in # of diskps r bits from 12 -> 11 to make space for negDisk bit
     double krbarrel() const { return 2.0 * drmax() / (1 << nrbitsstub_[0]); }
 
     double maxrinv() const { return maxrinv_; }
