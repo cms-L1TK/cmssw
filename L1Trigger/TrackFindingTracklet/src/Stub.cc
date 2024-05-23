@@ -51,9 +51,6 @@ Stub::Stub(L1TStub& stub, Settings const& settings, Globals& globals) : settings
   if (layerdisk_ < N_LAYER) {
     if (newr >= (1 << (nrbits - 1)))
       newr = newr - (1 << nrbits);
-  } else if (stub.isPSmodule()) {
-    diskpswrittenr = newr - (1 << (nrbits - 3));  // subtract 00100... from r value to allow negDisk bit to be added
-    diskpswrittenr_.set(diskpswrittenr, nrbits, true, __LINE__, __FILE__);
   }
 
   int newz = zbits.to_ulong();

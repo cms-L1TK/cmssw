@@ -30,7 +30,7 @@ namespace trklet {
         return r_.str() + "|" + z_.str() + "|" + phi_.str() + "|" + bend_.str();
       } else {
         if (isPSmodule()) {
-          return negdisk_.str() + "|" + diskpswrittenr_.str() + "|" + z_.str() + "|" + phi_.str() + "|" + bend_.str();
+          return negdisk_.str() + "|" + r_.str() + "|" + z_.str() + "|" + phi_.str() + "|" + bend_.str();
         } else {
           return negdisk_.str() + "|" + "00" + r_.str() + "|" + z_.str() + "|" + phi_.str() + "|" + alpha_.str() + "|" +
                  bend_.str();
@@ -93,7 +93,6 @@ namespace trklet {
     FPGAWord layer_;
     FPGAWord disk_;
     FPGAWord r_;
-    FPGAWord diskpswrittenr_;
     FPGAWord z_;
     FPGAWord negdisk_;
     FPGAWord phi_;
