@@ -51,6 +51,8 @@ namespace trklet {
     EDGetTokenT<TTTrackRefMap> edGetTokenTTTrackRefMap_;
     // ED output token for accepted kfout tracks
     EDPutTokenT<StreamsTrack> edPutTokenAccepted_;
+    // ED output token for TTTracks
+    EDPutTokenT<TTTracks> edPutTokenTTTracks_;
     // ED output token for truncated kfout tracks
     EDPutTokenT<StreamsTrack> edPutTokenLost_;
     // Setup token
@@ -95,12 +97,14 @@ namespace trklet {
     const string& labelAS = iConfig.getParameter<string>("LabelAS");
     const string& branchStubs = iConfig.getParameter<string>("BranchAcceptedStubs");
     const string& branchTracks = iConfig.getParameter<string>("BranchAcceptedTracks");
+    const string& branchTTTracks = iConfig.getParameter<string>("BranchAcceptedTTTracks");
     const string& branchLost = iConfig.getParameter<string>("BranchLostTracks");
     // book in- and output ED products
     edGetTokenStubs_ = consumes<StreamsStub>(InputTag(labelKF, branchStubs));
     edGetTokenTracks_ = consumes<StreamsTrack>(InputTag(labelKF, branchTracks));
     edGetTokenTTTrackRefMap_ = consumes<TTTrackRefMap>(InputTag(labelAS, branchTracks));
     edPutTokenAccepted_ = produces<StreamsTrack>(branchTracks);
+    edPutTokenTTTracks_ = produces<TTTracks>(branchTTTracks);
     edPutTokenLost_ = produces<StreamsTrack>(branchLost);
     // book ES products
     esGetTokenSetup_ = esConsumes<Setup, SetupRcd, Transition::BeginRun>();
@@ -203,6 +207,14 @@ namespace trklet {
       // Due to ap_fixed implementation in CMSSW this 10,5 must be specified at compile time, TODO make this a changeable parameter
       std::vector<ap_fixed<10, 5>> trackQuality_inputs = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 
+      // calculate track quality and fill TTTracks
+      TTTracks ttTracks;
+      int nTracks(0);
+      for (const StreamTrack& stream : streamsTracks)
+        nTracks += accumulate(stream.begin(), stream.end(), 0, [](int sum, const FrameTrack& frame) {
+          return sum + (frame.first.isNonnull() ? 1 : 0);
+	});
+      ttTracks.reserve(nTracks);
       for (int iLink = 0; iLink < (int)streamsTracks.size(); iLink++) {
         for (int iTrack = 0; iTrack < (int)streamsTracks[iLink].size(); iTrack++) {
           const auto& track = streamsTracks[iLink].at(iTrack);
@@ -226,10 +238,14 @@ namespace trklet {
           int temp_ninterior = 0;
           bool counter = false;
 
+	  vector<StubKF> stubs;
+	  stubs.reserve(setup_->numLayers()-1);
           for (int iStub = 0; iStub < setup_->numLayers() - 1; iStub++) {
             const auto& stub = streamsStubs[setup_->numLayers() * iLink + iStub].at(iTrack);
             StubKF inStub(stub, dataFormats_, iStub);
-
+	    if (stub.first.isNonnull())
+	      stubs.emplace_back(stub, dataFormats_, iStub);
+	    
             if (!stub.first.isNonnull()) {
               if (counter)
                 temp_ninterior += 1;
@@ -321,9 +337,16 @@ namespace trklet {
 
           inTrackStreams[iLink / setup_->kfNumWorker()][iLink % setup_->kfNumWorker()][iTrack] =
               (std::make_shared<TrackKFOut>(temp_track));
-        }  // Iterate over Tracks
+
+	  // convert kf track to TTTrack then add MVA and add to ttTrack collection
+	  TTTrack temp_tttrack = inTrack.ttTrack(stubs);
+	  temp_tttrack.settrkMVA1(1. / (1. + exp(tempTQMVAPreSig)));
+          ttTracks.emplace_back(temp_tttrack);
+	}  // Iterate over Tracks
       }    // Iterate over Links
-           // Route Tracks in eta based on their sort key
+      iEvent.emplace(edPutTokenTTTracks_, std::move(ttTracks));
+      
+      // Route Tracks in eta based on their sort key
       for (int iRegion = 0; iRegion < setup_->numRegions(); iRegion++) {
         int buffered_tracks[] = {0, 0};
         for (int iTrack = 0;
@@ -371,8 +394,8 @@ namespace trklet {
         for (int iTrack = 0; iTrack < (int)(sortedPartialTracks[iLink].size()); iTrack++) {
           if (iTrack % 2 != 1)  // Write to links every other partial track, 3 partial tracks per full TTTrack
             continue;
-          TTTrackRef trackRef;
-          for (auto& it : ttTrackRefMap) {  //Iterate through ttTrackRefMap to find TTTrackRef Key by a TTTrack Value
+	  TTTrackRef trackRef;
+	  for (auto& it : ttTrackRefMap) {  //Iterate through ttTrackRefMap to find TTTrackRef Key by a TTTrack Value
             if (it.second == outputStreamsTracks[iLink][(int)(iTrack - 1) / 3].first)
               trackRef = it.first;
           }
