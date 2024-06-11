@@ -194,6 +194,12 @@ void MatchProcessor::execute(unsigned int iSector, double phimin) {
   unsigned int countsel = 0;
   unsigned int countinputproj = 0;
 
+  //for (unsigned int i=0; i<inputprojs_.size(); i++) {
+  //  for (unsigned int p=0; p<inputprojs_[i]->nPage(); p++) {
+  //    std::cout << "ProjOcc: " << inputprojs_[i]->getName() << " " << p << " " << inputprojs_[i]->nTracklets(p) << std::endl;
+  //  }
+  //}
+
   unsigned int iprojmem = 0;
   unsigned int page = 0;
   while (iprojmem < inputprojs_.size() && inputprojs_[iprojmem]->nTracklets(page) == 0) {
@@ -511,7 +517,7 @@ bool MatchProcessor::matchCalculator(Tracklet* tracklet, const Stub* fpgastub, b
 
   if (layerdisk_ < N_LAYER) {
     const Projection& proj = tracklet->proj(layerdisk_);
-    int ir = fpgastub->r().value();
+    int ir = fpgastub->rvalue();
     int iphi = proj.fpgaphiproj().value();
     int icorr = (ir * proj.fpgaphiprojder().value()) >> icorrshift_;
     iphi += icorr;
@@ -675,7 +681,7 @@ bool MatchProcessor::matchCalculator(Tracklet* tracklet, const Stub* fpgastub, b
 
     int ideltaphi = fpgastub->phi().value() - iphi;
 
-    int irstub = fpgastub->r().value();
+    int irstub = fpgastub->rvalue();
     int ialphafact = 0;
     if (!stub->isPSmodule()) {
       assert(irstub < (int)N_DSS_MOD * 2);
@@ -780,7 +786,7 @@ bool MatchProcessor::matchCalculator(Tracklet* tracklet, const Stub* fpgastub, b
     }
 
     bool match = (std::abs(drphi) < drphicut) && (std::abs(deltar) < drcut);
-    bool imatch = (std::abs(ideltaphi * irstub) < best_ideltaphi_disk) && (std::abs(ideltar) < best_ideltar_disk);
+    bool imatch = (std::abs(ideltaphi * irstub) < idrphicut) && (std::abs(ideltar) < idrcut);
 
     if (settings_.debugTracklet()) {
       edm::LogVerbatim("Tracklet") << "imatch match disk: " << imatch << " " << match << " " << std::abs(ideltaphi)

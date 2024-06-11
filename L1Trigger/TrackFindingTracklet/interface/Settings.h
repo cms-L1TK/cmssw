@@ -88,6 +88,7 @@ namespace trklet {
     void setTableTEDFile(std::string tableTEDFileName) { tableTEDFile_ = tableTEDFileName; }
     void setTableTREFile(std::string tableTREFileName) { tableTREFile_ = tableTREFileName; }
 
+    unsigned int nndbitsstub(unsigned int layerdisk) const { return nndbitsstub_[layerdisk]; }
     unsigned int nzbitsstub(unsigned int layerdisk) const { return nzbitsstub_[layerdisk]; }
     unsigned int nphibitsstub(unsigned int layerdisk) const { return nphibitsstub_[layerdisk]; }
     unsigned int nrbitsstub(unsigned int layerdisk) const { return nrbitsstub_[layerdisk]; }
@@ -170,12 +171,11 @@ namespace trklet {
     double rphicut2S(unsigned int iSeed, unsigned int idisk) const { return rphicut2S_[idisk][iSeed]; }
     double rcut2S(unsigned int iSeed, unsigned int idisk) const { return rcut2S_[idisk][iSeed]; }
 
-
     unsigned int irmean(unsigned int iLayer) const { return irmean_[iLayer]; }
     double rmean(unsigned int iLayer) const { return irmean_[iLayer] * rmaxdisk_ / 4096; }
     double rmax(unsigned int iLayer) const { return rmean(iLayer) + drmax(); }
     double rmin(unsigned int iLayer) const { return rmean(iLayer) - drmax(); }
-    unsigned int izmean(unsigned int iDisk) const { return izmean_[iDisk]; }    
+    unsigned int izmean(unsigned int iDisk) const { return izmean_[iDisk]; }
     double zmean(unsigned int iDisk) const { return izmean_[iDisk] * zlength_ / 2048; }
     double zmax(unsigned int iDisk) const { return zmean(iDisk) + dzmax(); }
     double zmin(unsigned int iDisk) const { return zmean(iDisk) - dzmax(); }
@@ -344,7 +344,9 @@ namespace trklet {
 
     double kz() const { return 2.0 * zlength_ / (1 << nzbitsstub_[0]); }
     double kz(unsigned int layerdisk) const { return 2.0 * zlength_ / (1 << nzbitsstub_[layerdisk]); }
-    double kr() const { return rmaxdisk_ / (1 << nrbitsstub_[N_LAYER]); }
+    double kr() const {
+      return rmaxdisk_ / (1 << (nrbitsstub_[N_LAYER] + 1));
+    }  // + 1 required to offset artificial decrease in # of diskps r bits from 12 -> 11 to make space for negDisk bit
     double krbarrel() const { return 2.0 * drmax() / (1 << nrbitsstub_[0]); }
 
     double maxrinv() const { return maxrinv_; }
@@ -527,9 +529,10 @@ namespace trklet {
     std::array<unsigned int, N_LAYER> irmean_{{851, 1269, 1784, 2347, 2936, 3697}};
     std::array<unsigned int, N_DISK> izmean_{{2239, 2645, 3163, 3782, 4523}};
 
+    std::array<unsigned int, N_LAYER + N_DISK> nndbitsstub_{{0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1}};
     std::array<unsigned int, N_LAYER + N_DISK> nzbitsstub_{{12, 12, 12, 8, 8, 8, 7, 7, 7, 7, 7}};
     std::array<unsigned int, N_LAYER + N_DISK> nphibitsstub_{{14, 14, 14, 17, 17, 17, 14, 14, 14, 14, 14}};
-    std::array<unsigned int, N_LAYER + N_DISK> nrbitsstub_{{7, 7, 7, 7, 7, 7, 12, 12, 12, 12, 12}};
+    std::array<unsigned int, N_LAYER + N_DISK> nrbitsstub_{{7, 7, 7, 7, 7, 7, 11, 11, 11, 11, 11}};
 
     unsigned int nrbitsprojderdisk_{9};
     unsigned int nbitsphiprojderL123_{10};
@@ -1051,18 +1054,23 @@ namespace trklet {
     double stripLength_PS_{0.1467};
     double stripLength_2S_{5.0250};
 
+    // The DR binning below disabled, as doesn't match latest FW.
+
     //Following values are used for duplicate removal
     //Rinv bins were optimised to ensure a similar number of tracks in each bin prior to DR
     //Rinv bin edges for 6 bins.
-    std::vector<double> rinvBins_{-rinvcut(), -0.004968, -0.003828, 0, 0.003828, 0.004968, rinvcut()};
+    //std::vector<double> rinvBins_{-rinvcut(), -0.004968, -0.003828, 0, 0.003828, 0.004968, rinvcut()};
+    std::vector<double> rinvBins_{-rinvcut(), rinvcut()};
     //Phi bin edges for 2 bins.
-    std::vector<double> phiBins_{0, dphisectorHG() / 2, dphisectorHG()};
+    //std::vector<double> phiBins_{0, dphisectorHG() / 2, dphisectorHG()};
+    std::vector<double> phiBins_{0, dphisectorHG()};
     //Overlap size for the overlap rinv bins in DR
     double rinvOverlapSize_{0.0004};
     //Overlap size for the overlap phi bins in DR
     double phiOverlapSize_{M_PI / 360};
     //The maximum number of tracks that are compared to all the other tracks per rinv bin
-    int numTracksComparedPerBin_{32};
+    //int numTracksComparedPerBin_{32};
+    int numTracksComparedPerBin_{9999};
 
     double sensorSpacing_2S_{0.18};
   };

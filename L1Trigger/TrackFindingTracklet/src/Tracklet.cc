@@ -342,7 +342,7 @@ std::string Tracklet::fullmatchdiskstr(int disk) {
   const FPGAWord& stubr = resid_[N_LAYER + disk - 1].stubptr()->r();
   const bool isPS = resid_[N_LAYER + disk - 1].stubptr()->isPSmodule();
   std::string oss = tcid.str() + "|" + tmp.str() + "|" + resid_[N_LAYER + disk - 1].fpgastubid().str() + "|" +
-                    (isPS ? stubr.str() : ("00000000" + stubr.str())) + "|" +
+                    (isPS ? "0"+stubr.str() : ("00000000" + stubr.str())) + "|" +
                     resid_[N_LAYER + disk - 1].fpgaphiresid().str() + "|" +
                     resid_[N_LAYER + disk - 1].fpgarzresid().str();
   return oss;
@@ -617,7 +617,7 @@ const std::string Tracklet::diskstubstr(const unsigned disk) const {
     oss << "1|";  // valid bit
     oss << tmp.str() << "|";
     oss << resid_[N_LAYER + disk].fpgastubid().str() << "|";
-    oss << (isPS ? stubr.str() : ("00000000" + stubr.str())) << "|";
+    oss << (isPS ? ("0"+stubr.str()) : ("00000000" + stubr.str())) << "|";
     oss << resid_[N_LAYER + disk].fpgaphiresid().str() << "|";
     oss << resid_[N_LAYER + disk].fpgarzresid().str();
   }
