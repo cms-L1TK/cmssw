@@ -128,7 +128,7 @@ void L1TrackNtuplePlot(TString type,
   int ntp_pt2 = 0;
   int ntp_pt3 = 0;
   int ntp_pt10 = 0;
-
+  int ntrk_genuine_pt2 = 0;
   // ----------------------------------------------------------------------------------------------------------------
   // read ntuples
   TChain* tree = new TChain("L1TrackNtuple" + treeName + "/eventTree");
@@ -1157,6 +1157,7 @@ void L1TrackNtuplePlot(TString type,
         ntrkevt_pt2++;
         h_trk_all_vspt->Fill(trk_pt->at(it));
         if (trk_genuine->at(it) == 1) {
+          ntrk_genuine_pt2++;
           ntrkevt_genuine_pt2++;
           h_trk_genuine_vspt->Fill(trk_pt->at(it));
         } else
@@ -3702,6 +3703,9 @@ void L1TrackNtuplePlot(TString type,
   cout << "# tracks/event (pt > " << std::max(TP_minPt, 2.0f) << ") = " << (float)ntrk_pt2 / nevt << endl;
   cout << "# tracks/event (pt > 3.0) = " << (float)ntrk_pt3 / nevt << endl;
   cout << "# tracks/event (pt > 10.0) = " << (float)ntrk_pt10 / nevt << endl << endl;
+
+  // fake track rate
+  if (ntrk_genuine_pt2 > 0) cout<<"Percentage fake tracks (pt > " << std::max(TP_minPt, 2.0f) << ") = " << 100.*(1. - float(ntrk_genuine_pt2)/float(ntrk_pt2)) << "%" << endl << endl;
 
   // z0 resolution
   cout << "z0 resolution = " << z0ResSample1 << "cm at |eta| = " << etaSample1 << endl;
