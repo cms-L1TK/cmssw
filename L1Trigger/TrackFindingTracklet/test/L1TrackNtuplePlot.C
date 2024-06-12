@@ -3705,7 +3705,10 @@ void L1TrackNtuplePlot(TString type,
   cout << "# tracks/event (pt > 10.0) = " << (float)ntrk_pt10 / nevt << endl << endl;
 
   // fake track rate
-  if (ntrk_genuine_pt2 > 0) cout<<"Percentage fake tracks (pt > " << std::max(TP_minPt, 2.0f) << ") = " << 100.*(1. - float(ntrk_genuine_pt2)/float(ntrk_pt2)) << "%" << endl << endl;
+  if (ntrk_genuine_pt2 > 0)
+    cout << "Percentage fake tracks (pt > " << std::max(TP_minPt, 2.0f)
+         << ") = " << 100. * (1. - float(ntrk_genuine_pt2) / float(ntrk_pt2)) << "%" << endl
+         << endl;
 
   // z0 resolution
   cout << "z0 resolution = " << z0ResSample1 << "cm at |eta| = " << etaSample1 << endl;
