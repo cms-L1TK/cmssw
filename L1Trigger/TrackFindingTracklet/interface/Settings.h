@@ -267,7 +267,9 @@ namespace trklet {
 
     bool extended() const { return extended_; }
     void setExtended(bool extended) { extended_ = extended; }
-    bool duplicateMPs() const { return duplicatedMPs_; }
+    bool duplicateMPs() const { return duplicateMPs_; }
+    std::array<bool, N_LAYER + N_DISK> layersDisksDuplicatedEqualProjBalance() const { return layersDisksDuplicatedEqualProjBalance_; }
+    std::array<bool, N_LAYER + N_DISK> layersDisksDuplicatedWeightedProjBalance() const { return layersDisksDuplicatedWeightedProjBalance_; }
     bool combined() const { return combined_; }
     void setCombined(bool combined) { combined_ = combined; }
     bool reduced() const { return reduced_; }
@@ -1038,7 +1040,22 @@ namespace trklet {
 
     // Use chain with duplicated MPs for L3,L4 to reduce truncation issue
     // Balances load from projections roughly in half for each of the two MPs
-    bool duplicatedMPs_{false};
+    bool duplicateMPs_{false};
+
+    // Determines which layers, disks the MatchProcessor is duplicated for 
+    // (note: in TCB by default always duplicated for phi B, C as truncation is significantly worse than A, D)
+    // All layers, disks disabled by default, also is overwritten by above duplicateMPs bool
+
+    // EqualProjBalancing is for layers for which the projections to each duplicated MP are split in half sequentially
+    std::array<bool, N_LAYER + N_DISK> layersDisksDuplicatedEqualProjBalance_{{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
+
+    // Weighted proj balancing is for specifically L4, L5 where the split of the projections is weighted to account for
+    // Higher occupancy in the L1L2 seed to minimize truncation 
+    std::array<bool, N_LAYER + N_DISK> layersDisksDuplicatedWeightedProjBalance_{{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
+
+    // Example use where for L3, L4, L5, D2, D3, the layers/disks where truncation is worst
+    //std::array<bool, N_LAYER + N_DISK> layersDisksDuplicatedEqualProjBalance_{{0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0}};
+    //std::array<bool, N_LAYER + N_DISK> layersDisksDuplicatedWeightedProjBalance_{{0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0}};
 
     std::string skimfile_{""};  //if not empty events will be written out in ascii format to this file
 
