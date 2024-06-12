@@ -528,7 +528,7 @@ void TrackletConfigBuilder::writeProjectionMemories(std::ostream& os, std::ostre
               } else {
                 os << TPROJName(iSeed, iTC, ilayer, ireg) << " input=> " << TCName(iSeed, iTC) << ".projout"
                    << LayerName(ilayer) << "PHI" << iTCStr(ireg) << " output=> " << PRName(ilayer, ireg) + "_E"
-                   << ".projin"  // duplicate MPs denoted by extra _E 
+                   << ".projin"  // duplicate MPs denoted by extra _E
                    << std::endl;
               }
             } else if ((settings_.layersDisksDuplicatedWeightedProjBalance()[ilayer]) && (ireg == 1 || ireg == 2)) {
@@ -910,7 +910,9 @@ void TrackletConfigBuilder::writeFMMemories(std::ostream& os, std::ostream& memo
     for (unsigned int ilayer = 0; ilayer < N_LAYER + N_DISK; ilayer++) {
       for (unsigned int iReg = 0; iReg < NRegions_[ilayer]; iReg++) {
         if (duplicateMPs_) {
-          if ((settings_.layersDisksDuplicatedEqualProjBalance()[ilayer] || settings_.layersDisksDuplicatedWeightedProjBalance()[ilayer]) && (iReg == 1 || iReg == 2)) {  // regions with worst truncation
+          if ((settings_.layersDisksDuplicatedEqualProjBalance()[ilayer] ||
+               settings_.layersDisksDuplicatedWeightedProjBalance()[ilayer]) &&
+              (iReg == 1 || iReg == 2)) {  // regions with worst truncation
             modules << "MatchProcessor: MP_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << std::endl;
             modules << "MatchProcessor: MP_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) + "_E" << std::endl;
             for (unsigned int iSeed = 0; iSeed < N_SEED_PROMPT; iSeed++) {
@@ -986,7 +988,9 @@ void TrackletConfigBuilder::writeASMemories(std::ostream& os, std::ostream& memo
     for (unsigned int ilayer = 0; ilayer < N_LAYER + N_DISK; ilayer++) {
       for (unsigned int iReg = 0; iReg < NRegions_[ilayer]; iReg++) {
         if (duplicateMPs_) {
-          if ((settings_.layersDisksDuplicatedEqualProjBalance()[ilayer] || settings_.layersDisksDuplicatedWeightedProjBalance()[ilayer]) && (iReg == 1 || iReg == 2)) {
+          if ((settings_.layersDisksDuplicatedEqualProjBalance()[ilayer] ||
+               settings_.layersDisksDuplicatedWeightedProjBalance()[ilayer]) &&
+              (iReg == 1 || iReg == 2)) {
             memories << "AllStubs: AS_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << "n1"
                      << " [42]" << std::endl;
             memories << "AllStubs: AS_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << "n2"
@@ -1218,7 +1222,9 @@ void TrackletConfigBuilder::writeVMSMemories(std::ostream& os, std::ostream& mem
     for (unsigned int ilayer = 0; ilayer < N_LAYER + N_DISK; ilayer++) {
       for (unsigned int iReg = 0; iReg < NRegions_[ilayer]; iReg++) {
         if (duplicateMPs_) {
-          if ((settings_.layersDisksDuplicatedEqualProjBalance()[ilayer] || settings_.layersDisksDuplicatedWeightedProjBalance()[ilayer]) && (iReg == 1 || iReg == 2)) {
+          if ((settings_.layersDisksDuplicatedEqualProjBalance()[ilayer] ||
+               settings_.layersDisksDuplicatedWeightedProjBalance()[ilayer]) &&
+              (iReg == 1 || iReg == 2)) {
             memories << "VMStubsME: VMSME_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << "n1 [18]" << std::endl;
             memories << "VMStubsME: VMSME_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << "n2 [18]" << std::endl;
             os << "VMSME_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << "n1"
