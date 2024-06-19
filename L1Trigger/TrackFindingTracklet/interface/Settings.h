@@ -692,9 +692,10 @@ namespace trklet {
          {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 4}}}};  //outermost (triplets only)
 
     // These are the number of bits to represent lutval for VM memories in TE
-    std::array<std::array<unsigned int, N_SEED>, 3> lutwidthtab_{{{{10, 10, 10, 10, 10, 10, 10, 10, 0, 0, 11, 0}},
-                                                                  {{6, 6, 6, 6, 10, 10, 10, 10, 0, 0, 6, 0}},
-                                                                  {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 6}}}};
+    std::array<std::array<unsigned int, N_SEED>, 3> lutwidthtab_{
+	    {{{10, 10, 10, 10, 10, 10, 10, 10, 0, 0, 11, 0}}, //inner
+             {{6, 6, 6, 6, 10, 10, 10, 10, 21, 21, 21, 21}},  //outer
+             {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 6}}}};        //outermost
 
     // These are the number of bits to represent lutval for VM memories in TED
     // TO DO: tune lutwidthtabextended_ values
