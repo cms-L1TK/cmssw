@@ -33,7 +33,6 @@ Tracklet::Tracklet(Settings const& settings,
                    int id0,
                    int iz0,
                    int it,
-                   Projection projs[N_LAYER + N_DISK],
                    bool disk,
                    bool overlap)
     : settings_(settings) {
@@ -81,6 +80,11 @@ Tracklet::Tracklet(Settings const& settings,
     projdisk_[i] = settings.projdisks(seedIndex_, i);
   }
 
+  ichisqrphifit_.set(-1, 8, false);
+  ichisqrzfit_.set(-1, 8, false);
+}
+
+void Tracklet::addProjs(Projection projs[N_LAYER + N_DISK]){ // needs to be separate from constructor to allow TPars only calculated in TrackletProcessor
   //Handle projections to the layers
   for (unsigned int i = 0; i < N_LAYER - 2; i++) {
     if (projlayer_[i] == 0)
@@ -99,9 +103,6 @@ Tracklet::Tracklet(Settings const& settings,
 
     proj_[N_LAYER + projdisk_[i] - 1] = projs[N_LAYER + projdisk_[i] - 1];
   }
-
-  ichisqrphifit_.set(-1, 8, false);
-  ichisqrzfit_.set(-1, 8, false);
 }
 
 int Tracklet::tpseed() {
