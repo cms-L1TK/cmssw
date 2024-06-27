@@ -5,7 +5,6 @@
 #include "L1Trigger/TrackFindingTracklet/interface/TrackletLUT.h"
 #include "L1Trigger/TrackFindingTracklet/interface/TrackletProjectionsMemory.h"
 #include "L1Trigger/TrackFindingTracklet/interface/TrackletParametersMemory.h"
-#include "L1Trigger/TrackFindingTracklet/interface/TrackletCalculatorBase.h"
 #include "L1Trigger/TrackFindingTracklet/interface/TrackletConfigBuilder.h"
 
 namespace trklet {

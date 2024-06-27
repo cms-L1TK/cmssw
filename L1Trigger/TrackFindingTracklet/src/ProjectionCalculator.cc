@@ -2,7 +2,6 @@
 #include "L1Trigger/TrackFindingTracklet/interface/Settings.h"
 #include "L1Trigger/TrackFindingTracklet/interface/Globals.h"
 #include "L1Trigger/TrackFindingTracklet/interface/Tracklet.h"
-#include "L1Trigger/TrackFindingTracklet/interface/TrackletCalculatorBase.h"
 #include "L1Trigger/TrackFindingTracklet/interface/TrackletConfigBuilder.h"
 
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
@@ -146,6 +145,24 @@ void ProjectionCalculator::execute() {
     int projPage = 0;
     std::string iname = inputpars_[i]->getName();
 
+
+    std::vector<std::string> seedNames = {"L1L2", "L2L3", "L3L4", "L5L6", "D1D2", "D3D4", "L1D1", "L2D1"};
+
+    for (int iSeed = 0; iSeed < 8; ++iSeed){
+      std::string seed = iname.substr(5, 4); // extract seed from name 
+      bool overlap = (iSeed >= 6);
+      if (seed == seedNames[iSeed]){ // FIXME find easier way to get iSeed (probably from seed name)
+      unsigned int numTCs = nMergedTC[iSeed];
+      for(unsigned int iTC = 0; iTC < numTCs; ++iTC){
+        std::string tcStr = TrackletConfigBuilder::iMergedTCStr(iSeed, iTC); 
+        size_t index = tcStr.find(iname[9]); // find index in merged TC string to find page
+        if (index != std::string::npos) {
+            projPage = static_cast<int>(index); // calculate projPage FIXME find better way of doing this
+        } else {
+            continue;
+        }
+      }
+
     for(unsigned int k = 0 ; k < outputpars_.size() ; k++) { // add copy of par to merged par output memory
       std::string oname = outputpars_[k]->getName();
       int parPage = iname[9]-oname[9];
@@ -154,12 +171,12 @@ void ProjectionCalculator::execute() {
       }
     }
     
-    std::string seed = iname.substr(5, 4); // extract seed from name 
+    
     for(unsigned int k = 0; k < inputpars_[i]->nTracklets(); k++){
     auto tracklet = inputpars_[i]->getTracklet(k);
     //double phi0 = tracklet->phi0(); // non-digi track params, currently unneeded / unused 
     //double z0 = tracklet->z0();
-    double t = tracklet->t(); // used later for t cut 
+    //double t = tracklet->t(); 
     //double rinv = tracklet->rinv();
 
     int irinv = tracklet->fpgarinv().value(); // digi track params
@@ -179,74 +196,29 @@ void ProjectionCalculator::execute() {
     /////////////////////////////////
     // calculate layer projections //
     /////////////////////////////////
-    int ir;
     bool valid_zmin, valid_zmax, valid_phimin, valid_phimax; // CODE ADAPTED FROM FIRMWARE-HLS PROJECTIONCALCULATOR - could be simplified to only consider layers/disks in wiring config. 
     const int zmin = -(1 << (settings_.nzbitsstub(0) - 1));
     const int zmax = (1 << (settings_.nzbitsstub(0) - 1));
     const int phimax = (1 << (settings_.nphibitsstub(3))) - 1;
     const int phimin = 0;
-    // L1 
-    ir = settings_.irmean(0);
-    projLayer(ir, irinv, iphi0, it, iz0, izr_LD[0], iphi_LD[0]);
-    valid_zmin = izr_LD[0] >= zmin;
-    valid_zmax = izr_LD[0] < zmax;
-    valid_phimax = iphi_LD[0] < phimax;
-    valid_phimin = iphi_LD[0] > phimin;
-    valid_LD[0] = valid_zmin & valid_zmax & valid_phimax & valid_phimin;
-    iphi_LD[0] = iphi_LD[0] >> 3; //now done later 
-
-    // L2 
-    ir = settings_.irmean(1);
-    projLayer(ir, irinv, iphi0, it, iz0, izr_LD[1], iphi_LD[1]);
-    valid_zmin = izr_LD[1] >= zmin;
-    valid_zmax = izr_LD[1] < zmax;
-    valid_phimax = iphi_LD[1] < phimax;
-    valid_phimin = iphi_LD[1] > phimin;
-    valid_LD[1] = valid_zmin & valid_zmax & valid_phimax & valid_phimin;
-    iphi_LD[1] = iphi_LD[1] >> 3;
-
-    // L3
-    ir = settings_.irmean(2);
-    projLayer(ir, irinv, iphi0, it, iz0, izr_LD[2], iphi_LD[2]);
-    valid_zmin = izr_LD[2] >= zmin;
-    valid_zmax = izr_LD[2] < zmax;
-    valid_phimax = iphi_LD[2] < phimax;
-    valid_phimin = iphi_LD[2] > phimin;
-    valid_LD[2] = valid_zmin & valid_zmax & valid_phimax & valid_phimin;
-    iphi_LD[2] = iphi_LD[2] >> 3;
-
-    // L4 
-    ir = settings_.irmean(3);
-    projLayer(ir, irinv, iphi0, it, iz0, izr_LD[3], iphi_LD[3]);
-    valid_zmin = izr_LD[3] >= zmin;
-    valid_zmax = izr_LD[3] < zmax;
-    valid_phimax = iphi_LD[3] < phimax;
-    valid_phimin = iphi_LD[3] > phimin;
-    valid_LD[3] = valid_zmin & valid_zmax & valid_phimax & valid_phimin;
-    izr_LD[3] = izr_LD[3] >> 4;
-
-    // L5
-    ir = settings_.irmean(4);
-    projLayer(ir, irinv, iphi0, it, iz0, izr_LD[4], iphi_LD[4]);
-    valid_zmin = izr_LD[4] >= zmin;
-    valid_zmax = izr_LD[4] < zmax;
-    valid_phimax = iphi_LD[4] < phimax;
-    valid_phimin = iphi_LD[4] > phimin;
-    valid_LD[4] = valid_zmin & valid_zmax & valid_phimax & valid_phimin;
-    izr_LD[4] = izr_LD[4] >> 4;
+    for (unsigned int iLayer = 0; iLayer < N_LAYER; ++iLayer){ // calculate layer projections
+      int ir;
+      ir = settings_.irmean(iLayer);
+      projLayer(ir, irinv, iphi0, it, iz0, izr_LD[iLayer], iphi_LD[iLayer]);
+      valid_zmin = izr_LD[iLayer] >= zmin;
+      valid_zmax = izr_LD[iLayer] < zmax;
+      valid_phimax = iphi_LD[iLayer] < phimax;
+      valid_phimin = iphi_LD[iLayer] > phimin;
+      valid_LD[iLayer] = valid_zmin & valid_zmax & valid_phimax & valid_phimin;
+      if(iLayer < N_PSLAYER){ // shift phi or z value if PS or 2S layer
+        iphi_LD[iLayer] = iphi_LD[iLayer] >> 3; 
+      }
+      else{
+        izr_LD[iLayer] = izr_LD[iLayer] >> 4;
+      }
+    }
     
-
-    // L6
-    ir = settings_.irmean(5);
-    projLayer(ir, irinv, iphi0, it, iz0, izr_LD[5], iphi_LD[5]);
-    valid_zmin = izr_LD[5] >= zmin;
-    valid_zmax = izr_LD[5] < zmax;
-    valid_phimax = iphi_LD[5] < phimax;
-    valid_phimin = iphi_LD[5] > phimin;
-    valid_LD[5] = valid_zmin & valid_zmax & valid_phimax & valid_phimin;
-    izr_LD[5] = izr_LD[5] >> 4;
-
-    // Derivatives
+    // Layer Proj Derivatives
     der_phi_LD[0] = -(irinv >> (1+3)); 
     der_zr_LD[0] = it >> 3;
 
@@ -258,50 +230,15 @@ void ProjectionCalculator::execute() {
 
     int tcut = 1.0/(settings_.ktpars());
 
-    // D1 
-    int izproj0 = settings_.izmean(0);
-    projDisk(izproj0, irinv, iphi0, it, iz0, izr_LD[6], iphi_LD[6], der_phi_LD[1], der_zr_LD[1]);
-    valid_LD[6] = izr_LD[6] >= irmindisk && izr_LD[6] < irmaxdisk && ((it > tcut) || (it < -tcut));
-
-    // D2 
-    int izproj1 = settings_.izmean(1);
-    projDisk(izproj1, irinv, iphi0, it, iz0, izr_LD[7], iphi_LD[7], der_phi_LD[1], der_zr_LD[1]);
-    valid_LD[7] = izr_LD[7] >= irmindisk && izr_LD[7] < irmaxdisk && ((it > tcut) || (it < -tcut));
-
-    // D3
-    int izproj2 = settings_.izmean(2);
-    projDisk(izproj2, irinv, iphi0, it, iz0, izr_LD[8], iphi_LD[8], der_phi_LD[1], der_zr_LD[1]);
-    valid_LD[8] = izr_LD[8] >= irmindisk && izr_LD[8] < irmaxdisk && ((it > tcut) || (it < -tcut));
-    
-    // D4
-    int izproj3 = settings_.izmean(3);
-    projDisk(izproj3, irinv, iphi0, it, iz0, izr_LD[9], iphi_LD[9], der_phi_LD[1], der_zr_LD[1]);
-    valid_LD[9] = izr_LD[9] >= irmindisk && izr_LD[9] < irmaxdisk && ((it > tcut) || (it < -tcut));
-
-    // D5
-    int izproj4 = settings_.izmean(4);
-    projDisk(izproj4, irinv, iphi0, it, iz0, izr_LD[10], iphi_LD[10], der_phi_LD[1], der_zr_LD[1]);
-    valid_LD[10] = izr_LD[10] >= irmindisk && izr_LD[10] < irmaxdisk && ((t > tcut) || (t < -tcut));
+    for (unsigned int iDisk = N_LAYER; iDisk < N_LAYER + N_DISK; ++iDisk){
+      int izproj = settings_.izmean(iDisk % N_LAYER);
+      projDisk(izproj, irinv, iphi0, it, iz0, izr_LD[iDisk], iphi_LD[iDisk], der_phi_LD[1], der_zr_LD[1]);
+      valid_LD[iDisk] = izr_LD[iDisk] >= irmindisk && izr_LD[iDisk] < irmaxdisk && ((it > tcut) || (it < -tcut));
+    }
 
     ///////////////////////////////////
     // Write projections to memories //
-    ///////////////////////////////////
-    std::vector<std::string> seedNames = {"L1L2", "L2L3", "L3L4", "L5L6", "D1D2", "D3D4", "L1D1", "L2D1"};
-
-    for (int iSeed = 0; iSeed < 8; ++iSeed){
-      bool overlap = (iSeed >= 6);
-      if (seed == seedNames[iSeed]){ // FIXME find easier way to get iSeed (probably from seed name)
-      unsigned int numTCs = nMergedTC[iSeed];
-      for(unsigned int iTC = 0; iTC < numTCs; ++iTC){
-        std::string tcStr = TrackletConfigBuilder::iMergedTCStr(iSeed, iTC); 
-        size_t index = tcStr.find(iname[9]); // find index in merged TC string to find page
-        if (index != std::string::npos) {
-            projPage = static_cast<int>(index); // calculate projPage FIXME find better way of doing this
-        } else {
-            continue;
-        }
-      }
-      
+    ///////////////////////////////////  
 
       for (unsigned int j = 0; j < settings_.projlayers()[iSeed].size(); ++j){
         unsigned int layer = settings_.projlayers()[iSeed][j]; // Loop through layers/disks projected to
@@ -376,6 +313,7 @@ void ProjectionCalculator::execute() {
                             overlap);
         }
       }
+      
       tracklet->addProjs(projs);
       for(unsigned int layerdisk = 0; layerdisk < N_LAYER + N_DISK; ++layerdisk){
       if (tracklet->validProj(layerdisk)) {
