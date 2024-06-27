@@ -198,8 +198,8 @@ namespace trklet {
           bool counter = false;
 
           vector<StubKF> stubs;
-          stubs.reserve(setup_->numLayers() - 1);
-          for (int iStub = 0; iStub < setup_->numLayers() - 1; iStub++) {
+          stubs.reserve(setup_->numLayers());
+          for (int iStub = 0; iStub < setup_->numLayers(); iStub++) {
             const auto& stub = streamsStubs[setup_->numLayers() * iLink + iStub].at(iTrack);
             StubKF inStub(stub, dataFormats_, iStub);
             if (stub.first.isNonnull())
