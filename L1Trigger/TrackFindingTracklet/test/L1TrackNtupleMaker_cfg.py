@@ -171,11 +171,11 @@ elif (L1TRKALGO == 'HYBRID_DISPLACED'):
 elif (L1TRKALGO == 'HYBRID_NEWKF' or L1TRKALGO == 'HYBRID_REDUCED'):
     process.load( 'L1Trigger.TrackFindingTracklet.Producer_cff' )
     NHELIXPAR = 4
-    L1TRK_NAME  = process.TrackFindingTrackletProducer_params.LabelTT.value()
-    L1TRK_LABEL = process.TrackFindingTrackletProducer_params.BranchAcceptedTracks.value()
+    L1TRK_NAME  = process.TrackFindingTrackletProducer_params.LabelKFout.value()
+    L1TRK_LABEL = process.TrackFindingTrackletProducer_params.BranchAcceptedTTTracks.value()
     L1TRUTH_NAME = "TTTrackAssociatorFromPixelDigis"
     process.TTTrackAssociatorFromPixelDigis.TTTracks = cms.VInputTag( cms.InputTag(L1TRK_NAME, L1TRK_LABEL) )
-    process.HybridNewKF = cms.Sequence(process.L1THybridTracks + process.TrackFindingTrackletProducerTBout + process.TrackFindingTrackletProducerDRin + process.TrackFindingTrackletProducerDR + process.TrackFindingTrackletProducerKFin + process.TrackFindingTrackletProducerKF + process.TrackFindingTrackletProducerTT + process.TrackFindingTrackletProducerAS + process.TrackFindingTrackletProducerKFout)
+    process.HybridNewKF = cms.Sequence(process.L1THybridTracks + process.TrackFindingTrackletProducerTBout + process.TrackFindingTrackletProducerDRin + process.TrackFindingTrackletProducerDR + process.TrackFindingTrackletProducerKFin + process.TrackFindingTrackletProducerKF + process.TrackFindingTrackletProducerKFout)
     process.TTTracksEmulation = cms.Path(process.HybridNewKF)
     #process.TTTracksEmulationWithTruth = cms.Path(process.HybridNewKF +  process.TrackTriggerAssociatorTracks)
     # Optionally include code producing performance plots & end-of-job summary.
