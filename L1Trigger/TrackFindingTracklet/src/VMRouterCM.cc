@@ -311,7 +311,7 @@ void VMRouterCM::execute(unsigned int) {
                                          << " regions bits " << settings_.nphireg(1, iseed) << " finephibits "
                                          << settings_.nfinephi(1, iseed);
           }
-          ivmstubTEPHI.vmstubmem[l]->addVMStub(tmpstub, ivmte * settings_.NLONGVMBINS() + bin);
+          ivmstubTEPHI.vmstubmem[l]->addVMStub(tmpstub, bin, ivmte);
         }
       }
     }

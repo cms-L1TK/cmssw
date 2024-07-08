@@ -52,7 +52,7 @@ VMStubsTEMemory::VMStubsTEMemory(string name, Settings const& settings)
   stubsbinnedvm_.resize(settings_.NLONGVMBINS());
 }
 
-bool VMStubsTEMemory::addVMStub(VMStubTE vmstub, int bin) {
+bool VMStubsTEMemory::addVMStub(VMStubTE vmstub, int bin, int ivmte) {
   //If the pt of the stub is consistent with the allowed pt of tracklets
   //in that can be formed in this VM and the other VM used in the TE.
 
