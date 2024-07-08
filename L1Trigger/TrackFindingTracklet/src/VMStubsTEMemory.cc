@@ -64,8 +64,8 @@ bool VMStubsTEMemory::addVMStub(VMStubTE vmstub, int bin, int ivmte) {
     if (negdisk)
       bin += 4;
     assert(bin < (int)stubsbinnedvm_.size());
-    if (stubsbinnedvm_[bin].size() < N_VMSTUBSMAX) {
-      stubsbinnedvm_[bin].push_back(vmstub);
+    if (stubsbinnedvm_[ivmte * settings_.NLONGVMBINS() + bin].size() < N_VMSTUBSMAX) {
+      stubsbinnedvm_[ivmte * settings_.NLONGVMBINS() + bin].push_back(vmstub);
       stubsvm_.push_back(vmstub);
     }
     return true;
@@ -92,22 +92,22 @@ bool VMStubsTEMemory::addVMStub(VMStubTE vmstub, int bin, int ivmte) {
       assert(bin < 4);
       if (negdisk)
         bin += 4;
-      if (stubsbinnedvm_[bin].size() >= settings_.maxStubsPerBin())
+      if (stubsbinnedvm_[ivmte * settings_.NLONGVMBINS() + bin].size() >= settings_.maxStubsPerBin())
         return false;
-      stubsbinnedvm_[bin].push_back(vmstub);
+      stubsbinnedvm_[ivmte * settings_.NLONGVMBINS() + bin].push_back(vmstub);
       if (settings_.debugTracklet())
         edm::LogVerbatim("Tracklet") << getName() << " Stub in disk = " << disk_ << "  in bin = " << bin;
     } else if (layer_ == 2) {
-      if (stubsbinnedvm_[bin].size() >= settings_.maxStubsPerBin())
+      if (stubsbinnedvm_[ivmte * settings_.NLONGVMBINS() + bin].size() >= settings_.maxStubsPerBin())
         return false;
-      stubsbinnedvm_[bin].push_back(vmstub);
+      stubsbinnedvm_[ivmte * settings_.NLONGVMBINS() + bin].push_back(vmstub);
     }
   } else {
     if (vmstub.stub()->layerdisk() < N_LAYER) {
       if (!isinner_) {
-        if (stubsbinnedvm_[bin].size() >= settings_.maxStubsPerBin())
+        if (stubsbinnedvm_[ivmte * settings_.NLONGVMBINS() + bin].size() >= settings_.maxStubsPerBin())
           return false;
-        stubsbinnedvm_[bin].push_back(vmstub);
+        stubsbinnedvm_[ivmte * settings_.NLONGVMBINS() + bin].push_back(vmstub);
       }
 
     } else {
@@ -115,15 +115,15 @@ bool VMStubsTEMemory::addVMStub(VMStubTE vmstub, int bin, int ivmte) {
         assert(bin < 4);
         if (negdisk)
           bin += 4;
-        if (stubsbinnedvm_[bin].size() >= settings_.maxStubsPerBin())
+        if (stubsbinnedvm_[ivmte * settings_.NLONGVMBINS() + bin].size() >= settings_.maxStubsPerBin())
           return false;
-        stubsbinnedvm_[bin].push_back(vmstub);
+        stubsbinnedvm_[ivmte * settings_.NLONGVMBINS() + bin].push_back(vmstub);
       }
     }
   }
   if (settings_.debugTracklet())
     edm::LogVerbatim("Tracklet") << "Adding stubs to " << getName();
-  if (stubsbinnedvm_[bin].size() >= settings_.maxStubsPerBin())
+  if (stubsbinnedvm_[ivmte * settings_.NLONGVMBINS() + bin].size() >= settings_.maxStubsPerBin())
     return false;
   stubsvm_.push_back(vmstub);
   return true;
