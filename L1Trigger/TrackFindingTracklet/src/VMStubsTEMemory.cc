@@ -63,7 +63,7 @@ bool VMStubsTEMemory::addVMStub(VMStubTE vmstub, int bin, int ivmte) {
     bool negdisk = vmstub.stub()->disk().value() < 0.0;
     if (negdisk)
       bin += 4;
-    assert(bin < (int)stubsbinnedvm_.size());
+    assert(ivmte * settings_.NLONGVMBINS() + bin < stubsbinnedvm_.size());
     if (stubsbinnedvm_[ivmte * settings_.NLONGVMBINS() + bin].size() < N_VMSTUBSMAX) {
       stubsbinnedvm_[ivmte * settings_.NLONGVMBINS() + bin].push_back(vmstub);
       stubsvm_.push_back(vmstub);
