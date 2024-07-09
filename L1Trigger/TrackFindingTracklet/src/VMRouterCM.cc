@@ -270,6 +270,9 @@ void VMRouterCM::execute(unsigned int) {
       for (auto& ivmstubTEPHI : vmstubsTEPHI_) {
         unsigned int iseed = ivmstubTEPHI.seednumber;
         unsigned int lutwidth = settings_.lutwidthtab(1, iseed);
+        if (settings_.extended()) {
+          lutwidth = settings_.lutwidthtabextended(1, iseed);
+        }
 
         int lutval = -999;
 
