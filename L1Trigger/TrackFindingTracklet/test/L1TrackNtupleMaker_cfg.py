@@ -133,13 +133,13 @@ process.load('L1Trigger.TrackerTFP.ProducerLayerEncoding_cff')
 process.load('L1Trigger.TrackerDTC.ProducerED_cff')
 
 # load code that analyzes DTCStubs
-#process.load('L1Trigger.TrackerDTC.Analyzer_cff')
+process.load('L1Trigger.TrackerDTC.Analyzer_cff')
 
 # modify default cuts
 #process.TrackTriggerSetup.FrontEnd.BendCut = 5.0
 #process.TrackTriggerSetup.Hybrid.MinPt = 1.0
 
-process.dtc = cms.Path(process.TrackerDTCProducer)#*process.TrackerDTCAnalyzer)
+process.dtc = cms.Path(process.TrackerDTCProducer*process.TrackerDTCAnalyzer)
 # Throw error if reading MC produced with different stub window sizes.
 process.TrackerDTCProducer.CheckHistory = True
 
