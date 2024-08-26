@@ -25,16 +25,6 @@ TrackletProcessor::TrackletProcessor(string name, Settings const& settings, Glob
       innerOverlapTable_(settings) {
   iAllStub_ = -1;
 
-  for (unsigned int ilayer = 0; ilayer < N_LAYER; ilayer++) {
-    vector<TrackletProjectionsMemory*> tmp(settings_.nallstubs(ilayer), nullptr);
-    trackletprojlayers_.push_back(tmp);
-  }
-
-  for (unsigned int idisk = 0; idisk < N_DISK; idisk++) {
-    vector<TrackletProjectionsMemory*> tmp(settings_.nallstubs(idisk + N_LAYER), nullptr);
-    trackletprojdisks_.push_back(tmp);
-  }
-
   outervmstubs_ = nullptr;
 
   initLayerDisksandISeed(layerdisk1_, layerdisk2_, iSeed_);
@@ -103,11 +93,6 @@ TrackletProcessor::TrackletProcessor(string name, Settings const& settings, Glob
   maxStep_ = settings_.maxStep("TP");
 }
 
-void TrackletProcessor::addOutputProjection(TrackletProjectionsMemory*& outputProj, MemoryBase* memory) {
-  outputProj = dynamic_cast<TrackletProjectionsMemory*>(memory);
-  assert(outputProj != nullptr);
-}
-
 void TrackletProcessor::addOutput(MemoryBase* memory, string output) {
   if (settings_.writetrace()) {
     edm::LogVerbatim("Tracklet") << "In " << name_ << " adding output to " << memory->getName() << " to output "
@@ -118,33 +103,6 @@ void TrackletProcessor::addOutput(MemoryBase* memory, string output) {
     assert(tmp != nullptr);
     trackletpars_ = tmp;
     return;
-  }
-
-  if (output.substr(0, 7) == "projout") {
-    //output is on the form 'projoutL2PHIC' or 'projoutD3PHIB'
-    auto* tmp = dynamic_cast<TrackletProjectionsMemory*>(memory);
-    assert(tmp != nullptr);
-
-    unsigned int layerdisk = output[8] - '1';   //layer or disk counting from 0
-    unsigned int phiregion = output[12] - 'A';  //phiregion counting from 0
-
-    if (output[7] == 'L') {
-      assert(layerdisk < N_LAYER);
-      assert(phiregion < trackletprojlayers_[layerdisk].size());
-      //check that phiregion not already initialized
-      assert(trackletprojlayers_[layerdisk][phiregion] == nullptr);
-      trackletprojlayers_[layerdisk][phiregion] = tmp;
-      return;
-    }
-
-    if (output[7] == 'D') {
-      assert(layerdisk < N_DISK);
-      assert(phiregion < trackletprojdisks_[layerdisk].size());
-      //check that phiregion not already initialized
-      assert(trackletprojdisks_[layerdisk][phiregion] == nullptr);
-      trackletprojdisks_[layerdisk][phiregion] = tmp;
-      return;
-    }
   }
 
   throw cms::Exception("BadConfig") << __FILE__ << " " << __LINE__ << " Could not find output : " << output;

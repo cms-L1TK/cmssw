@@ -45,7 +45,7 @@ namespace trklet {
     std::string iTCStr(unsigned int iTC) const;
 
     //Return iTC as string - ie AB, CD, ABC, etc
-    std::string iMergedTCStr(unsigned int iSeed, unsigned int iMergedTC) const;
+    static std::string iMergedTCStr(unsigned int iSeed, unsigned int iMergedTC);
 
     //The region string A, B, C etc for layers and disks; X, Y, Z etc for overlap
     std::string iRegStr(unsigned int iReg, unsigned int iSeed) const;
