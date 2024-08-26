@@ -521,7 +521,7 @@ std::string TrackletConfigBuilder::iTCStr(unsigned int iTC) const {
   return name[iTC];
 }
 
-std::string TrackletConfigBuilder::iMergedTCStr(unsigned int iSeed, unsigned int iTC) const {
+std::string TrackletConfigBuilder::iMergedTCStr(unsigned int iSeed, unsigned int iTC) {
   
   assert(iSeed<8);
   
@@ -632,7 +632,7 @@ std::string TrackletConfigBuilder::PRName(unsigned int ilayer, unsigned int ireg
     return "PR_" + LayerName(ilayer) + "PHI" + iTCStr(ireg);
   }
 }
-
+/*
 void TrackletConfigBuilder::writeProjectionMemories(std::ostream& os, std::ostream& memories, std::ostream&) {
   // Each TC (e.g. TC_L1L2D) writes a projection memory (TPROJ) for each layer the seed projects to,
   // with name indicating the TC and which layer & phi region it projects to (e.g. TPROJ_L1L2D_L3PHIA).
@@ -647,24 +647,24 @@ void TrackletConfigBuilder::writeProjectionMemories(std::ostream& os, std::ostre
         unsigned int iSeed = projections_[ilayer][ireg][imem].first;
         unsigned int iTC = projections_[ilayer][ireg][imem].second;
 
-	for (unsigned int iMergedTC = 0 ; iMergedTC<nMergedTC[iSeed]; iMergedTC++) { 
+        for (unsigned int iMergedTC = 0 ; iMergedTC<nMergedTC[iSeed]; iMergedTC++) { 
 
-	  std::string mergetcstr = iMergedTCStr(iSeed, iMergedTC);
+          std::string mergetcstr = iMergedTCStr(iSeed, iMergedTC);
 
-	  if (mergetcstr.find(iTCStr(iTC)) != std::string::npos) {
-	  
-	    memories << "TrackletProjections: " + TPROJName(iSeed, iTC, ilayer, ireg) + " [54]" << std::endl;
+          if (mergetcstr.find(iTCStr(iTC)) != std::string::npos) {
+          
+            memories << "TrackletProjections: " + TPROJName(iSeed, iTC, ilayer, ireg) + " [54]" << std::endl;
 
-	    os << TPROJName(iSeed, iTC, ilayer, ireg) << " input=> " << TCName(iSeed, iTC) << ".projout"
-	       << LayerName(ilayer) << "PHI" << iTCStr(ireg) << " output=> " << PCName(iSeed, iMergedTC) << ".projin"
-	       << std::endl;
+            os << TPROJName(iSeed, iTC, ilayer, ireg) << " input=> " << TCName(iSeed, iTC) << ".projout"
+              << LayerName(ilayer) << "PHI" << iTCStr(ireg) << " output=> " << PCName(iSeed, iMergedTC) << ".projin"
+              << std::endl;
 
-	  }
-	}
+          }
+        }
       }
     }
   }
-}
+}*/
 
 void TrackletConfigBuilder::writeMergedProjectionMemories(std::ostream& os, std::ostream& memories, std::ostream& process) {
   // Writed the merged projection memories as produced by the ProjectionCalculator mdoels
@@ -1416,7 +1416,7 @@ void TrackletConfigBuilder::writeAll(std::ostream& wires, std::ostream& memories
   writeVMSMemories(wires, memories, modules);
   writeSPMemories(wires, memories, modules);
   writeMergedProjectionMemories(wires, memories, modules);
-  writeProjectionMemories(wires, memories, modules);
+  //writeProjectionMemories(wires, memories, modules);
   writeTPARMemories(wires, memories, modules);
   writeVMPROJMemories(wires, memories, modules);
   writeAPMemories(wires, memories, modules);

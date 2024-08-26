@@ -742,8 +742,8 @@ bool TrackletCalculatorDisplaced::LLLSeeding(const Stub* innerFPGAStub,
                                     id0,
                                     iz0,
                                     it,
-                                    projs,
                                     false);
+  tracklet->addProjs(projs); // add projections to tracklet
 
   if (settings_.debugTracklet())
     edm::LogVerbatim("Tracklet") << "TrackletCalculatorDisplaced " << getName()
@@ -1153,8 +1153,8 @@ bool TrackletCalculatorDisplaced::DDLSeeding(const Stub* innerFPGAStub,
                                     id0,
                                     iz0,
                                     it,
-                                    projs,
                                     true);
+  tracklet->addProjs(projs); // add projections to tracklet
 
   if (settings_.debugTracklet())
     edm::LogVerbatim("Tracklet") << "TrackletCalculatorDisplaced " << getName()
@@ -1558,8 +1558,8 @@ bool TrackletCalculatorDisplaced::LLDSeeding(const Stub* innerFPGAStub,
                                     id0,
                                     iz0,
                                     it,
-                                    projs,
                                     false);
+  tracklet->addProjs(projs); // add projections to tracklet
 
   if (settings_.debugTracklet())
     edm::LogVerbatim("Tracklet") << "TrackletCalculatorDisplaced " << getName()

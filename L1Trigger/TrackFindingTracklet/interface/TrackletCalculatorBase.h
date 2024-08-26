@@ -103,9 +103,10 @@ namespace trklet {
                        double& phider,
                        double& rder);
 
-    void projLayer(int ir, int irinv, int iphi0, int it,int iz0, int &iz, int &iphi);
 
-    void projDisk(int iz, int irinv, int iphi0, int it,int iz0, int &ir, int &iphi, int &iderphi, int &iderr);
+    void projlayer(int ir, int irinv, int iphi0, int it,int iz0, int &iz, int &iphi); // lower case to differentiate from ProjectionCalculator functions
+
+    void projdisk(int iz, int irinv, int iphi0, int it,int iz0, int &ir, int &iphi, int &iderphi, int &iderr);
 
     void calcPars(unsigned int idr, int iphi1, int ir1, int iz1, int iphi2, int ir2, int iz2,
 		  int &irinv_new, int &iphi0_new, int &iz0_new, int &it_new);
