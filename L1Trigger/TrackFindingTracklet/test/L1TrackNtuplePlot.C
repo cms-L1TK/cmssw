@@ -1,10 +1,10 @@
-// ----------------------------------------------------------------------------------------------------------------
-// Basic example ROOT script for making tracking performance plots using the ntuples produced by L1TrackNtupleMaker.cc
+// --------------------------------------------------------------------------------------------------------
+// ROOT script for making tracking performance plots using the ntuples produced by L1TrackNtupleMaker.cc
 //
 // e.g. in ROOT do: .L L1TrackNtuplePlot.C++, L1TrackNtuplePlot("L1TrkNtuple")
 //
 // By Louise Skinnari, June 2013
-// ----------------------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------
 
 #include "TROOT.h"
 #include "TStyle.h"
