@@ -58,13 +58,23 @@ namespace trklet {
     std::vector<unsigned int> findOverlapPhiBins(const Tracklet* trk) const;
     // sort the tracklets into the correct bin by comparing the overlap rinv bin(s) the tracklets are in to the current bin
     bool isTrackInBin(const std::vector<unsigned int>& vec, unsigned int num) const;
+    // makes CompareBest comaprison into a function to make code more readable
+    void doCompareBest(const std::vector<std::pair<int, int>>& stubsTrk,
+                       const std::vector<const Stub*>& fullStubslistsTrk,
+                       int layStubidsTrk[],
+                       unsigned int itrk) const;
 
     std::vector<Track*> inputtracks_;
     std::vector<std::vector<const Stub*>> inputstublists_;
+    std::vector<std::vector<const Stub*>> sortedinputstublists_;
     std::vector<std::vector<std::pair<int, int>>> inputstubidslists_;
+    std::vector<std::vector<std::pair<int, int>>> sortedinputstubidslists_;
     std::vector<std::vector<std::pair<int, int>>> mergedstubidslists_;
+    std::vector<std::vector<std::pair<int, int>>> sortedmergedstubidslists_;
+    std::vector<std::vector<std::pair<int, int>>> comparestubidslists_;
     std::vector<TrackFitMemory*> inputtrackfits_;
     std::vector<Tracklet*> inputtracklets_;
+    std::vector<Tracklet*> sortedinputtracklets_;
     std::vector<CleanTrackMemory*> outputtracklets_;
   };
 
