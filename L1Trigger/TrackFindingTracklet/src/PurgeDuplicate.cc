@@ -135,14 +135,12 @@ void PurgeDuplicate::execute(std::vector<Track>& outputtracks, unsigned int iSec
 
     for (unsigned int bin = 0; bin < settings_.rinvBins().size() - 1; bin++) {
       for (unsigned int phiBin = 0; phiBin < settings_.phiBins().size() - 1; phiBin++) {
-        //std::cout << "We're in bin " << 2 * bin + phiBin << std::endl;
         // Get vectors from TrackFit and save them
         // inputtracklets: Tracklet objects from the FitTrack (not actually fit yet)
         // inputstublists: L1Stubs for that track
         // inputstubidslists: Stub stubIDs for that 3rack
         // mergedstubidslists: the same as inputstubidslists, but will be used during duplicate removal
         for (unsigned int i = 0; i < inputtrackfits_.size(); i++) {
-          //std::cout << "The number of tracks in this bin is " << inputtrackfits_[i]->nStublists() << std::endl;
           if (inputtrackfits_[i]->nStublists() == 0)
             continue;
           if (inputtrackfits_[i]->nStublists() != inputtrackfits_[i]->nTracks())
@@ -168,7 +166,6 @@ void PurgeDuplicate::execute(std::vector<Track>& outputtracks, unsigned int iSec
               // Rank-Informed Guess: L1L2 > L3L4 > L1D1 > L2L3 > L2D1 > D1D2 > L5L6 > D3D4
               unsigned int curSeed = aTrack->seedIndex();
               std::vector<int> ranks{1, 5, 2, 7, 4, 3, 8, 6};
-              //std::vector<int> ranks{1, 4, 2, 3, 6, 8, 7, 5};
               if (curSeed < ranks.size()) {
                 seedRank.push_back(ranks[curSeed]);
               } else if (settings_.extended()) {
@@ -880,12 +877,10 @@ void PurgeDuplicate::doCompareBest(const std::vector<std::pair<int, int>>& stubs
     bool endcapA = (i > 10);
     bool endcapB = (i < 0);
     int lay = barrel * (i - 1) + endcapA * (i - 5) - endcapB * i;  // encode in range 0-15
-    double nres = getPhiRes(inputtracklets_[itrk], fullStubslistsTrk[stcount]);
-    //double nres = getPhiRes(sortedinputtracklets_[itrk], fullStubslistsTrk[stcount]);
+    double nres = getPhiRes(sortedinputtracklets_[itrk], fullStubslistsTrk[stcount]);
     double ores = 0;
     if (layStubidsTrk[lay] != -1) {
-      //ores = getPhiRes(sortedinputtracklets_[itrk], fullStubslistsTrk[layStubidsTrk[lay]]);
-      ores = getPhiRes(inputtracklets_[itrk], fullStubslistsTrk[layStubidsTrk[lay]]);
+      ores = getPhiRes(sortedinputtracklets_[itrk], fullStubslistsTrk[layStubidsTrk[lay]]);
     }
     if (layStubidsTrk[lay] == -1 || nres < ores) {
       layStubidsTrk[lay] = stcount;
