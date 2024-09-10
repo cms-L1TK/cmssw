@@ -27,9 +27,9 @@ TrackQuality_params = cms.PSet(
   WidthM21          = cms.int32(     16 ), #
   WidthInvV0        = cms.int32(     16 ), #
   WidthInvV1        = cms.int32(     16 ), #
-  WidthChi20        = cms.int32(     20 ), #
-  WidthChi21        = cms.int32(     20 ), #
-  BaseShiftChi20    = cms.int32(     -6 ), #
-  BaseShiftChi21    = cms.int32(     -6 )  #
+  Widthchi2rphi     = cms.int32(     20 ), #
+  Widthchi2rz       = cms.int32(     20 ), #
+  BaseShiftchi2rphi = cms.int32(     -6 ), #
+  BaseShiftchi2rz   = cms.int32(     -6 )  #
 
 )
