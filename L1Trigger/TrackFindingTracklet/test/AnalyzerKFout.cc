@@ -86,8 +86,8 @@ namespace trklet {
     usesResource("TFileService");
     // book in- and output ED products
     const string& label = iConfig.getParameter<string>("LabelKFout");
-    const string& branchAccepted = iConfig.getParameter<string>("BranchAcceptedTracks");
-    const string& branchLost = iConfig.getParameter<string>("BranchLostTracks");
+    const string& branchAccepted = iConfig.getParameter<string>("BranchTracksAccepted");
+    const string& branchLost = iConfig.getParameter<string>("BranchTracksTruncated");
     edGetTokenAccepted_ = consumes<StreamsTrack>(InputTag(label, branchAccepted));
     edGetTokenLost_ = consumes<StreamsTrack>(InputTag(label, branchLost));
     if (useMCTruth_) {

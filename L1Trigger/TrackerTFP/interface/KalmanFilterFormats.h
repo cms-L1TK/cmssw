@@ -59,6 +59,10 @@ namespace trackerTFP {
     C22,
     C23,
     C33,
+    r02,
+    r12,
+    chi20,
+    chi21,
     end,
     x
   };
@@ -67,26 +71,33 @@ namespace trackerTFP {
 
   class DataFormatKF {
   public:
-    DataFormatKF(const VariableKF& v, bool twos);
+    DataFormatKF(const VariableKF& v, bool twos, bool enableIntegerEmulation);
     virtual ~DataFormatKF() {}
-    double digi(double val) const { return (std::floor(val / base_ + 1.e-12) + .5) * base_; }
+    double digi(double val) const {
+      return enableIntegerEmulation_ ? (std::floor(val / base_ + 1.e-11) + .5) * base_ : val;
+    }
     bool twos() const { return twos_; }
     int width() const { return width_; }
     double base() const { return base_; }
     double range() const { return range_; }
-    const std::pair<double, double>& rangeActual() const { return rangeActual_; }
+    double min() const { return min_; }
+    double abs() const { return abs_; }
+    double max() const { return max_; }
     // returns false if data format would oferflow for this double value
     bool inRange(double d) const;
     void updateRangeActual(double d);
-    int integer(double d) const { return floor(d / base_); }
+    int integer(double d) const { return floor(d / base_ + 1.e-11); }
 
   protected:
     VariableKF v_;
     bool twos_;
+    bool enableIntegerEmulation_;
     int width_;
     double base_;
     double range_;
-    std::pair<double, double> rangeActual_;
+    double min_;
+    double abs_;
+    double max_;
   };
 
   template <VariableKF v>
@@ -95,8 +106,13 @@ namespace trackerTFP {
     FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig);
     ~FormatKF() override {}
 
+  protected:
+    bool emu() const { return enableIntegerEmulation_; }
+    bool enableIntegerEmulation_;
+
   private:
     void calcRange() { range_ = base_ * pow(2, width_); }
+    void calcWidth() { width_ = ceil(log2(range_ / base_) - 1.e-11); }
   };
 
   template <>
@@ -171,6 +187,14 @@ namespace trackerTFP {
   FormatKF<VariableKF::C23>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig);
   template <>
   FormatKF<VariableKF::C33>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig);
+  template <>
+  FormatKF<VariableKF::r02>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig);
+  template <>
+  FormatKF<VariableKF::r12>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig);
+  template <>
+  FormatKF<VariableKF::chi20>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig);
+  template <>
+  FormatKF<VariableKF::chi21>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig);
 
   class KalmanFilterFormats {
   public:
@@ -179,8 +203,6 @@ namespace trackerTFP {
     ~KalmanFilterFormats() {}
     const tt::Setup* setup() const { return setup_; }
     const DataFormats* dataFormats() const { return dataFormats_; }
-    int width(VariableKF v) const { return formats_[+v].width(); }
-    double base(VariableKF v) const { return formats_[+v].base(); }
     DataFormatKF& format(VariableKF v) { return formats_[+v]; }
     void endJob();
 

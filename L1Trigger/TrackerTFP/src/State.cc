@@ -5,121 +5,242 @@ using namespace tt;
 
 namespace trackerTFP {
 
-  // default constructor
-  State::State(State* state)
-      : dataFormats_(state->dataFormats_),
-        setup_(state->setup_),
-        track_(state->track_),
-        trackId_(state->trackId_),
-        parent_(state->parent_),
-        stub_(state->stub_),
-        layerMap_(state->layerMap_),
-        hitPattern_(state->hitPattern_),
-        x0_(state->x0_),
-        x1_(state->x1_),
-        x2_(state->x2_),
-        x3_(state->x3_),
-        C00_(state->C00_),
-        C01_(state->C01_),
-        C11_(state->C11_),
-        C22_(state->C22_),
-        C23_(state->C23_),
-        C33_(state->C33_),
-        numSkippedLayers_(state->numSkippedLayers_),
-        numConsistentLayers_(state->numConsistentLayers_) {}
-
   // proto state constructor
-  State::State(const DataFormats* dataFormats, TrackKFin* track, int trackId)
-      : dataFormats_(dataFormats),
-        setup_(dataFormats->setup()),
+  State::State(KalmanFilterFormats* formats,
+               TrackCTB* track,
+               const vector<vector<StubCTB*>>& stubs,
+               const TTBV& maybePattern,
+               int trackId)
+      : formats_(formats),
+        setup_(formats->setup()),
         track_(track),
+        stubs_(stubs),
+        maybePattern_(maybePattern),
         trackId_(trackId),
         parent_(nullptr),
         stub_(nullptr),
-        layerMap_(setup_->numLayers()),
         hitPattern_(0, setup_->numLayers()),
-        numSkippedLayers_(0),
-        numConsistentLayers_(0) {
-    // initial track parameter residuals w.r.t. found track
-    x0_ = 0.;
-    x1_ = 0.;
-    x2_ = 0.;
-    x3_ = 0.;
-    // initial uncertainties
-    C00_ = pow(dataFormats_->base(Variable::inv2R, Process::kfin), 2) * pow(2, setup_->kfShiftInitialC00());
-    C11_ = pow(dataFormats_->base(Variable::phiT, Process::kfin), 2) * pow(2, setup_->kfShiftInitialC11());
-    C22_ = pow(dataFormats_->base(Variable::cot, Process::kfin), 2) * pow(2, setup_->kfShiftInitialC22());
-    C33_ = pow(dataFormats_->base(Variable::zT, Process::kfin), 2) * pow(2, setup_->kfShiftInitialC33());
-    C01_ = 0.;
-    C23_ = 0.;
+        trackPattern_(0, setup_->numLayers()) {
     // first stub from first layer on input track with stubs
-    stub_ = track->layerStub(track->hitPattern().plEncode());
+    for (int layer = setup_->numLayers() - 1; layer >= 0; layer--) {
+      const vector<StubCTB*>& stubs = stubs_[layer];
+      if (stubs.empty())
+        continue;
+      trackPattern_.set(layer);
+      stub_ = stubs.front();
+      layer_ = layer;
+    }
+    DataFormatKF& dfH00 = formats_->format(VariableKF::H00);
+    DataFormatKF& dfv0 = formats_->format(VariableKF::v0);
+    DataFormatKF& dfv1 = formats_->format(VariableKF::v1);
+    // stub parameter
+    H12_ = dfH00.digi(stub_->r() + dfH00.digi(setup_->chosenRofPhi() - setup_->chosenRofZ()));
+    v0_ = dfv0.digi(pow(stub_->dPhi(), 2));
+    v1_ = dfv1.digi(pow(stub_->dZ(), 2));
   }
 
   // combinatoric state constructor
-  State::State(State* state, StubKFin* stub) : State(state) {
+  State::State(State* state, StubCTB* stub, int layer) : State(state) {
+    DataFormatKF& dfH00 = formats_->format(VariableKF::H00);
+    DataFormatKF& dfv0 = formats_->format(VariableKF::v0);
+    DataFormatKF& dfv1 = formats_->format(VariableKF::v1);
     parent_ = state->parent();
     stub_ = stub;
+    layer_ = layer;
+    H12_ = dfH00.digi(stub_->r() + dfH00.digi(setup_->chosenRofPhi() - setup_->chosenRofZ()));
+    v0_ = dfv0.digi(pow(stub_->dPhi(), 2));
+    v1_ = dfv1.digi(pow(stub_->dZ(), 2));
   }
 
   // updated state constructor
-  State::State(State* state, const std::vector<double>& doubles) : State(state) {
+  State::State(State* state, const vector<double>& doubles) : State(state) {
+    DataFormatKF& dfH00 = formats_->format(VariableKF::H00);
+    DataFormatKF& dfv0 = formats_->format(VariableKF::v0);
+    DataFormatKF& dfv1 = formats_->format(VariableKF::v1);
     parent_ = state;
     // updated track parameter and uncertainties
     x0_ = doubles[0];
     x1_ = doubles[1];
     x2_ = doubles[2];
     x3_ = doubles[3];
-    C00_ = doubles[4];
-    C11_ = doubles[5];
-    C22_ = doubles[6];
-    C33_ = doubles[7];
-    C01_ = doubles[8];
-    C23_ = doubles[9];
+    chi20_ = doubles[4];
+    chi21_ = doubles[5];
+    C00_ = doubles[6];
+    C11_ = doubles[7];
+    C22_ = doubles[8];
+    C33_ = doubles[9];
+    C01_ = doubles[10];
+    C23_ = doubles[11];
     // update maps
-    const int layer = stub_->layer();
-    hitPattern_.set(layer);
-    const vector<StubKFin*>& stubs = track_->layerStubs(layer);
-    layerMap_[layer] = distance(stubs.begin(), find(stubs.begin(), stubs.end(), stub_));
+    hitPattern_.set(layer_);
     // pick next stub (first stub in next layer with stub)
-    stub_ = nullptr;
-    if (hitPattern_.count() == setup_->kfMaxLayers())
+    if (hitPattern_.count() >= setup_->kfMinLayers()) {
+      layer_ = 0;
       return;
-    for (int nextLayer = layer + 1; nextLayer < setup_->numLayers(); nextLayer++) {
-      if (track_->hitPattern(nextLayer)) {
-        stub_ = track_->layerStub(nextLayer);
+    }
+    stub_ = nullptr;
+    for (int nextLayer = layer_ + 1; nextLayer < setup_->numLayers(); nextLayer++) {
+      if (trackPattern_[nextLayer]) {
+        stub_ = stubs_[nextLayer].front();
+        layer_ = nextLayer;
         break;
       }
     }
+    if (!stub_)
+      return;
+    H12_ = dfH00.digi(stub_->r() + dfH00.digi(setup_->chosenRofPhi() - setup_->chosenRofZ()));
+    v0_ = dfv0.digi(pow(stub_->dPhi(), 2));
+    v1_ = dfv1.digi(pow(stub_->dZ(), 2));
   }
 
-  // fills collection of stubs added so far to state
-  void State::fill(vector<StubKF>& stubs) const {
-    stubs.reserve(hitPattern_.count());
-    State* s = parent_;
-    while (s) {
-      stubs.emplace_back(*(s->stub()), x0_, x1_, x2_, x3_);
-      s = s->parent();
+  // seed building state constructor
+  State::State(State* state, int layer) : State(state) {
+    DataFormatKF& dfH00 = formats_->format(VariableKF::H00);
+    DataFormatKF& dfv0 = formats_->format(VariableKF::v0);
+    DataFormatKF& dfv1 = formats_->format(VariableKF::v1);
+    parent_ = state;
+    hitPattern_.set(layer);
+    for (int nextLayer = layer + 1; nextLayer < setup_->numLayers(); nextLayer++) {
+      if (trackPattern_[nextLayer]) {
+        stub_ = stubs_[nextLayer].front();
+        layer_ = nextLayer;
+        break;
+      }
     }
+    H12_ = dfH00.digi(stub_->r() + dfH00.digi(setup_->chosenRofPhi() - setup_->chosenRofZ()));
+    v0_ = dfv0.digi(pow(stub_->dPhi(), 2));
+    v1_ = dfv1.digi(pow(stub_->dZ(), 2));
   }
 
-  // Determine quality of completed state
-  void State::finish() {
-    auto consistent = [this](int sum, const StubKF& stub) {
-      static const DataFormat& phi = dataFormats_->format(Variable::phi, Process::kf);
-      static const DataFormat& z = dataFormats_->format(Variable::z, Process::kf);
-      // Check stub consistent with helix, allowing for stub uncertainty
-      const bool inRange0 = 2. * abs(stub.phi()) - stub.dPhi() < phi.base();
-      const bool inRange1 = 2. * abs(stub.z()) - stub.dZ() < z.base();
-      return sum + (inRange0 && inRange1 ? 1 : 0);
-    };
-    vector<StubKF> stubs;
-    fill(stubs);
-    numConsistentLayers_ = accumulate(stubs.begin(), stubs.end(), 0, consistent);
-    TTBV pattern = hitPattern_;
-    pattern |= maybePattern();
-    // Skipped layers before final stub on state
-    numSkippedLayers_ = pattern.count(0, hitPattern_.pmEncode(), false);
+  //
+  State* State::update(deque<State>& states, int layer) {
+    if (layer_ != layer || hitPattern_.count() == setup_->kfNumSeedStubs())
+      return this;
+    states.emplace_back(this, layer);
+    return &states.back();
   }
+
+  //
+  State* State::combSeed(deque<State>& states, int layer) {
+    // handle trivial state
+    if (layer_ != layer || hitPattern_.count() == setup_->kfNumSeedStubs())
+      return nullptr;
+    // pick next stub on layer
+    const vector<StubCTB*>& stubs = stubs_[layer];
+    const int pos = distance(stubs.begin(), find(stubs.begin(), stubs.end(), stub_)) + 1;
+    if (pos < (int)stubs.size()) {
+      states.emplace_back(this, stubs[pos], layer);
+      return &states.back();
+    }
+    // skip this layer
+    if (trackPattern_[layer + 1] &&
+        (hitPattern_.count() + trackPattern_.count(layer + 1, setup_->kfMaxSeedingLayer(), '1') >=
+         setup_->kfNumSeedStubs()) &&
+        trackPattern_.count() > setup_->kfMinLayers()) {
+      states.emplace_back(this, stubs_[layer + 1].front(), layer + 1);
+      return &states.back();
+    }
+    return nullptr;
+  }
+
+  //
+  State* State::comb(deque<State>& states, int layer) {
+    // handle skipping
+    if (layer_ > layer)
+      return nullptr;
+    // handle max reached
+    if (hitPattern_.count() == setup_->kfMaxLayers())
+      return nullptr;
+    // handle end reached
+    if (!stub_)
+      return nullptr;
+    // handle min reached
+    const vector<StubCTB*>& stubs = stubs_[layer];
+    if (layer_ == 0) {
+      if (trackPattern_[layer] && gapCheck(layer)) {
+        states.emplace_back(this, stubs.front(), layer);
+        return &states.back();
+      }
+      return nullptr;
+    }
+    // handle multiple stubs on layer
+    const int pos = distance(stubs.begin(), find(stubs.begin(), stubs.end(), stub_)) + 1;
+    if (pos < (int)stubs.size()) {
+      states.emplace_back(this, stubs[pos], layer);
+      return &states.back();
+    }
+    // handle skip
+    int nextLayer = layer + 1;
+    for (; nextLayer < setup_->numLayers(); nextLayer++)
+      if (trackPattern_[nextLayer])
+        break;
+    if (gapCheck(nextLayer)) {
+      states.emplace_back(this, stubs_[nextLayer].front(), nextLayer);
+      return &states.back();
+    }
+    return nullptr;
+  }
+
+  //
+  bool State::gapCheck(int layer) const {
+    if (layer >= setup_->numLayers())
+      return false;
+    bool gap(false);
+    bool doubleGap(false);
+    int hits(0);
+    int gaps(0);
+    int available(0);
+    for (int k = 0; k < layer; k++) {
+      if (hitPattern_[k]) {
+        hits++;
+        gap = false;
+      } else if (!maybePattern_[k]) {
+        gaps++;
+        if (gap)
+          doubleGap = true;
+        gap = true;
+      }
+    }
+    for (int k = setup_->numLayers() - 1; k >= layer; k--)
+      if (trackPattern_[k])
+        available++;
+    const int needed = setup_->kfMinLayers() - hits;
+    if (doubleGap)
+      return false;
+    if (gaps > setup_->kfMaxGaps())
+      return false;
+    if (available < needed)
+      return false;
+    return true;
+  }
+
+  // copy constructor
+  State::State(State* state)
+      : formats_(state->formats_),
+        setup_(state->setup_),
+        track_(state->track_),
+        stubs_(state->stubs_),
+        maybePattern_(state->maybePattern_),
+        trackId_(state->trackId_),
+        parent_(state->parent_),
+        stub_(state->stub_),
+        layer_(state->layer_),
+        hitPattern_(state->hitPattern_),
+        trackPattern_(state->trackPattern_),
+        x0_(state->x0_),
+        x1_(state->x1_),
+        x2_(state->x2_),
+        x3_(state->x3_),
+        chi20_(state->chi20_),
+        chi21_(state->chi21_),
+        C00_(state->C00_),
+        C01_(state->C01_),
+        C11_(state->C11_),
+        C22_(state->C22_),
+        C23_(state->C23_),
+        C33_(state->C33_),
+        H12_(state->H12_),
+        v0_(state->v0_),
+        v1_(state->v1_) {}
 
 }  // namespace trackerTFP
