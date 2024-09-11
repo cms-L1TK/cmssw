@@ -307,7 +307,7 @@ namespace trklet {
           temp_tttrack.setTrackWordBits();
           ttTracks.emplace_back(temp_tttrack);
         }  // Iterate over Tracks
-      }    // Iterate over Links
+      }  // Iterate over Links
       const OrphanHandle<tt::TTTracks> orphanHandleTTTracks = iEvent.emplace(edPutTokenTTTracks_, std::move(ttTracks));
 
       // sort partial KFout tracks into 18 separate links (nonant idx * eta idx) with tttrack ref info
