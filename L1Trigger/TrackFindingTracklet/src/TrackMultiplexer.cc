@@ -255,11 +255,16 @@ namespace trklet {
             stub->valid_ = false;
         }
         // layer check
-        set<int> layers;
-        for (Stub* stub : stubs)
-          if (stub->valid_)
-            layers.insert(setup_->layerId(stub->ttStubRef_));
-        if ((int)layers.size() < setup_->kfMinLayers())
+        set<int> layers, layersPS;
+        for (Stub* stub : stubs) {
+          if (!stub->valid_)
+            continue;
+          const int layerId = setup_->layerId(stub->ttStubRef_);
+          layers.insert(layerId);
+          if (setup_->psModule(stub->ttStubRef_))
+            layersPS.insert(layerId);
+        }
+        if ((int)layers.size() < setup_->kfMinLayers() || (int)(int)layersPS.size() < setup_->kfMinLayersPS())
           valid = false;
         // create track
         tracks_.emplace_back(ttTrackRef, valid, channel, inv2R, phiT, cot, zT, stubs);

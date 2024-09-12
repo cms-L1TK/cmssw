@@ -144,16 +144,6 @@ namespace trklet {
     numLostStates += nStates - (int)stream_.size();
     // best track per candidate selection
     accumulator();
-    /*for (State* state : stream_) {
-      deque<State*> states;
-      State* s = state;
-      states.push_front(s);
-      while ((s = s->parent()))
-        states.push_front(s);
-      for (State* s : states) {
-        cout << s->hitPattern() << " " << s->C00() << " " << s->C01() << " " << s->C11() << " " << s->C22() << " " << s->C23() << " " << s->C33() << " | " << s->x0() << " " << s->x1() << " " << s->x2() << " " << s->x3() << " | " << s->C44() << " " << s->C40() << " " << s->C41() << " | " << s->x4() << endl;
-      }
-    }*/
     // Transform States into output products
     conv(streamsStub, streamsTrack);
   }
@@ -266,6 +256,7 @@ namespace trklet {
       // stub residual cut
       State* s = state;
       TTBV hitPattern(0, setup_->numLayers());
+      TTBV hitPatternPS(0, setup_->numLayers());
       while ((s = s->parent())) {
         StubCTB* stub = s->stub();
         const double r = stub->r();
@@ -276,13 +267,17 @@ namespace trklet {
         const double z = stub->z() - (state->x3() + rz * state->x2());
         const bool validPhi = dataFormats_->format(Variable::phi, Process::kf).inRange(phi);
         const bool validZ = dataFormats_->format(Variable::z, Process::kf).inRange(z);
-        if (validPhi && validZ)
-          hitPattern.set(s->layer());
+        if (!validPhi || !validZ)
+          continue;
+        hitPattern.set(s->layer());
+        if (setup_->psModule(stub->frame().first))
+          hitPatternPS.set(s->layer());
       }
       // layer cut
       bool invalidLayers = hitPattern.count() < setup_->kfMinLayers();
+      bool invalidLayersPS = hitPatternPS.count() < setup_->kfMinLayersPS();
       // apply
-      if (invalidLayers || !validX0 || !validX1 || !validX2 || !validX3 || invaldiZ0)
+      if (invalidLayers || invalidLayersPS || !validX0 || !validX1 || !validX2 || !validX3 || invaldiZ0)
         state = nullptr;
     }
   }
@@ -459,6 +454,29 @@ namespace trklet {
       return numConsistentLayers(lhs) > numConsistentLayers(rhs);
     };
     stable_sort(stream_.begin(), stream_.end(), moreConsistentLayers);
+    // sort in number of consistent ps stubs
+    auto isConsistentPS = [this](State* state, StubCTB* stub) {
+      if (!setup_->psModule(stub->frame().first))
+        return false;
+      double phi = stub->phi() - (state->x1() + stub->r() * state->x0());
+      if (use5ParameterFit_)
+        phi -= state->x4() / (stub->r() + setup_->chosenRofPhi());
+      const double rz = stub->r() + H00_->digi(setup_->chosenRofPhi() - setup_->chosenRofZ());
+      const double z = stub->z() - (state->x3() + rz * state->x2());
+      return m0_->digi(abs(phi)) - 1.e-12 < stub->dPhi() / 2. && m1_->digi(abs(z)) - 1.e-12 < stub->dZ() / 2.;
+    };
+    auto numConsistentLayersPS = [isConsistentPS](State* state) {
+      int num(0);
+      State* s = state;
+      while ((s = s->parent()))
+        if (isConsistentPS(state, s->stub()))
+          num++;
+      return num;
+    };
+    auto moreConsistentLayersPS = [numConsistentLayersPS](State* lhs, State* rhs) {
+      return numConsistentLayersPS(lhs) > numConsistentLayersPS(rhs);
+    };
+    stable_sort(stream_.begin(), stream_.end(), moreConsistentLayersPS);
     // sort in track id as arrived
     auto order = [&trackIds](auto lhs, auto rhs) {
       const auto l = find(trackIds.begin(), trackIds.end(), lhs->trackId());

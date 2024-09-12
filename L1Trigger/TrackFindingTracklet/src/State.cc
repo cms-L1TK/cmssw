@@ -1,5 +1,11 @@
 #include "L1Trigger/TrackFindingTracklet/interface/State.h"
 
+#include <cmath>
+#include <vector>
+#include <deque>
+#include <algorithm>
+#include <iterator>
+
 using namespace std;
 using namespace tt;
 using namespace trackerTFP;
@@ -33,7 +39,7 @@ namespace trklet {
         C22_(9.e9),
         C23_(0.),
         C33_(9.e9),
-        C44_(9.e9),
+        C44_(pow(setup_->maxD0(), 2)),
         C40_(0.),
         C41_(0.) {
     stubs_ = vector<vector<StubCTB*>>(stubs.size());

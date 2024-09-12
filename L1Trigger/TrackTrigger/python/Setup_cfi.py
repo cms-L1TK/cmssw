@@ -18,6 +18,7 @@ TrackTrigger_params = cms.PSet (
     MinPt        = cms.double(  2.0     ), # min track pt in GeV, also defines region overlap shape
     MinPtCand    = cms.double(  1.34    ), # min candiate pt in GeV
     MaxEta       = cms.double(  2.5     ), # cut on stub eta
+    MaxD0        = cms.double(  5.0     ), # in cm, constraints track reconstruction phase space
     ChosenRofPhi = cms.double( 55.      ), # critical radius defining region overlap shape in cm
   ),
 
@@ -175,6 +176,7 @@ TrackTrigger_params = cms.PSet (
     RangeFactor     = cms.double(   3.0 ), # search window of each track parameter in initial uncertainties
     BaseShift       = cms.int32 (  -1   ), # bases get shifted by this power of two wrt tfp output bases
     MinLayers       = cms.int32 (   4   ), # required number of stub layers to form a track
+    MinLayersPS     = cms.int32 (   0   ), # required number of ps stub layers to form a track
     MaxLayers       = cms.int32 (   8   ), # maximum number of  layers added to a track
     MaxGaps         = cms.int32 (   4   ), # 
     MaxSeedingLayer = cms.int32 (   4   ), # 

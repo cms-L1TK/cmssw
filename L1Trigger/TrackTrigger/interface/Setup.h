@@ -206,6 +206,8 @@ namespace tt {
     double minPtCand() const { return minPtCand_; }
     // cut on stub eta
     double maxEta() const { return maxEta_; }
+    // constraints track reconstruction phase space
+    double maxD0() const { return maxD0_; }
     // critical radius defining region overlap shape in cm
     double chosenRofPhi() const { return chosenRofPhi_; }
     // TMTT: number of detector layers a reconstructbale particle may cross; Hybrid: max number of layers connected to one DTC
@@ -447,6 +449,8 @@ namespace tt {
     int kfNumWorker() const { return kfNumWorker_; }
     // required number of stub layers to form a track
     int kfMinLayers() const { return kfMinLayers_; }
+    // required number of ps stub layers to form a track
+    int kfMinLayersPS() const { return kfMinLayersPS_; }
     // maximum number of  layers added to a track
     int kfMaxLayers() const { return kfMaxLayers_; }
     //
@@ -536,6 +540,8 @@ namespace tt {
     double minPtCand_;
     // cut on stub eta
     double maxEta_;
+    // in cm, constraints track reconstruction phase space
+    double maxD0_;
     // critical radius defining region overlap shape in cm
     double chosenRofPhi_;
     // number of detector layers a reconstructbale particle may cross
@@ -799,6 +805,8 @@ namespace tt {
     int kfNumWorker_;
     // required number of stub layers to form a track
     int kfMinLayers_;
+    // required number of ps stub layers to form a track
+    int kfMinLayersPS_;
     // maximum number of  layers added to a track
     int kfMaxLayers_;
     //
