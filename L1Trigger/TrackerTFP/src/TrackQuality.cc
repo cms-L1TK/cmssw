@@ -122,7 +122,7 @@ namespace trackerTFP {
     const double z0 =
         tq->scaleZ0(df->format(Variable::zT, Process::kf).integer(track.zT() - setup->chosenRofZ() * track.cot()));
     const int nstub = hitPattern.count();
-    const int ninterior = nstub - 1;
+    const int ninterior = hitPattern.count(hitPattern.plEncode() + 1, setup->numLayers(), false);
     // use simulation for bendchi2
     const TTTrackRef& ttTrackRef = frameTrack.first;
     const int region = ttTrackRef->phiSector();

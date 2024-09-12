@@ -215,7 +215,7 @@ namespace trackerTFP {
       const double ad0 = ttTrackRef->d0();
       const double aChi2xyfit = it->chi2rphi_;
       const double aChi2zfit = it->chi2rz_;
-      const double trkMVA1 = (TTTrack_TrackWord::tqMVABins[it->mva_] + TTTrack_TrackWord::tqMVABins[it->mva_ + 1]) / 2.;
+      const double trkMVA1 = (TTTrack_TrackWord::tqMVABins[it->mva_]);
       static constexpr double trkMVA2 = 0.;
       static constexpr double trkMVA3 = 0.;
       const unsigned int aHitpattern = it->hitPattern_.val();
