@@ -128,7 +128,6 @@ process.load('L1Trigger.TrackerTFP.ProducerLayerEncoding_cff')
 #process.TTClusterStub = cms.Path(process.TrackTriggerClustersStubs)
 #process.TTClusterStubTruth = cms.Path(process.TrackTriggerAssociatorClustersStubs)
 
-
 # DTC emulation
 process.load('L1Trigger.TrackerDTC.ProducerED_cff')
 
@@ -139,8 +138,8 @@ process.load('L1Trigger.TrackerDTC.ProducerED_cff')
 #process.TrackTriggerSetup.FrontEnd.BendCut = 5.0
 #process.TrackTriggerSetup.Hybrid.MinPt = 1.0
 
-#process.dtc = cms.Path(process.TrackerDTCProducer*process.TrackerDTCAnalyzer)
-process.dtc = cms.Path(process.TrackerDTCProducer)
+pocess.dtc = cms.Path(process.TrackerDTCProducer)#*process.TrackerDTCAnalyzer)
+
 # Throw error if reading MC produced with different stub window sizes.
 process.TrackerDTCProducer.CheckHistory = True
 
