@@ -138,7 +138,7 @@ process.load('L1Trigger.TrackerDTC.ProducerED_cff')
 #process.TrackTriggerSetup.FrontEnd.BendCut = 5.0
 #process.TrackTriggerSetup.Hybrid.MinPt = 1.0
 
-pocess.dtc = cms.Path(process.TrackerDTCProducer)#*process.TrackerDTCAnalyzer)
+process.dtc = cms.Path(process.TrackerDTCProducer)#*process.TrackerDTCAnalyzer)
 
 # Throw error if reading MC produced with different stub window sizes.
 process.TrackerDTCProducer.CheckHistory = True
