@@ -795,7 +795,13 @@ unsigned int PurgeDuplicate::findPhiBin(const Tracklet* trk) const {
   double phi0 = trk->phi0();
   double rcrit = settings_.rcrit();
   double rinv = trk->rinv();
-  double phi = phi0 - asin(0.5 * rinv * rcrit);
+  double d0 = trk->d0();
+  double phi;
+  if (settings_.extended()) {
+    phi = phi0 - asin(0.5 * rinv * rcrit) + d0 / rcrit;
+  } else {
+    phi = phi0 - asin(0.5 * rinv * rcrit);
+  }
 
   //Check between what 2 values in phibins phi is between
   auto bins = std::upper_bound(phiBins.begin(), phiBins.end(), phi);
@@ -831,7 +837,13 @@ std::vector<unsigned int> PurgeDuplicate::findOverlapPhiBins(const Tracklet* trk
   double phi0 = trk->phi0();
   double rcrit = settings_.rcrit();
   double rinv = trk->rinv();
-  double phi = phi0 - asin(0.5 * rinv * rcrit);
+  double d0 = trk->d0();
+  double phi;
+  if (settings_.extended()) {
+    phi = phi0 - asin(0.5 * rinv * rcrit) + d0 / rcrit;
+  } else {
+    phi = phi0 - asin(0.5 * rinv * rcrit);
+  }
 
   const double phiOverlapSize = settings_.phiOverlapSize();
   const std::vector<double>& phiBins = settings_.phiBins();
