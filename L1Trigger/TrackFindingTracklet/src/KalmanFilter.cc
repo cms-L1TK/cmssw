@@ -601,7 +601,7 @@ namespace trklet {
     K21_->updateRangeActual(K21);
     K31_->updateRangeActual(K31);
     // create updated state
-    states_.emplace_back(State(state, {x0, x1, x2, x3, 0., 0., 0., C00, C11, C22, C33, C01, C23, 0., 0., 0.}));
+    states_.emplace_back(State(state, {x0, x1, x2, x3, 0., C00, C11, C22, C33, C01, C23, 0., 0., 0.}));
     state = &states_.back();
     x0_->updateRangeActual(x0);
     x1_->updateRangeActual(x1);
@@ -668,7 +668,7 @@ namespace trklet {
     C44 -= S04 * K40;
     C40 -= S04 * K00;
     C41 -= S04 * K10;
-    states_.emplace_back(State(state, {x0, x1, x2, x3, x4, 0., 0., C00, C11, C22, C33, C01, C23, C44, C40, C41}));
+    states_.emplace_back(State(state, {x0, x1, x2, x3, x4, C00, C11, C22, C33, C01, C23, C44, C40, C41}));
     state = &states_.back();
   }
 

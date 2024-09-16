@@ -9,7 +9,7 @@
 
 namespace trackerTFP {
 
-  // Class to represent a Kalman Filter State
+  // Class to represent a Kalman Filter helix State
   class State {
   public:
     // copy constructor
@@ -57,9 +57,9 @@ namespace trackerTFP {
     double x2() const { return x2_; }
     // helix z at radius chosenRofZ wrt input helix
     double x3() const { return x3_; }
-    //
+    // chi2 for the r-phi plane straight line fit
     double chi20() const { return chi20_; }
-    //
+    // chi2 for the r-z plane straight line fit
     double chi21() const { return chi21_; }
     // cov. matrix element
     double C00() const { return C00_; }
@@ -124,9 +124,9 @@ namespace trackerTFP {
     double x2_;
     // helix z at radius chosenRofZ wrt input helix
     double x3_;
-    //
+    // chi2 for the r-phi plane straight line fit
     double chi20_;
-    //
+    // chi2 for the r-z plane straight line fit
     double chi21_;
     // cov. matrix
     double C00_;

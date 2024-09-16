@@ -90,17 +90,15 @@ namespace trklet {
     x2_ = doubles[2];
     x3_ = doubles[3];
     x4_ = doubles[4];
-    chi20_ = doubles[5];
-    chi21_ = doubles[6];
-    C00_ = doubles[7];
-    C11_ = doubles[8];
-    C22_ = doubles[9];
-    C33_ = doubles[10];
-    C01_ = doubles[11];
-    C23_ = doubles[12];
-    C44_ = doubles[13];
-    C40_ = doubles[14];
-    C41_ = doubles[15];
+    C00_ = doubles[5];
+    C11_ = doubles[6];
+    C22_ = doubles[7];
+    C33_ = doubles[8];
+    C01_ = doubles[9];
+    C23_ = doubles[10];
+    C44_ = doubles[11];
+    C40_ = doubles[12];
+    C41_ = doubles[13];
     // update maps
     hitPattern_.set(layer_);
     // pick next stub (first stub in next layer with stub)
@@ -239,8 +237,6 @@ namespace trklet {
         x2_(state->x2_),
         x3_(state->x3_),
         x4_(state->x4_),
-        chi20_(state->chi20_),
-        chi21_(state->chi21_),
         C00_(state->C00_),
         C01_(state->C01_),
         C11_(state->C11_),

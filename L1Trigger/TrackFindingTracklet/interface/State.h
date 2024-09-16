@@ -9,7 +9,7 @@
 
 namespace trklet {
 
-  // Class to represent a Kalman Filter State
+  // Class to represent a Kalman Filter helix State
   class State {
   public:
     // copy constructor
@@ -59,10 +59,6 @@ namespace trklet {
     double x3() const { return x3_; }
     //
     double x4() const { return x4_; }
-    //
-    double chi20() const { return chi20_; }
-    //
-    double chi21() const { return chi21_; }
     // cov. matrix element
     double C00() const { return C00_; }
     // cov. matrix element
@@ -131,10 +127,6 @@ namespace trklet {
     double x3_;
     // impact parameter in 1/cm
     double x4_;
-    //
-    double chi20_;
-    //
-    double chi21_;
     // cov. matrix
     double C00_;
     double C01_;
