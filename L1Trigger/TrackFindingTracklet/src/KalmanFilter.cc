@@ -217,7 +217,7 @@ namespace trklet {
       const double C11 = C11_->digi((H12v0 + H02v1) * invdH2);
       const double C33 = C33_->digi((H32v2 + H22v3) * invdH2);
       // create updated state
-      states_.emplace_back(State(s1, {x0, x1, x2, x3, 0., 0., 0., C00, C11, C22, C33, C01, C23, 0., 0., 0.}));
+      states_.emplace_back(State(s1, {x0, x1, x2, x3, 0., C00, C11, C22, C33, C01, C23, 0., 0., 0.}));
       state = &states_.back();
       x0_->updateRangeActual(x0);
       x1_->updateRangeActual(x1);
