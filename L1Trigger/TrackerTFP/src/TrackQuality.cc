@@ -122,7 +122,7 @@ namespace trackerTFP {
     const double z0 =
         tq->scaleZ0(df->format(Variable::zT, Process::kf).integer(track.zT() - setup->chosenRofZ() * track.cot()));
     const int nstub = hitPattern.count();
-    const int ninterior = hitPattern.count(hitPattern.plEncode() + 1, setup->numLayers(), false);
+    const int n_missint = hitPattern.count(hitPattern.plEncode() + 1, setup->numLayers(), false);
     // use simulation for bendchi2
     const TTTrackRef& ttTrackRef = frameTrack.first;
     const int region = ttTrackRef->phiSector();
@@ -150,7 +150,7 @@ namespace trackerTFP {
     // load in bdt
     conifer::BDT<ap_fixed<10, 5>, ap_fixed<10, 5>> bdt(tq->model().fullPath());
     // collect features and classify using bdt
-    const vector<ap_fixed<10, 5>>& output = bdt.decision_function({cot, z0, chi2B, nstub, ninterior, chi2rphi, chi2rz});
+    const vector<ap_fixed<10, 5>>& output = bdt.decision_function({cot, z0, chi2B, nstub, n_missint, chi2rphi, chi2rz});
     const float mva = output[0].to_float();
     // fill frames
     TTBV ttBV = hitPattern;
