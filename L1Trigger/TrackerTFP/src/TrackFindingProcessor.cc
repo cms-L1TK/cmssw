@@ -208,11 +208,11 @@ namespace trackerTFP {
       const auto it = find_if(tracks_.begin(), tracks_.end(), match);
       // TTTrack conversion
       const int region = ttTrackRef->phiSector();
-      const double aRinv = -.5 * it->inv2R_;
+      const double aRinv = -2. * it->inv2R_;
       const double aphi = deltaPhi(it->phiT_ - it->inv2R_ * setup_->chosenRofPhi() + region * setup_->baseRegion());
       const double aTanLambda = it->cot_;
       const double az0 = it->zT_ - it->cot_ * setup_->chosenRofZ();
-      const double ad0 = ttTrackRef->d0();
+      const double ad0 = -ttTrackRef->d0();
       const double aChi2xyfit = it->chi2rphi_;
       const double aChi2zfit = it->chi2rz_;
       const double trkMVA1 = (TTTrack_TrackWord::tqMVABins[it->mva_]);
