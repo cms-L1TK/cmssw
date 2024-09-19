@@ -255,6 +255,28 @@ void VMRouterCM::execute(unsigned int) {
 
       int melut = meTable_.lookup((indexz << nbitsrfinebintable_) + indexr);
 
+      int indexzOld = (((1 << (stub->z().nbits() - 1)) + stub->z().value()) >> (stub->z().nbits() - nbitszfinebintable_));
+      int indexrOld = -1;
+      if (layerdisk_ > (N_LAYER - 1)) {
+        if (negdisk) {
+          indexzOld = (1 << nbitszfinebintable_) - indexzOld;
+        }
+        indexrOld = stub->r().value();
+        if (stub->isPSmodule()) {
+          indexrOld = stub->r().value() >> (stub->r().nbits() - nbitsrfinebintable_);
+        }
+      } else {
+        //Take the top nbitsfinebintable_ bits of the z coordinate. The & is to handle the negative z values.
+        indexrOld = (((1 << (stub->r().nbits() - 1)) + stub->r().value()) >> (stub->r().nbits() - nbitsrfinebintable_));
+      }
+
+      assert(indexzOld >= 0);
+      assert(indexrOld >= 0);
+      assert(indexzOld < (1 << nbitszfinebintable_));
+      assert(indexrOld < (1 << nbitsrfinebintable_));
+
+      int melutOld = meTableOld_.lookup((indexzOld << nbitsrfinebintable_) + indexrOld);
+
       assert(melut >= 0);
 
       int vmbin = melut >> NFINERZBITS;
@@ -287,6 +309,7 @@ void VMRouterCM::execute(unsigned int) {
 
       for (auto& ivmstubTEPHI : vmstubsTEPHI_) {
         unsigned int iseed = ivmstubTEPHI.seednumber;
+        const bool isTripletSeed = (iseed >= L2L3L4);
         unsigned int lutwidth = settings_.lutwidthtab(1, iseed);
         if (settings_.extended()) {
           lutwidth = settings_.lutwidthtabextended(1, iseed);
@@ -294,12 +317,42 @@ void VMRouterCM::execute(unsigned int) {
 
         int lutval = -999;
 
-        if (layerdisk_ < N_LAYER) {
-          lutval = melut;
-        } else {
-          lutval = diskTable_.lookup((indexz << nbitsrfinebintable_) + indexr);
-          if (lutval == 0) {
+        if (inner > 0) {
+          if (layerdisk_ < N_LAYER) {
+            lutval = (!isTripletSeed ? melut : melutOld);
+          } else {
+            if (inner == 2 && iseed == Seed::L2L3D1) {
+              lutval = 0;
+              if (stub->r().value() < 10) {
+                lutval = 8 * (1 + (stub->r().value() >> 2));
+              } else {
+                if (stub->r().value() < settings_.rmindiskl3overlapvm() / settings_.kr()) {
+                  lutval = -1;
+                }
+              }
+            } else {
+              lutval = (!isTripletSeed ? diskTable_.lookup((indexz << nbitsrfinebintable_) + indexr) :
+                                         diskTableOld_.lookup((indexzOld << nbitsrfinebintable_) + indexrOld));
+              if (lutval == 0)
+                continue;
+            }
+          }
+          if (lutval == -1)
             continue;
+        } else {
+          if (iseed < Seed::L1D1 || iseed > Seed::L2D1) {
+            lutval = innerTable_.lookup((indexzOld << nbitsrfinebintable_) + indexrOld);
+          } else {
+            lutval = innerOverlapTable_.lookup((indexzOld << nbitsrfinebintable_) + indexrOld);
+          }
+          if (lutval == -1)
+            continue;
+          if (settings_.extended() &&
+              (iseed == Seed::L3L4 || iseed == Seed::L5L6 || iseed == Seed::D1D2 || iseed == Seed::L2L3D1)) {
+            int lutval2 = innerThirdTable_.lookup((indexzOld << nbitsrfinebintable_) + indexrOld);
+            if (lutval2 != -1) {
+              lutval += (lutval2 << 10);
+            }
           }
         }
 
