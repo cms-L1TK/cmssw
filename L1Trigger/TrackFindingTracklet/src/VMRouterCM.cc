@@ -347,10 +347,10 @@ void VMRouterCM::execute(unsigned int) {
       for (auto& ivmstubTEPHI : vmstubsTEPHI_) {
         unsigned int iseed = ivmstubTEPHI.seednumber;
         const bool isTripletSeed = (iseed >= L2L3L4);
-        unsigned int lutwidth = settings_.lutwidthtab(1, iseed);
         unsigned int inner = (!isTripletSeed ? 1 : ivmstubTEPHI.stubposition);
+        unsigned int lutwidth = settings_.lutwidthtab(inner, iseed);
         if (settings_.extended()) {
-          lutwidth = settings_.lutwidthtabextended(1, iseed);
+          lutwidth = settings_.lutwidthtabextended(inner, iseed);
         }
 
         int lutval = -999;
