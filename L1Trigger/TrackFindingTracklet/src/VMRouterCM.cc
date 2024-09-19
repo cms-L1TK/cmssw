@@ -15,7 +15,7 @@ using namespace std;
 using namespace trklet;
 
 VMRouterCM::VMRouterCM(string name, Settings const& settings, Globals* global)
-    : ProcessBase(name, settings, global), meTable_(settings), diskTable_(settings) {
+    : ProcessBase(name, settings, global), meTable_(settings), meTableOld_(settings), diskTable_(settings), diskTableOld_(settings), innerTable_(settings), innerOverlapTable_(settings), innerThirdTable_(settings) {
   layerdisk_ = initLayerDisk(4);
 
   unsigned int region = name[9] - 'A';
@@ -25,9 +25,27 @@ VMRouterCM::VMRouterCM(string name, Settings const& settings, Globals* global)
   nextrabits_ = overlapbits_ - (settings_.nbitsallstubs(layerdisk_) + settings_.nbitsvmme(layerdisk_));
 
   meTable_.initVMRTable(layerdisk_, TrackletLUT::VMRTableType::me, region);  //used for ME and outer TE barrel
+  meTableOld_.initVMRTable(layerdisk_, TrackletLUT::VMRTableType::me, region, false);  //used for ME and outer TE barrel
 
   if (layerdisk_ == LayerDisk::D1 || layerdisk_ == LayerDisk::D2 || layerdisk_ == LayerDisk::D4) {
     diskTable_.initVMRTable(layerdisk_, TrackletLUT::VMRTableType::disk, region);  //outer disk used by D1, D2, and D4
+    diskTableOld_.initVMRTable(layerdisk_, TrackletLUT::VMRTableType::disk, region, false);  //outer disk used by D1, D2, and D4
+  }
+
+  if (layerdisk_ == LayerDisk::L1 || layerdisk_ == LayerDisk::L2 || layerdisk_ == LayerDisk::L3 ||
+      layerdisk_ == LayerDisk::L5 || layerdisk_ == LayerDisk::D1 || layerdisk_ == LayerDisk::D3) {
+    innerTable_.initVMRTable(layerdisk_, TrackletLUT::VMRTableType::inner, region, false);  //projection to next layer/disk
+  }
+
+  if (layerdisk_ == LayerDisk::L1 || layerdisk_ == LayerDisk::L2) {
+    innerOverlapTable_.initVMRTable(
+        layerdisk_, TrackletLUT::VMRTableType::inneroverlap, region, false);  //projection to disk from layer
+  }
+
+  if (layerdisk_ == LayerDisk::L2 || layerdisk_ == LayerDisk::L3 || layerdisk_ == LayerDisk::L5 ||
+      layerdisk_ == LayerDisk::D1) {
+    innerThirdTable_.initVMRTable(
+        layerdisk_, TrackletLUT::VMRTableType::innerthird, region, false);  //projection to third layer/disk
   }
 
   nbitszfinebintable_ = settings_.vmrlutzbits(layerdisk_);
