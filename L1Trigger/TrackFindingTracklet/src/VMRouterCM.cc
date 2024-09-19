@@ -432,7 +432,7 @@ void VMRouterCM::execute(unsigned int) {
             if (inner == 0) {
               ivmstubTEPHI.vmstubmem[ivmte][l]->addVMStub(tmpstub);
             } else {
-              ivmstubTEPHI.vmstubmem[ivmte][l]->addVMStub(tmpstub, bin);
+              ivmstubTEPHI.vmstubmem[ivmte][l]->addVMStub(tmpstub, bin, 0, false);
             }
           }
         }
