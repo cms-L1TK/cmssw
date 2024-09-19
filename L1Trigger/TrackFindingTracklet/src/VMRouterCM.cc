@@ -340,13 +340,11 @@ void VMRouterCM::execute(unsigned int) {
           vmstubsMEPHI_[i]->addStub(vmstub, ivm * nvmmebins_ + vmbin);
       }
 
-      //Fill the TE VM memories
-      if (layerdisk_ >= N_LAYER && (!stub->isPSmodule()))
-        continue;
-
       for (auto& ivmstubTEPHI : vmstubsTEPHI_) {
         unsigned int iseed = ivmstubTEPHI.seednumber;
         const bool isTripletSeed = (iseed >= L2L3L4);
+        if (!isTripletSeed && layerdisk_ >= N_LAYER && (!stub->isPSmodule()))
+          continue;
         unsigned int inner = (!isTripletSeed ? 1 : ivmstubTEPHI.stubposition);
         unsigned int lutwidth = settings_.lutwidthtab(inner, iseed);
         if (settings_.extended()) {
