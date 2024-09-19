@@ -22,11 +22,12 @@ namespace trklet {
   class VMStubsTEMemory;
 
   struct VMStubsTEPHICM {
-    VMStubsTEPHICM(unsigned int seednumber_, std::vector<VMStubsTEMemory*> vmstubmem_)
-        : seednumber(seednumber_), vmstubmem(vmstubmem_){};
+    VMStubsTEPHICM(unsigned int seednumber_, unsigned int stubposition_, std::vector<std::vector<VMStubsTEMemory*> > vmstubmem_)
+        : seednumber(seednumber_), stubposition(stubposition_), vmstubmem(vmstubmem_){};
 
-    unsigned int seednumber;                  //seed number [0,11]
-    std::vector<VMStubsTEMemory*> vmstubmem;  // m_vmstubmem[n] is the VMStubsTEMemory for the nth copy
+    unsigned int seednumber;   //seed number [0,11]
+    unsigned int stubposition; //stub position in the seed
+    std::vector<std::vector<VMStubsTEMemory*> > vmstubmem; // m_vmstubmem[iVM][n] is the VMStubsTEMemory for iVM and the nth copy
   };
 
   class VMRouterCM : public ProcessBase {

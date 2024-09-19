@@ -79,7 +79,39 @@ void VMRouterCM::addOutput(MemoryBase* memory, string output) {
       VMStubsTEMemory* tmp = dynamic_cast<VMStubsTEMemory*>(memory);
       int i = output.find_last_of("_");
       unsigned int iseed = std::stoi(output.substr(i+1));
+      const bool isTripletSeed = (iseed >= L2L3L4);
       assert(iseed < N_SEED);
+
+      char seedtype = memory->getName().substr(11, 1)[0];
+      unsigned int pos = 12;
+      int vmbin = memory->getName().substr(pos, 1)[0] - '0';
+      pos++;
+      if (pos < memory->getName().size()) {
+        if (memory->getName().substr(pos, 1)[0] != 'n') {
+          vmbin = vmbin * 10 + memory->getName().substr(pos, 1)[0] - '0';
+          pos++;
+        }
+      }
+
+      unsigned int inner = 1;
+      if (seedtype < 'I') {
+        if (layerdisk_ == LayerDisk::L1 || layerdisk_ == LayerDisk::L3 || layerdisk_ == LayerDisk::L5 ||
+            layerdisk_ == LayerDisk::D1 || layerdisk_ == LayerDisk::D3)
+          inner = 0;
+      } else if (seedtype < 'M') {
+        if (layerdisk_ == LayerDisk::L2)
+          inner = 0;
+      } else if (seedtype <= 'Z') {
+        if (layerdisk_ == LayerDisk::L1 || layerdisk_ == LayerDisk::L2)
+          inner = 0;
+      } else if (seedtype < 'o' && seedtype >= 'a') {
+        if (layerdisk_ == LayerDisk::L2)
+          inner = 0;
+      } else if (seedtype > 'o' && seedtype <= 'z') {
+        inner = 2;
+      } else {
+        throw cms::Exception("LogicError") << __FILE__ << " " << __LINE__ << " Invalid seeding!";
+      }
 
       int seedindex = -1;
       for (unsigned int k = 0; k < vmstubsTEPHI_.size(); k++) {
@@ -89,12 +121,17 @@ void VMRouterCM::addOutput(MemoryBase* memory, string output) {
       }
       if (seedindex == -1) {
         seedindex = vmstubsTEPHI_.size();
-        vector<VMStubsTEMemory*> vectmp;
-        VMStubsTEPHICM atmp(iseed, vectmp);
+        vector<VMStubsTEMemory*> avectmp;
+        vector<vector<VMStubsTEMemory*> > vectmp(!isTripletSeed ? 1 : settings_.nvmte(inner, iseed), avectmp);
+        VMStubsTEPHICM atmp(iseed, inner, vectmp);
         vmstubsTEPHI_.push_back(atmp);
       }
-      tmp->resize(settings_.NLONGVMBINS() * settings_.nvmte(1, iseed));
-      vmstubsTEPHI_[seedindex].vmstubmem.push_back(tmp);
+      if (!isTripletSeed) {
+        tmp->resize(settings_.NLONGVMBINS() * settings_.nvmte(1, iseed));
+        vmstubsTEPHI_[seedindex].vmstubmem[0].push_back(tmp);
+      } else {
+        vmstubsTEPHI_[seedindex].vmstubmem[(vmbin - 1) & (settings_.nvmte(inner, iseed) - 1)].push_back(tmp);
+      }
 
     } else if (memory->getName().substr(3, 2) == "ME") {
       VMStubsMEMemory* tmp = dynamic_cast<VMStubsMEMemory*>(memory);
@@ -311,6 +348,7 @@ void VMRouterCM::execute(unsigned int) {
         unsigned int iseed = ivmstubTEPHI.seednumber;
         const bool isTripletSeed = (iseed >= L2L3L4);
         unsigned int lutwidth = settings_.lutwidthtab(1, iseed);
+        unsigned int inner = (!isTripletSeed ? 1 : ivmstubTEPHI.stubposition);
         if (settings_.extended()) {
           lutwidth = settings_.lutwidthtabextended(1, iseed);
         }
@@ -364,28 +402,39 @@ void VMRouterCM::execute(unsigned int) {
           continue;
 
         unsigned int ivmte =
-            iphi.bits(iphi.nbits() - (settings_.nbitsallstubs(layerdisk_) + settings_.nbitsvmte(1, iseed)),
-                      settings_.nbitsvmte(1, iseed));
+            iphi.bits(iphi.nbits() - (settings_.nbitsallstubs(layerdisk_) + settings_.nbitsvmte(inner, iseed)),
+                      settings_.nbitsvmte(inner, iseed));
 
-        int bin = binlookup.value() / 8;
-        unsigned int tmp = binlookup.value() & 7;  //three bits in outer layers - this could be coded cleaner...
-        binlookup.set(tmp, 3, true, __LINE__, __FILE__);
+        int bin = -1;
+        if (inner != 0) {
+          bin = binlookup.value() / 8;
+          unsigned int tmp = binlookup.value() & 7;  //three bits in outer layers - this could be coded cleaner...
+          binlookup.set(tmp, 3, true, __LINE__, __FILE__);
+        }
 
-        FPGAWord finephi = stub->iphivmFineBins(settings_.nphireg(1, iseed), settings_.nfinephi(1, iseed));
+        FPGAWord finephi = stub->iphivmFineBins(settings_.nphireg(inner, iseed), settings_.nfinephi(inner, iseed));
 
         VMStubTE tmpstub(stub, finephi, stub->bend(), binlookup, allStubIndex);
 
-        unsigned int nmem = ivmstubTEPHI.vmstubmem.size();
+        unsigned int nmem = ivmstubTEPHI.vmstubmem[!isTripletSeed ? 0 : ivmte].size();
         assert(nmem > 0);
 
         for (unsigned int l = 0; l < nmem; l++) {
           if (settings_.debugTracklet()) {
-            edm::LogVerbatim("Tracklet") << getName() << " try adding stub to " << ivmstubTEPHI.vmstubmem[l]->getName()
+            edm::LogVerbatim("Tracklet") << getName() << " try adding stub to " << ivmstubTEPHI.vmstubmem[!isTripletSeed ? 0 : ivmte][l]->getName()
                                          << " bin=" << bin << " ivmte " << ivmte << " finephi " << finephi.value()
                                          << " regions bits " << settings_.nphireg(1, iseed) << " finephibits "
                                          << settings_.nfinephi(1, iseed);
           }
-          ivmstubTEPHI.vmstubmem[l]->addVMStub(tmpstub, bin, ivmte);
+          if (!isTripletSeed)
+            ivmstubTEPHI.vmstubmem[0][l]->addVMStub(tmpstub, bin, ivmte);
+          else {
+            if (inner == 0) {
+              ivmstubTEPHI.vmstubmem[ivmte][l]->addVMStub(tmpstub);
+            } else {
+              ivmstubTEPHI.vmstubmem[ivmte][l]->addVMStub(tmpstub, bin);
+            }
+          }
         }
       }
     }
