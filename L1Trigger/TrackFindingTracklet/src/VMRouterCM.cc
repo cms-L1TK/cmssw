@@ -15,7 +15,7 @@ using namespace std;
 using namespace trklet;
 
 VMRouterCM::VMRouterCM(string name, Settings const& settings, Globals* global)
-    : ProcessBase(name, settings, global), meTable_(settings), meTableOld_(settings), diskTable_(settings), diskTableOld_(settings), innerTable_(settings), innerOverlapTable_(settings), innerThirdTable_(settings) {
+    : ProcessBase(name, settings, global), meTable_(settings), diskTable_(settings), meTableOld_(settings), diskTableOld_(settings), innerTable_(settings), innerOverlapTable_(settings), innerThirdTable_(settings) {
   layerdisk_ = initLayerDisk(4);
 
   unsigned int region = name[9] - 'A';
