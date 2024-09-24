@@ -79,9 +79,14 @@ void VMRouterCM::addOutput(MemoryBase* memory, string output) {
       VMStubsTEMemory* tmp = dynamic_cast<VMStubsTEMemory*>(memory);
       int i = output.find_last_of("_");
       unsigned int iseed = std::stoi(output.substr(i+1));
-      const bool isTripletSeed = (iseed >= L2L3L4);
       assert(iseed < N_SEED);
 
+      // This flag is used to replicate the behavior of the old VMRouter for
+      // the case of the triplet seeds.
+      const bool isTripletSeed = (iseed >= L2L3L4);
+
+      // seedtype, vmbin, and inner are only used in the case of the triplet
+      // seeds.
       char seedtype = memory->getName().substr(11, 1)[0];
       unsigned int pos = 12;
       int vmbin = memory->getName().substr(pos, 1)[0] - '0';
@@ -92,7 +97,6 @@ void VMRouterCM::addOutput(MemoryBase* memory, string output) {
           pos++;
         }
       }
-
       unsigned int inner = 1;
       if (seedtype < 'I') {
         if (layerdisk_ == LayerDisk::L1 || layerdisk_ == LayerDisk::L3 || layerdisk_ == LayerDisk::L5 ||
@@ -292,6 +296,8 @@ void VMRouterCM::execute(unsigned int) {
 
       int melut = meTable_.lookup((indexz << nbitsrfinebintable_) + indexr);
 
+      // The following indices are calculated in the same way as in the old
+      // VMRouter and are only used for the triplet seeds.
       int indexzOld = (((1 << (stub->z().nbits() - 1)) + stub->z().value()) >> (stub->z().nbits() - nbitszfinebintable_));
       int indexrOld = -1;
       if (layerdisk_ > (N_LAYER - 1)) {
@@ -342,7 +348,11 @@ void VMRouterCM::execute(unsigned int) {
 
       for (auto& ivmstubTEPHI : vmstubsTEPHI_) {
         unsigned int iseed = ivmstubTEPHI.seednumber;
+
+        // This flag is used to replicate the behavior of the old VMRouter for
+        // the case of the triplet seeds.
         const bool isTripletSeed = (iseed >= L2L3L4);
+
         if (!isTripletSeed && layerdisk_ >= N_LAYER && (!stub->isPSmodule()))
           continue;
         unsigned int inner = (!isTripletSeed ? 1 : ivmstubTEPHI.stubposition);
