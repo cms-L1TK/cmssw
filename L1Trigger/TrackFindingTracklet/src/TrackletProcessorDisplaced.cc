@@ -41,7 +41,8 @@ TrackletProcessorDisplaced::TrackletProcessorDisplaced(string name, Settings con
 
   if (layerdisk_ == LayerDisk::L1 || layerdisk_ == LayerDisk::L2 || layerdisk_ == LayerDisk::L3 ||
       layerdisk_ == LayerDisk::L5 || layerdisk_ == LayerDisk::D1 || layerdisk_ == LayerDisk::D3) {
-    innerTable_.initVMRTable(layerdisk_, TrackletLUT::VMRTableType::inner, region, false);  //projection to next layer/disk
+    innerTable_.initVMRTable(
+        layerdisk_, TrackletLUT::VMRTableType::inner, region, false);  //projection to next layer/disk
   }
 
   if (layerdisk_ == LayerDisk::L1 || layerdisk_ == LayerDisk::L2) {

@@ -15,7 +15,14 @@ using namespace std;
 using namespace trklet;
 
 VMRouterCM::VMRouterCM(string name, Settings const& settings, Globals* global)
-    : ProcessBase(name, settings, global), meTable_(settings), diskTable_(settings), meTableOld_(settings), diskTableOld_(settings), innerTable_(settings), innerOverlapTable_(settings), innerThirdTable_(settings) {
+    : ProcessBase(name, settings, global),
+      meTable_(settings),
+      diskTable_(settings),
+      meTableOld_(settings),
+      diskTableOld_(settings),
+      innerTable_(settings),
+      innerOverlapTable_(settings),
+      innerThirdTable_(settings) {
   layerdisk_ = initLayerDisk(4);
 
   unsigned int region = name[9] - 'A';
@@ -24,17 +31,19 @@ VMRouterCM::VMRouterCM(string name, Settings const& settings, Globals* global)
   overlapbits_ = 7;
   nextrabits_ = overlapbits_ - (settings_.nbitsallstubs(layerdisk_) + settings_.nbitsvmme(layerdisk_));
 
-  meTable_.initVMRTable(layerdisk_, TrackletLUT::VMRTableType::me, region);  //used for ME and outer TE barrel
+  meTable_.initVMRTable(layerdisk_, TrackletLUT::VMRTableType::me, region);            //used for ME and outer TE barrel
   meTableOld_.initVMRTable(layerdisk_, TrackletLUT::VMRTableType::me, region, false);  //used for ME and outer TE barrel
 
   if (layerdisk_ == LayerDisk::D1 || layerdisk_ == LayerDisk::D2 || layerdisk_ == LayerDisk::D4) {
     diskTable_.initVMRTable(layerdisk_, TrackletLUT::VMRTableType::disk, region);  //outer disk used by D1, D2, and D4
-    diskTableOld_.initVMRTable(layerdisk_, TrackletLUT::VMRTableType::disk, region, false);  //outer disk used by D1, D2, and D4
+    diskTableOld_.initVMRTable(
+        layerdisk_, TrackletLUT::VMRTableType::disk, region, false);  //outer disk used by D1, D2, and D4
   }
 
   if (layerdisk_ == LayerDisk::L1 || layerdisk_ == LayerDisk::L2 || layerdisk_ == LayerDisk::L3 ||
       layerdisk_ == LayerDisk::L5 || layerdisk_ == LayerDisk::D1 || layerdisk_ == LayerDisk::D3) {
-    innerTable_.initVMRTable(layerdisk_, TrackletLUT::VMRTableType::inner, region, false);  //projection to next layer/disk
+    innerTable_.initVMRTable(
+        layerdisk_, TrackletLUT::VMRTableType::inner, region, false);  //projection to next layer/disk
   }
 
   if (layerdisk_ == LayerDisk::L1 || layerdisk_ == LayerDisk::L2) {
@@ -77,8 +86,8 @@ void VMRouterCM::addOutput(MemoryBase* memory, string output) {
   if (output.substr(0, 9) == "vmstubout") {
     if (memory->getName().substr(3, 2) == "TE") {
       VMStubsTEMemory* tmp = dynamic_cast<VMStubsTEMemory*>(memory);
-      int i = output.find_last_of("_");
-      unsigned int iseed = std::stoi(output.substr(i+1));
+      int i = output.find_last_of('_');
+      unsigned int iseed = std::stoi(output.substr(i + 1));
       assert(iseed < N_SEED);
 
       // This flag is used to replicate the behavior of the old VMRouter for
@@ -300,7 +309,8 @@ void VMRouterCM::execute(unsigned int) {
 
       // The following indices are calculated in the same way as in the old
       // VMRouter and are only used for the triplet seeds.
-      int indexzOld = (((1 << (stub->z().nbits() - 1)) + stub->z().value()) >> (stub->z().nbits() - nbitszfinebintable_));
+      int indexzOld =
+          (((1 << (stub->z().nbits() - 1)) + stub->z().value()) >> (stub->z().nbits() - nbitszfinebintable_));
       int indexrOld = -1;
       if (layerdisk_ > (N_LAYER - 1)) {
         if (negdisk) {
@@ -379,8 +389,8 @@ void VMRouterCM::execute(unsigned int) {
                 }
               }
             } else {
-              lutval = (!isTripletSeed ? diskTable_.lookup((indexz << nbitsrfinebintable_) + indexr) :
-                                         diskTableOld_.lookup((indexzOld << nbitsrfinebintable_) + indexrOld));
+              lutval = (!isTripletSeed ? diskTable_.lookup((indexz << nbitsrfinebintable_) + indexr)
+                                       : diskTableOld_.lookup((indexzOld << nbitsrfinebintable_) + indexrOld));
               if (lutval == 0)
                 continue;
             }
@@ -431,7 +441,8 @@ void VMRouterCM::execute(unsigned int) {
 
         for (unsigned int l = 0; l < nmem; l++) {
           if (settings_.debugTracklet()) {
-            edm::LogVerbatim("Tracklet") << getName() << " try adding stub to " << ivmstubTEPHI.vmstubmem[!isTripletSeed ? 0 : ivmte][l]->getName()
+            edm::LogVerbatim("Tracklet") << getName() << " try adding stub to "
+                                         << ivmstubTEPHI.vmstubmem[!isTripletSeed ? 0 : ivmte][l]->getName()
                                          << " bin=" << bin << " ivmte " << ivmte << " finephi " << finephi.value()
                                          << " regions bits " << settings_.nphireg(1, iseed) << " finephibits "
                                          << settings_.nfinephi(1, iseed);

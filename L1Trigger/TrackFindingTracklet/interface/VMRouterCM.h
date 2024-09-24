@@ -22,15 +22,18 @@ namespace trklet {
   class VMStubsTEMemory;
 
   struct VMStubsTEPHICM {
-    VMStubsTEPHICM(unsigned int seednumber_, unsigned int stubposition_, std::vector<std::vector<VMStubsTEMemory*> > vmstubmem_)
+    VMStubsTEPHICM(unsigned int seednumber_,
+                   unsigned int stubposition_,
+                   std::vector<std::vector<VMStubsTEMemory*> > vmstubmem_)
         : seednumber(seednumber_), stubposition(stubposition_), vmstubmem(vmstubmem_){};
 
-    unsigned int seednumber;   //seed number [0,11]
-    unsigned int stubposition; //stub position in the seed (only used by triplet seeds)
+    unsigned int seednumber;    //seed number [0,11]
+    unsigned int stubposition;  //stub position in the seed (only used by triplet seeds)
 
     // The first index in the following 2D vector is only used in the case of
     // the triplet seeds.
-    std::vector<std::vector<VMStubsTEMemory*> > vmstubmem; // m_vmstubmem[iVM][n] is the VMStubsTEMemory for iVM and the nth copy
+    std::vector<std::vector<VMStubsTEMemory*> >
+        vmstubmem;  // m_vmstubmem[iVM][n] is the VMStubsTEMemory for iVM and the nth copy
   };
 
   class VMRouterCM : public ProcessBase {
