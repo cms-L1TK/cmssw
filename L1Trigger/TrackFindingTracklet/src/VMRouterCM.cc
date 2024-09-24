@@ -296,6 +296,8 @@ void VMRouterCM::execute(unsigned int) {
 
       int melut = meTable_.lookup((indexz << nbitsrfinebintable_) + indexr);
 
+      assert(melut >= 0);
+
       // The following indices are calculated in the same way as in the old
       // VMRouter and are only used for the triplet seeds.
       int indexzOld = (((1 << (stub->z().nbits() - 1)) + stub->z().value()) >> (stub->z().nbits() - nbitszfinebintable_));
@@ -320,7 +322,7 @@ void VMRouterCM::execute(unsigned int) {
 
       int melutOld = meTableOld_.lookup((indexzOld << nbitsrfinebintable_) + indexrOld);
 
-      assert(melut >= 0);
+      assert(melutOld >= 0);
 
       int vmbin = melut >> NFINERZBITS;
       if (negdisk)
