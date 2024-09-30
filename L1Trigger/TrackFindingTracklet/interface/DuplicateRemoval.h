@@ -12,7 +12,8 @@ namespace trklet {
   /*! \class  trklet::DuplicateRemoval
    *  \brief  Class to bit- and clock-accurate emulate duplicate removal
    *          DR identifies duplicates based on pairs of tracks that share stubs in at least 3 layers.
-   *          It keeps the first such track in each pair. The Track order is determined by TrackMultiplexer.
+   *          It keeps the first such track in each pair. The Track order is determined by TrackMultiplexer,
+   *          provided by ProducerTM.
    *  \author Thomas Schuh
    *  \date   2023, Feb
    */
