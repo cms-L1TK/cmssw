@@ -33,8 +33,8 @@ using namespace tt;
 namespace trklet {
 
   /*! \class  trklet::ProducerTM
-   *  \brief  Transforms format of TBout into that expected by DR input and muxes all channels to 1.
-              Since DR keeps first tracks the mux ordering is important.
+   *  \brief  Transforms format of Track Builder into that expected by DR input and muxes all channels to 1.
+              Since DR keeps first tracks the mux ordering (currently from low seed id to high seed id) is important.
    *  \author Thomas Schuh
    *  \date   2023, Jan
    */
