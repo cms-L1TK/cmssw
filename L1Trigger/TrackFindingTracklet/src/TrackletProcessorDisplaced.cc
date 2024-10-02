@@ -427,18 +427,24 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
                       if (settings_.debugTracklet()) {
                         edm::LogVerbatim("Tracklet") << "TrackletCalculatorDisplaced execute done";
                       }
-		      if (countall >= settings_.maxStep("TP")) break;
+                      if (countall >= settings_.maxStep("TP"))
+                        break;
                     }
-		    if (countall >= settings_.maxStep("TP")) break;
+                    if (countall >= settings_.maxStep("TP"))
+                      break;
                   }
-		  if (countall >= settings_.maxStep("TP")) break;
+                  if (countall >= settings_.maxStep("TP"))
+                    break;
                 }
               }
-	      if (countall >= settings_.maxStep("TP")) break;
+              if (countall >= settings_.maxStep("TP"))
+                break;
             }
-	    if (countall >= settings_.maxStep("TP")) break;
+            if (countall >= settings_.maxStep("TP"))
+              break;
           }
-	  if (countall >= settings_.maxStep("TP")) break;
+          if (countall >= settings_.maxStep("TP"))
+            break;
         }
 
       } else if (layer1_ == 2 && layer2_ == 3) {
@@ -546,18 +552,24 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
                       if (settings_.debugTracklet()) {
                         edm::LogVerbatim("Tracklet") << "TrackletCalculatorDisplaced execute done";
                       }
-		      if (countall >= settings_.maxStep("TP")) break;
+                      if (countall >= settings_.maxStep("TP"))
+                        break;
                     }
-		    if (countall >= settings_.maxStep("TP")) break;
+                    if (countall >= settings_.maxStep("TP"))
+                      break;
                   }
-		  if (countall >= settings_.maxStep("TP")) break;
+                  if (countall >= settings_.maxStep("TP"))
+                    break;
                 }
               }
-	      if (countall >= settings_.maxStep("TP")) break;
+              if (countall >= settings_.maxStep("TP"))
+                break;
             }
-	    if (countall >= settings_.maxStep("TP")) break;
+            if (countall >= settings_.maxStep("TP"))
+              break;
           }
-	  if (countall >= settings_.maxStep("TP")) break;
+          if (countall >= settings_.maxStep("TP"))
+            break;
         }
 
       } else if (disk1_ == 1 && disk2_ == 2) {
@@ -666,23 +678,31 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
                       if (settings_.debugTracklet()) {
                         edm::LogVerbatim("Tracklet") << "TrackletCalculatorDisplaced execute done";
                       }
-		      if (countall >= settings_.maxStep("TP")) break;
+                      if (countall >= settings_.maxStep("TP"))
+                        break;
                     }
-		    if (countall >= settings_.maxStep("TP")) break;
+                    if (countall >= settings_.maxStep("TP"))
+                      break;
                   }
-		  if (countall >= settings_.maxStep("TP")) break;
+                  if (countall >= settings_.maxStep("TP"))
+                    break;
                 }
               }
-	      if (countall >= settings_.maxStep("TP")) break;
+              if (countall >= settings_.maxStep("TP"))
+                break;
             }
-	    if (countall >= settings_.maxStep("TP")) break;
+            if (countall >= settings_.maxStep("TP"))
+              break;
           }
-	  if (countall >= settings_.maxStep("TP")) break;
+          if (countall >= settings_.maxStep("TP"))
+            break;
         }
       }
-      if (countall >= settings_.maxStep("TP")) break;
+      if (countall >= settings_.maxStep("TP"))
+        break;
     }
-    if (countall >= settings_.maxStep("TP")) break;
+    if (countall >= settings_.maxStep("TP"))
+      break;
   }
 
   if (settings_.writeMonitorData("TPD")) {
