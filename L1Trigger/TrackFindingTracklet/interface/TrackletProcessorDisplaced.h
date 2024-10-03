@@ -43,14 +43,11 @@ namespace trklet {
     int iAllStub_;
     unsigned int maxStep_;
     int count_;
-    unsigned int layerdisk_;
 
-    int layer1_;
-    int layer2_;
-    int layer3_;
-    int disk1_;
-    int disk2_;
-    int disk3_;
+    unsigned int iSeed_;
+    unsigned int layerdisk1_;
+    unsigned int layerdisk2_;
+    unsigned int layerdisk3_;
 
     int firstphibits_;
     int secondphibits_;
