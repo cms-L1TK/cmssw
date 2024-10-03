@@ -30,34 +30,28 @@ TrackletProcessorDisplaced::TrackletProcessorDisplaced(string name, Settings con
   innervmstubs_.clear();
   outervmstubs_.clear();
 
-  const unsigned layerdiskPosInName = 4;
-  const unsigned regionPosInName1 = 9;
+  initLayerDisksandISeedDisp(layerdisk1_, layerdisk2_, layerdisk3_, iSeed_);
 
-  // iAllStub_ = -1;
-  layerdisk_ = initLayerDisk(layerdiskPosInName);
+  unsigned int region = name.back() - 'A';
 
-  unsigned int region = name.substr(1)[regionPosInName1] - 'A';
-  // assert(region < settings_.nallstubs(layerdisk_));
-
-  if (layerdisk_ == LayerDisk::L1 || layerdisk_ == LayerDisk::L2 || layerdisk_ == LayerDisk::L3 ||
-      layerdisk_ == LayerDisk::L5 || layerdisk_ == LayerDisk::D1 || layerdisk_ == LayerDisk::D3) {
-    innerTable_.initVMRTable(
-        layerdisk_, TrackletLUT::VMRTableType::inner, region, false);  //projection to next layer/disk
+  if (layerdisk1_ == LayerDisk::L1 || layerdisk1_ == LayerDisk::L2 || layerdisk1_ == LayerDisk::L3 ||
+      layerdisk1_ == LayerDisk::L5 || layerdisk1_ == LayerDisk::D1 || layerdisk1_ == LayerDisk::D3) {
+    innerTable_.initVMRTable(layerdisk1_, TrackletLUT::VMRTableType::inner, region, false);  //projection to next layer/disk
   }
 
-  if (layerdisk_ == LayerDisk::L1 || layerdisk_ == LayerDisk::L2) {
+  if (layerdisk1_ == LayerDisk::L1 || layerdisk1_ == LayerDisk::L2) {
     innerOverlapTable_.initVMRTable(
-        layerdisk_, TrackletLUT::VMRTableType::inneroverlap, region, false);  //projection to disk from layer
+        layerdisk1_, TrackletLUT::VMRTableType::inneroverlap, region, false);  //projection to disk from layer
   }
 
-  if (layerdisk_ == LayerDisk::L2 || layerdisk_ == LayerDisk::L3 || layerdisk_ == LayerDisk::L5 ||
-      layerdisk_ == LayerDisk::D1) {
+  if (layerdisk1_ == LayerDisk::L2 || layerdisk1_ == LayerDisk::L3 || layerdisk1_ == LayerDisk::L5 ||
+      layerdisk1_ == LayerDisk::D1) {
     innerThirdTable_.initVMRTable(
-        layerdisk_, TrackletLUT::VMRTableType::innerthird, region, false);  //projection to third layer/disk
+				  layerdisk1_, TrackletLUT::VMRTableType::innerthird, region, false);  //projection to third layer/disk
   }
 
-  nbitszfinebintable_ = settings_.vmrlutzbits(layerdisk_);
-  nbitsrfinebintable_ = settings_.vmrlutrbits(layerdisk_);
+  nbitszfinebintable_ = settings_.vmrlutzbits(layerdisk1_);
+  nbitsrfinebintable_ = settings_.vmrlutrbits(layerdisk1_);
 
   for (unsigned int ilayer = 0; ilayer < N_LAYER; ilayer++) {
     vector<TrackletProjectionsMemory*> tmp(settings_.nallstubs(ilayer), nullptr);
@@ -69,66 +63,12 @@ TrackletProcessorDisplaced::TrackletProcessorDisplaced(string name, Settings con
     trackletprojdisks_.push_back(tmp);
   }
 
-  // initLayerDisksandISeed(layerdisk1_, layerdisk2_, iSeed_);
-
-  layer_ = 0;
-  disk_ = 0;
-  layer1_ = 0;
-  layer2_ = 0;
-  layer3_ = 0;
-  disk1_ = 0;
-  disk2_ = 0;
-  disk3_ = 0;
-
-  constexpr unsigned layerPosInName1 = 4;
-  constexpr unsigned diskPosInName1 = 4;
-  constexpr unsigned layer1PosInName1 = 4;
-  constexpr unsigned disk1PosInName1 = 4;
-  constexpr unsigned layer2PosInName1 = 6;
-  constexpr unsigned disk2PosInName1 = 6;
-
-  string name1 = name.substr(1);  //this is to correct for "TPD" having one more letter then "TP"
-  if (name1[3] == 'L')
-    layer_ = name1[layerPosInName1] - '0';
-  if (name1[3] == 'D')
-    disk_ = name1[diskPosInName1] - '0';
-
-  if (name1[3] == 'L')
-    layer1_ = name1[layer1PosInName1] - '0';
-  if (name1[3] == 'D')
-    disk1_ = name1[disk1PosInName1] - '0';
-  if (name1[5] == 'L')
-    layer2_ = name1[layer2PosInName1] - '0';
-  if (name1[5] == 'D')
-    disk2_ = name1[disk2PosInName1] - '0';
-
   // set TC index
-  iSeed_ = 0;
-
-  int iTC = name1[regionPosInName1] - 'A';
-
-  if (name1.substr(3, 6) == "L3L4L2") {
-    iSeed_ = 8;
-    layer3_ = 2;
-  } else if (name1.substr(3, 6) == "L5L6L4") {
-    iSeed_ = 9;
-    layer3_ = 4;
-  } else if (name1.substr(3, 6) == "L2L3D1") {
-    iSeed_ = 10;
-    disk3_ = 1;
-  } else if (name1.substr(3, 6) == "D1D2L2") {
-    iSeed_ = 11;
-    layer3_ = 2;
-  }
-  assert(iSeed_ != 0);
-
+  int iTC = region;
   constexpr int TCIndexMin = 128;
   constexpr int TCIndexMax = 191;
-
   TCIndex_ = (iSeed_ << 4) + iTC;
   assert(TCIndex_ >= TCIndexMin && TCIndex_ < TCIndexMax);
-
-  assert((layer_ != 0) || (disk_ != 0));
 }
 
 void TrackletProcessorDisplaced::addOutputProjection(TrackletProjectionsMemory*& outputProj, MemoryBase* memory) {
@@ -262,7 +202,7 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
       int indexz = (((1 << (firstallstub->z().nbits() - 1)) + firstallstub->z().value()) >>
                     (firstallstub->z().nbits() - nbitszfinebintable_));
       int indexr = -1;
-      if (layerdisk_ > (N_LAYER - 1)) {
+      if (layerdisk1_ > (N_LAYER - 1)) {
         if (negdisk) {
           indexz = (1 << nbitszfinebintable_) - indexz;
         }
@@ -311,7 +251,8 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
 
       FPGAWord binlookup(lutval, lutwidth, true, __LINE__, __FILE__);
 
-      if ((layer1_ == 3 && layer2_ == 4) || (layer1_ == 5 && layer2_ == 6)) {
+      if ((layerdisk1_ == LayerDisk::L3 && layerdisk2_ == LayerDisk::L4) ||
+          (layerdisk1_ == LayerDisk::L5 && layerdisk2_ == LayerDisk::L6)) {
         if (settings_.debugTracklet()) {
           edm::LogVerbatim("Tracklet") << getName() << " Layer-layer pair\n";
         }
@@ -361,7 +302,8 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
                 continue;
               }
 
-              if ((layer2_ == 4 && layer3_ == 2) || (layer2_ == 6 && layer3_ == 4)) {
+              if ((layerdisk2_ == LayerDisk::L4 && layerdisk3_ == LayerDisk::L2) ||
+                  (layerdisk2_ == LayerDisk::L6 && layerdisk3_ == LayerDisk::L4)) {
                 constexpr int vmbitshift = 10;
                 constexpr int andlookupbits_ = 1023;
                 constexpr int andnewbin_ = 127;
@@ -448,7 +390,7 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
             break;
         }
 
-      } else if (layer1_ == 2 && layer2_ == 3) {
+      } else if (layerdisk1_ == LayerDisk::L2 && layerdisk2_ == LayerDisk::L3) {
         if (settings_.debugTracklet()) {
           edm::LogVerbatim("Tracklet") << getName() << " Layer-layer pair";
         }
@@ -497,7 +439,7 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
                 continue;
               }
 
-              if (layer2_ == 3 && disk3_ == 1) {
+              if (layerdisk2_ == LayerDisk::L3 && layerdisk3_ == LayerDisk::D1) {
                 constexpr int vmbitshift = 10;
                 constexpr int andlookupbits_ = 1023;
                 constexpr int andnewbin_ = 127;
@@ -573,7 +515,7 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
             break;
         }
 
-      } else if (disk1_ == 1 && disk2_ == 2) {
+      } else if (layerdisk1_ == LayerDisk::D1 && layerdisk2_ == LayerDisk::D2) {
         if (settings_.debugTracklet())
           edm::LogVerbatim("Tracklet") << getName() << " Disk-disk pair";
 
@@ -618,7 +560,7 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
               if (rbin - rbinfirst > rdiffmax)
                 continue;
 
-              if (disk2_ == 2 && layer3_ == 2) {
+              if (layerdisk2_ == LayerDisk::D2 && layerdisk3_ == LayerDisk::L2) {
                 constexpr int vmbitshift = 10;
                 constexpr int andlookupbits_ = 1023;
                 constexpr int andnewbin_ = 127;
