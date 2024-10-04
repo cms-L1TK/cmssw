@@ -56,9 +56,8 @@ namespace trklet {
     int nbitszfinebintable_;
     int nbitsrfinebintable_;
 
-    TrackletLUT innerTable_;         //projection to next layer/disk
-    TrackletLUT innerOverlapTable_;  //projection to disk from layer
-    TrackletLUT innerThirdTable_;    //projection to disk1 for extended - iseed=10
+    TrackletLUT innerTable_;       //projection to next layer/disk
+    TrackletLUT innerThirdTable_;  //projection to third disk/layer
 
     std::vector<StubPairsMemory*> stubpairs_;
     /* std::vector<StubTripletsMemory*> stubtriplets_; */
