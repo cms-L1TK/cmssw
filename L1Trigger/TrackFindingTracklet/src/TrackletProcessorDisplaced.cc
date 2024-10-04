@@ -206,10 +206,7 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
       assert(indexz < (1 << nbitszfinebintable_));
       assert(indexr < (1 << nbitsrfinebintable_));
 
-      unsigned int lutwidth = settings_.lutwidthtab(inner, iSeed_);
-      if (settings_.extended()) {
-        lutwidth = settings_.lutwidthtabextended(inner, iSeed_);
-      }
+      unsigned int lutwidth = settings_.lutwidthtabextended(inner, iSeed_);
 
       int lutval = -1;
       if (iSeed_ == Seed::L2L3L4 || iSeed_ == Seed::L4L5L6 || iSeed_ == Seed::D1D2L2 || iSeed_ == Seed::L2L3D1) {
@@ -223,345 +220,148 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
 
       FPGAWord binlookup(lutval, lutwidth, true, __LINE__, __FILE__);
 
-      if (iSeed_ == Seed::L2L3L4 || iSeed_ == Seed::L4L5L6) {
-        if (settings_.debugTracklet()) {
-          edm::LogVerbatim("Tracklet") << getName() << " Layer-layer pair\n";
-        }
+      if (settings_.debugTracklet()) {
+        edm::LogVerbatim("Tracklet") << getName() << " Layer-layer pair\n";
+      }
 
-        constexpr int andlookupbits = 1023;
-        constexpr int shiftzdiffmax = 7;
-        constexpr int andnewbin = 127;
-        constexpr int divbin = 8;
-        constexpr int andzbinfirst = 7;
-        constexpr int shiftstart = 1;
-        constexpr int andlast = 1;
-        constexpr int maxlast = 8;
+      constexpr int andlookupbits = 1023;
+      constexpr int shiftzdiffmax = 7;
+      constexpr int shiftrdiffmax = 6;
+      int andnewbin = 127;
+      if (iSeed_ == Seed::D1D2L2)
+        andnewbin = 63;
+      constexpr int divbin = 8;
+      constexpr int andzbinfirst = 7;
+      constexpr int andrbinfirst = 7;
+      constexpr int shiftstart = 1;
+      constexpr int andlast = 1;
+      constexpr int maxlast = 8;
 
-        int lookupbits = binlookup.value() & andlookupbits;
-        int zdiffmax = (lookupbits >> shiftzdiffmax);
-        int newbin = (lookupbits & andnewbin);
-        int bin = newbin / divbin;
+      int lookupbits = binlookup.value() & andlookupbits;
+      int zdiffmax = (lookupbits >> shiftzdiffmax);
+      int rdiffmax = (lookupbits >> shiftrdiffmax);
+      int newbin = (lookupbits & andnewbin);
+      int bin = newbin / divbin;
 
-        int zbinfirst = newbin & andzbinfirst;
+      int zbinfirst = newbin & andzbinfirst;
+      int rbinfirst = newbin & andrbinfirst;
 
-        int start = (bin >> shiftstart);
-        int last = start + (bin & andlast);
-
-        assert(last < maxlast);
-
-        if (settings_.debugTracklet()) {
-          edm::LogVerbatim("Tracklet") << "Will look in zbins " << start << " to " << last << endl;
-        }
-
-        for (int ibin = start; ibin <= last; ibin++) {
-          for (unsigned int m = 0; m < outervmstubs_.size(); m++) {
-            for (unsigned int j = 0; j < outervmstubs_.at(m)->nVMStubsBinned(ibin); j++) {
-              if (settings_.debugTracklet()) {
-                edm::LogVerbatim("Tracklet")
-                    << "In " << getName() << " have second stub(1) " << ibin << " " << j << endl;
-              }
-
-              const VMStubTE& secondvmstub = outervmstubs_.at(m)->getVMStubTEBinned(ibin, j);
-
-              int zbin = (secondvmstub.vmbits().value() & 7);
-              if (start != ibin)
-                zbin += 8;
-              if (zbin < zbinfirst || zbin - zbinfirst > zdiffmax) {
-                if (settings_.debugTracklet()) {
-                  edm::LogVerbatim("Tracklet") << "Stubpair rejected because of wrong zbin";
-                }
-                continue;
-              }
-
-              constexpr int vmbitshift = 10;
-              constexpr int andlookupbits_ = 1023;
-              constexpr int andnewbin_ = 127;
-              constexpr int divbin_ = 8;
-              constexpr int shiftstart_ = 1;
-              constexpr int andlast_ = 1;
-
-              int lookupbits_ = (int)((binlookup.value() >> vmbitshift) & andlookupbits_);
-              int newbin_ = (lookupbits_ & andnewbin_);
-              int bin_ = newbin_ / divbin_;
-
-              int start_ = (bin_ >> shiftstart_);
-              int last_ = start_ + (bin_ & andlast_);
-
-              if (settings_.debugTracklet()) {
-                edm::LogVerbatim("Tracklet")
-                    << "Will look in zbins for third stub" << start_ << " to " << last_ << endl;
-              }
-
-              for (int ibin_ = start_; ibin_ <= last_; ibin_++) {
-                for (unsigned int k = 0; k < innervmstubs_.size(); k++) {
-                  for (unsigned int l = 0; l < innervmstubs_.at(k)->nVMStubsBinned(ibin_); l++) {
-                    if (settings_.debugTracklet()) {
-                      edm::LogVerbatim("Tracklet") << "In " << getName() << " have third stub\n";
-                    }
-
-                    countall++;
-
-                    const VMStubTE& thirdvmstub = innervmstubs_.at(k)->getVMStubTEBinned(ibin_, l);
-
-                    const Stub* innerFPGAStub = firstallstub;
-                    const Stub* middleFPGAStub = secondvmstub.stub();
-                    const Stub* outerFPGAStub = thirdvmstub.stub();
-
-                    const L1TStub* innerStub = innerFPGAStub->l1tstub();
-                    const L1TStub* middleStub = middleFPGAStub->l1tstub();
-                    const L1TStub* outerStub = outerFPGAStub->l1tstub();
-
-                    if (settings_.debugTracklet()) {
-                      edm::LogVerbatim("Tracklet")
-                          << "LLL seeding\n"
-                          << innerFPGAStub->strbare() << middleFPGAStub->strbare() << outerFPGAStub->strbare()
-                          << innerStub->stubword() << middleStub->stubword() << outerStub->stubword()
-                          << innerFPGAStub->layerdisk() << middleFPGAStub->layerdisk() << outerFPGAStub->layerdisk();
-                    }
-
-                    if (settings_.debugTracklet()) {
-                      edm::LogVerbatim("Tracklet")
-                          << "TrackletCalculatorDisplaced execute " << getName() << "[" << iSector_ << "]";
-                    }
-
-                    if (innerFPGAStub->layerdisk() < N_LAYER && middleFPGAStub->layerdisk() < N_LAYER &&
-                        outerFPGAStub->layerdisk() < N_LAYER) {
-                      bool accept =
-                          LLLSeeding(outerFPGAStub, outerStub, innerFPGAStub, innerStub, middleFPGAStub, middleStub);
-
-                      if (accept)
-                        countsel++;
-                    } else if (innerFPGAStub->layerdisk() >= N_LAYER && middleFPGAStub->layerdisk() >= N_LAYER &&
-                               outerFPGAStub->layerdisk() >= N_LAYER) {
-                      throw cms::Exception("LogicError") << __FILE__ << " " << __LINE__ << " Invalid seeding!";
-                    }
-
-                    if (settings_.debugTracklet()) {
-                      edm::LogVerbatim("Tracklet") << "TrackletCalculatorDisplaced execute done";
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-
-      } else if (iSeed_ == Seed::L2L3D1) {
-        if (settings_.debugTracklet()) {
-          edm::LogVerbatim("Tracklet") << getName() << " Layer-layer pair";
-        }
-
-        constexpr int andlookupbits = 1023;
-        constexpr int shiftzdiffmax = 7;
-        constexpr int andnewbin = 127;
-        constexpr int divbin = 8;
-        constexpr int andzbinfirst = 7;
-        constexpr int shiftstart = 1;
-        constexpr int andlast = 1;
-        constexpr int maxlast = 8;
-
-        int lookupbits = binlookup.value() & andlookupbits;
-        int zdiffmax = (lookupbits >> shiftzdiffmax);
-        int newbin = (lookupbits & andnewbin);
-        int bin = newbin / divbin;
-
-        int zbinfirst = newbin & andzbinfirst;
-
-        int start = (bin >> shiftstart);
-        int last = start + (bin & andlast);
-
-        assert(last < maxlast);
-
-        if (settings_.debugTracklet()) {
-          edm::LogVerbatim("Tracklet") << "Will look in zbins " << start << " to " << last;
-        }
-
-        for (int ibin = start; ibin <= last; ibin++) {
-          for (unsigned int m = 0; m < outervmstubs_.size(); m++) {
-            for (unsigned int j = 0; j < outervmstubs_.at(m)->nVMStubsBinned(ibin); j++) {
-              if (settings_.debugTracklet()) {
-                edm::LogVerbatim("Tracklet") << "In " << getName() << " have second stub(1) " << ibin << " " << j;
-              }
-
-              const VMStubTE& secondvmstub = outervmstubs_.at(m)->getVMStubTEBinned(ibin, j);
-
-              int zbin = (secondvmstub.vmbits().value() & 7);
-              if (start != ibin)
-                zbin += 8;
-              if (zbin < zbinfirst || zbin - zbinfirst > zdiffmax) {
-                if (settings_.debugTracklet()) {
-                  edm::LogVerbatim("Tracklet") << "Stubpair rejected because of wrong zbin";
-                }
-                continue;
-              }
-
-              constexpr int vmbitshift = 10;
-              constexpr int andlookupbits_ = 1023;
-              constexpr int andnewbin_ = 127;
-              constexpr int divbin_ = 8;
-              constexpr int shiftstart_ = 1;
-              constexpr int andlast_ = 1;
-
-              int lookupbits_ = (int)((binlookup.value() >> vmbitshift) & andlookupbits_);
-              int newbin_ = (lookupbits_ & andnewbin_);
-              int bin_ = newbin_ / divbin_;
-
-              int start_ = (bin_ >> shiftstart_);
-              int last_ = start_ + (bin_ & andlast_);
-
-              for (int ibin_ = start_; ibin_ <= last_; ibin_++) {
-                for (unsigned int k = 0; k < innervmstubs_.size(); k++) {
-                  for (unsigned int l = 0; l < innervmstubs_.at(k)->nVMStubsBinned(ibin_); l++) {
-                    if (settings_.debugTracklet()) {
-                      edm::LogVerbatim("Tracklet") << "In " << getName() << " have third stub";
-                    }
-
-                    countall++;
-
-                    const VMStubTE& thirdvmstub = innervmstubs_.at(k)->getVMStubTEBinned(ibin_, l);
-
-                    const Stub* innerFPGAStub = firstallstub;
-                    const Stub* middleFPGAStub = secondvmstub.stub();
-                    const Stub* outerFPGAStub = thirdvmstub.stub();
-
-                    const L1TStub* innerStub = innerFPGAStub->l1tstub();
-                    const L1TStub* middleStub = middleFPGAStub->l1tstub();
-                    const L1TStub* outerStub = outerFPGAStub->l1tstub();
-
-                    if (settings_.debugTracklet()) {
-                      edm::LogVerbatim("Tracklet")
-                          << "LLD seeding\n"
-                          << innerFPGAStub->strbare() << middleFPGAStub->strbare() << outerFPGAStub->strbare()
-                          << innerStub->stubword() << middleStub->stubword() << outerStub->stubword()
-                          << innerFPGAStub->layerdisk() << middleFPGAStub->layerdisk() << outerFPGAStub->layerdisk();
-                    }
-
-                    if (settings_.debugTracklet()) {
-                      edm::LogVerbatim("Tracklet")
-                          << "TrackletCalculatorDisplaced execute " << getName() << "[" << iSector_ << "]";
-                    }
-
-                    bool accept =
-                        LLDSeeding(outerFPGAStub, outerStub, innerFPGAStub, innerStub, middleFPGAStub, middleStub);
-
-                    if (accept)
-                      countsel++;
-
-                    if (settings_.debugTracklet()) {
-                      edm::LogVerbatim("Tracklet") << "TrackletCalculatorDisplaced execute done";
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-
-      } else if (iSeed_ == Seed::D1D2L2) {
-        if (settings_.debugTracklet())
-          edm::LogVerbatim("Tracklet") << getName() << " Disk-disk pair";
-
-        constexpr int andlookupbits = 511;
-        constexpr int shiftrdiffmax = 6;
-        constexpr int andnewbin = 63;
-        constexpr int divbin = 8;
-        constexpr int andrbinfirst = 7;
-        constexpr int shiftstart = 1;
-        constexpr int andlast = 1;
-        constexpr int maxlast = 8;
-
-        int lookupbits = binlookup.value() & andlookupbits;
+      int start = (bin >> shiftstart);
+      if (iSeed_ == Seed::D1D2L2) {
         bool negdisk = firstallstub->disk().value() < 0;
-        int rdiffmax = (lookupbits >> shiftrdiffmax);
-        int newbin = (lookupbits & andnewbin);
-        int bin = newbin / divbin;
-
-        int rbinfirst = newbin & andrbinfirst;
-
-        int start = (bin >> shiftstart);
         if (negdisk)
           start += 4;
-        int last = start + (bin & andlast);
-        assert(last < maxlast);
+      }
+      int last = start + (bin & andlast);
 
-        for (int ibin = start; ibin <= last; ibin++) {
-          for (unsigned int m = 0; m < outervmstubs_.size(); m++) {
+      assert(last < maxlast);
+
+      if (settings_.debugTracklet()) {
+        edm::LogVerbatim("Tracklet") << "Will look in zbins " << start << " to " << last << endl;
+      }
+
+      for (int ibin = start; ibin <= last; ibin++) {
+        for (unsigned int m = 0; m < outervmstubs_.size(); m++) {
+          for (unsigned int j = 0; j < outervmstubs_.at(m)->nVMStubsBinned(ibin); j++) {
             if (settings_.debugTracklet()) {
-              edm::LogVerbatim("Tracklet")
-                  << getName() << " looking for matching stub in " << outervmstubs_.at(m)->getName()
-                  << " in bin = " << ibin << " with " << outervmstubs_.at(m)->nVMStubsBinned(ibin) << " stubs";
+              edm::LogVerbatim("Tracklet") << "In " << getName() << " have second stub(1) " << ibin << " " << j << endl;
             }
 
-            for (unsigned int j = 0; j < outervmstubs_.at(m)->nVMStubsBinned(ibin); j++) {
-              const VMStubTE& secondvmstub = outervmstubs_.at(m)->getVMStubTEBinned(ibin, j);
-              int rbin = (secondvmstub.vmbits().value() & 7);
-              if (start != ibin)
-                rbin += 8;
-              if (rbin < rbinfirst)
-                continue;
-              if (rbin - rbinfirst > rdiffmax)
-                continue;
+            const VMStubTE& secondvmstub = outervmstubs_.at(m)->getVMStubTEBinned(ibin, j);
 
-              constexpr int vmbitshift = 10;
-              constexpr int andlookupbits_ = 1023;
-              constexpr int andnewbin_ = 127;
-              constexpr int divbin_ = 8;
-              constexpr int shiftstart_ = 1;
-              constexpr int andlast_ = 1;
+            int zbin = (secondvmstub.vmbits().value() & 7);
+            if (start != ibin)
+              zbin += 8;
+            if (zbin < zbinfirst || zbin - zbinfirst > zdiffmax) {
+              if (settings_.debugTracklet()) {
+                edm::LogVerbatim("Tracklet") << "Stubpair rejected because of wrong zbin";
+              }
+              continue;
+            }
+            int rbin = (secondvmstub.vmbits().value() & 7);
+            if (start != ibin)
+              rbin += 8;
+            if (rbin < rbinfirst)
+              continue;
+            if (rbin - rbinfirst > rdiffmax)
+              continue;
 
-              int lookupbits_ = (int)((binlookup.value() >> vmbitshift) & andlookupbits_);
-              int newbin_ = (lookupbits_ & andnewbin_);
-              int bin_ = newbin_ / divbin_;
+            constexpr int vmbitshift = 10;
+            constexpr int andlookupbits_ = 1023;
+            constexpr int andnewbin_ = 127;
+            constexpr int divbin_ = 8;
+            constexpr int shiftstart_ = 1;
+            constexpr int andlast_ = 1;
 
-              int start_ = (bin_ >> shiftstart_);
-              int last_ = start_ + (bin_ & andlast_);
+            int lookupbits_ = (int)((binlookup.value() >> vmbitshift) & andlookupbits_);
+            int newbin_ = (lookupbits_ & andnewbin_);
+            int bin_ = newbin_ / divbin_;
 
+            int start_ = (bin_ >> shiftstart_);
+            int last_ = start_ + (bin_ & andlast_);
+            if (iSeed_ == Seed::D1D2L2) {
               if (firstallstub->disk().value() < 0) {  //TODO - negative disk should come from memory
                 start_ = settings_.NLONGVMBINS() - last_ - 1;
                 last_ = settings_.NLONGVMBINS() - start_ - 1;
               }
+            }
 
-              for (int ibin_ = start_; ibin_ <= last_; ibin_++) {
-                for (unsigned int k = 0; k < innervmstubs_.size(); k++) {
-                  for (unsigned int l = 0; l < innervmstubs_.at(k)->nVMStubsBinned(ibin_); l++) {
-                    if (settings_.debugTracklet()) {
-                      edm::LogVerbatim("Tracklet") << "In " << getName() << " have third stub";
+            if (settings_.debugTracklet()) {
+              edm::LogVerbatim("Tracklet") << "Will look in zbins for third stub" << start_ << " to " << last_ << endl;
+            }
+
+            for (int ibin_ = start_; ibin_ <= last_; ibin_++) {
+              for (unsigned int k = 0; k < innervmstubs_.size(); k++) {
+                for (unsigned int l = 0; l < innervmstubs_.at(k)->nVMStubsBinned(ibin_); l++) {
+                  if (settings_.debugTracklet()) {
+                    edm::LogVerbatim("Tracklet") << "In " << getName() << " have third stub\n";
+                  }
+
+                  countall++;
+
+                  const VMStubTE& thirdvmstub = innervmstubs_.at(k)->getVMStubTEBinned(ibin_, l);
+
+                  const Stub* innerFPGAStub = firstallstub;
+                  const Stub* middleFPGAStub = secondvmstub.stub();
+                  const Stub* outerFPGAStub = thirdvmstub.stub();
+
+                  const L1TStub* innerStub = innerFPGAStub->l1tstub();
+                  const L1TStub* middleStub = middleFPGAStub->l1tstub();
+                  const L1TStub* outerStub = outerFPGAStub->l1tstub();
+
+                  if (settings_.debugTracklet()) {
+                    edm::LogVerbatim("Tracklet")
+                        << "LLL seeding\n"
+                        << innerFPGAStub->strbare() << middleFPGAStub->strbare() << outerFPGAStub->strbare()
+                        << innerStub->stubword() << middleStub->stubword() << outerStub->stubword()
+                        << innerFPGAStub->layerdisk() << middleFPGAStub->layerdisk() << outerFPGAStub->layerdisk();
+                  }
+
+                  if (settings_.debugTracklet()) {
+                    edm::LogVerbatim("Tracklet")
+                        << "TrackletCalculatorDisplaced execute " << getName() << "[" << iSector_ << "]";
+                  }
+
+                  bool accept = false;
+                  if (iSeed_ == Seed::L2L3L4 || iSeed_ == Seed::L4L5L6) {
+                    if (innerFPGAStub->layerdisk() < N_LAYER && middleFPGAStub->layerdisk() < N_LAYER &&
+                        outerFPGAStub->layerdisk() < N_LAYER) {
+                      accept =
+                          LLLSeeding(outerFPGAStub, outerStub, innerFPGAStub, innerStub, middleFPGAStub, middleStub);
+                    } else if (innerFPGAStub->layerdisk() >= N_LAYER && middleFPGAStub->layerdisk() >= N_LAYER &&
+                               outerFPGAStub->layerdisk() >= N_LAYER) {
+                      throw cms::Exception("LogicError") << __FILE__ << " " << __LINE__ << " Invalid seeding!";
                     }
+                  } else if (iSeed_ == Seed::L2L3D1)
+                    accept = LLDSeeding(outerFPGAStub, outerStub, innerFPGAStub, innerStub, middleFPGAStub, middleStub);
+                  else if (iSeed_ == Seed::D1D2L2)
+                    accept = DDLSeeding(outerFPGAStub, outerStub, innerFPGAStub, innerStub, middleFPGAStub, middleStub);
 
-                    countall++;
+                  if (accept)
+                    countsel++;
 
-                    const VMStubTE& thirdvmstub = innervmstubs_.at(k)->getVMStubTEBinned(ibin_, l);
-
-                    const Stub* innerFPGAStub = firstallstub;
-                    const Stub* middleFPGAStub = secondvmstub.stub();
-                    const Stub* outerFPGAStub = thirdvmstub.stub();
-
-                    const L1TStub* innerStub = innerFPGAStub->l1tstub();
-                    const L1TStub* middleStub = middleFPGAStub->l1tstub();
-                    const L1TStub* outerStub = outerFPGAStub->l1tstub();
-
-                    if (settings_.debugTracklet()) {
-                      edm::LogVerbatim("Tracklet")
-                          << "DDL seeding\n"
-                          << innerFPGAStub->strbare() << middleFPGAStub->strbare() << outerFPGAStub->strbare()
-                          << innerStub->stubword() << middleStub->stubword() << outerStub->stubword()
-                          << innerFPGAStub->layerdisk() << middleFPGAStub->layerdisk() << outerFPGAStub->layerdisk();
-                    }
-
-                    if (settings_.debugTracklet()) {
-                      edm::LogVerbatim("Tracklet")
-                          << "TrackletCalculatorDisplaced execute " << getName() << "[" << iSector_ << "]";
-                    }
-
-                    bool accept =
-                        DDLSeeding(outerFPGAStub, outerStub, innerFPGAStub, innerStub, middleFPGAStub, middleStub);
-
-                    if (accept)
-                      countsel++;
-
-                    if (settings_.debugTracklet()) {
-                      edm::LogVerbatim("Tracklet") << "TrackletCalculatorDisplaced execute done";
-                    }
+                  if (settings_.debugTracklet()) {
+                    edm::LogVerbatim("Tracklet") << "TrackletCalculatorDisplaced execute done";
                   }
                 }
               }
