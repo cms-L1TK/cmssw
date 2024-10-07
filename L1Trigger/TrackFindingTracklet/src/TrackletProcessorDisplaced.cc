@@ -23,7 +23,6 @@ TrackletProcessorDisplaced::TrackletProcessorDisplaced(string name, Settings con
   innerallstubs_.clear();
   middleallstubs_.clear();
   outerallstubs_.clear();
-  stubpairs_.clear();
   innervmstubs_.clear();
   outervmstubs_.clear();
 
@@ -133,13 +132,6 @@ void TrackletProcessorDisplaced::addInput(MemoryBase* memory, string input) {
     outerallstubs_.push_back(tmp);
     return;
   }
-  if (input.substr(0, 8) == "stubpair") {
-    auto* tmp = dynamic_cast<StubPairsMemory*>(memory);
-    assert(tmp != nullptr);
-    stubpairs_.push_back(tmp);
-    return;
-  }
-
   if (input == "thirdvmstubin") {
     auto* tmp = dynamic_cast<VMStubsTEMemory*>(memory);
     assert(tmp != nullptr);
@@ -171,10 +163,8 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
   assert(!outerallstubs_.empty());
   assert(!innervmstubs_.empty());
   assert(!outervmstubs_.empty());
-  assert(stubpairs_.empty());
 
   for (auto& iInnerMem : middleallstubs_) {
-    assert(iInnerMem->nStubs() == iInnerMem->nStubs());
     for (unsigned int j = 0; j < iInnerMem->nStubs(); j++) {
       const Stub* firstallstub = iInnerMem->getStub(j);
 
@@ -182,7 +172,6 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
         edm::LogVerbatim("Tracklet") << "In " << getName() << " have first stub\n";
       }
 
-      int inner = 0;
       bool negdisk = (firstallstub->disk().value() < 0);
       int indexz = (((1 << (firstallstub->z().nbits() - 1)) + firstallstub->z().value()) >>
                     (firstallstub->z().nbits() - nbitszfinebintable_));
@@ -206,8 +195,7 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
       assert(indexz < (1 << nbitszfinebintable_));
       assert(indexr < (1 << nbitsrfinebintable_));
 
-      unsigned int lutwidth = settings_.lutwidthtabextended(inner, iSeed_);
-
+      unsigned int lutwidth = settings_.lutwidthtabextended(0, iSeed_);
       int lutval = -1;
       if (iSeed_ == Seed::L2L3L4 || iSeed_ == Seed::L4L5L6 || iSeed_ == Seed::D1D2L2 || iSeed_ == Seed::L2L3D1) {
         lutval = innerTable_.lookup((indexz << nbitsrfinebintable_) + indexr);
@@ -218,46 +206,27 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
       if (lutval == -1)
         continue;
 
-      FPGAWord binlookup(lutval, lutwidth, true, __LINE__, __FILE__);
-
       if (settings_.debugTracklet()) {
         edm::LogVerbatim("Tracklet") << getName() << " Layer-layer pair\n";
       }
 
-      constexpr int andlookupbits = 1023;
-      constexpr int shiftzdiffmax = 7;
-      constexpr int shiftrdiffmax = 6;
-      int andnewbin = 127;
+      FPGAWord lookupbits(lutval, lutwidth, true, __LINE__, __FILE__);
+
+      // get r/z bins from the lookupbits
+      int nbitsrzbin_ = N_RZBITS;
       if (iSeed_ == Seed::D1D2L2)
-        andnewbin = 63;
-      constexpr int divbin = 8;
-      constexpr int andzbinfirst = 7;
-      constexpr int andrbinfirst = 7;
-      constexpr int shiftstart = 1;
-      constexpr int andlast = 1;
-      constexpr int maxlast = 8;
+        nbitsrzbin_--;
+      int rzbinfirst = lookupbits.bits(0, NFINERZBITS);  //finerz
+      int next = lookupbits.bits(NFINERZBITS, 1);        //use next r/z bin
+      int rzdiffmax = lookupbits.bits(NFINERZBITS + 1 + nbitsrzbin_, NFINERZBITS);
 
-      int lookupbits = binlookup.value() & andlookupbits;
-      int zdiffmax = (lookupbits >> shiftzdiffmax);
-      int rdiffmax = (lookupbits >> shiftrdiffmax);
-      int newbin = (lookupbits & andnewbin);
-      int bin = newbin / divbin;
-
-      int zbinfirst = newbin & andzbinfirst;
-      int rbinfirst = newbin & andrbinfirst;
-
-      int start = (bin >> shiftstart);
-      if (iSeed_ == Seed::D1D2L2) {
-        bool negdisk = firstallstub->disk().value() < 0;
-        if (negdisk)
-          start += 4;
-      }
-      int last = start + (bin & andlast);
-
-      assert(last < maxlast);
+      int start = lookupbits.bits(NFINERZBITS + 1, nbitsrzbin_);  //rz bin
+      if (iSeed_ == Seed::D1D2L2 && negdisk)
+        start += (1 << nbitsrzbin_);
+      int last = start + next;
 
       if (settings_.debugTracklet()) {
-        edm::LogVerbatim("Tracklet") << "Will look in zbins " << start << " to " << last << endl;
+        edm::LogVerbatim("Tracklet") << "Will look in r/zbins " << start << " to " << last << endl;
       }
 
       for (int ibin = start; ibin <= last; ibin++) {
@@ -269,22 +238,15 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
 
             const VMStubTE& secondvmstub = outervmstubs_.at(m)->getVMStubTEBinned(ibin, j);
 
-            int zbin = (secondvmstub.vmbits().value() & 7);
+            int rzbin = (secondvmstub.vmbits().value() & 7);
             if (start != ibin)
-              zbin += 8;
-            if (zbin < zbinfirst || zbin - zbinfirst > zdiffmax) {
+              rzbin += 8;
+            if (rzbin < rzbinfirst || rzbin - rzbinfirst > rzdiffmax) {
               if (settings_.debugTracklet()) {
-                edm::LogVerbatim("Tracklet") << "Stubpair rejected because of wrong zbin";
+                edm::LogVerbatim("Tracklet") << "Stubpair rejected because of wrong r/zbin";
               }
               continue;
             }
-            int rbin = (secondvmstub.vmbits().value() & 7);
-            if (start != ibin)
-              rbin += 8;
-            if (rbin < rbinfirst)
-              continue;
-            if (rbin - rbinfirst > rdiffmax)
-              continue;
 
             constexpr int vmbitshift = 10;
             constexpr int andlookupbits_ = 1023;
@@ -293,17 +255,16 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
             constexpr int shiftstart_ = 1;
             constexpr int andlast_ = 1;
 
+            FPGAWord binlookup(lutval, lutwidth, true, __LINE__, __FILE__);
             int lookupbits_ = (int)((binlookup.value() >> vmbitshift) & andlookupbits_);
             int newbin_ = (lookupbits_ & andnewbin_);
             int bin_ = newbin_ / divbin_;
 
             int start_ = (bin_ >> shiftstart_);
             int last_ = start_ + (bin_ & andlast_);
-            if (iSeed_ == Seed::D1D2L2) {
-              if (firstallstub->disk().value() < 0) {  //TODO - negative disk should come from memory
-                start_ = settings_.NLONGVMBINS() - last_ - 1;
-                last_ = settings_.NLONGVMBINS() - start_ - 1;
-              }
+            if (iSeed_ == Seed::D1D2L2 && negdisk) {
+              start_ = settings_.NLONGVMBINS() - last_ - 1;
+              last_ = settings_.NLONGVMBINS() - start_ - 1;
             }
 
             if (settings_.debugTracklet()) {
