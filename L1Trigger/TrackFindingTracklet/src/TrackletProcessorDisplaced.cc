@@ -427,23 +427,23 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
                       if (settings_.debugTracklet()) {
                         edm::LogVerbatim("Tracklet") << "TrackletCalculatorDisplaced execute done";
                       }
-                      if (countall >= settings_.maxStep("TP"))
+                      if (countall >= settings_.maxStep("TPD"))
                         break;
                     }
-                    if (countall >= settings_.maxStep("TP"))
+                    if (countall >= settings_.maxStep("TPD"))
                       break;
                   }
-                  if (countall >= settings_.maxStep("TP"))
+                  if (countall >= settings_.maxStep("TPD"))
                     break;
                 }
               }
-              if (countall >= settings_.maxStep("TP"))
+              if (countall >= settings_.maxStep("TPD"))
                 break;
             }
-            if (countall >= settings_.maxStep("TP"))
+            if (countall >= settings_.maxStep("TPD"))
               break;
           }
-          if (countall >= settings_.maxStep("TP"))
+          if (countall >= settings_.maxStep("TPD"))
             break;
         }
 
@@ -552,23 +552,23 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
                       if (settings_.debugTracklet()) {
                         edm::LogVerbatim("Tracklet") << "TrackletCalculatorDisplaced execute done";
                       }
-                      if (countall >= settings_.maxStep("TP"))
+                      if (countall >= settings_.maxStep("TPD"))
                         break;
                     }
-                    if (countall >= settings_.maxStep("TP"))
+                    if (countall >= settings_.maxStep("TPD"))
                       break;
                   }
-                  if (countall >= settings_.maxStep("TP"))
+                  if (countall >= settings_.maxStep("TPD"))
                     break;
                 }
               }
-              if (countall >= settings_.maxStep("TP"))
+              if (countall >= settings_.maxStep("TPD"))
                 break;
             }
-            if (countall >= settings_.maxStep("TP"))
+            if (countall >= settings_.maxStep("TPD"))
               break;
           }
-          if (countall >= settings_.maxStep("TP"))
+          if (countall >= settings_.maxStep("TPD"))
             break;
         }
 
@@ -678,30 +678,30 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
                       if (settings_.debugTracklet()) {
                         edm::LogVerbatim("Tracklet") << "TrackletCalculatorDisplaced execute done";
                       }
-                      if (countall >= settings_.maxStep("TP"))
+                      if (countall >= settings_.maxStep("TPD"))
                         break;
                     }
-                    if (countall >= settings_.maxStep("TP"))
+                    if (countall >= settings_.maxStep("TPD"))
                       break;
                   }
-                  if (countall >= settings_.maxStep("TP"))
+                  if (countall >= settings_.maxStep("TPD"))
                     break;
                 }
               }
-              if (countall >= settings_.maxStep("TP"))
+              if (countall >= settings_.maxStep("TPD"))
                 break;
             }
-            if (countall >= settings_.maxStep("TP"))
+            if (countall >= settings_.maxStep("TPD"))
               break;
           }
-          if (countall >= settings_.maxStep("TP"))
+          if (countall >= settings_.maxStep("TPD"))
             break;
         }
       }
-      if (countall >= settings_.maxStep("TP"))
+      if (countall >= settings_.maxStep("TPD"))
         break;
     }
-    if (countall >= settings_.maxStep("TP"))
+    if (countall >= settings_.maxStep("TPD"))
       break;
   }
 
