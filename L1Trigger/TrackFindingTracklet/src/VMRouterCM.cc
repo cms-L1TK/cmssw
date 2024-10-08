@@ -409,7 +409,8 @@ void VMRouterCM::execute(unsigned int) {
               (iseed == Seed::L3L4 || iseed == Seed::L5L6 || iseed == Seed::D1D2 || iseed == Seed::L2L3D1)) {
             int lutval2 = innerThirdTable_.lookup((indexzOld << nbitsrfinebintable_) + indexrOld);
             if (lutval2 != -1) {
-              lutval += (lutval2 << 10);
+              const auto& lutshift = innerTable_.nbits();  // should be same for all inner tables
+              lutval += (lutval2 << lutshift);
             }
           }
         }
@@ -427,9 +428,9 @@ void VMRouterCM::execute(unsigned int) {
 
         int bin = -1;
         if (inner != 0) {
-          bin = binlookup.value() / 8;
-          unsigned int tmp = binlookup.value() & 7;  //three bits in outer layers - this could be coded cleaner...
-          binlookup.set(tmp, 3, true, __LINE__, __FILE__);
+          bin = binlookup.value() >> settings_.NLONGVMBITS();
+          unsigned int tmp = binlookup.value() & (settings_.NLONGVMBINS() - 1);  //three bits in outer layers
+          binlookup.set(tmp, settings_.NLONGVMBITS(), true, __LINE__, __FILE__);
         }
 
         FPGAWord finephi = stub->iphivmFineBins(settings_.nphireg(inner, iseed), settings_.nfinephi(inner, iseed));
