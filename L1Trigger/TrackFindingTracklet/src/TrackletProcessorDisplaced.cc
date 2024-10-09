@@ -318,6 +318,8 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
                   if (countall >= settings_.maxStep("TPD"))
                     break;
                 }
+                if (countall >= settings_.maxStep("TPD"))
+                  break;
               }
               if (countall >= settings_.maxStep("TPD"))
                 break;
@@ -328,6 +330,8 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
           if (countall >= settings_.maxStep("TPD"))
             break;
         }
+        if (countall >= settings_.maxStep("TPD"))
+          break;
       }
       if (countall >= settings_.maxStep("TPD"))
         break;
