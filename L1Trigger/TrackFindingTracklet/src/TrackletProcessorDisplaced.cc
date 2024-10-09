@@ -197,11 +197,12 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
 
       unsigned int lutwidth = settings_.lutwidthtabextended(0, iSeed_);
       int lutval = -1;
+      const auto& lutshift = innerTable_.nbits();
       if (iSeed_ == Seed::L2L3L4 || iSeed_ == Seed::L4L5L6 || iSeed_ == Seed::D1D2L2 || iSeed_ == Seed::L2L3D1) {
         lutval = innerTable_.lookup((indexz << nbitsrfinebintable_) + indexr);
         int lutval2 = innerThirdTable_.lookup((indexz << nbitsrfinebintable_) + indexr);
         if (lutval != -1 && lutval2 != -1)
-          lutval += (lutval2 << 10);
+          lutval += (lutval2 << lutshift);
       }
       if (lutval == -1)
         continue;
@@ -212,17 +213,17 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
 
       FPGAWord lookupbits(lutval, lutwidth, true, __LINE__, __FILE__);
 
-      // get r/z bins from the lookupbits
-      int nbitsrzbin_ = N_RZBITS;
+      // get r/z bins for projection into outer layer/disc
+      int nbitsrzbin = N_RZBITS;
       if (iSeed_ == Seed::D1D2L2)
-        nbitsrzbin_--;
+        nbitsrzbin--;
       int rzbinfirst = lookupbits.bits(0, NFINERZBITS);  //finerz
       int next = lookupbits.bits(NFINERZBITS, 1);        //use next r/z bin
-      int rzdiffmax = lookupbits.bits(NFINERZBITS + 1 + nbitsrzbin_, NFINERZBITS);
+      int rzdiffmax = lookupbits.bits(NFINERZBITS + 1 + nbitsrzbin, NFINERZBITS);
 
-      int start = lookupbits.bits(NFINERZBITS + 1, nbitsrzbin_);  //rz bin
-      if (iSeed_ == Seed::D1D2L2 && negdisk)
-        start += (1 << nbitsrzbin_);
+      int start = lookupbits.bits(NFINERZBITS + 1, nbitsrzbin);  //rz bin
+      if (iSeed_ == Seed::D1D2L2 && negdisk)                     // projecting from layer/disc into disc
+        start += (1 << nbitsrzbin);
       int last = start + next;
 
       if (settings_.debugTracklet()) {
@@ -237,8 +238,7 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
             }
 
             const VMStubTE& secondvmstub = outervmstubs_.at(m)->getVMStubTEBinned(ibin, j);
-
-            int rzbin = (secondvmstub.vmbits().value() & 7);
+            int rzbin = (secondvmstub.vmbits().value() & (settings_.NLONGVMBINS() - 1));
             if (start != ibin)
               rzbin += 8;
             if (rzbin < rzbinfirst || rzbin - rzbinfirst > rzdiffmax) {
@@ -248,24 +248,16 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
               continue;
             }
 
-            constexpr int vmbitshift = 10;
-            constexpr int andlookupbits_ = 1023;
-            constexpr int andnewbin_ = 127;
-            constexpr int divbin_ = 8;
-            constexpr int shiftstart_ = 1;
-            constexpr int andlast_ = 1;
+            // get r/z bins for projection into third layer/disc
+            int nbitsrzbin_ = N_RZBITS;
+            int rzbinfirst_ = lookupbits.bits(lutshift, NFINERZBITS);  //finerz
+            int next_ = lookupbits.bits(lutshift + NFINERZBITS, 1);    //use next r/z bin
+            int rzdiffmax_ = lookupbits.bits(lutshift + NFINERZBITS + 1 + nbitsrzbin_, NFINERZBITS);
 
-            FPGAWord binlookup(lutval, lutwidth, true, __LINE__, __FILE__);
-            int lookupbits_ = (int)((binlookup.value() >> vmbitshift) & andlookupbits_);
-            int newbin_ = (lookupbits_ & andnewbin_);
-            int bin_ = newbin_ / divbin_;
-
-            int start_ = (bin_ >> shiftstart_);
-            int last_ = start_ + (bin_ & andlast_);
-            if (iSeed_ == Seed::D1D2L2 && negdisk) {
-              start_ = settings_.NLONGVMBINS() - last_ - 1;
-              last_ = settings_.NLONGVMBINS() - start_ - 1;
-            }
+            int start_ = lookupbits.bits(lutshift + NFINERZBITS + 1, nbitsrzbin_);  //rz bin
+            if (iSeed_ == Seed::D1D2L2 && negdisk)                                  // projecting from disk into layer
+              start_ = settings_.NLONGVMBINS() - 1 - start_ - next_;
+            int last_ = start_ + next_;
 
             if (settings_.debugTracklet()) {
               edm::LogVerbatim("Tracklet") << "Will look in zbins for third stub" << start_ << " to " << last_ << endl;
@@ -278,9 +270,18 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
                     edm::LogVerbatim("Tracklet") << "In " << getName() << " have third stub\n";
                   }
 
-                  countall++;
-
                   const VMStubTE& thirdvmstub = innervmstubs_.at(k)->getVMStubTEBinned(ibin_, l);
+                  int rzbin_ = (thirdvmstub.vmbits().value() & (settings_.NLONGVMBINS() - 1));
+                  if (start_ != ibin_)
+                    rzbin_ += 8;
+                  if (rzbin_ < rzbinfirst_ || rzbin_ - rzbinfirst_ > rzdiffmax_) {
+                    if (settings_.debugTracklet()) {
+                      edm::LogVerbatim("Tracklet") << "Stubpair rejected because of wrong r/zbin";
+                    }
+                    continue;
+                  }
+
+                  countall++;
 
                   const Stub* innerFPGAStub = firstallstub;
                   const Stub* middleFPGAStub = secondvmstub.stub();
@@ -304,16 +305,9 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
                   }
 
                   bool accept = false;
-                  if (iSeed_ == Seed::L2L3L4 || iSeed_ == Seed::L4L5L6) {
-                    if (innerFPGAStub->layerdisk() < N_LAYER && middleFPGAStub->layerdisk() < N_LAYER &&
-                        outerFPGAStub->layerdisk() < N_LAYER) {
-                      accept =
-                          LLLSeeding(outerFPGAStub, outerStub, innerFPGAStub, innerStub, middleFPGAStub, middleStub);
-                    } else if (innerFPGAStub->layerdisk() >= N_LAYER && middleFPGAStub->layerdisk() >= N_LAYER &&
-                               outerFPGAStub->layerdisk() >= N_LAYER) {
-                      throw cms::Exception("LogicError") << __FILE__ << " " << __LINE__ << " Invalid seeding!";
-                    }
-                  } else if (iSeed_ == Seed::L2L3D1)
+                  if (iSeed_ == Seed::L2L3L4 || iSeed_ == Seed::L4L5L6)
+                    accept = LLLSeeding(outerFPGAStub, outerStub, innerFPGAStub, innerStub, middleFPGAStub, middleStub);
+                  else if (iSeed_ == Seed::L2L3D1)
                     accept = LLDSeeding(outerFPGAStub, outerStub, innerFPGAStub, innerStub, middleFPGAStub, middleStub);
                   else if (iSeed_ == Seed::D1D2L2)
                     accept = DDLSeeding(outerFPGAStub, outerStub, innerFPGAStub, innerStub, middleFPGAStub, middleStub);
