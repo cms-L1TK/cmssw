@@ -18,6 +18,13 @@
 using namespace std;
 using namespace trklet;
 
+// TrackletProcessorDisplaced
+//
+// This module takes in collections of stubs within a phi region and a
+// displaced seed name and tries to create that displaced seed out of the stubs
+//
+// Update: Claire Savard, Oct. 2024
+
 TrackletProcessorDisplaced::TrackletProcessorDisplaced(string name, Settings const& settings, Globals* globals)
     : TrackletCalculatorDisplaced(name, settings, globals), innerTable_(settings), innerThirdTable_(settings) {
   innerallstubs_.clear();
@@ -26,15 +33,14 @@ TrackletProcessorDisplaced::TrackletProcessorDisplaced(string name, Settings con
   innervmstubs_.clear();
   outervmstubs_.clear();
 
+  // set layer/disk types based on input seed name
   initLayerDisksandISeedDisp(layerdisk1_, layerdisk2_, layerdisk3_, iSeed_);
 
+  // get projection tables
   unsigned int region = name.back() - 'A';
-  if (layerdisk1_ == LayerDisk::L2 || layerdisk1_ == LayerDisk::L3 || layerdisk1_ == LayerDisk::L5 ||
-      layerdisk1_ == LayerDisk::D1) {
-    innerTable_.initVMRTable(layerdisk1_, TrackletLUT::VMRTableType::inner, region);  //projection to next layer/disk
-    innerThirdTable_.initVMRTable(
-        layerdisk1_, TrackletLUT::VMRTableType::innerthird, region);  //projection to third layer/disk
-  }
+  innerTable_.initVMRTable(layerdisk1_, TrackletLUT::VMRTableType::inner, region);  //projection to next layer/disk
+  innerThirdTable_.initVMRTable(
+      layerdisk1_, TrackletLUT::VMRTableType::innerthird, region);  //projection to third layer/disk
 
   nbitszfinebintable_ = settings_.vmrlutzbits(layerdisk1_);
   nbitsrfinebintable_ = settings_.vmrlutrbits(layerdisk1_);
@@ -152,42 +158,34 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
   unsigned int countall = 0;
   unsigned int countsel = 0;
 
-  count_ = 0;
-
   phimin_ = phimin;
   phimax_ = phimax;
   iSector_ = iSector;
 
-  assert(!innerallstubs_.empty());
-  assert(!middleallstubs_.empty());
-  assert(!outerallstubs_.empty());
-  assert(!innervmstubs_.empty());
-  assert(!outervmstubs_.empty());
-
-  for (auto& iInnerMem : middleallstubs_) {
-    for (unsigned int j = 0; j < iInnerMem->nStubs(); j++) {
-      const Stub* firstallstub = iInnerMem->getStub(j);
+  // loop over the middle stubs in the potential seed
+  for (unsigned int midmem = 0; midmem < middleallstubs_.size(); midmem++) {
+    for (unsigned int j = 0; j < middleallstubs_[midmem]->nStubs(); j++) {
+      const Stub* midallstub = middleallstubs_[midmem]->getStub(j);
 
       if (settings_.debugTracklet()) {
-        edm::LogVerbatim("Tracklet") << "In " << getName() << " have first stub\n";
+        edm::LogVerbatim("Tracklet") << "In " << getName() << " have middle stub";
       }
 
-      bool negdisk = (firstallstub->disk().value() < 0);
-      int indexz = (((1 << (firstallstub->z().nbits() - 1)) + firstallstub->z().value()) >>
-                    (firstallstub->z().nbits() - nbitszfinebintable_));
+      // get r/z index of the middle stub
+      int indexz = (((1 << (midallstub->z().nbits() - 1)) + midallstub->z().value()) >>
+                    (midallstub->z().nbits() - nbitszfinebintable_));
       int indexr = -1;
-      if (layerdisk1_ > (N_LAYER - 1)) {
-        if (negdisk) {
+      bool negdisk = (midallstub->disk().value() < 0);  // check if disk in negative z region
+      if (layerdisk1_ >= LayerDisk::D1) {               // if a disk
+        if (negdisk)
           indexz = (1 << nbitszfinebintable_) - indexz;
+        indexr = midallstub->r().value();
+        if (midallstub->isPSmodule()) {
+          indexr = midallstub->r().value() >> (midallstub->r().nbits() - nbitsrfinebintable_);
         }
-        indexr = firstallstub->r().value();
-        if (firstallstub->isPSmodule()) {
-          indexr = firstallstub->r().value() >> (firstallstub->r().nbits() - nbitsrfinebintable_);
-        }
-      } else {
-        //Take the top nbitsfinebintable_ bits of the z coordinate. The & is to handle the negative z values.
-        indexr = (((1 << (firstallstub->r().nbits() - 1)) + firstallstub->r().value()) >>
-                  (firstallstub->r().nbits() - nbitsrfinebintable_));
+      } else {  // else a layer
+        indexr = (((1 << (midallstub->r().nbits() - 1)) + midallstub->r().value()) >>
+                  (midallstub->r().nbits() - nbitsrfinebintable_));
       }
 
       assert(indexz >= 0);
@@ -195,6 +193,7 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
       assert(indexz < (1 << nbitszfinebintable_));
       assert(indexr < (1 << nbitsrfinebintable_));
 
+      // create lookupbits that define projections from middle stub
       unsigned int lutwidth = settings_.lutwidthtabextended(0, iSeed_);
       int lutval = -1;
       const auto& lutshift = innerTable_.nbits();
@@ -206,86 +205,86 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
       }
       if (lutval == -1)
         continue;
-
-      if (settings_.debugTracklet()) {
-        edm::LogVerbatim("Tracklet") << getName() << " Layer-layer pair\n";
-      }
-
       FPGAWord lookupbits(lutval, lutwidth, true, __LINE__, __FILE__);
 
-      // get r/z bins for projection into outer layer/disc
+      // get r/z bins for projection into outer layer/disk
       int nbitsrzbin = N_RZBITS;
       if (iSeed_ == Seed::D1D2L2)
         nbitsrzbin--;
-      int rzbinfirst = lookupbits.bits(0, NFINERZBITS);  //finerz
-      int next = lookupbits.bits(NFINERZBITS, 1);        //use next r/z bin
+      int rzbinfirst = lookupbits.bits(0, NFINERZBITS);
+      int next = lookupbits.bits(NFINERZBITS, 1);
       int rzdiffmax = lookupbits.bits(NFINERZBITS + 1 + nbitsrzbin, NFINERZBITS);
 
-      int start = lookupbits.bits(NFINERZBITS + 1, nbitsrzbin);  //rz bin
-      if (iSeed_ == Seed::D1D2L2 && negdisk)                     // projecting from layer/disc into disc
+      int start = lookupbits.bits(NFINERZBITS + 1, nbitsrzbin);  // first rz bin projection
+      if (iSeed_ == Seed::D1D2L2 && negdisk)                     // if projecting into disk
         start += (1 << nbitsrzbin);
-      int last = start + next;
+      int last = start + next;  // last rz bin projection
 
       if (settings_.debugTracklet()) {
-        edm::LogVerbatim("Tracklet") << "Will look in r/zbins " << start << " to " << last << endl;
+        edm::LogVerbatim("Tracklet") << "Will look in r/z bins for outer stub " << start << " to " << last << endl;
       }
 
+      // loop over outer stubs that the middle stub can project to
       for (int ibin = start; ibin <= last; ibin++) {
-        for (unsigned int m = 0; m < outervmstubs_.size(); m++) {
-          for (unsigned int j = 0; j < outervmstubs_.at(m)->nVMStubsBinned(ibin); j++) {
-            if (settings_.debugTracklet()) {
-              edm::LogVerbatim("Tracklet") << "In " << getName() << " have second stub(1) " << ibin << " " << j << endl;
-            }
+        for (unsigned int outmem = 0; outmem < outervmstubs_.size(); outmem++) {
+          for (unsigned int j = 0; j < outervmstubs_[outmem]->nVMStubsBinned(ibin); j++) {
+            if (settings_.debugTracklet())
+              edm::LogVerbatim("Tracklet") << "In " << getName() << " have outer stub" << endl;
 
-            const VMStubTE& secondvmstub = outervmstubs_.at(m)->getVMStubTEBinned(ibin, j);
-            int rzbin = (secondvmstub.vmbits().value() & (settings_.NLONGVMBINS() - 1));
+            const VMStubTE& outvmstub = outervmstubs_[outmem]->getVMStubTEBinned(ibin, j);
+
+            // check if r/z of outer stub is within projection range
+            int rzbin = (outvmstub.vmbits().value() & (settings_.NLONGVMBINS() - 1));
             if (start != ibin)
               rzbin += 8;
             if (rzbin < rzbinfirst || rzbin - rzbinfirst > rzdiffmax) {
               if (settings_.debugTracklet()) {
-                edm::LogVerbatim("Tracklet") << "Stubpair rejected because of wrong r/zbin";
+                edm::LogVerbatim("Tracklet") << "Outer stub rejected because of wrong r/z bin";
               }
               continue;
             }
 
-            // get r/z bins for projection into third layer/disc
+            // get r/z bins for projection into third layer/disk
             int nbitsrzbin_ = N_RZBITS;
-            int rzbinfirst_ = lookupbits.bits(lutshift, NFINERZBITS);  //finerz
-            int next_ = lookupbits.bits(lutshift + NFINERZBITS, 1);    //use next r/z bin
+            int rzbinfirst_ = lookupbits.bits(lutshift, NFINERZBITS);
+            int next_ = lookupbits.bits(lutshift + NFINERZBITS, 1);
             int rzdiffmax_ = lookupbits.bits(lutshift + NFINERZBITS + 1 + nbitsrzbin_, NFINERZBITS);
 
-            int start_ = lookupbits.bits(lutshift + NFINERZBITS + 1, nbitsrzbin_);  //rz bin
-            if (iSeed_ == Seed::D1D2L2 && negdisk)                                  // projecting from disk into layer
+            int start_ = lookupbits.bits(lutshift + NFINERZBITS + 1, nbitsrzbin_);  // first rz bin projection
+            if (iSeed_ == Seed::D1D2L2 && negdisk)  // if projecting from disk into layer
               start_ = settings_.NLONGVMBINS() - 1 - start_ - next_;
-            int last_ = start_ + next_;
+            int last_ = start_ + next_;  // last rz bin projection
 
             if (settings_.debugTracklet()) {
-              edm::LogVerbatim("Tracklet") << "Will look in zbins for third stub" << start_ << " to " << last_ << endl;
+              edm::LogVerbatim("Tracklet")
+                  << "Will look in rz bins for inner stub " << start_ << " to " << last_ << endl;
             }
 
+            // loop over inner stubs that the middle stub can project to
             for (int ibin_ = start_; ibin_ <= last_; ibin_++) {
-              for (unsigned int k = 0; k < innervmstubs_.size(); k++) {
-                for (unsigned int l = 0; l < innervmstubs_.at(k)->nVMStubsBinned(ibin_); l++) {
-                  if (settings_.debugTracklet()) {
-                    edm::LogVerbatim("Tracklet") << "In " << getName() << " have third stub\n";
-                  }
+              for (unsigned int inmem = 0; inmem < innervmstubs_.size(); inmem++) {
+                for (unsigned int l = 0; l < innervmstubs_[inmem]->nVMStubsBinned(ibin_); l++) {
+                  if (settings_.debugTracklet())
+                    edm::LogVerbatim("Tracklet") << "In " << getName() << " have inner stub" << endl;
 
-                  const VMStubTE& thirdvmstub = innervmstubs_.at(k)->getVMStubTEBinned(ibin_, l);
-                  int rzbin_ = (thirdvmstub.vmbits().value() & (settings_.NLONGVMBINS() - 1));
+                  const VMStubTE& invmstub = innervmstubs_[inmem]->getVMStubTEBinned(ibin_, l);
+
+                  // check if r/z of inner stub is within projection range
+                  int rzbin_ = (invmstub.vmbits().value() & (settings_.NLONGVMBINS() - 1));
                   if (start_ != ibin_)
                     rzbin_ += 8;
                   if (rzbin_ < rzbinfirst_ || rzbin_ - rzbinfirst_ > rzdiffmax_) {
                     if (settings_.debugTracklet()) {
-                      edm::LogVerbatim("Tracklet") << "Stubpair rejected because of wrong r/zbin";
+                      edm::LogVerbatim("Tracklet") << "Inner stub rejected because of wrong r/z bin";
                     }
                     continue;
                   }
 
                   countall++;
 
-                  const Stub* innerFPGAStub = firstallstub;
-                  const Stub* middleFPGAStub = secondvmstub.stub();
-                  const Stub* outerFPGAStub = thirdvmstub.stub();
+                  const Stub* innerFPGAStub = invmstub.stub();
+                  const Stub* middleFPGAStub = midallstub;
+                  const Stub* outerFPGAStub = outvmstub.stub();
 
                   const L1TStub* innerStub = innerFPGAStub->l1tstub();
                   const L1TStub* middleStub = middleFPGAStub->l1tstub();
@@ -293,24 +292,22 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
 
                   if (settings_.debugTracklet()) {
                     edm::LogVerbatim("Tracklet")
-                        << "LLL seeding\n"
+                        << "triplet seeding\n"
                         << innerFPGAStub->strbare() << middleFPGAStub->strbare() << outerFPGAStub->strbare()
                         << innerStub->stubword() << middleStub->stubword() << outerStub->stubword()
                         << innerFPGAStub->layerdisk() << middleFPGAStub->layerdisk() << outerFPGAStub->layerdisk();
-                  }
-
-                  if (settings_.debugTracklet()) {
                     edm::LogVerbatim("Tracklet")
                         << "TrackletCalculatorDisplaced execute " << getName() << "[" << iSector_ << "]";
                   }
 
+                  // check if the seed made from the 3 stubs is valid
                   bool accept = false;
                   if (iSeed_ == Seed::L2L3L4 || iSeed_ == Seed::L4L5L6)
-                    accept = LLLSeeding(outerFPGAStub, outerStub, innerFPGAStub, innerStub, middleFPGAStub, middleStub);
+                    accept = LLLSeeding(innerFPGAStub, innerStub, middleFPGAStub, middleStub, outerFPGAStub, outerStub);
                   else if (iSeed_ == Seed::L2L3D1)
-                    accept = LLDSeeding(outerFPGAStub, outerStub, innerFPGAStub, innerStub, middleFPGAStub, middleStub);
+                    accept = LLDSeeding(innerFPGAStub, innerStub, middleFPGAStub, middleStub, outerFPGAStub, outerStub);
                   else if (iSeed_ == Seed::D1D2L2)
-                    accept = DDLSeeding(outerFPGAStub, outerStub, innerFPGAStub, innerStub, middleFPGAStub, middleStub);
+                    accept = DDLSeeding(innerFPGAStub, innerStub, middleFPGAStub, middleStub, outerFPGAStub, outerStub);
 
                   if (accept)
                     countsel++;
