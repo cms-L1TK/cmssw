@@ -116,6 +116,8 @@ namespace trklet {
 
     unsigned int size() const { return table_.size(); }
 
+    unsigned int nbits() const { return nbits_; }
+
   private:
     const Settings& settings_;
     const tt::Setup* setup_;
