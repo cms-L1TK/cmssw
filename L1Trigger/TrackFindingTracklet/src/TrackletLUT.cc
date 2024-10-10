@@ -1026,6 +1026,11 @@ void TrackletLUT::initVMRTable(unsigned int layerdisk, VMRTableType type, int re
       double r = rmin + (irbin + 0.5) * dr;
       double z = zmin + (izbin + 0.5) * dz;
 
+      // The extra "combined" flag is used to disable the flag from settings_
+      // in special cases. In particular, in the case of the triplet seeds, the
+      // VMRouterCM and TrackletProcessorDisplaced currently use the older LUTs
+      // that were used with the non-combined modules. Once these modules are
+      // updated, this extra flag can be removed.
       if (settings_.combined() && combined) {
         int iznew = izbin - (1 << (zbits - 1));
         if (iznew < 0)
@@ -1114,6 +1119,11 @@ void TrackletLUT::initVMRTable(unsigned int layerdisk, VMRTableType type, int re
     }
   }
 
+  // The extra "combined" flag is used to disable the flag from settings_ in
+  // special cases. In particular, in the case of the triplet seeds, the
+  // VMRouterCM and TrackletProcessorDisplaced currently use the older LUTs
+  // that were used with the non-combined modules. Once these modules are
+  // updated, this extra flag can be removed.
   if (settings_.combined() && combined) {
     if (type == VMRTableType::me) {
       nbits_ = 2 * settings_.NLONGVMBITS();

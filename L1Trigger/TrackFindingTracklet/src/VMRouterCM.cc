@@ -31,6 +31,12 @@ VMRouterCM::VMRouterCM(string name, Settings const& settings, Globals* global)
   overlapbits_ = 7;
   nextrabits_ = overlapbits_ - (settings_.nbitsallstubs(layerdisk_) + settings_.nbitsvmme(layerdisk_));
 
+  // The TrackletProcessorDisplaced currently uses the older LUTs that were
+  // used with the non-combined modules. To maintain compatibility, we
+  // initialize these older LUTs below, which are used for the triplet seeds in
+  // the "execute" method. Once the TrackletProcessorDisplaced is updated,
+  // these can be removed.
+
   meTable_.initVMRTable(layerdisk_, TrackletLUT::VMRTableType::me, region);            //used for ME and outer TE barrel
   meTableOld_.initVMRTable(layerdisk_, TrackletLUT::VMRTableType::me, region, false);  //used for ME and outer TE barrel
 
