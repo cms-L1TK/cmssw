@@ -4,13 +4,10 @@ import FWCore.ParameterSet.Config as cms
 
 ChannelAssignment_params = cms.PSet (
 
-  # DRin parameter
-  DRin = cms.PSet (
-    WidthLayerId      = cms.int32(  4 ), # number of bits used to represent layer id [barrel: 0-5, discs: 6-10]
-    WidthStubId       = cms.int32( 10 ), # number of bits used to represent stub id for projected stubs
-    WidthSeedStubId   = cms.int32( 10 ), # number of bits used to represent stub id for seed stubs
-    WidthPSTilt       = cms.int32(  1 ), # number of bits used to distinguish between tilted and untilded barrel modules or 2S and PS endcap modules
-    WidthCot          = cms.int32( 14 )
+  # TM parameter
+  TM = cms.PSet (
+    WidthStubId = cms.int32( 10 ), # number of bits used to represent stub id for projected stubs
+    WidthCot    = cms.int32( 14 )
   ),
 
   # DR parameter

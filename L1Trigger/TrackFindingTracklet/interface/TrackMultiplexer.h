@@ -2,9 +2,9 @@
 #define L1Trigger_TrackFindingTracklet_TrackMultiplexer_h
 
 #include "L1Trigger/TrackTrigger/interface/Setup.h"
-#include "L1Trigger/TrackerTFP/interface/DataFormats.h"
 #include "L1Trigger/TrackerTFP/interface/LayerEncoding.h"
 #include "L1Trigger/TrackFindingTracklet/interface/ChannelAssignment.h"
+#include "L1Trigger/TrackFindingTracklet/interface/DataFormats.h"
 #include "L1Trigger/TrackFindingTracklet/interface/Settings.h"
 
 #include <vector>
@@ -22,7 +22,7 @@ namespace trklet {
   public:
     TrackMultiplexer(const edm::ParameterSet& iConfig,
                      const tt::Setup* setup_,
-                     const trackerTFP::DataFormats* dataFormats,
+                     const DataFormats* dataFormats,
                      const trackerTFP::LayerEncoding* layerEncoding,
                      const ChannelAssignment* channelAssignment,
                      const Settings* settings,
@@ -48,6 +48,9 @@ namespace trklet {
             phi_(phi),
             z_(z),
             psTilt_(psTilt) {}
+      tt::FrameStub frame(const DataFormats* df) const {
+        return StubTM(ttStubRef_, df, stubId_, r_, phi_, z_, dPhi_, dZ_).frame();
+      }
       bool valid_;
       TTStubRef ttStubRef_;
       // kf layer id
@@ -86,6 +89,7 @@ namespace trklet {
             cot_(cot),
             zT_(zT),
             stubs_(stubs) {}
+      tt::FrameTrack frame(const DataFormats* df) const { return TrackTM(ttTrackRef_, df, inv2R_, phiT_, zT_).frame(); }
       TTTrackRef ttTrackRef_;
       bool valid_;
       int seedType_;
@@ -107,7 +111,7 @@ namespace trklet {
     // provides run-time constants
     const tt::Setup* setup_;
     // provides dataformats
-    const trackerTFP::DataFormats* dataFormats_;
+    const DataFormats* dataFormats_;
     // helper class to encode layer
     const trackerTFP::LayerEncoding* layerEncoding_;
     // helper class to assign tracks to channel

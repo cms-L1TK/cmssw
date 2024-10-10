@@ -8,24 +8,27 @@
 
 using namespace std;
 using namespace tt;
-using namespace trackerTFP;
 
 namespace trklet {
 
+  //
+  State::Stub::Stub(KalmanFilterFormats* kff, const FrameStub& frame) : stubDR_(frame, kff->dataFormats()) {
+    const Setup* setup = kff->setup();
+    H12_ = kff->format(VariableKF::H12).digi(stubDR_.r() + setup->chosenRofPhi() - setup->chosenRofZ());
+    H04_ = stubDR_.r() + setup->chosenRofPhi();
+    v0_ = kff->format(VariableKF::v0).digi(pow(2. * stubDR_.dPhi(), 2));
+    v1_ = kff->format(VariableKF::v1).digi(pow(2. * stubDR_.dZ(), 2));
+  }
+
   // proto state constructor
-  State::State(KalmanFilterFormats* formats,
-               TrackCTB* track,
-               const vector<StubCTB*>& stubs,
-               const TTBV& maybePattern,
-               int trackId)
-      : formats_(formats),
-        setup_(formats->setup()),
+  State::State(KalmanFilterFormats* kff, TrackDR* track, const vector<Stub*>& stubs, int trackId)
+      : kff_(kff),
+        setup_(kff->setup()),
         track_(track),
-        maybePattern_(maybePattern),
+        stubs_(stubs),
         trackId_(trackId),
         parent_(nullptr),
         stub_(nullptr),
-        layer_(-1),
         hitPattern_(0, setup_->numLayers()),
         trackPattern_(0, setup_->numLayers()),
         x0_(0.),
@@ -42,47 +45,16 @@ namespace trklet {
         C44_(pow(setup_->maxD0(), 2)),
         C40_(0.),
         C41_(0.) {
-    stubs_ = vector<vector<StubCTB*>>(stubs.size());
-    for (int layer = 0; layer < setup_->numLayers(); layer++) {
-      StubCTB* stub = stubs[layer];
-      if (stub) {
-        stubs_[layer].push_back(stubs[layer]);
-        trackPattern_.set(layer);
-        if (!stub_) {
-          stub_ = stub;
-          layer_ = layer;
-        }
-      }
-    }
-    DataFormatKF& dfH00 = formats_->format(VariableKF::H00);
-    DataFormatKF& dfv0 = formats_->format(VariableKF::v0);
-    DataFormatKF& dfv1 = formats_->format(VariableKF::v1);
-    // stub parameter
-    H12_ = dfH00.digi(stub_->r() + dfH00.digi(setup_->chosenRofPhi() - setup_->chosenRofZ()));
-    H04_ = stub_->r() + setup_->chosenRofPhi();
-    v0_ = dfv0.digi(pow(stub_->dPhi(), 2));
-    v1_ = dfv1.digi(pow(stub_->dZ(), 2));
-  }
-
-  // combinatoric state constructor
-  State::State(State* state, StubCTB* stub, int layer) : State(state) {
-    DataFormatKF& dfH00 = formats_->format(VariableKF::H00);
-    DataFormatKF& dfv0 = formats_->format(VariableKF::v0);
-    DataFormatKF& dfv1 = formats_->format(VariableKF::v1);
-    parent_ = state->parent();
-    stub_ = stub;
-    layer_ = layer;
-    H12_ = stub_->r() + dfH00.digi(setup_->chosenRofPhi() - setup_->chosenRofZ());
-    H04_ = stub_->r() + setup_->chosenRofPhi();
-    v0_ = dfv0.digi(pow(stub_->dPhi(), 2));
-    v1_ = dfv1.digi(pow(stub_->dZ(), 2));
+    int layer(0);
+    for (Stub* stub : stubs_)
+      trackPattern_[layer++] = (bool)stub;
+    layer = trackPattern_.plEncode();
+    stub_ = stubs_[layer];
+    hitPattern_.set(layer);
   }
 
   // updated state constructor
   State::State(State* state, const vector<double>& doubles) : State(state) {
-    DataFormatKF& dfH00 = formats_->format(VariableKF::H00);
-    DataFormatKF& dfv0 = formats_->format(VariableKF::v0);
-    DataFormatKF& dfv1 = formats_->format(VariableKF::v1);
     parent_ = state;
     // updated track parameter and uncertainties
     x0_ = doubles[0];
@@ -99,137 +71,85 @@ namespace trklet {
     C44_ = doubles[11];
     C40_ = doubles[12];
     C41_ = doubles[13];
-    // update maps
-    hitPattern_.set(layer_);
-    // pick next stub (first stub in next layer with stub)
-    if (hitPattern_.count() >= setup_->kfMinLayers()) {
-      layer_ = -1;
-      return;
-    }
+    // pick next stub
+    const int layer = this->layer();
     stub_ = nullptr;
-    for (int nextLayer = layer_ + 1; nextLayer < setup_->numLayers(); nextLayer++) {
-      if (trackPattern_[nextLayer]) {
-        stub_ = stubs_[nextLayer].front();
-        layer_ = nextLayer;
-        break;
-      }
-    }
-    if (!stub_)
+    if (hitPattern_.count() >= setup_->kfMinLayers() || hitPattern_.count() == setup_->kfMaxLayers())
       return;
-    H12_ = dfH00.digi(stub_->r() + dfH00.digi(setup_->chosenRofPhi() - setup_->chosenRofZ()));
-    H04_ = stub_->r() + setup_->chosenRofPhi();
-    v0_ = dfv0.digi(pow(stub_->dPhi(), 2));
-    v1_ = dfv1.digi(pow(stub_->dZ(), 2));
+    const int nextLayer = trackPattern_.plEncode(layer + 1, setup_->numLayers());
+    if (nextLayer == setup_->numLayers())
+      return;
+    stub_ = stubs_[nextLayer];
+    hitPattern_.set(nextLayer);
   }
 
-  // seed building state constructor
-  State::State(State* state, int layer) : State(state) {
-    DataFormatKF& dfH00 = formats_->format(VariableKF::H00);
-    DataFormatKF& dfv0 = formats_->format(VariableKF::v0);
-    DataFormatKF& dfv1 = formats_->format(VariableKF::v1);
-    parent_ = state;
+  // combinatoric and seed building state constructor
+  State::State(State* state, State* parent, int layer) : State(state) {
+    parent_ = parent;
+    hitPattern_ = parent ? parent->hitPattern() : TTBV(0, setup_->numLayers());
+    stub_ = stubs_[layer];
     hitPattern_.set(layer);
-    for (int nextLayer = layer + 1; nextLayer < setup_->numLayers(); nextLayer++) {
-      if (trackPattern_[nextLayer]) {
-        stub_ = stubs_[nextLayer].front();
-        layer_ = nextLayer;
-        break;
-      }
-    }
-    H12_ = dfH00.digi(stub_->r() + dfH00.digi(setup_->chosenRofPhi() - setup_->chosenRofZ()));
-    H04_ = stub_->r() + setup_->chosenRofPhi();
-    v0_ = dfv0.digi(pow(stub_->dPhi(), 2));
-    v1_ = dfv1.digi(pow(stub_->dZ(), 2));
   }
 
   //
   State* State::update(deque<State>& states, int layer) {
-    if (layer_ != layer || hitPattern_.count() == setup_->kfNumSeedStubs())
+    if (!hitPattern_.test(layer) || hitPattern_.count() > setup_->kfNumSeedStubs())
       return this;
-    states.emplace_back(this, layer);
+    const int nextLayer = trackPattern_.plEncode(layer + 1, setup_->numLayers());
+    states.emplace_back(this, this, nextLayer);
     return &states.back();
   }
 
   //
   State* State::combSeed(deque<State>& states, int layer) {
     // handle trivial state
-    if (layer_ != layer || hitPattern_.count() == setup_->kfNumSeedStubs())
+    if (!hitPattern_.test(layer) || hitPattern_.count() > setup_->kfNumSeedStubs())
       return nullptr;
-    // pick next stub on layer
-    const vector<StubCTB*>& stubs = stubs_[layer];
-    const int pos = distance(stubs.begin(), find(stubs.begin(), stubs.end(), stub_)) + 1;
-    if (pos < (int)stubs.size()) {
-      states.emplace_back(this, stubs[pos], layer);
-      return &states.back();
-    }
     // skip layers
-    for (int nextLayer = layer + 1; nextLayer < setup_->kfMaxSeedingLayer(); nextLayer++) {
-      if (!trackPattern_[nextLayer])
-        continue;
-      const int maxSeedStubs = hitPattern_.count() + trackPattern_.count(nextLayer, setup_->kfMaxSeedingLayer(), '1');
-      if (maxSeedStubs < setup_->kfNumSeedStubs())
-        continue;
-      const int maxStubs = maxSeedStubs + trackPattern_.count(setup_->kfMaxSeedingLayer(), setup_->numLayers(), '1');
-      if (maxStubs < setup_->kfMinLayers())
-        continue;
-      states.emplace_back(this, stubs_[nextLayer].front(), nextLayer);
-      return &states.back();
-    }
-    return nullptr;
+    const int nextLayer = trackPattern_.plEncode(layer + 1, setup_->numLayers());
+    const int maxSeedStubs = hitPattern_.count(0, layer) + trackPattern_.count(nextLayer, setup_->kfMaxSeedingLayer());
+    if (maxSeedStubs < setup_->kfNumSeedStubs())
+      return nullptr;
+    const int maxStubs = maxSeedStubs + trackPattern_.count(setup_->kfMaxSeedingLayer(), setup_->numLayers());
+    if (maxStubs < setup_->kfMinLayers())
+      return nullptr;
+    states.emplace_back(this, parent_, nextLayer);
+    return &states.back();
   }
 
   //
   State* State::comb(deque<State>& states, int layer) {
-    // handle skipping
-    if (layer_ > layer)
-      return nullptr;
-    // handle max reached
-    if (hitPattern_.count() == setup_->kfMaxLayers())
-      return nullptr;
-    // handle end reached
-    if (!stub_)
-      return nullptr;
-    // handle min reached
-    const vector<StubCTB*>& stubs = stubs_[layer];
-    if (layer_ == -1) {
-      if (trackPattern_[layer]) {
-        states.emplace_back(this, stubs.front(), layer);
+    // handle skipping and min reached
+    if (!hitPattern_.test(layer)) {
+      if (!stub_ && trackPattern_[layer] && hitPattern_.count() < setup_->kfMaxLayers()) {
+        states.emplace_back(this, parent_, layer);
         return &states.back();
       }
       return nullptr;
     }
-    // handle multiple stubs on layer
-    const int pos = distance(stubs.begin(), find(stubs.begin(), stubs.end(), stub_)) + 1;
-    if (pos < (int)stubs.size()) {
-      states.emplace_back(this, stubs[pos], layer);
-      return &states.back();
-    }
-    // handle skip
-    int nextLayer = layer + 1;
-    for (; nextLayer < setup_->numLayers(); nextLayer++)
-      if (trackPattern_[nextLayer])
-        break;
-    // not enough layer left
-    if (hitPattern_.count() + trackPattern_.count(nextLayer, setup_->numLayers()) < setup_->kfMinLayers())
+    // handle part of seed
+    if (hitPattern_.pmEncode() != layer)
       return nullptr;
-    if (nextLayer < setup_->numLayers() && trackPattern_[nextLayer]) {
-      states.emplace_back(this, stubs_[nextLayer].front(), nextLayer);
-      return &states.back();
-    }
-    return nullptr;
+    // handle skip
+    const int nextLayer = trackPattern_.plEncode(layer + 1, setup_->numLayers());
+    if (nextLayer == setup_->numLayers())
+      return nullptr;
+    // not enough layer left
+    if (hitPattern_.count() - 1 + trackPattern_.count(nextLayer, setup_->numLayers()) < setup_->kfMinLayers())
+      return nullptr;
+    states.emplace_back(this, parent_, nextLayer);
+    return &states.back();
   }
 
   // copy constructor
   State::State(State* state)
-      : formats_(state->formats_),
+      : kff_(state->kff_),
         setup_(state->setup_),
         track_(state->track_),
         stubs_(state->stubs_),
-        maybePattern_(state->maybePattern_),
         trackId_(state->trackId_),
         parent_(state->parent_),
         stub_(state->stub_),
-        layer_(state->layer_),
         hitPattern_(state->hitPattern_),
         trackPattern_(state->trackPattern_),
         x0_(state->x0_),
@@ -245,10 +165,6 @@ namespace trklet {
         C33_(state->C33_),
         C44_(state->C44_),
         C40_(state->C40_),
-        C41_(state->C41_),
-        H12_(state->H12_),
-        H04_(state->H04_),
-        v0_(state->v0_),
-        v1_(state->v1_) {}
+        C41_(state->C41_) {}
 
 }  // namespace trklet

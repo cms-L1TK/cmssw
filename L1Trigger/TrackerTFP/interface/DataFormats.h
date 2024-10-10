@@ -24,12 +24,12 @@ and in undigitized format in an std::tuple. (This saves CPU)
 namespace trackerTFP {
 
   // track trigger processes
-  enum class Process { begin, dtc = begin, pp, gp, ht, ctb, kf, dr, end, x };
+  enum class Process { begin, dtc = begin, pp, gp, ht, ctb, kf, dr, tfp, end, x };
   // track trigger variables
   enum class Variable { begin, r = begin, phi, z, dPhi, dZ, inv2R, phiT, cot, zT, layer, match, end, x };
   // track trigger process order
   constexpr std::initializer_list<Process> Processes = {
-      Process::dtc, Process::pp, Process::gp, Process::ht, Process::ctb, Process::kf, Process::dr};
+      Process::dtc, Process::pp, Process::gp, Process::ht, Process::ctb, Process::kf, Process::dr, Process::tfp};
   // conversion: Process to int
   inline constexpr int operator+(Process p) { return static_cast<int>(p); }
   // conversion: Variable to int
@@ -112,6 +112,15 @@ namespace trackerTFP {
   };
 
   template <>
+  Format<Variable::inv2R, Process::tfp>::Format(const tt::Setup* setup);
+  template <>
+  Format<Variable::phiT, Process::tfp>::Format(const tt::Setup* setup);
+  template <>
+  Format<Variable::cot, Process::tfp>::Format(const tt::Setup* setup);
+  template <>
+  Format<Variable::zT, Process::tfp>::Format(const tt::Setup* setup);
+
+  template <>
   Format<Variable::r, Process::dtc>::Format(const tt::Setup* setup);
   template <>
   Format<Variable::phi, Process::dtc>::Format(const tt::Setup* setup);
@@ -163,13 +172,7 @@ namespace trackerTFP {
   Format<Variable::match, Process::kf>::Format(const tt::Setup* setup);
 
   template <>
-  Format<Variable::inv2R, Process::dr>::Format(const tt::Setup* setup);
-  template <>
-  Format<Variable::phiT, Process::dr>::Format(const tt::Setup* setup);
-  template <>
   Format<Variable::cot, Process::dr>::Format(const tt::Setup* setup);
-  template <>
-  Format<Variable::zT, Process::dr>::Format(const tt::Setup* setup);
 
   /*! \class  trackerTFP::DataFormats
    *  \brief  Class to calculate and provide dataformats used by Track Trigger emulator
@@ -180,18 +183,88 @@ namespace trackerTFP {
   private:
     // variable flavour mapping, Each row below declares which processing steps use the variable named in the comment at the end of the row
     static constexpr std::array<std::array<Process, +Process::end>, +Variable::end> config_ = {{
-        //  Process::dtc  Process::pp   Process::gp   Process::ht   Process::ctb  Process::kf   Process::dr
-        {{Process::dtc, Process::dtc, Process::dtc, Process::dtc, Process::dtc, Process::dtc, Process::dtc}},  // Variable::r
-        {{Process::dtc, Process::dtc, Process::gp, Process::ht, Process::ht, Process::kf, Process::kf}},  // Variable::phi
-        {{Process::dtc, Process::dtc, Process::gp, Process::gp, Process::gp, Process::gp, Process::gp}},  // Variable::z
-        {{Process::x, Process::x, Process::x, Process::x, Process::ctb, Process::ctb, Process::ctb}},  // Variable::dPhi
-        {{Process::x, Process::x, Process::x, Process::x, Process::ctb, Process::ctb, Process::ctb}},  // Variable::dZ
-        {{Process::ht, Process::ht, Process::ht, Process::ht, Process::ctb, Process::kf, Process::kf}},  // Variable::inv2R
-        {{Process::gp, Process::gp, Process::gp, Process::ht, Process::ht, Process::kf, Process::kf}},  // Variable::phiT
-        {{Process::x, Process::x, Process::gp, Process::x, Process::gp, Process::kf, Process::dr}},     // Variable::cot
-        {{Process::gp, Process::gp, Process::gp, Process::gp, Process::gp, Process::kf, Process::kf}},  // Variable::zT
-        {{Process::dtc, Process::dtc, Process::gp, Process::gp, Process::ctb, Process::x, Process::x}},  // Variable::layer
-        {{Process::x, Process::x, Process::x, Process::x, Process::x, Process::kf, Process::x}}  // Variable::match
+        //  Process::dtc  Process::pp   Process::gp   Process::ht   Process::ctb  Process::kf   Process::dr,  Process::tfp
+        {{Process::dtc,
+          Process::dtc,
+          Process::dtc,
+          Process::dtc,
+          Process::dtc,
+          Process::dtc,
+          Process::dtc,
+          Process::x}},  // Variable::r
+        {{Process::dtc,
+          Process::dtc,
+          Process::gp,
+          Process::ht,
+          Process::ht,
+          Process::kf,
+          Process::kf,
+          Process::x}},  // Variable::phi
+        {{Process::dtc,
+          Process::dtc,
+          Process::gp,
+          Process::gp,
+          Process::gp,
+          Process::gp,
+          Process::gp,
+          Process::x}},  // Variable::z
+        {{Process::x,
+          Process::x,
+          Process::x,
+          Process::x,
+          Process::ctb,
+          Process::ctb,
+          Process::ctb,
+          Process::x}},  // Variable::dPhi
+        {{Process::x,
+          Process::x,
+          Process::x,
+          Process::x,
+          Process::ctb,
+          Process::ctb,
+          Process::ctb,
+          Process::x}},  // Variable::dZ
+        {{Process::ht,
+          Process::ht,
+          Process::ht,
+          Process::ht,
+          Process::ctb,
+          Process::kf,
+          Process::kf,
+          Process::tfp}},  // Variable::inv2R
+        {{Process::gp,
+          Process::gp,
+          Process::gp,
+          Process::ht,
+          Process::ht,
+          Process::kf,
+          Process::kf,
+          Process::tfp}},  // Variable::phiT
+        {{Process::x,
+          Process::x,
+          Process::gp,
+          Process::x,
+          Process::gp,
+          Process::kf,
+          Process::dr,
+          Process::tfp}},  // Variable::cot
+        {{Process::gp,
+          Process::gp,
+          Process::gp,
+          Process::gp,
+          Process::gp,
+          Process::kf,
+          Process::kf,
+          Process::tfp}},  // Variable::zT
+        {{Process::dtc,
+          Process::dtc,
+          Process::gp,
+          Process::gp,
+          Process::ctb,
+          Process::x,
+          Process::x,
+          Process::x}},  // Variable::layer
+        {{Process::x, Process::x, Process::x, Process::x, Process::x, Process::kf, Process::x, Process::x}}  // Variable::match
     }};
     // stub word assembly, shows which stub variables are used by each process
     static constexpr std::array<std::initializer_list<Variable>, +Process::end> stubs_ = {{
@@ -219,7 +292,8 @@ namespace trackerTFP {
         {Variable::r, Variable::phi, Variable::z, Variable::layer, Variable::phiT, Variable::zT},      // Process::ht
         {Variable::r, Variable::phi, Variable::z, Variable::dPhi, Variable::dZ},                       // Process::ctb
         {Variable::r, Variable::phi, Variable::z, Variable::dPhi, Variable::dZ},                       // Process::kf
-        {Variable::r, Variable::phi, Variable::z, Variable::dPhi, Variable::dZ}                        // Process::dr
+        {Variable::r, Variable::phi, Variable::z, Variable::dPhi, Variable::dZ},                       // Process::dr
+        {}                                                                                             // Process::tfp
     }};
     // track word assembly, shows which track variables are used by each process
     static constexpr std::array<std::initializer_list<Variable>, +Process::end> tracks_ = {{
@@ -229,7 +303,8 @@ namespace trackerTFP {
         {},                                                                               // Process::ht
         {Variable::inv2R, Variable::phiT, Variable::zT},                                  // Process::ctb
         {Variable::inv2R, Variable::phiT, Variable::cot, Variable::zT, Variable::match},  // Process::kf
-        {Variable::inv2R, Variable::phiT, Variable::cot, Variable::zT}                    // Process::dr
+        {Variable::inv2R, Variable::phiT, Variable::cot, Variable::zT},                   // Process::dr
+        {}                                                                                // Process::dr
     }};
 
   public:

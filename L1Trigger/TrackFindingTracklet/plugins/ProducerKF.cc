@@ -12,9 +12,7 @@
 
 #include "DataFormats/L1TrackTrigger/interface/TTTypes.h"
 #include "L1Trigger/TrackTrigger/interface/Setup.h"
-#include "L1Trigger/TrackerTFP/interface/DataFormats.h"
-#include "L1Trigger/TrackerTFP/interface/KalmanFilterFormats.h"
-#include "L1Trigger/TrackerTFP/interface/LayerEncoding.h"
+#include "L1Trigger/TrackFindingTracklet/interface/DataFormats.h"
 #include "L1Trigger/TrackFindingTracklet/interface/KalmanFilter.h"
 
 #include <string>
@@ -23,7 +21,6 @@
 using namespace std;
 using namespace edm;
 using namespace tt;
-using namespace trackerTFP;
 
 namespace trklet {
 
@@ -42,7 +39,7 @@ namespace trklet {
     void produce(Event&, const EventSetup&) override;
     void endStream() override {
       if (printDebug_)
-        kalmanFilterFormats_->endJob();
+        kalmanFilterFormats_.endJob();
     }
     // ED input token of sf stubs and tracks
     EDGetTokenT<StreamsStub> edGetTokenStubs_;
@@ -58,27 +55,21 @@ namespace trklet {
     ESGetToken<Setup, SetupRcd> esGetTokenSetup_;
     // DataFormats token
     ESGetToken<DataFormats, DataFormatsRcd> esGetTokenDataFormats_;
-    // LayerEncoding token
-    ESGetToken<LayerEncoding, LayerEncodingRcd> esGetTokenLayerEncoding_;
-    // KalmanFilterFormats token
-    ESGetToken<KalmanFilterFormats, KalmanFilterFormatsRcd> esGetTokenKalmanFilterFormats_;
     // configuration
     ParameterSet iConfig_;
     // helper class to store configurations
     const Setup* setup_ = nullptr;
     // helper class to extract structured data from tt::Frames
     const DataFormats* dataFormats_ = nullptr;
-    // helper class to encode layer
-    const LayerEncoding* layerEncoding_ = nullptr;
-    // helper class to
-    KalmanFilterFormats* kalmanFilterFormats_ = nullptr;
+    // provides dataformats of Kalman filter internals
+    KalmanFilterFormats kalmanFilterFormats_;
     // print end job internal unused MSB
     bool printDebug_;
     //
     bool use5ParameterFit_;
   };
 
-  ProducerKF::ProducerKF(const ParameterSet& iConfig) : iConfig_(iConfig) {
+  ProducerKF::ProducerKF(const ParameterSet& iConfig) : iConfig_(iConfig), kalmanFilterFormats_(iConfig) {
     printDebug_ = iConfig.getParameter<bool>("PrintKFDebug");
     use5ParameterFit_ = iConfig.getParameter<bool>("Use5ParameterFit");
     const string& label = iConfig.getParameter<string>("InputLabelKF");
@@ -96,8 +87,6 @@ namespace trklet {
     // book ES products
     esGetTokenSetup_ = esConsumes<Setup, SetupRcd, Transition::BeginRun>();
     esGetTokenDataFormats_ = esConsumes<DataFormats, DataFormatsRcd, Transition::BeginRun>();
-    esGetTokenLayerEncoding_ = esConsumes<LayerEncoding, LayerEncodingRcd, Transition::BeginRun>();
-    esGetTokenKalmanFilterFormats_ = esConsumes<KalmanFilterFormats, KalmanFilterFormatsRcd, Transition::BeginRun>();
   }
 
   void ProducerKF::beginRun(const Run& iRun, const EventSetup& iSetup) {
@@ -105,10 +94,8 @@ namespace trklet {
     setup_ = &iSetup.getData(esGetTokenSetup_);
     // helper class to extract structured data from tt::Frames
     dataFormats_ = &iSetup.getData(esGetTokenDataFormats_);
-    // helper class to encode layer
-    layerEncoding_ = &iSetup.getData(esGetTokenLayerEncoding_);
-    // helper class to
-    kalmanFilterFormats_ = const_cast<KalmanFilterFormats*>(&iSetup.getData(esGetTokenKalmanFilterFormats_));
+    // provides dataformats of Kalman filter internals
+    kalmanFilterFormats_.consume(dataFormats_);
   }
 
   void ProducerKF::produce(Event& iEvent, const EventSetup& iSetup) {
@@ -143,7 +130,7 @@ namespace trklet {
     }
     for (int region = 0; region < setup_->numRegions(); region++) {
       // object to fit tracks in a processing region
-      KalmanFilter kf(iConfig_, setup_, dataFormats_, layerEncoding_, kalmanFilterFormats_, region, ttTracks);
+      KalmanFilter kf(iConfig_, setup_, dataFormats_, &kalmanFilterFormats_, region, ttTracks);
       // read in and organize input tracks and stubs
       kf.consume(tracks, stubs);
       // fill output products

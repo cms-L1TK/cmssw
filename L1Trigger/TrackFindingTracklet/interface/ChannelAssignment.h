@@ -22,22 +22,18 @@ namespace trklet {
     ChannelAssignment() {}
     ChannelAssignment(const edm::ParameterSet& iConfig, const tt::Setup* setup);
     ~ChannelAssignment() {}
+    // helper class to store configurations
+    const tt::Setup* setup() const { return setup_; }
     // returns channelId of given TTTrackRef from TrackBuilder
     int channelId(const TTTrackRef& ttTrackRef) const;
     // number of used TB channels for tracks
     int numChannelsTrack() const { return numChannelsTrack_; }
     // number of used TB channels for stubs
     int numChannelsStub() const { return numChannelsStub_; }
-    // number of bits used to represent layer id [barrel: 0-5, discs: 6-10]
-    int widthLayerId() const { return widthLayerId_; }
     // number of bits used to represent stub id for projected stubs
-    int widthStubId() const { return widthStubId_; }
-    // number of bits used to represent stub id for seed stubs
-    int widthSeedStubId() const { return widthSeedStubId_; }
-    // number of bits used to distinguish between tilted and untilded barrel modules or 2S and PS endcap modules
-    int widthPSTilt() const { return widthPSTilt_; }
+    int tmWidthStubId() const { return tmWidthStubId_; }
     //
-    int widthCot() const { return widthCot_; }
+    int tmWidthCot() const { return tmWidthCot_; }
     // number of comparison modules used in each DR node
     int numComparisonModules() const { return numComparisonModules_; }
     // min number of shared stubs to identify duplicates
@@ -68,19 +64,13 @@ namespace trklet {
   private:
     // helper class to store configurations
     const tt::Setup* setup_;
-    // DRin parameter
-    edm::ParameterSet pSetDRin_;
-    // number of bits used to represent layer id [barrel: 0-5, discs: 6-10]
-    int widthLayerId_;
+    // TM parameter
+    edm::ParameterSet pSetTM_;
     // number of bits used to represent stub id for projected stubs
-    int widthStubId_;
-    // number of bits used to represent stub id for seed stubs
-    int widthSeedStubId_;
-    // number of bits used to distinguish between tilted and untilded barrel modules or 2S and PS endcap modules
-    int widthPSTilt_;
+    int tmWidthStubId_;
     //
-    int widthCot_;
-    // DRin parameter
+    int tmWidthCot_;
+    // DR parameter
     edm::ParameterSet pSetDR_;
     // number of comparison modules used in each DR node
     int numComparisonModules_;

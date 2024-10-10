@@ -2,7 +2,7 @@
 #define L1Trigger_TrackFindingTracklet_DuplicateRemoval_h
 
 #include "L1Trigger/TrackTrigger/interface/Setup.h"
-#include "L1Trigger/TrackerTFP/interface/DataFormats.h"
+#include "L1Trigger/TrackFindingTracklet/interface/DataFormats.h"
 #include "L1Trigger/TrackFindingTracklet/interface/ChannelAssignment.h"
 
 #include <vector>
@@ -21,7 +21,7 @@ namespace trklet {
   public:
     DuplicateRemoval(const edm::ParameterSet& iConfig,
                      const tt::Setup* setup_,
-                     const trackerTFP::DataFormats* dataFormats,
+                     const DataFormats* dataFormats,
                      const ChannelAssignment* channelAssignment,
                      int region);
     ~DuplicateRemoval() {}
@@ -55,7 +55,7 @@ namespace trklet {
     // provides run-time constants
     const tt::Setup* setup_;
     // provides dataformats
-    const trackerTFP::DataFormats* dataFormats_;
+    const DataFormats* dataFormats_;
     // helper class to assign tracks to channel
     const ChannelAssignment* channelAssignment_;
     // processing region (0 - 8) aka processing phi nonant

@@ -7,7 +7,6 @@
 using namespace std;
 using namespace edm;
 using namespace tt;
-using namespace trackerTFP;
 
 namespace trklet {
 
@@ -51,27 +50,10 @@ namespace trklet {
         const FrameStub& frameStub = streamsStub[offset + layer][frame];
         if (frameStub.first.isNull())
           continue;
-        //get stub phi, z, dPhi, dZ parameter
-        double dZ, dPhi, z, phi;
-        TTBV ttBV = frameStub.second;
-        dataFormats_->format(Variable::dZ, Process::ctb).extract(ttBV, dZ);
-        dataFormats_->format(Variable::dPhi, Process::ctb).extract(ttBV, dPhi);
-        dataFormats_->format(Variable::z, Process::ctb).extract(ttBV, z);
-        dataFormats_->format(Variable::phi, Process::ctb).extract(ttBV, phi);
-        ttBV >>= dataFormats_->format(Variable::r, Process::ctb).width();
-        // get stubId
-        const TTBV stubId(ttBV, channelAssignment_->widthStubId(), 0, true);
-        // create StubCTB bit string
-        const TTBV ctb(
-            frameStub.second,
-            dataFormats_->width(Variable::dZ, Process::ctb) + dataFormats_->width(Variable::dPhi, Process::ctb) +
-                dataFormats_->width(Variable::z, Process::ctb) + dataFormats_->width(Variable::phi, Process::ctb) +
-                dataFormats_->width(Variable::r, Process::ctb),
-            0);
-        // create StubCTB Frame
-        const FrameStub fs(frameStub.first, "1" + ctb.str());
         // create handy stub
-        stubs_.emplace_back(fs, stubId.val(), layer);
+        const StubTM stubTM(frameStub, dataFormats_);
+        const StubDR stubDR(stubTM);
+        stubs_.emplace_back(stubDR.frame(), stubTM.stubId(), layer);
         stubs.push_back(&stubs_.back());
       }
       tracks_.emplace_back(frameTrack, stubs);
@@ -93,7 +75,7 @@ namespace trklet {
         continue;
       for (Track*& trackCM : cms) {
         if (!trackCM) {
-          // tracks used in CMs don't propagate through chain and do not appear in output stream unaltered
+          // tracks used in CMs propagate through chain and do appear in output stream unaltered
           trackCM = track;
           break;
         }

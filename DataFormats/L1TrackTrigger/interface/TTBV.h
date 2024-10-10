@@ -321,12 +321,28 @@ public:
     return size_;
   }
 
+  // position of least significant '1' or '0' in range [begin, end)
+  int plEncode(int begin, int end, bool b = true) const {
+    for (int e = begin; e < end; e++)
+      if (bs_.test(e) == b)
+        return e;
+    return size_;
+  }
+
   // position of most significant '1' or '0'
   int pmEncode(bool b = true) const {
     for (int e = size_ - 1; e > -1; e--)
       if (bs_[e] == b)
         return e;
     return size_;
+  }
+
+  // position of most significant '1' or '0' in range [begin, end)
+  int pmEncode(int begin, int end, bool b = true) const {
+    for (int e = end - 1; e >= begin; e--)
+      if (bs_.test(e) == b)
+        return e;
+    return end;
   }
 
   // position for n'th '1' or '0' counted from least to most significant bit

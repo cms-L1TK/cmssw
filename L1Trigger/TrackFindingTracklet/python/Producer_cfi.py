@@ -13,10 +13,10 @@ TrackFindingTrackletProducer_params = cms.PSet (
   BranchTracks        = cms.string( "TrackAccepted"   ),                  #
   BranchTTTracks      = cms.string( "TTTrackAccepted" ),                  #
   BranchTruncated     = cms.string( "Truncated"       ),                  #
-  EnableTruncation    = cms.bool  ( True  ),                              # enable emulation of truncation for TBout, KF, KFin, lost stubs are filled in BranchLost
+  EnableTruncation    = cms.bool  ( True  ),                              # enable emulation of truncation for TM, DR, KF, TQ and TFP
   PrintKFDebug        = cms.bool  ( False ),                              # print end job internal unused MSB
-  UseTTStubResiduals  = cms.bool  ( False ),                              # stub residuals and radius are recalculated from seed parameter and TTStub position
-  UseTTStubParameters = cms.bool  ( False ),                              # track parameter are recalculated from seed TTStub positions
+  UseTTStubResiduals  = cms.bool  ( True  ),                              # stub residuals and radius are recalculated from seed parameter and TTStub position
+  UseTTStubParameters = cms.bool  ( True  ),                              # track parameter are recalculated from seed TTStub positions
   Use5ParameterFit    = cms.bool  ( False )                               # double precision simulation of 5 parameter fit instead of bit accurate emulation of 4 parameter fit
 
 )

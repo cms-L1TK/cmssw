@@ -158,6 +158,7 @@ namespace tt {
         // Parmeter specifying KalmanFilter
         pSetKF_(iConfig.getParameter<ParameterSet>("KalmanFilter")),
         kfNumWorker_(pSetKF_.getParameter<int>("NumWorker")),
+        kfMaxTracks_(pSetKF_.getParameter<int>("MaxTracks")),
         kfMinLayers_(pSetKF_.getParameter<int>("MinLayers")),
         kfMinLayersPS_(pSetKF_.getParameter<int>("MinLayersPS")),
         kfMaxLayers_(pSetKF_.getParameter<int>("MaxLayers")),
@@ -165,9 +166,7 @@ namespace tt {
         kfMaxSeedingLayer_(pSetKF_.getParameter<int>("MaxSeedingLayer")),
         kfNumSeedStubs_(pSetKF_.getParameter<int>("NumSeedStubs")),
         kfMinSeedDeltaR_(pSetKF_.getParameter<double>("MinSeedDeltaR")),
-        kfMaxSeedDeltaR_(pSetKF_.getParameter<double>("MaxSeedDeltaR")),
         kfRangeFactor_(pSetKF_.getParameter<double>("RangeFactor")),
-        kfBaseShift_(pSetKF_.getParameter<int>("BaseShift")),
         kfShiftInitialC00_(pSetKF_.getParameter<int>("ShiftInitialC00")),
         kfShiftInitialC11_(pSetKF_.getParameter<int>("ShiftInitialC11")),
         kfShiftInitialC22_(pSetKF_.getParameter<int>("ShiftInitialC22")),

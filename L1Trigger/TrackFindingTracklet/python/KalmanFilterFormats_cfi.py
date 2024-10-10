@@ -4,7 +4,7 @@
 # if a variable overflows an Exception will be thrown and the corresponding baseshift needs to be increased.
 import FWCore.ParameterSet.Config as cms
 
-TrackTriggerKalmanFilterFormats_params = cms.PSet (
+HybridKalmanFilterFormats_params = cms.PSet (
 
   EnableIntegerEmulation = cms.bool( True ),
 

@@ -2,9 +2,8 @@
 #define L1Trigger_TrackFindingTracklet_KalmanFilter_h
 
 #include "L1Trigger/TrackTrigger/interface/Setup.h"
-#include "L1Trigger/TrackerTFP/interface/DataFormats.h"
-#include "L1Trigger/TrackerTFP/interface/LayerEncoding.h"
-#include "L1Trigger/TrackerTFP/interface/KalmanFilterFormats.h"
+#include "L1Trigger/TrackFindingTracklet/interface/DataFormats.h"
+#include "L1Trigger/TrackFindingTracklet/interface/KalmanFilterFormats.h"
 #include "L1Trigger/TrackFindingTracklet/interface/State.h"
 #include "DataFormats/L1TrackTrigger/interface/TTTypes.h"
 
@@ -40,11 +39,11 @@ namespace trklet {
    */
   class KalmanFilter {
   public:
+    typedef State::Stub Stub;
     KalmanFilter(const edm::ParameterSet& iConfig,
                  const tt::Setup* setup,
-                 const trackerTFP::DataFormats* dataFormats,
-                 const trackerTFP::LayerEncoding* layerEncoding,
-                 trackerTFP::KalmanFilterFormats* kalmanFilterFormats,
+                 const DataFormats* dataFormats,
+                 KalmanFilterFormats* kalmanFilterFormats,
                  int region,
                  tt::TTTracks& ttTracks);
     ~KalmanFilter() {}
@@ -57,16 +56,48 @@ namespace trklet {
                  int& numLostStates);
 
   private:
+    //
+    struct Track {
+      Track() {}
+      Track(int trackId,
+            int numConsistent,
+            int numConsistentPS,
+            double d0,
+            const TTBV& hitPattern,
+            const TrackKF& trackKF,
+            const std::vector<StubKF>& stubsKF)
+          : trackId_(trackId),
+            numConsistent_(numConsistent),
+            numConsistentPS_(numConsistentPS),
+            d0_(d0),
+            hitPattern_(hitPattern),
+            trackKF_(trackKF),
+            stubsKF_(stubsKF) {}
+      int trackId_;
+      int numConsistent_;
+      int numConsistentPS_;
+      double d0_;
+      TTBV hitPattern_;
+      TrackKF trackKF_;
+      std::vector<StubKF> stubsKF_;
+    };
+    // constraints double precision
+    double digi(VariableKF var, double val) { return kalmanFilterFormats_->format(var).digi(val); }
+    //
+    int integer(VariableKF var, double val) { return kalmanFilterFormats_->format(var).integer(val); }
+    //
+    void updateRangeActual(VariableKF var, double val) {
+      return kalmanFilterFormats_->format(var).updateRangeActual(val);
+    }
+    //
+    double base(VariableKF var) { return kalmanFilterFormats_->format(var).base(); }
+    //
+    int width(VariableKF var) { return kalmanFilterFormats_->format(var).width(); }
     // remove and return first element of deque, returns nullptr if empty
     template <class T>
     T* pop_front(std::deque<T*>& ts) const;
-    //
-    double digi(double val, double base) const { return (floor(val / base + 1.e-11) + .5) * base; }
-
     // calculates the helix params & their cov. matrix from a pair of stubs
     void calcSeeds();
-    // apply final cuts
-    void finalize();
     // Transform States into output products
     void conv(tt::StreamsStub& streamsStub, tt::StreamsTrack& streamsTrack);
     // adds a layer to states
@@ -75,6 +106,8 @@ namespace trklet {
     void addSeedLayer();
     // Assign next combinatoric (i.e. not first in layer) stub to state
     void comb(State*& state);
+    // apply final cuts
+    void finalize();
     // best state selection
     void accumulator();
     // updates state
@@ -91,64 +124,26 @@ namespace trklet {
     // provides run-time constants
     const tt::Setup* setup_;
     // provides dataformats
-    const trackerTFP::DataFormats* dataFormats_;
-    // provides layer Encoding
-    const trackerTFP::LayerEncoding* layerEncoding_;
+    const DataFormats* dataFormats_;
     // provides dataformats of Kalman filter internals
-    trackerTFP::KalmanFilterFormats* kalmanFilterFormats_;
+    KalmanFilterFormats* kalmanFilterFormats_;
     // processing region
     int region_;
     //
     tt::TTTracks& ttTracks_;
     // container of tracks
-    std::vector<trackerTFP::TrackCTB> tracks_;
+    std::vector<TrackDR> tracks_;
     // container of stubs
-    std::vector<trackerTFP::StubCTB> stubs_;
+    std::vector<Stub> stubs_;
     // container of all Kalman Filter states
     std::deque<State> states_;
     // processing stream
     std::deque<State*> stream_;
+    //
+    std::vector<Track> finals_;
     // current layer used during state propagation
     int layer_;
-
-    // dataformats of Kalman filter internals
-
-    trackerTFP::DataFormatKF* x0_;
-    trackerTFP::DataFormatKF* x1_;
-    trackerTFP::DataFormatKF* x2_;
-    trackerTFP::DataFormatKF* x3_;
-    trackerTFP::DataFormatKF* H00_;
-    trackerTFP::DataFormatKF* H12_;
-    trackerTFP::DataFormatKF* m0_;
-    trackerTFP::DataFormatKF* m1_;
-    trackerTFP::DataFormatKF* v0_;
-    trackerTFP::DataFormatKF* v1_;
-    trackerTFP::DataFormatKF* r0_;
-    trackerTFP::DataFormatKF* r1_;
-    trackerTFP::DataFormatKF* S00_;
-    trackerTFP::DataFormatKF* S01_;
-    trackerTFP::DataFormatKF* S12_;
-    trackerTFP::DataFormatKF* S13_;
-    trackerTFP::DataFormatKF* K00_;
-    trackerTFP::DataFormatKF* K10_;
-    trackerTFP::DataFormatKF* K21_;
-    trackerTFP::DataFormatKF* K31_;
-    trackerTFP::DataFormatKF* R00_;
-    trackerTFP::DataFormatKF* R11_;
-    trackerTFP::DataFormatKF* R00Rough_;
-    trackerTFP::DataFormatKF* R11Rough_;
-    trackerTFP::DataFormatKF* invR00Approx_;
-    trackerTFP::DataFormatKF* invR11Approx_;
-    trackerTFP::DataFormatKF* invR00Cor_;
-    trackerTFP::DataFormatKF* invR11Cor_;
-    trackerTFP::DataFormatKF* invR00_;
-    trackerTFP::DataFormatKF* invR11_;
-    trackerTFP::DataFormatKF* C00_;
-    trackerTFP::DataFormatKF* C01_;
-    trackerTFP::DataFormatKF* C11_;
-    trackerTFP::DataFormatKF* C22_;
-    trackerTFP::DataFormatKF* C23_;
-    trackerTFP::DataFormatKF* C33_;
+    int REGION;
   };
 
 }  // namespace trklet

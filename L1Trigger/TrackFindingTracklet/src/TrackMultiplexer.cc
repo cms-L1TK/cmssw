@@ -39,12 +39,12 @@ namespace trklet {
     baseUphi_ = settings_->kphi1();
     baseUz_ = settings_->kz();
     // DR input format digitisation granularity (identical to TMTT)
-    baseLinv2R_ = dataFormats->base(Variable::inv2R, Process::ctb);
-    baseLphiT_ = dataFormats->base(Variable::phiT, Process::ctb);
-    baseLzT_ = dataFormats->base(Variable::zT, Process::ctb);
-    baseLr_ = dataFormats->base(Variable::r, Process::ctb);
-    baseLphi_ = dataFormats->base(Variable::phi, Process::ctb);
-    baseLz_ = dataFormats->base(Variable::z, Process::ctb);
+    baseLinv2R_ = dataFormats->base(Variable::inv2R, Process::tm);
+    baseLphiT_ = dataFormats->base(Variable::phiT, Process::tm);
+    baseLzT_ = dataFormats->base(Variable::zT, Process::tm);
+    baseLr_ = dataFormats->base(Variable::r, Process::tm);
+    baseLphi_ = dataFormats->base(Variable::phi, Process::tm);
+    baseLz_ = dataFormats->base(Variable::z, Process::tm);
     baseLcot_ = baseLz_ / baseLr_;
     // Finer granularity (by powers of 2) than the TMTT one. Used to transform from Tracklet to TMTT base.
     baseHinv2R_ = baseLinv2R_ * pow(2, floor(log2(baseUinv2R_ / baseLinv2R_)));
@@ -57,8 +57,9 @@ namespace trklet {
     // calculate digitisation granularity used for inverted cot(theta)
     const int baseShiftInvCot = ceil(log2(setup_->outerRadius() / setup_->hybridRangeR())) - setup_->widthDSPbu();
     baseInvCot_ = pow(2, baseShiftInvCot);
-    const int unusedMSBScot = floor(log2(baseUcot_ * pow(2.0, channelAssignment_->widthCot()) / 2. / setup_->maxCot()));
-    const int baseShiftScot = channelAssignment_->widthCot() - unusedMSBScot - 1 - setup_->widthAddrBRAM18();
+    const int unusedMSBScot =
+        floor(log2(baseUcot_ * pow(2.0, channelAssignment_->tmWidthCot()) / 2. / setup_->maxCot()));
+    const int baseShiftScot = channelAssignment_->tmWidthCot() - unusedMSBScot - 1 - setup_->widthAddrBRAM18();
     baseScot_ = baseUcot_ * pow(2.0, baseShiftScot);
   }
 
@@ -131,7 +132,7 @@ namespace trklet {
           const double baseR = setup_->hybridBaseR(type);
           const TTBV hwR(hw, widthR, 0, barrel);
           hw >>= widthR;
-          const TTBV hwStubId(hw, channelAssignment_->widthSeedStubId(), 0, false);
+          const TTBV hwStubId(hw, channelAssignment_->tmWidthStubId(), 0, false);
           const int stubId = hwStubId.val();
           double r = hwR.val(baseR) + (barrel ? setup_->hybridLayerR(indexLayerId) : 0.);
           if (type == SensorModule::Disk2S)
@@ -191,7 +192,7 @@ namespace trklet {
           const FrameStub& frameStub = streamsStub[offsetStub + channelStub][frame];
           const TTStubRef& ttStubRef = frameStub.first;
           const int layerId = channelAssignment_->layerId(channel, channelStub);
-          const int stubId = TTBV(frameStub.second).val(channelAssignment_->widthSeedStubId());
+          const int stubId = TTBV(frameStub.second).val(channelAssignment_->tmWidthStubId());
           const bool barrel = setup_->barrel(ttStubRef);
           double r;
           if (barrel) {
@@ -249,9 +250,9 @@ namespace trklet {
         }
         // stub range checks
         for (Stub* stub : stubs) {
-          if (!dataFormats_->format(Variable::phi, Process::ctb).inRange(stub->phi_, true))
+          if (!dataFormats_->format(Variable::phi, Process::tm).inRange(stub->phi_, true))
             stub->valid_ = false;
-          if (!dataFormats_->format(Variable::z, Process::ctb).inRange(stub->z_, true))
+          if (!dataFormats_->format(Variable::z, Process::tm).inRange(stub->z_, true))
             stub->valid_ = false;
         }
         // layer check
@@ -278,7 +279,7 @@ namespace trklet {
     static constexpr int usedMSBpitchOverRaddr = 1;
     static const double baseR =
         baseLr_ *
-        pow(2, dataFormats_->width(Variable::r, Process::ht) - setup_->widthAddrBRAM18() + usedMSBpitchOverRaddr);
+        pow(2, dataFormats_->width(Variable::r, Process::tm) - setup_->widthAddrBRAM18() + usedMSBpitchOverRaddr);
     static const double basePhi = baseLinv2R_ * baseLr_;
     // base transform into high precision TMTT format
     for (Track& track : tracks_) {
@@ -305,11 +306,11 @@ namespace trklet {
       track.cot_ -= dcot;
       track.zT_ -= dzT;
       // range checks
-      if (!dataFormats_->format(Variable::inv2R, Process::ctb).inRange(track.inv2R_, true))
+      if (!dataFormats_->format(Variable::inv2R, Process::tm).inRange(track.inv2R_, true))
         track.valid_ = false;
-      if (!dataFormats_->format(Variable::phiT, Process::ctb).inRange(track.phiT_, true))
+      if (!dataFormats_->format(Variable::phiT, Process::tm).inRange(track.phiT_, true))
         track.valid_ = false;
-      if (!dataFormats_->format(Variable::zT, Process::ctb).inRange(track.zT_, true))
+      if (!dataFormats_->format(Variable::zT, Process::tm).inRange(track.zT_, true))
         track.valid_ = false;
       if (!track.valid_)
         continue;
@@ -321,9 +322,9 @@ namespace trklet {
         stub->phi_ = digi(stub->phi_ + dphi, baseLphi_);
         stub->z_ = digi(stub->z_ + dz, baseLz_);
         // range checks
-        if (!dataFormats_->format(Variable::phi, Process::ctb).inRange(stub->phi_, true))
+        if (!dataFormats_->format(Variable::phi, Process::tm).inRange(stub->phi_, true))
           stub->valid_ = false;
-        if (!dataFormats_->format(Variable::z, Process::ctb).inRange(stub->z_, true))
+        if (!dataFormats_->format(Variable::z, Process::tm).inRange(stub->z_, true))
           stub->valid_ = false;
       }
     }
@@ -391,9 +392,8 @@ namespace trklet {
           lengthR = setup_->tiltUncertaintyR();
         }
         const double scat = digi(setup_->scattering(), baseLr_);
-        stub->dZ_ = lengthZ + baseLz_;
-        stub->dPhi_ = (scat + digi(lengthR, baseLr_)) * inv2R + pitchOverR;
-        stub->dPhi_ = digi(stub->dPhi_, baseLphi_) + baseLphi_;
+        stub->dZ_ = .5 * lengthZ;
+        stub->dPhi_ = .5 * (scat + digi(lengthR, baseLr_)) * inv2R + .5 * pitchOverR;
       }
     }
     // route into single channel
@@ -436,28 +436,14 @@ namespace trklet {
     for (auto it = accepted.end(); it != accepted.begin();)
       it = (*--it) ? accepted.begin() : accepted.erase(it);
     // store helper
-    auto frameTrack = [this](Track* track) {
-      if (!track->valid_)
-        return FrameTrack();
-      const TTBV inv2R(dataFormats_->format(Variable::inv2R, Process::ctb).ttBV(track->inv2R_));
-      const TTBV phiT(dataFormats_->format(Variable::phiT, Process::ctb).ttBV(track->phiT_));
-      const TTBV zT(dataFormats_->format(Variable::zT, Process::ctb).ttBV(track->zT_));
-      return FrameTrack(track->ttTrackRef_, "1" + inv2R.str() + phiT.str() + zT.str());
-    };
+    auto frameTrack = [this](Track* track) { return track->valid_ ? track->frame(dataFormats_) : FrameTrack(); };
     auto frameStub = [this](Track* track, int layer) {
       auto equal = [layer](Stub* stub) { return stub->valid_ && stub->layer_ == layer; };
       const auto it = find_if(track->stubs_.begin(), track->stubs_.end(), equal);
       if (!track->valid_ || it == track->stubs_.end() || !(*it)->valid_)
         return FrameStub();
-      Stub* stub = *it;
-      const TTBV stubId(stub->stubId_, channelAssignment_->widthStubId(), false);
-      const TTBV r(dataFormats_->format(Variable::r, Process::ctb).ttBV(stub->r_));
-      const TTBV phi(dataFormats_->format(Variable::phi, Process::ctb).ttBV(stub->phi_));
-      const TTBV z(dataFormats_->format(Variable::z, Process::ctb).ttBV(stub->z_));
-      const TTBV dPhi(dataFormats_->format(Variable::dPhi, Process::ctb).ttBV(stub->dPhi_));
-      const TTBV dZ(dataFormats_->format(Variable::dZ, Process::ctb).ttBV(stub->dZ_));
-      return FrameStub(stub->ttStubRef_,
-                       Frame("1" + stubId.str() + r.str() + phi.str() + z.str() + dPhi.str() + dZ.str()));
+
+      return (*it)->frame(dataFormats_);
     };
     const int offsetStub = region_ * setup_->numLayers();
     // fill output tracks and stubs

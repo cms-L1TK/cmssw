@@ -11,9 +11,9 @@
 #include "DataFormats/Common/interface/Handle.h"
 
 #include "L1Trigger/TrackTrigger/interface/Setup.h"
-#include "L1Trigger/TrackerTFP/interface/DataFormats.h"
 #include "L1Trigger/TrackerTFP/interface/LayerEncoding.h"
 #include "L1Trigger/TrackFindingTracklet/interface/ChannelAssignment.h"
+#include "L1Trigger/TrackFindingTracklet/interface/DataFormats.h"
 #include "L1Trigger/TrackFindingTracklet/interface/Settings.h"
 #include "L1Trigger/TrackFindingTracklet/interface/TrackMultiplexer.h"
 #include "SimTracker/TrackTriggerAssociation/interface/TTTypes.h"
@@ -127,8 +127,8 @@ namespace trklet {
       tm.produce(streamsTrack, streamsStub);
     }
     // store products
-    iEvent.emplace(edPutTokenTracks_, std::move(streamsTrack));
-    iEvent.emplace(edPutTokenStubs_, std::move(streamsStub));
+    iEvent.emplace(edPutTokenTracks_, move(streamsTrack));
+    iEvent.emplace(edPutTokenStubs_, move(streamsStub));
   }
 
 }  // namespace trklet

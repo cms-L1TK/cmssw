@@ -91,6 +91,7 @@ namespace trklet {
     TProfile* prof_;
     TProfile* profChannel_;
     TH1F* hisChannel_;
+    TH1F* hisTracks_;
 
     // printout
     stringstream log_;
@@ -144,6 +145,7 @@ namespace trklet {
     const int numChannels = 1;
     hisChannel_ = dir.make<TH1F>("His Channel Occupancy", ";", maxOcc, -.5, maxOcc - .5);
     profChannel_ = dir.make<TProfile>("Prof Channel Occupancy", ";", numChannels, -.5, numChannels - .5);
+    hisTracks_ = dir.make<TH1F>("His Number of Tracks", ";", maxOcc, -.5, maxOcc - .5);
   }
 
   void AnalyzerDR::analyze(const Event& iEvent, const EventSetup& iSetup) {
@@ -192,6 +194,7 @@ namespace trklet {
       const auto end =
           find_if(stream.rbegin(), stream.rend(), [](const FrameTrack& frame) { return frame.first.isNonnull(); });
       const int size = distance(stream.begin(), end.base()) - 1;
+      hisTracks_->Fill(nTracks);
       hisChannel_->Fill(size);
       profChannel_->Fill(1, size);
       prof_->Fill(1, nStubs);

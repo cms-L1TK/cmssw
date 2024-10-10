@@ -447,6 +447,8 @@ namespace tt {
 
     // number of kf worker
     int kfNumWorker() const { return kfNumWorker_; }
+    // max number of tracks a kf worker can process
+    int kfMaxTracks() const { return kfMaxTracks_; }
     // required number of stub layers to form a track
     int kfMinLayers() const { return kfMinLayers_; }
     // required number of ps stub layers to form a track
@@ -461,12 +463,8 @@ namespace tt {
     int kfNumSeedStubs() const { return kfNumSeedStubs_; }
     //
     double kfMinSeedDeltaR() const { return kfMinSeedDeltaR_; }
-    //
-    double kfMaxSeedDeltaR() const { return kfMaxSeedDeltaR_; }
     // search window of each track parameter in initial uncertainties
     double kfRangeFactor() const { return kfRangeFactor_; }
-    // bases get shifted by this power of two wrt tfp output bases
-    int kfBaseShift() const { return kfBaseShift_; }
     // initial C00 is given by inv2R uncertainty squared times this power of 2
     int kfShiftInitialC00() const { return kfShiftInitialC00_; }
     // initial C11 is given by phiT uncertainty squared times this power of 2
@@ -803,6 +801,8 @@ namespace tt {
     edm::ParameterSet pSetKF_;
     // number of kf worker
     int kfNumWorker_;
+    // max number of tracks a kf worker can process
+    int kfMaxTracks_;
     // required number of stub layers to form a track
     int kfMinLayers_;
     // required number of ps stub layers to form a track
@@ -817,12 +817,8 @@ namespace tt {
     int kfNumSeedStubs_;
     //
     double kfMinSeedDeltaR_;
-    //
-    double kfMaxSeedDeltaR_;
     // search window of each track parameter in initial uncertainties
     double kfRangeFactor_;
-    // bases get shifted by this power of two wrt tfp output bases
-    int kfBaseShift_;
     // initial C00 is given by inv2R uncertainty squared times this power of 2
     int kfShiftInitialC00_;
     // initial C11 is given by phiT uncertainty squared times this power of 2

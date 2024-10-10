@@ -1,15 +1,13 @@
-#ifndef L1Trigger_TrackerTFP_KalmanFilterFormats_h
-#define L1Trigger_TrackerTFP_KalmanFilterFormats_h
+#ifndef L1Trigger_TrackFindingTracklet_KalmanFilterFormats_h
+#define L1Trigger_TrackFindingTracklet_KalmanFilterFormats_h
 
 /*----------------------------------------------------------------------
 Classes to calculate and provide dataformats used by Kalman Filter emulator
 enabling tuning of bit widths
 ----------------------------------------------------------------------*/
 
-#include "FWCore/Framework/interface/data_default_record_trait.h"
-#include "L1Trigger/TrackerTFP/interface/KalmanFilterFormatsRcd.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-#include "L1Trigger/TrackerTFP/interface/DataFormats.h"
+#include "L1Trigger/TrackFindingTracklet/interface/DataFormats.h"
 
 #include <vector>
 #include <cmath>
@@ -19,7 +17,7 @@ enabling tuning of bit widths
 #include <array>
 #include <string>
 
-namespace trackerTFP {
+namespace trklet {
 
   enum class VariableKF {
     begin,
@@ -63,19 +61,24 @@ namespace trackerTFP {
     C22,
     C23,
     C33,
-    r02,
-    r12,
-    chi20,
-    chi21,
-    end,
-    x
+    dH,
+    invdH,
+    invdH2,
+    H2,
+    Hm0,
+    Hm1,
+    Hv0,
+    Hv1,
+    H2v0,
+    H2v1,
+    end
   };
   inline constexpr int operator+(VariableKF v) { return static_cast<int>(v); }
   inline constexpr VariableKF operator++(VariableKF v) { return VariableKF(+v + 1); }
 
   class DataFormatKF {
   public:
-    DataFormatKF(const VariableKF& v, bool twos, bool enableIntegerEmulation);
+    DataFormatKF(const VariableKF& v, bool twos, const edm::ParameterSet& iConfig);
     virtual ~DataFormatKF() {}
     double digi(double val) const {
       return enableIntegerEmulation_ ? (std::floor(val / base_ + 1.e-11) + .5) * base_ : val;
@@ -104,15 +107,29 @@ namespace trackerTFP {
     double max_;
   };
 
+  class KalmanFilterFormats {
+  public:
+    KalmanFilterFormats(const edm::ParameterSet& iConfig);
+    ~KalmanFilterFormats() {}
+    DataFormatKF& format(VariableKF v) { return formats_[+v]; }
+    const tt::Setup* setup() const { return dataFormats_->setup(); }
+    const DataFormats* dataFormats() const { return dataFormats_; }
+    void consume(const DataFormats* dataFormats);
+    void endJob();
+
+  private:
+    template <VariableKF it = VariableKF::begin>
+    void fillFormats();
+    const edm::ParameterSet iConfig_;
+    const DataFormats* dataFormats_;
+    std::vector<DataFormatKF> formats_;
+  };
+
   template <VariableKF v>
   class FormatKF : public DataFormatKF {
   public:
     FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig);
     ~FormatKF() override {}
-
-  protected:
-    bool emu() const { return enableIntegerEmulation_; }
-    bool enableIntegerEmulation_;
 
   private:
     void calcRange() { range_ = base_ * pow(2, width_); }
@@ -199,36 +216,28 @@ namespace trackerTFP {
   FormatKF<VariableKF::C23>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig);
   template <>
   FormatKF<VariableKF::C33>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig);
-  template <>
-  FormatKF<VariableKF::r02>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig);
-  template <>
-  FormatKF<VariableKF::r12>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig);
-  template <>
-  FormatKF<VariableKF::chi20>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig);
-  template <>
-  FormatKF<VariableKF::chi21>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig);
 
-  class KalmanFilterFormats {
-  public:
-    KalmanFilterFormats();
-    KalmanFilterFormats(const edm::ParameterSet& iConfig, const DataFormats* dataFormats);
-    ~KalmanFilterFormats() {}
-    const tt::Setup* setup() const { return setup_; }
-    const DataFormats* dataFormats() const { return dataFormats_; }
-    DataFormatKF& format(VariableKF v) { return formats_[+v]; }
-    void endJob();
+  template <>
+  FormatKF<VariableKF::dH>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig);
+  template <>
+  FormatKF<VariableKF::invdH>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig);
+  template <>
+  FormatKF<VariableKF::invdH2>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig);
+  template <>
+  FormatKF<VariableKF::H2>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig);
+  template <>
+  FormatKF<VariableKF::Hm0>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig);
+  template <>
+  FormatKF<VariableKF::Hm1>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig);
+  template <>
+  FormatKF<VariableKF::Hv0>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig);
+  template <>
+  FormatKF<VariableKF::Hv1>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig);
+  template <>
+  FormatKF<VariableKF::H2v0>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig);
+  template <>
+  FormatKF<VariableKF::H2v1>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig);
 
-  private:
-    template <VariableKF it = VariableKF::begin>
-    void fillFormats();
-    const edm::ParameterSet iConfig_;
-    const DataFormats* dataFormats_;
-    const tt::Setup* setup_;
-    std::vector<DataFormatKF> formats_;
-  };
-
-}  // namespace trackerTFP
-
-EVENTSETUP_DATA_DEFAULT_RECORD(trackerTFP::KalmanFilterFormats, trackerTFP::KalmanFilterFormatsRcd);
+}  // namespace trklet
 
 #endif
