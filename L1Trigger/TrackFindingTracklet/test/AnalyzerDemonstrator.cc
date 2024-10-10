@@ -178,7 +178,7 @@ namespace trklet {
   void AnalyzerDemonstrator::endJob() {
     stringstream log;
     log << "Successrate: " << nEventsSuccessful_ << " / " << nEvents_ << " = " << nEventsSuccessful_ / (double)nEvents_;
-    LogPrint("L1Trigger/TrackerTFP") << log.str();
+    LogPrint(moduleDescription().moduleName()) << log.str();
   }
 
 }  // namespace trklet

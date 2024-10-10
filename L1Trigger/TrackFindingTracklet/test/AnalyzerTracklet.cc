@@ -265,7 +265,7 @@ namespace trklet {
     log_ << "                  fake rate = " << setw(wNums) << fracFake << endl;
     log_ << "             duplicate rate = " << setw(wNums) << fracDup << endl;
     log_ << "=============================================================";
-    LogPrint("L1Trigger/TrackFindingTracklet") << log_.str();
+    LogPrint(moduleDescription().moduleName()) << log_.str();
   }
 
   // gets all TPs associated too any of the tracks & number of tracks matching at least one TP

@@ -242,7 +242,7 @@ namespace trklet {
     log_ << "                    fake rate = " << setw(wNums) << fracFake << endl;
     log_ << "               duplicate rate = " << setw(wNums) << fracDup << endl;
     log_ << "=============================================================";
-    LogPrint("L1Trigger/TrackerTFP") << log_.str();
+    LogPrint(moduleDescription().moduleName()) << log_.str();
   }
 
   //

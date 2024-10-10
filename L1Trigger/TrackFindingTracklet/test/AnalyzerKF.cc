@@ -350,7 +350,7 @@ namespace trklet {
     log_ << "     number of states per TFP = " << setw(wNums) << (numStates + numStatesLost) / setup_->numRegions()
          << endl;
     log_ << "=============================================================";
-    LogPrint("L1Trigger/TrackerTFP") << log_.str();
+    LogPrint(moduleDescription().moduleName()) << log_.str();
   }
 
   //

@@ -292,7 +292,7 @@ namespace trackerDTC {
     // printout DTC summary
     endJobDTC();
     log_ << "=============================================================";
-    LogPrint("L1Trigger/TrackerDTC") << log_.str();
+    LogPrint(moduleDescription().moduleName()) << log_.str();
   }
 
   // fills kinematic tp histograms
