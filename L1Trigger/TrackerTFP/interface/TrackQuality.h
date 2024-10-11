@@ -102,6 +102,10 @@ namespace trackerTFP {
     // access to spedific format
     const DataFormat& format(VariableTQ v) const { return dataFormatsTQ_[+v]; }
     //
+    double base(VariableTQ v) const { return dataFormatsTQ_[+v].base(); }
+    //
+    double range(VariableTQ v) const { return dataFormatsTQ_[+v].range(); }
+    //
     const edm::FileInPath& model() const { return model_; }
 
   private:

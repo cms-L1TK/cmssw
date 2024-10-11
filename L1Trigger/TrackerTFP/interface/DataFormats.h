@@ -172,7 +172,17 @@ namespace trackerTFP {
   Format<Variable::match, Process::kf>::Format(const tt::Setup* setup);
 
   template <>
+  Format<Variable::phi, Process::dr>::Format(const tt::Setup* setup);
+  template <>
+  Format<Variable::z, Process::dr>::Format(const tt::Setup* setup);
+  template <>
+  Format<Variable::inv2R, Process::dr>::Format(const tt::Setup* setup);
+  template <>
+  Format<Variable::phiT, Process::dr>::Format(const tt::Setup* setup);
+  template <>
   Format<Variable::cot, Process::dr>::Format(const tt::Setup* setup);
+  template <>
+  Format<Variable::zT, Process::dr>::Format(const tt::Setup* setup);
 
   /*! \class  trackerTFP::DataFormats
    *  \brief  Class to calculate and provide dataformats used by Track Trigger emulator
@@ -198,7 +208,7 @@ namespace trackerTFP {
           Process::ht,
           Process::ht,
           Process::kf,
-          Process::kf,
+          Process::dr,
           Process::x}},  // Variable::phi
         {{Process::dtc,
           Process::dtc,
@@ -206,7 +216,7 @@ namespace trackerTFP {
           Process::gp,
           Process::gp,
           Process::gp,
-          Process::gp,
+          Process::dr,
           Process::x}},  // Variable::z
         {{Process::x,
           Process::x,
@@ -230,7 +240,7 @@ namespace trackerTFP {
           Process::ht,
           Process::ctb,
           Process::kf,
-          Process::kf,
+          Process::dr,
           Process::tfp}},  // Variable::inv2R
         {{Process::gp,
           Process::gp,
@@ -238,7 +248,7 @@ namespace trackerTFP {
           Process::ht,
           Process::ht,
           Process::kf,
-          Process::kf,
+          Process::dr,
           Process::tfp}},  // Variable::phiT
         {{Process::x,
           Process::x,
@@ -254,7 +264,7 @@ namespace trackerTFP {
           Process::gp,
           Process::gp,
           Process::kf,
-          Process::kf,
+          Process::dr,
           Process::tfp}},  // Variable::zT
         {{Process::dtc,
           Process::dtc,

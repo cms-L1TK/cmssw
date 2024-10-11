@@ -298,11 +298,58 @@ namespace trackerTFP {
   }
 
   template <>
+  Format<Variable::inv2R, Process::dr>::Format(const Setup* setup) : DataFormat(true) {
+    const Format<Variable::inv2R, Process::kf> kf(setup);
+    static const double thight = setup->htNumBinsInv2R();
+    static const double loose = thight + 2;
+    range_ = 2. * setup->invPtToDphi() / setup->minPt() * loose / thight;
+    base_ = kf.base();
+    width_ = ceil(log2(range_ / base_));
+  }
+  template <>
+  Format<Variable::phiT, Process::dr>::Format(const Setup* setup) : DataFormat(true) {
+    const Format<Variable::phiT, Process::kf> kf(setup);
+    static const double thight = setup->gpNumBinsPhiT() * setup->htNumBinsPhiT();
+    static const double loose = thight + 2 * setup->gpNumBinsPhiT();
+    range_ = 2. * M_PI / setup->numRegions() * loose / thight;
+    base_ = kf.base();
+    width_ = ceil(log2(range_ / base_));
+  }
+  template <>
+  Format<Variable::zT, Process::dr>::Format(const Setup* setup) : DataFormat(true) {
+    const Format<Variable::zT, Process::kf> kf(setup);
+    static const double thight = setup->gpNumBinsZT();
+    static const double loose = thight + 2;
+    range_ = 2. * sinh(setup->maxEta()) * setup->chosenRofZ() * loose / thight;
+    base_ = kf.base();
+    width_ = ceil(log2(range_ / base_));
+  }
+  template <>
   Format<Variable::cot, Process::dr>::Format(const Setup* setup) : DataFormat(true) {
-    const Format<Variable::cot, Process::kf> cot(setup);
-    const Format<Variable::zT, Process::gp> zT(setup);
+    const Format<Variable::cot, Process::kf> kf(setup);
+    const Format<Variable::zT, Process::dr> zT(setup);
     range_ = (zT.range() + 2. * setup->beamWindowZ()) / setup->chosenRofZ();
-    base_ = cot.base();
+    base_ = kf.base();
+    width_ = ceil(log2(range_ / base_));
+  }
+  template <>
+  Format<Variable::phi, Process::dr>::Format(const Setup* setup) : DataFormat(true) {
+    const Format<Variable::phiT, Process::dr> phiT(setup);
+    const Format<Variable::inv2R, Process::dr> inv2R(setup);
+    const double range = setup->baseRegion() + setup->maxRphi() * inv2R.range();
+    range_ = phiT.base() + setup->maxRphi() * inv2R.base();
+    const int shift = ceil(log2(range / phiT.base())) - setup->tmttWidthPhi();
+    base_ = phiT.base() * pow(2., shift);
+    width_ = ceil(log2(range_ / base_));
+  }
+  template <>
+  Format<Variable::z, Process::dr>::Format(const Setup* setup) : DataFormat(true) {
+    const Format<Variable::zT, Process::dr> zT(setup);
+    const Format<Variable::cot, Process::dr> cot(setup);
+    const double range = 2. * setup->halfLength();
+    range_ = zT.base() + setup->maxRz() * cot.base();
+    const int shift = ceil(log2(range / zT.base())) - setup->tmttWidthZ();
+    base_ = zT.base() * pow(2., shift);
     width_ = ceil(log2(range_ / base_));
   }
 

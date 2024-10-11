@@ -49,6 +49,7 @@ namespace trackerTFP {
             const TrackQuality* tq);
       const TTTrackRef& ttTrackRef_;
       const std::vector<TTStubRef> ttStubRefs_;
+      bool valid_;
       std::vector<PartialFrame> partials_;
       TTBV hitPattern_;
       int channel_;

@@ -27,7 +27,7 @@ namespace trackerTFP {
                                       const Frame& frameTQ,
                                       const vector<TTStubRef>& ttStubRefs,
                                       const TrackQuality* tq)
-      : ttTrackRef_(frameTrack.first), ttStubRefs_(ttStubRefs) {
+      : ttTrackRef_(frameTrack.first), ttStubRefs_(ttStubRefs), valid_(true) {
     partials_.reserve(partial_in);
     // convert bits into nice formats
     const DataFormats* df = tq->dataFormats();
@@ -67,14 +67,28 @@ namespace trackerTFP {
         chi2rzBin++;
       else
         break;
-    static const double baseZ0 = -TTTrack_TrackWord::minZ0 * pow(2., 1 - TTTrack_TrackWord::TrackBitWidths::kZ0Size);
-    static const double baseCot =
-        -TTTrack_TrackWord::minTanl * pow(2., 1 - TTTrack_TrackWord::TrackBitWidths::kTanlSize);
-    static const double basePhi0 =
-        -TTTrack_TrackWord::minPhi0 * pow(2., 1 - TTTrack_TrackWord::TrackBitWidths::kPhiSize);
-    static const double baseInvR =
-        -TTTrack_TrackWord::minRinv * pow(2., 1 - TTTrack_TrackWord::TrackBitWidths::kRinvSize);
-    static const double baseD0 = -TTTrack_TrackWord::minD0 * pow(2., 1 - TTTrack_TrackWord::TrackBitWidths::kD0Size);
+    static const double rangeInvR = -2. * TTTrack_TrackWord::minRinv;
+    static const double rangePhi0 = -2. * TTTrack_TrackWord::minPhi0;
+    static const double rangeCot = -2. * TTTrack_TrackWord::minTanl;
+    static const double rangeZ0 = -2. * TTTrack_TrackWord::minZ0;
+    static const double rangeD0 = -2. * TTTrack_TrackWord::minD0;
+    if (abs(invR) > rangeInvR / 2.)
+      valid_ = false;
+    if (abs(phi0) > rangePhi0 / 2.)
+      valid_ = false;
+    if (abs(cot_) > rangeCot / 2.)
+      valid_ = false;
+    if (abs(z0) > rangeZ0 / 2.)
+      valid_ = false;
+    if (abs(d0) > rangeD0 / 2.)
+      valid_ = false;
+    if (!valid_)
+      return;
+    static const double baseInvR = rangeInvR / pow(2., TTTrack_TrackWord::TrackBitWidths::kRinvSize);
+    static const double basePhi0 = rangePhi0 / pow(2., TTTrack_TrackWord::TrackBitWidths::kPhiSize);
+    static const double baseCot = rangeCot / pow(2., TTTrack_TrackWord::TrackBitWidths::kTanlSize);
+    static const double baseZ0 = rangeZ0 / pow(2., TTTrack_TrackWord::TrackBitWidths::kZ0Size);
+    static const double baseD0 = rangeD0 / pow(2., TTTrack_TrackWord::TrackBitWidths::kD0Size);
     static constexpr int nLayers = TTTrack_TrackWord::TrackBitWidths::kHitPatternSize;
     static const TTBV Other_MVAs(0, 2 * TTTrack_TrackWord::TrackBitWidths::kMVAQualitySize);
     const TTBV MVA_quality(mva_, TTTrack_TrackWord::TrackBitWidths::kMVAQualitySize);
@@ -140,7 +154,7 @@ namespace trackerTFP {
         }
         tracks_.emplace_back(frameTrack, frameTQ, ttStubRefs, trackQuality_);
         Track& track = tracks_.back();
-        outputs[offsetTFP + track.channel_][frame] = &track;
+        outputs[offsetTFP + track.channel_][frame] = track.valid_ ? &track : nullptr;
       }
       // remove all gaps between end and last track
       for (int channel = 0; channel < setup_->tfpNumChannel(); channel++) {

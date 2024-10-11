@@ -113,6 +113,10 @@ namespace trackerTFP {
       trackchi2rphi += stubchi2rphi;
       trackchi2rz += stubchi2rz;
     }
+    if (trackchi2rphi > tq->range(VariableTQ::chi2rphi))
+      trackchi2rphi = tq->range(VariableTQ::chi2rphi) - tq->base(VariableTQ::chi2rphi) / 2.;
+    if (trackchi2rz > tq->range(VariableTQ::chi2rz))
+      trackchi2rz = tq->range(VariableTQ::chi2rz) - tq->base(VariableTQ::chi2rz) / 2.;
     // calc bdt inputs
     const double cot = tq->scaleCot(df->format(Variable::cot, Process::dr).integer(track.cot()));
     const double z0 =
