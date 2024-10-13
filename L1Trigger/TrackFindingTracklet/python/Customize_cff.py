@@ -1,3 +1,5 @@
+# functions to alter configurations
+
 import FWCore.ParameterSet.Config as cms
 
 # configures track finding s/w to use KF emulator instead of KF simulator
@@ -7,7 +9,6 @@ def newKFConfig(process):
 # configures track finding s/w to behave as track finding f/w
 def fwConfig(process):
   newKFConfig(process)
-  process.TrackTriggerSetup.Firmware.FreqBE = 240 # Frequency of DTC & KF (determines truncation)
   process.l1tTTTracksFromTrackletEmulation.RemovalType = ""
   process.l1tTTTracksFromTrackletEmulation.DoMultipleMatches = False
   process.l1tTTTracksFromTrackletEmulation.StoreTrackBuilderOutput = True
@@ -15,6 +16,7 @@ def fwConfig(process):
 # configures track finding s/w to behave as a subchain of processing steps
 def reducedConfig(process):
   fwConfig(process)
+  process.TrackTriggerSetup.Firmware.FreqBEHigh = 240 # Frequency of DTC & KF (determines truncation)
   process.TrackTriggerSetup.KalmanFilter.NumWorker = 1
   process.ChannelAssignment.SeedTypes = cms.vstring( "L1L2" )
   process.ChannelAssignment.SeedTypesSeedLayers = cms.PSet( L1L2 = cms.vint32( 1,  2 ) )

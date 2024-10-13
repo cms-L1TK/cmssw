@@ -1,0 +1,5 @@
+<library   file="*.cc" name="TrackTriggerAssociationTests">
+  <use name="CommonTools/UtilAlgos"/>
+  <use name="SimTracker/TrackTriggerAssociation"/>
+  <flags EDM_PLUGIN="1"/>
+</library>

@@ -2,48 +2,53 @@
 #define L1Trigger_TrackerTFP_State_h
 
 #include "L1Trigger/TrackTrigger/interface/Setup.h"
-#include "L1Trigger/TrackerTFP/interface/DataFormats.h"
+#include "L1Trigger/TrackerTFP/interface/KalmanFilterFormats.h"
 
 #include <vector>
 #include <numeric>
 
 namespace trackerTFP {
 
-  // Class to represent a Kalman Filter State
+  // Class to represent a Kalman Filter helix State
   class State {
   public:
-    // default constructor
+    // copy constructor
     State(State* state);
     // proto state constructor
-    State(const DataFormats* dataFormats, TrackKFin* track, int trackId);
-    // combinatoric state constructor
-    State(State* state, StubKFin* stub);
+    State(KalmanFilterFormats* formats,
+          TrackCTB* track,
+          const std::vector<std::vector<StubCTB*>>& stubs,
+          const TTBV& maybe,
+          int trackId);
     // updated state constructor
     State(State* state, const std::vector<double>& doubles);
+    // combinatoric state constructor
+    State(State* state, StubCTB* stub, int layer);
+    // seed building state constructor
+    State(State* state, int layer);
     ~State() {}
-
-    // Determine quality of completed state
-    void finish();
-    // number of skipped layers
-    int numSkippedLayers() const { return numSkippedLayers_; }
-    // number of consitent layers
-    int numConsistentLayers() const { return numConsistentLayers_; }
+    //
+    State* comb(std::deque<State>& states, int layer);
+    //
+    State* combSeed(std::deque<State>& states, int layer);
+    //
+    State* update(std::deque<State>& states, int layer);
     // input track
-    TrackKFin* track() const { return track_; }
+    TrackCTB* track() const { return track_; }
     // parent state (nullpointer if no parent available)
     State* parent() const { return parent_; }
     // stub to add to state
-    StubKFin* stub() const { return stub_; }
+    StubCTB* stub() const { return stub_; }
     // hitPattern of so far added stubs
     const TTBV& hitPattern() const { return hitPattern_; }
+    // shows which layer the found track has stubs on
+    const TTBV& trackPattern() const { return trackPattern_; }
     // track id of input track
     int trackId() const { return trackId_; }
     // pattern of maybe layers for input track
-    TTBV maybePattern() const { return track_->maybePattern(); }
-    // stub id per layer of so far added stubs
-    const std::vector<int>& layerMap() const { return layerMap_; }
+    const TTBV& maybePattern() const { return maybePattern_; }
     // layer id of the current stub to add
-    int layer() const { return stub_->layer(); }
+    int layer() const { return layer_; }
     // helix inv2R wrt input helix
     double x0() const { return x0_; }
     // helix phi at radius ChosenRofPhi wrt input helix
@@ -52,6 +57,10 @@ namespace trackerTFP {
     double x2() const { return x2_; }
     // helix z at radius chosenRofZ wrt input helix
     double x3() const { return x3_; }
+    // chi2 for the r-phi plane straight line fit
+    double chi20() const { return chi20_; }
+    // chi2 for the r-z plane straight line fit
+    double chi21() const { return chi21_; }
     // cov. matrix element
     double C00() const { return C00_; }
     // cov. matrix element
@@ -67,7 +76,7 @@ namespace trackerTFP {
     // Derivative of predicted stub coords wrt helix params: stub radius minus chosenRofPhi
     double H00() const { return stub_->r(); }
     // Derivative of predicted stub coords wrt helix params: stub radius minus chosenRofZ
-    double H12() const { return stub_->r() + dataFormats_->chosenRofPhi() - setup_->chosenRofZ(); }
+    double H12() const { return H12_; }
     // stub phi residual wrt input helix
     double m0() const { return stub_->phi(); }
     // stub z residual wrt input helix
@@ -77,31 +86,36 @@ namespace trackerTFP {
     // stub projected z uncertainty
     double dZ() const { return stub_->dZ(); }
     // squared stub projected phi uncertainty instead of wheight (wrong but simpler)
-    double v0() const { return pow(stub_->dPhi(), 2); }
+    double v0() const { return v0_; }
     // squared stub projected z uncertainty instead of wheight (wrong but simpler)
-    double v1() const { return pow(stub_->dZ(), 2); }
-    // output frame
-    tt::FrameTrack frame() const { return TrackKF(*track_, x1_, x0_, x3_, x2_).frame(); }
-    // fill collection of stubs added so far to state
-    void fill(std::vector<StubKF>& stubs) const;
+    double v1() const { return v1_; }
+    //const std::vector<std::vector<StubCTB*>>& stubs() const { return stubs_; }
 
   private:
+    //
+    bool gapCheck(int layer) const;
     // provides data fomats
-    const DataFormats* dataFormats_;
+    KalmanFilterFormats* formats_;
     // provides run-time constants
     const tt::Setup* setup_;
     // input track
-    TrackKFin* track_;
+    TrackCTB* track_;
+    // input track stubs
+    std::vector<std::vector<StubCTB*>> stubs_;
+    // pattern of maybe layers for input track
+    TTBV maybePattern_;
     // track id
     int trackId_;
     // previous state, nullptr for first states
     State* parent_;
     // stub to add
-    StubKFin* stub_;
-    // shows which stub on each layer has been added so far
-    std::vector<int> layerMap_;
+    StubCTB* stub_;
+    // layer id of the current stub to add
+    int layer_;
     // shows which layer has been added so far
     TTBV hitPattern_;
+    // shows which layer the found track has stubs on
+    TTBV trackPattern_;
     // helix inv2R wrt input helix
     double x0_;
     // helix phi at radius ChosenRofPhi wrt input helix
@@ -110,20 +124,23 @@ namespace trackerTFP {
     double x2_;
     // helix z at radius chosenRofZ wrt input helix
     double x3_;
-
+    // chi2 for the r-phi plane straight line fit
+    double chi20_;
+    // chi2 for the r-z plane straight line fit
+    double chi21_;
     // cov. matrix
-
     double C00_;
     double C01_;
     double C11_;
     double C22_;
     double C23_;
     double C33_;
-
-    // number of skipped layers
-    int numSkippedLayers_;
-    // number of consistent layers
-    int numConsistentLayers_;
+    // Derivative of predicted stub coords wrt helix params: stub radius minus chosenRofZ
+    double H12_;
+    // squared stub projected phi uncertainty instead of wheight (wrong but simpler)
+    double v0_;
+    // squared stub projected z uncertainty instead of wheight (wrong but simpler)
+    double v1_;
   };
 
 }  // namespace trackerTFP
