@@ -164,8 +164,8 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
 
   // loop over the middle stubs in the potential seed
   for (unsigned int midmem = 0; midmem < middleallstubs_.size(); midmem++) {
-    for (unsigned int j = 0; j < middleallstubs_[midmem]->nStubs(); j++) {
-      const Stub* midallstub = middleallstubs_[midmem]->getStub(j);
+    for (unsigned int i = 0; i < middleallstubs_[midmem]->nStubs(); i++) {
+      const Stub* midallstub = middleallstubs_[midmem]->getStub(i);
 
       if (settings_.debugTracklet()) {
         edm::LogVerbatim("Tracklet") << "In " << getName() << " have middle stub";
@@ -246,9 +246,7 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
 
             // get r/z bins for projection into third layer/disk
             int nbitsrzbin_ = N_RZBITS;
-            int rzbinfirst_ = lookupbits.bits(lutshift, NFINERZBITS);
             int next_ = lookupbits.bits(lutshift + NFINERZBITS, 1);
-            int rzdiffmax_ = lookupbits.bits(lutshift + NFINERZBITS + 1 + nbitsrzbin_, NFINERZBITS);
 
             int start_ = lookupbits.bits(lutshift + NFINERZBITS + 1, nbitsrzbin_);  // first rz bin projection
             if (iSeed_ == Seed::D1D2L2 && negdisk)  // if projecting from disk into layer
@@ -263,22 +261,11 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
             // loop over inner stubs that the middle stub can project to
             for (int ibin_ = start_; ibin_ <= last_; ibin_++) {
               for (unsigned int inmem = 0; inmem < innervmstubs_.size(); inmem++) {
-                for (unsigned int l = 0; l < innervmstubs_[inmem]->nVMStubsBinned(ibin_); l++) {
+                for (unsigned int k = 0; k < innervmstubs_[inmem]->nVMStubsBinned(ibin_); k++) {
                   if (settings_.debugTracklet())
                     edm::LogVerbatim("Tracklet") << "In " << getName() << " have inner stub" << endl;
 
-                  const VMStubTE& invmstub = innervmstubs_[inmem]->getVMStubTEBinned(ibin_, l);
-
-                  // check if r/z of inner stub is within projection range
-                  int rzbin_ = (invmstub.vmbits().value() & (settings_.NLONGVMBINS() - 1));
-                  if (start_ != ibin_)
-                    rzbin_ += 8;
-                  if (rzbin_ < rzbinfirst_ || rzbin_ - rzbinfirst_ > rzdiffmax_) {
-                    if (settings_.debugTracklet()) {
-                      edm::LogVerbatim("Tracklet") << "Inner stub rejected because of wrong r/z bin";
-                    }
-                    continue;
-                  }
+                  const VMStubTE& invmstub = innervmstubs_[inmem]->getVMStubTEBinned(ibin_, k);
 
                   countall++;
 
