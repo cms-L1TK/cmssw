@@ -38,9 +38,10 @@ TrackletProcessorDisplaced::TrackletProcessorDisplaced(string name, Settings con
 
   // get projection tables
   unsigned int region = name.back() - 'A';
-  innerTable_.initVMRTable(layerdisk1_, TrackletLUT::VMRTableType::inner, region);  //projection to next layer/disk
+  innerTable_.initVMRTable(
+      layerdisk1_, TrackletLUT::VMRTableType::inner, region, false);  //projection to next layer/disk
   innerThirdTable_.initVMRTable(
-      layerdisk1_, TrackletLUT::VMRTableType::innerthird, region);  //projection to third layer/disk
+      layerdisk1_, TrackletLUT::VMRTableType::innerthird, region, false);  //projection to third layer/disk
 
   nbitszfinebintable_ = settings_.vmrlutzbits(layerdisk1_);
   nbitsrfinebintable_ = settings_.vmrlutrbits(layerdisk1_);
