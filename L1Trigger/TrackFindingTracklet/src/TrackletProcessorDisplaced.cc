@@ -198,12 +198,10 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
       unsigned int lutwidth = settings_.lutwidthtabextended(0, iSeed_);
       int lutval = -1;
       const auto& lutshift = innerTable_.nbits();
-      if (iSeed_ == Seed::L2L3L4 || iSeed_ == Seed::L4L5L6 || iSeed_ == Seed::D1D2L2 || iSeed_ == Seed::L2L3D1) {
-        lutval = innerTable_.lookup((indexz << nbitsrfinebintable_) + indexr);
-        int lutval2 = innerThirdTable_.lookup((indexz << nbitsrfinebintable_) + indexr);
-        if (lutval != -1 && lutval2 != -1)
-          lutval += (lutval2 << lutshift);
-      }
+      lutval = innerTable_.lookup((indexz << nbitsrfinebintable_) + indexr);
+      int lutval2 = innerThirdTable_.lookup((indexz << nbitsrfinebintable_) + indexr);
+      if (lutval != -1 && lutval2 != -1)
+        lutval += (lutval2 << lutshift);
       if (lutval == -1)
         continue;
       FPGAWord lookupbits(lutval, lutwidth, true, __LINE__, __FILE__);

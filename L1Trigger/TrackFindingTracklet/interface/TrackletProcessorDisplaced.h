@@ -44,7 +44,6 @@ namespace trklet {
     unsigned int maxStep_;
     int count_;
 
-    unsigned int iSeed_;
     unsigned int layerdisk1_;
     unsigned int layerdisk2_;
     unsigned int layerdisk3_;
