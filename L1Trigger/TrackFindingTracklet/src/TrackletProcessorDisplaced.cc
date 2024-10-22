@@ -57,10 +57,10 @@ TrackletProcessorDisplaced::TrackletProcessorDisplaced(string name, Settings con
   }
 
   // set TC index
-  int iTC = region;
+  iTC_ = region;
   constexpr int TCIndexMin = 128;
   constexpr int TCIndexMax = 191;
-  TCIndex_ = (iSeed_ << 4) + iTC;
+  TCIndex_ = (iSeed_ << 4) + iTC_;
   assert(TCIndex_ >= TCIndexMin && TCIndex_ < TCIndexMax);
 }
 
