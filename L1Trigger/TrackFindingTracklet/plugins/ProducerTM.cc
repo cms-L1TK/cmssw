@@ -11,7 +11,6 @@
 #include "DataFormats/Common/interface/Handle.h"
 
 #include "L1Trigger/TrackTrigger/interface/Setup.h"
-#include "L1Trigger/TrackerTFP/interface/LayerEncoding.h"
 #include "L1Trigger/TrackFindingTracklet/interface/ChannelAssignment.h"
 #include "L1Trigger/TrackFindingTracklet/interface/DataFormats.h"
 #include "L1Trigger/TrackFindingTracklet/interface/Settings.h"
@@ -27,7 +26,6 @@
 
 using namespace std;
 using namespace edm;
-using namespace trackerTFP;
 using namespace tt;
 
 namespace trklet {
@@ -60,8 +58,6 @@ namespace trklet {
     ESGetToken<Setup, SetupRcd> esGetTokenSetup_;
     // DataFormats token
     ESGetToken<DataFormats, DataFormatsRcd> esGetTokenDataFormats_;
-    // LayerEncoding token
-    ESGetToken<LayerEncoding, LayerEncodingRcd> esGetTokenLayerEncoding_;
     // ChannelAssignment token
     ESGetToken<ChannelAssignment, ChannelAssignmentRcd> esGetTokenChannelAssignment_;
     // configuration
@@ -70,8 +66,6 @@ namespace trklet {
     const Setup* setup_ = nullptr;
     // helper class to extract structured data from tt::Frames
     const DataFormats* dataFormats_ = nullptr;
-    // helper class to encode layer
-    const LayerEncoding* layerEncoding_ = nullptr;
     // helper class to assign tracks to channel
     const ChannelAssignment* channelAssignment_ = nullptr;
     // helper class to store tracklet configurations
@@ -90,7 +84,6 @@ namespace trklet {
     // book ES products
     esGetTokenSetup_ = esConsumes<Setup, SetupRcd, Transition::BeginRun>();
     esGetTokenDataFormats_ = esConsumes<DataFormats, DataFormatsRcd, Transition::BeginRun>();
-    esGetTokenLayerEncoding_ = esConsumes<LayerEncoding, LayerEncodingRcd, Transition::BeginRun>();
     esGetTokenChannelAssignment_ = esConsumes<ChannelAssignment, ChannelAssignmentRcd, Transition::BeginRun>();
   }
 
@@ -99,8 +92,6 @@ namespace trklet {
     setup_ = &iSetup.getData(esGetTokenSetup_);
     // helper class to extract structured data from tt::Frames
     dataFormats_ = &iSetup.getData(esGetTokenDataFormats_);
-    // helper class to encode layer
-    layerEncoding_ = &iSetup.getData(esGetTokenLayerEncoding_);
     // helper class to assign tracks to channel
     channelAssignment_ = &iSetup.getData(esGetTokenChannelAssignment_);
   }
@@ -108,7 +99,7 @@ namespace trklet {
   void ProducerTM::produce(Event& iEvent, const EventSetup& iSetup) {
     // empty TM products
     const int numStreamsTracks = setup_->numRegions();
-    const int numStreamsStubs = numStreamsTracks * setup_->numLayers();
+    const int numStreamsStubs = numStreamsTracks * channelAssignment_->tmNumLayers();
     StreamsStub streamsStub(numStreamsStubs);
     StreamsTrack streamsTrack(numStreamsTracks);
     // read in TBout Product and produce TM product
@@ -120,7 +111,7 @@ namespace trklet {
     const StreamsTrack& tracks = *handleTracks;
     for (int region = 0; region < setup_->numRegions(); region++) {
       // object to reformat tracks from tracklet fromat to TMTT format in a processing region
-      TrackMultiplexer tm(iConfig_, setup_, dataFormats_, layerEncoding_, channelAssignment_, &settings_, region);
+      TrackMultiplexer tm(iConfig_, setup_, dataFormats_, channelAssignment_, &settings_, region);
       // read in and organize input tracks and stubs
       tm.consume(tracks, stubs);
       // fill output products

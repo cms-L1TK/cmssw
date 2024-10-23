@@ -2,6 +2,7 @@
 #define L1Trigger_TrackFindingTracklet_DuplicateRemoval_h
 
 #include "L1Trigger/TrackTrigger/interface/Setup.h"
+#include "L1Trigger/TrackerTFP/interface/LayerEncoding.h"
 #include "L1Trigger/TrackFindingTracklet/interface/DataFormats.h"
 #include "L1Trigger/TrackFindingTracklet/interface/ChannelAssignment.h"
 
@@ -21,6 +22,7 @@ namespace trklet {
   public:
     DuplicateRemoval(const edm::ParameterSet& iConfig,
                      const tt::Setup* setup_,
+                     const trackerTFP::LayerEncoding* layerEncoding,
                      const DataFormats* dataFormats,
                      const ChannelAssignment* channelAssignment,
                      int region);
@@ -33,7 +35,7 @@ namespace trklet {
   private:
     struct Stub {
       Stub(const tt::FrameStub& frame, int stubId, int layer) : frame_(frame), stubId_(stubId), layer_(layer) {}
-      bool operator==(const Stub& s) const { return s.stubId_ == stubId_; }
+      // output frame
       tt::FrameStub frame_;
       // all stubs id
       int stubId_;
@@ -42,7 +44,7 @@ namespace trklet {
     };
     struct Track {
       // max number of stubs a track may formed of (we allow only one stub per layer)
-      static constexpr int max_ = 8;
+      static constexpr int max_ = 11;
       Track() { stubs_.reserve(max_); }
       Track(const tt::FrameTrack& frame, const std::vector<Stub*>& stubs) : frame_(frame), stubs_(stubs) {}
       tt::FrameTrack frame_;
@@ -54,6 +56,8 @@ namespace trklet {
     bool enableTruncation_;
     // provides run-time constants
     const tt::Setup* setup_;
+    // helper class to encode layer
+    const trackerTFP::LayerEncoding* layerEncoding_;
     // provides dataformats
     const DataFormats* dataFormats_;
     // helper class to assign tracks to channel
@@ -66,6 +70,8 @@ namespace trklet {
     std::vector<Stub> stubs_;
     // h/w liked organized pointer to input tracks
     std::vector<Track*> input_;
+    // dataformat used to calculate pitch over stubs radius
+    DataFormat r_;
   };
 
 }  // namespace trklet

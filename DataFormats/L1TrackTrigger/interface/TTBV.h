@@ -48,7 +48,8 @@ public:
   }
 
   // constructor: double value + precision, biased (floor) representation
-  TTBV(double value, double base, int size, bool twos = false) : TTBV((int)std::floor(value / base), size, twos) {}
+  TTBV(double value, double base, int size, bool twos = false)
+      : TTBV((int)std::floor(value / base + 1.e-12), size, twos) {}
 
   // constructor: string
   TTBV(const std::string& str, bool twos = false) : twos_(twos), size_(str.size()), bs_(str) {}

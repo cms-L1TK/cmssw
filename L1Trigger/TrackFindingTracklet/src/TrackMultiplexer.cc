@@ -9,14 +9,12 @@
 using namespace std;
 using namespace edm;
 using namespace tt;
-using namespace trackerTFP;
 
 namespace trklet {
 
   TrackMultiplexer::TrackMultiplexer(const ParameterSet& iConfig,
                                      const Setup* setup,
                                      const DataFormats* dataFormats,
-                                     const LayerEncoding* layerEncoding,
                                      const ChannelAssignment* channelAssignment,
                                      const Settings* settings,
                                      int region)
@@ -25,7 +23,6 @@ namespace trklet {
         useTTStubParameters_(iConfig.getParameter<bool>("UseTTStubParameters")),
         setup_(setup),
         dataFormats_(dataFormats),
-        layerEncoding_(layerEncoding),
         channelAssignment_(channelAssignment),
         settings_(settings),
         region_(region),
@@ -65,6 +62,7 @@ namespace trklet {
 
   // read in and organize input tracks and stubs
   void TrackMultiplexer::consume(const StreamsTrack& streamsTrack, const StreamsStub& streamsStub) {
+    static const int numS = channelAssignment_->numSeedingLayers();
     const int offsetTrack = region_ * channelAssignment_->numChannelsTrack();
     // count tracks and stubs to reserve container
     int nTracks(0);
@@ -83,10 +81,11 @@ namespace trklet {
             nStubs++;
       }
     }
-    stubs_.reserve(nStubs + nTracks * channelAssignment_->numSeedingLayers());
+    stubs_.reserve(nStubs + nTracks * numS);
     tracks_.reserve(nTracks);
     // store tracks and stubs
     for (int channel = 0; channel < channelAssignment_->numChannelsTrack(); channel++) {
+      const int numP = channelAssignment_->numProjectionLayers(channel);
       const int channelTrack = offsetTrack + channel;
       const int offsetStub = channelAssignment_->offsetStub(channelTrack);
       const StreamTrack& streamTrack = streamsTrack[channelTrack];
@@ -108,13 +107,12 @@ namespace trklet {
         double zT = digi(z0 + cot * digi(setup_->chosenRofZ(), baseUr_), baseUzT_);
         // convert stubs
         vector<Stub*> stubs;
-        stubs.reserve(channelAssignment_->numProjectionLayers(channel) + channelAssignment_->numSeedingLayers());
-        for (int layer = 0; layer < channelAssignment_->numProjectionLayers(channel); layer++) {
+        stubs.reserve(numS + numP);
+        for (int layer = 0; layer < numP; layer++) {
           const FrameStub& frameStub = streamsStub[offsetStub + layer][frame];
           const TTStubRef& ttStubRef = frameStub.first;
           if (ttStubRef.isNull())
             continue;
-          const int layerId = channelAssignment_->layerId(channel, layer);
           // parse residuals from tt::Frame and take layerId from tt::TTStubRef
           const bool barrel = setup_->barrel(ttStubRef);
           const int layerIdTracklet = setup_->trackletLayerId(ttStubRef);
@@ -150,12 +148,12 @@ namespace trklet {
             const double limit = setup_->tiltedLayerLimitZ(indexLayerId);
             psTilt = abs(posZ) < limit;
           }
-          stubs_.emplace_back(ttStubRef, layerId, stubId, r, phi, z, psTilt);
+          stubs_.emplace_back(ttStubRef, layerIdTracklet, stubId, r, phi, z, psTilt);
           stubs.push_back(&stubs_.back());
         }
         if (useTTStubParameters_) {
           vector<TTStubRef> seedTTStubRefs;
-          seedTTStubRefs.reserve(channelAssignment_->numSeedingLayers());
+          seedTTStubRefs.reserve(numS);
           map<int, TTStubRef> mapStubs;
           for (TTStubRef& ttStubRef : ttTrackRef->getStubRefs())
             mapStubs.emplace(setup_->layerId(ttStubRef), ttStubRef);
@@ -187,27 +185,31 @@ namespace trklet {
           }
         }
         // create fake seed stubs, since TrackBuilder doesn't output these stubs, required by the KF.
-        for (int seedingLayer = 0; seedingLayer < channelAssignment_->numSeedingLayers(); seedingLayer++) {
-          const int channelStub = channelAssignment_->numProjectionLayers(channel) + seedingLayer;
+        for (int seedingLayer = 0; seedingLayer < numS; seedingLayer++) {
+          const int channelStub = numP + seedingLayer;
           const FrameStub& frameStub = streamsStub[offsetStub + channelStub][frame];
           const TTStubRef& ttStubRef = frameStub.first;
+          const int trackletLayerId = setup_->trackletLayerId(ttStubRef);
           const int layerId = channelAssignment_->layerId(channel, channelStub);
           const int stubId = TTBV(frameStub.second).val(channelAssignment_->tmWidthStubId());
           const bool barrel = setup_->barrel(ttStubRef);
           double r;
           if (barrel) {
-            r = digi(setup_->hybridLayerR(layerId - setup_->offsetLayerId()) - setup_->chosenRofPhi(), baseUr_);
-            const double z = z0 + (r + setup_->chosenRofPhi()) * cot;
-            const double dZ = abs(z) - setup_->tbBarrelHalfLength();
-            if (dZ > 0.)
-              r -= dZ / abs(cot);
+            const int index = layerId - setup_->offsetLayerId();
+            const double layer = digi(setup_->hybridLayerR(index), baseUr_);
+            const double z = digi(z0 + layer * cot, baseUz_);
+            if (abs(z) < digi(setup_->tbBarrelHalfLength(), baseUz_) || index > 0)
+              r = digi(setup_->hybridLayerR(index) - setup_->chosenRofPhi(), baseUr_);
+            else {
+              r = digi(setup_->innerRadius() - setup_->chosenRofPhi(), baseUr_);
+            }
           } else {
-            const double side = zT < 0. ? -1. : 1.;
-            const double disk =
-                digi(setup_->hybridDiskZ(layerId - setup_->offsetLayerId() - setup_->offsetLayerDisks()), baseUzT_);
-            const double invCot = digi(1. / digi(cot, baseScot_), baseInvCot_);
-            r = (side * disk - z0) * invCot;
-            r = digi(r - digi(setup_->chosenRofPhi(), baseUr_), baseUr_);
+            const int index = layerId - setup_->offsetLayerId() - setup_->offsetLayerDisks();
+            const double side = cot < 0. ? -1. : 1.;
+            const double disk = digi(setup_->hybridDiskZ(index), baseUzT_);
+            const double invCot = digi(1. / digi(abs(cot), baseScot_), baseInvCot_);
+            const double offset = digi(setup_->chosenRofPhi(), baseUr_);
+            r = digi((disk - side * z0) * invCot - offset, baseUr_);
           }
           static constexpr double phi = 0.;
           static constexpr double z = 0.;
@@ -221,7 +223,7 @@ namespace trklet {
             psTilt = abs(posZ) < limit;
           } else
             psTilt = true;
-          stubs_.emplace_back(ttStubRef, layerId, stubId, r, phi, z, psTilt);
+          stubs_.emplace_back(ttStubRef, trackletLayerId, stubId, r, phi, z, psTilt);
           stubs.push_back(&stubs_.back());
         }
         if (useTTStubResiduals_) {
@@ -244,10 +246,10 @@ namespace trklet {
         if (enableTruncation_ && frame >= setup_->numFramesHigh())
           valid = false;
         // kill tracks outside of fiducial range
-        if (abs(phiT) > setup_->baseRegion() / 2. || abs(zT) > setup_->hybridMaxCot() * setup_->chosenRofZ()) {
-          input.push_back(nullptr);
-          continue;
-        }
+        if (!dataFormats_->format(Variable::phiT, Process::tm).inRange(phiT, true))
+          valid = false;
+        if (!dataFormats_->format(Variable::zT, Process::tm).inRange(zT, true))
+          valid = false;
         // stub range checks
         for (Stub* stub : stubs) {
           if (!dataFormats_->format(Variable::phi, Process::tm).inRange(stub->phi_, true))
@@ -276,11 +278,6 @@ namespace trklet {
 
   // fill output products
   void TrackMultiplexer::produce(StreamsTrack& streamsTrack, StreamsStub& streamsStub) {
-    static constexpr int usedMSBpitchOverRaddr = 1;
-    static const double baseR =
-        baseLr_ *
-        pow(2, dataFormats_->width(Variable::r, Process::tm) - setup_->widthAddrBRAM18() + usedMSBpitchOverRaddr);
-    static const double basePhi = baseLinv2R_ * baseLr_;
     // base transform into high precision TMTT format
     for (Track& track : tracks_) {
       track.inv2R_ = redigi(track.inv2R_, baseUinv2R_, baseHinv2R_, setup_->widthDSPbu());
@@ -312,8 +309,6 @@ namespace trklet {
         track.valid_ = false;
       if (!dataFormats_->format(Variable::zT, Process::tm).inRange(track.zT_, true))
         track.valid_ = false;
-      if (!track.valid_)
-        continue;
       // adjust stub residuals by track parameter shifts
       for (Stub* stub : track.stubs_) {
         const double dphi = digi(dphiT + stub->r_ * dinv2R, baseHphi_);
@@ -328,85 +323,26 @@ namespace trklet {
           stub->valid_ = false;
       }
     }
-    // encode layer id
-    for (Track& track : tracks_) {
-      if (!track.valid_)
-        continue;
-      // lookup layerEncoding
-      const vector<int>& layerEncoding = layerEncoding_->layerEncoding(track.zT_);
-      for (Stub* stub : track.stubs_) {
-        if (!stub->valid_)
-          continue;
-        // replace layerId by encoded layerId
-        const auto it = find(layerEncoding.begin(), layerEncoding.end(), stub->layer_);
-        stub->layer_ = min((int)distance(layerEncoding.begin(), it), setup_->numLayers() - 1);
-        // kill stubs from layers which can't be crossed by track
-        if (it == layerEncoding.end())
-          stub->valid_ = false;
-      }
-      TTBV hitPattern(0, setup_->numLayers());
-      // kill multiple stubs from same kf layer
-      for (Stub* stub : track.stubs_) {
-        if (!stub->valid_)
-          continue;
-        if (hitPattern[stub->layer_])
-          stub->valid_ = false;
-        else
-          hitPattern.set(stub->layer_);
-      }
-    }
-    // kill tracks with not enough layer
-    for (Track& track : tracks_) {
-      if (!track.valid_)
-        continue;
-      TTBV hits(0, setup_->numLayers());
-      for (const Stub* stub : track.stubs_)
-        if (stub->valid_)
-          hits.set(stub->layer_);
-      if (hits.count() < setup_->kfMinLayers())
-        track.valid_ = false;
-      if (hits.count(0, setup_->kfMaxSeedingLayer()) < setup_->kfNumSeedStubs())
-        track.valid_ = false;
-    }
-    // calculate stub uncertainties
-    for (Track& track : tracks_) {
-      if (!track.valid_)
-        continue;
-      const double inv2R = abs(track.inv2R_);
-      for (Stub* stub : track.stubs_) {
-        if (!stub->valid_)
-          continue;
-        const bool barrel = setup_->barrel(stub->ttStubRef_);
-        const bool ps = barrel ? setup_->psModule(stub->ttStubRef_) : stub->psTilt_;
-        const bool tilt = barrel ? (ps && !stub->psTilt_) : false;
-        const double length = ps ? setup_->pitchColPS() : setup_->pitchCol2S();
-        const double pitch = ps ? setup_->pitchRowPS() : setup_->pitchRow2S();
-        const double pitchOverR = digi(pitch / (digi(stub->r_, baseR) + setup_->chosenRofPhi()), basePhi);
-        double lengthZ = length;
-        double lengthR = 0.;
-        if (!barrel) {
-          lengthZ = length * abs(track.cot_);
-          lengthR = length;
-        } else if (tilt) {
-          lengthZ = length * (setup_->tiltApproxSlope() * abs(track.cot_) + setup_->tiltApproxIntercept());
-          lengthR = setup_->tiltUncertaintyR();
-        }
-        const double scat = digi(setup_->scattering(), baseLr_);
-        stub->dZ_ = .5 * lengthZ;
-        stub->dPhi_ = .5 * (scat + digi(lengthR, baseLr_)) * inv2R + .5 * pitchOverR;
-      }
-    }
-    // route into single channel
-    deque<Track*> accepted;
-    vector<deque<Track*>> stacks(channelAssignment_->numChannelsTrack());
+    // emualte clock domain crossing
+    static constexpr int ticksPerGap = 3;
+    static constexpr int gapPos = 1;
     vector<deque<Track*>> streams(channelAssignment_->numChannelsTrack());
-    for (int channel = 0; channel < channelAssignment_->numChannelsTrack(); channel++)
-      for (Track* track : input_[channel])
-        streams[channel].push_back((track && track->valid_) ? track : nullptr);
+    for (int channel = 0; channel < channelAssignment_->numChannelsTrack(); channel++) {
+      int iTrack(0);
+      deque<Track*>& stream = streams[channel];
+      const vector<Track*>& intput = input_[channel];
+      for (int tick = 0; iTrack < (int)intput.size(); tick++) {
+        Track* track = tick % ticksPerGap != gapPos ? intput[iTrack++] : nullptr;
+        stream.push_back(track && track->valid_ ? track : nullptr);
+      }
+    }
     // remove all gaps between end and last track
     for (deque<Track*>& stream : streams)
       for (auto it = stream.end(); it != stream.begin();)
         it = (*--it) ? stream.begin() : stream.erase(it);
+    // route into single channel
+    deque<Track*> accepted;
+    vector<deque<Track*>> stacks(channelAssignment_->numChannelsTrack());
     // clock accurate firmware emulation, each while trip describes one clock tick, one stub in and one stub out per tick
     while (!all_of(streams.begin(), streams.end(), [](const deque<Track*>& tracks) { return tracks.empty(); }) or
            !all_of(stacks.begin(), stacks.end(), [](const deque<Track*>& tracks) { return tracks.empty(); })) {
@@ -438,27 +374,28 @@ namespace trklet {
     // store helper
     auto frameTrack = [this](Track* track) { return track->valid_ ? track->frame(dataFormats_) : FrameTrack(); };
     auto frameStub = [this](Track* track, int layer) {
-      auto equal = [layer](Stub* stub) { return stub->valid_ && stub->layer_ == layer; };
-      const auto it = find_if(track->stubs_.begin(), track->stubs_.end(), equal);
+      const auto it =
+          find_if(track->stubs_.begin(), track->stubs_.end(), [layer](Stub* stub) { return stub->layer_ == layer; });
       if (!track->valid_ || it == track->stubs_.end() || !(*it)->valid_)
         return FrameStub();
 
       return (*it)->frame(dataFormats_);
     };
-    const int offsetStub = region_ * setup_->numLayers();
+    static const int numLayers = channelAssignment_->tmNumLayers();
+    const int offsetStub = region_ * numLayers;
     // fill output tracks and stubs
     streamsTrack[region_].reserve(accepted.size());
-    for (int layer = 0; layer < setup_->numLayers(); layer++)
+    for (int layer = 0; layer < numLayers; layer++)
       streamsStub[offsetStub + layer].reserve(accepted.size());
     for (Track* track : accepted) {
       if (!track) {  // fill gaps
         streamsTrack[region_].emplace_back(FrameTrack());
-        for (int layer = 0; layer < setup_->numLayers(); layer++)
+        for (int layer = 0; layer < numLayers; layer++)
           streamsStub[offsetStub + layer].emplace_back(FrameStub());
         continue;
       }
       streamsTrack[region_].emplace_back(frameTrack(track));
-      for (int layer = 0; layer < setup_->numLayers(); layer++)
+      for (int layer = 0; layer < numLayers; layer++)
         streamsStub[offsetStub + layer].emplace_back(frameStub(track, layer));
     }
   }

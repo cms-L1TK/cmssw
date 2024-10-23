@@ -84,17 +84,17 @@ namespace trklet {
     const string& branchTracks = iConfig.getParameter<string>("BranchTracks");
     edGetTokenStubsIn_ = consumes<StreamsStub>(InputTag(labelIn, branchStubs));
     edGetTokenStubsOut_ = consumes<StreamsStub>(InputTag(labelOut, branchStubs));
-    if (labelIn != "TrackFindingTrackletProducerIRin")
+    if (labelIn != "ProducerIRin")
       edGetTokenTracksIn_ = consumes<StreamsTrack>(InputTag(labelIn, branchTracks));
-    if (labelOut != "TrackFindingTrackletProducerIRin")
+    if (labelOut != "ProducerIRin")
       edGetTokenTracksOut_ = consumes<StreamsTrack>(InputTag(labelOut, branchTracks));
     // book ES products
     esGetTokenSetup_ = esConsumes<Setup, SetupRcd, Transition::BeginRun>();
     esGetTokenChannelAssignment_ = esConsumes<ChannelAssignment, ChannelAssignmentRcd, Transition::BeginRun>();
     esGetTokenDemonstrator_ = esConsumes<Demonstrator, DemonstratorRcd, Transition::BeginRun>();
     //
-    TBin_ = labelIn == "TrackFindingTrackletProducerTBout";
-    TBout_ = labelOut == "TrackFindingTrackletProducerTBout";
+    TBin_ = labelIn == "l1tTTTracksFromTrackletEmulation";
+    TBout_ = labelOut == "l1tTTTracksFromTrackletEmulation";
   }
 
   void AnalyzerDemonstrator::beginRun(const Run& iEvent, const EventSetup& iSetup) {

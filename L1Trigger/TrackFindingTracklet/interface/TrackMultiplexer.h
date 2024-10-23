@@ -2,7 +2,6 @@
 #define L1Trigger_TrackFindingTracklet_TrackMultiplexer_h
 
 #include "L1Trigger/TrackTrigger/interface/Setup.h"
-#include "L1Trigger/TrackerTFP/interface/LayerEncoding.h"
 #include "L1Trigger/TrackFindingTracklet/interface/ChannelAssignment.h"
 #include "L1Trigger/TrackFindingTracklet/interface/DataFormats.h"
 #include "L1Trigger/TrackFindingTracklet/interface/Settings.h"
@@ -23,7 +22,6 @@ namespace trklet {
     TrackMultiplexer(const edm::ParameterSet& iConfig,
                      const tt::Setup* setup_,
                      const DataFormats* dataFormats,
-                     const trackerTFP::LayerEncoding* layerEncoding,
                      const ChannelAssignment* channelAssignment,
                      const Settings* settings,
                      int region);
@@ -40,17 +38,10 @@ namespace trklet {
     double redigi(double val, double baseLow, double baseHigh, int widthMultiplier) const;
     struct Stub {
       Stub(const TTStubRef& ttStubRef, int layer, int stubId, double r, double phi, double z, bool psTilt)
-          : valid_(true),
-            ttStubRef_(ttStubRef),
-            layer_(layer),
-            stubId_(stubId),
-            r_(r),
-            phi_(phi),
-            z_(z),
-            psTilt_(psTilt) {}
-      tt::FrameStub frame(const DataFormats* df) const {
-        return StubTM(ttStubRef_, df, stubId_, r_, phi_, z_, dPhi_, dZ_).frame();
+          : valid_(true), ttStubRef_(ttStubRef), layer_(layer), stubId_(stubId), r_(r), phi_(phi), z_(z) {
+        stubId_ = 2 * stubId_ + (psTilt ? 1 : 0);
       }
+      tt::FrameStub frame(const DataFormats* df) const { return StubTM(ttStubRef_, df, stubId_, r_, phi_, z_).frame(); }
       bool valid_;
       TTStubRef ttStubRef_;
       // kf layer id
@@ -63,15 +54,9 @@ namespace trklet {
       double phi_;
       // z residual in cm
       double z_;
-      // phi uncertainty * sqrt(12) + additional terms in rad
-      double dPhi_ = 0.0;
-      // z uncertainty * sqrt(12) + additional terms in cm
-      double dZ_ = 0.0;
-      // true if barrel tilted module or encap PS module
-      bool psTilt_;
     };
     struct Track {
-      static constexpr int max_ = 8;
+      static constexpr int max_ = 11;
       Track() { stubs_.reserve(max_); }
       Track(const TTTrackRef& ttTrackRef,
             bool valid,
@@ -112,8 +97,6 @@ namespace trklet {
     const tt::Setup* setup_;
     // provides dataformats
     const DataFormats* dataFormats_;
-    // helper class to encode layer
-    const trackerTFP::LayerEncoding* layerEncoding_;
     // helper class to assign tracks to channel
     const ChannelAssignment* channelAssignment_;
     // provides tracklet constants

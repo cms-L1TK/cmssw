@@ -6,6 +6,7 @@ ChannelAssignment_params = cms.PSet (
 
   # TM parameter
   TM = cms.PSet (
+    NumLayers   = cms.int32( 11 ), # number of layers per track
     WidthStubId = cms.int32( 10 ), # number of bits used to represent stub id for projected stubs
     WidthCot    = cms.int32( 14 )
   ),

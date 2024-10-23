@@ -136,7 +136,7 @@ namespace trklet {
 
   template <>
   Format<Variable::stubId, Process::tm>::Format(const ChannelAssignment* ca) : DataFormat(false) {
-    width_ = ca->tmWidthStubId();
+    width_ = ca->tmWidthStubId() + 1;
   }
   template <>
   Format<Variable::r, Process::tm>::Format(const ChannelAssignment* ca) : DataFormat(true) {

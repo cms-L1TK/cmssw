@@ -143,7 +143,6 @@ namespace trklet {
     std::vector<Track> finals_;
     // current layer used during state propagation
     int layer_;
-    int REGION;
   };
 
 }  // namespace trklet

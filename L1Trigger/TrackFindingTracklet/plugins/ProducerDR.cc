@@ -11,6 +11,7 @@
 #include "DataFormats/Common/interface/Handle.h"
 
 #include "L1Trigger/TrackTrigger/interface/Setup.h"
+#include "L1Trigger/TrackerTFP/interface/LayerEncoding.h"
 #include "L1Trigger/TrackFindingTracklet/interface/DataFormats.h"
 #include "L1Trigger/TrackFindingTracklet/interface/ChannelAssignment.h"
 #include "L1Trigger/TrackFindingTracklet/interface/DuplicateRemoval.h"
@@ -26,6 +27,7 @@
 using namespace std;
 using namespace edm;
 using namespace tt;
+using namespace trackerTFP;
 
 namespace trklet {
 
@@ -54,6 +56,8 @@ namespace trklet {
     EDPutTokenT<StreamsTrack> edPutTokenTracks_;
     // Setup token
     ESGetToken<Setup, SetupRcd> esGetTokenSetup_;
+    // LayerEncoding token
+    ESGetToken<LayerEncoding, LayerEncodingRcd> esGetTokenLayerEncoding_;
     // DataFormats token
     ESGetToken<DataFormats, DataFormatsRcd> esGetTokenDataFormats_;
     // ChannelAssignment token
@@ -62,6 +66,8 @@ namespace trklet {
     ParameterSet iConfig_;
     // helper class to store configurations
     const Setup* setup_ = nullptr;
+    // helper class to encode layer
+    const LayerEncoding* layerEncoding_ = nullptr;
     // helper class to extract structured data from tt::Frames
     const DataFormats* dataFormats_ = nullptr;
     // helper class to assign tracks to channel
@@ -79,6 +85,7 @@ namespace trklet {
     edPutTokenStubs_ = produces<StreamsStub>(branchStubs);
     // book ES products
     esGetTokenSetup_ = esConsumes<Setup, SetupRcd, Transition::BeginRun>();
+    esGetTokenLayerEncoding_ = esConsumes<LayerEncoding, LayerEncodingRcd, Transition::BeginRun>();
     esGetTokenDataFormats_ = esConsumes<DataFormats, DataFormatsRcd, Transition::BeginRun>();
     esGetTokenChannelAssignment_ = esConsumes<ChannelAssignment, ChannelAssignmentRcd, Transition::BeginRun>();
   }
@@ -86,6 +93,8 @@ namespace trklet {
   void ProducerDR::beginRun(const Run& iRun, const EventSetup& iSetup) {
     // helper class to store configurations
     setup_ = &iSetup.getData(esGetTokenSetup_);
+    // helper class to encode layer
+    layerEncoding_ = &iSetup.getData(esGetTokenLayerEncoding_);
     // helper class to extract structured data from tt::Frames
     dataFormats_ = &iSetup.getData(esGetTokenDataFormats_);
     // helper class to assign tracks to channel
@@ -107,7 +116,7 @@ namespace trklet {
     const StreamsTrack& tracks = *handleTracks;
     for (int region = 0; region < setup_->numRegions(); region++) {
       // object to remove duplicated tracks in a processing region
-      DuplicateRemoval dr(iConfig_, setup_, dataFormats_, channelAssignment_, region);
+      DuplicateRemoval dr(iConfig_, setup_, layerEncoding_, dataFormats_, channelAssignment_, region);
       // read in and organize input tracks and stubs
       dr.consume(tracks, stubs);
       // fill output products

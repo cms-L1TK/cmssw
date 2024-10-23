@@ -56,12 +56,18 @@ namespace trklet {
       tracks_.emplace_back(frameTrack, dataFormats_);
       TrackDR* track = &tracks_.back();
       vector<Stub*> stubs(numLayers, nullptr);
+      TTBV hitPattern(0, setup_->numLayers());
       for (int layer = 0; layer < numLayers; layer++) {
         const FrameStub& frameStub = streamsStub[offset + layer][frame];
         if (frameStub.first.isNull())
           continue;
         stubs_.emplace_back(kalmanFilterFormats_, frameStub);
         stubs[layer] = &stubs_.back();
+        hitPattern.set(layer);
+      }
+      if (hitPattern.count(0, setup_->kfMaxSeedingLayer()) < setup_->kfNumSeedStubs()) {
+        stream_.push_back(nullptr);
+        continue;
       }
       states_.emplace_back(kalmanFilterFormats_, track, stubs, trackId++);
       stream_.push_back(&states_.back());
@@ -75,7 +81,6 @@ namespace trklet {
                              StreamsTrack& streamsTrack,
                              int& numAcceptedStates,
                              int& numLostStates) {
-    REGION = -1;
     // 5 parameter fit simulation
     if (use5ParameterFit_) {
       // Propagate state to each layer in turn, updating it with all viable stub combinations there, using KF maths

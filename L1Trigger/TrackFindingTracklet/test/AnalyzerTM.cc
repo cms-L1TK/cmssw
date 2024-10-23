@@ -248,7 +248,8 @@ namespace trklet {
                               const StreamsStub& streamsStubs,
                               vector<vector<TTStubRef>>& tracks,
                               int channel) const {
-    const int offset = channel * setup_->numLayers();
+    static const int numLayers = channelAssignment_->tmNumLayers();
+    const int offset = channel * numLayers;
     const StreamTrack& streamTrack = streamsTrack[channel];
     const int numTracks = accumulate(streamTrack.begin(), streamTrack.end(), 0, [](int& sum, const FrameTrack& frame) {
       return sum += (frame.first.isNonnull() ? 1 : 0);
@@ -259,8 +260,8 @@ namespace trklet {
       if (frameTrack.first.isNull())
         continue;
       vector<TTStubRef> ttStubRefs;
-      ttStubRefs.reserve(setup_->numLayers());
-      for (int layer = 0; layer < setup_->numLayers(); layer++) {
+      ttStubRefs.reserve(numLayers);
+      for (int layer = 0; layer < numLayers; layer++) {
         const FrameStub& stub = streamsStubs[offset + layer][frame];
         if (stub.first.isNonnull())
           ttStubRefs.push_back(stub.first);

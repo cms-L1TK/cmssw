@@ -17,6 +17,7 @@ namespace trklet {
   ChannelAssignment::ChannelAssignment(const edm::ParameterSet& iConfig, const Setup* setup)
       : setup_(setup),
         pSetTM_(iConfig.getParameter<ParameterSet>("TM")),
+        tmNumLayers_((pSetTM_.getParameter<int>("NumLayers"))),
         tmWidthStubId_(pSetTM_.getParameter<int>("WidthStubId")),
         tmWidthCot_(pSetTM_.getParameter<int>("WidthCot")),
         pSetDR_(iConfig.getParameter<ParameterSet>("DR")),
