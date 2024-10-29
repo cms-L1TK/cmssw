@@ -1023,7 +1023,7 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
           v_jets_vhighpt.push_back(0);
 
       }  // end loop over genjets
-    }    // end isValid
+    }  // end isValid
 
   }  // end TrackingInJets
 
