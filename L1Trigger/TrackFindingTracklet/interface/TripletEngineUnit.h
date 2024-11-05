@@ -21,25 +21,25 @@ namespace trklet {
     int rzbinfirst_out_;
     int rzdiffmax_out_;
     std::vector<std::tuple<int, int, int> > projbin_out_;  // next z/r bin; outer stub mem; nstub
-    std::vector<std::tuple<int, int, int> > projbin_in_;  // next z/r bin; inner stub mem; nstub
+    std::vector<std::tuple<int, int, int> > projbin_in_;   // next z/r bin; inner stub mem; nstub
   };
-  
+
   class TripletEngineUnit {
   public:
     TripletEngineUnit(const Settings* const settings,
-		      unsigned int layerdisk1,
-		      unsigned int layerdisk2,
-		      unsigned int layerdisk3,
-		      unsigned int iSeed,
-		      std::vector<VMStubsTEMemory*> innervmstubs,
-		      std::vector<VMStubsTEMemory*> outervmstubs);
+                      unsigned int layerdisk1,
+                      unsigned int layerdisk2,
+                      unsigned int layerdisk3,
+                      unsigned int iSeed,
+                      std::vector<VMStubsTEMemory*> innervmstubs,
+                      std::vector<VMStubsTEMemory*> outervmstubs);
 
     ~TripletEngineUnit() = default;
 
     void init(const TrpEData& trpdata);
 
     bool getGoodTriplet() { return goodtriplet__; }
-    
+
     bool empty() const { return candtriplets_.empty(); }
 
     const std::tuple<const Stub*, const Stub*, const Stub*>& read() { return candtriplets_.read(); }
@@ -80,7 +80,7 @@ namespace trklet {
     unsigned int inmem_;
     unsigned int nproj_out_;
     unsigned int nproj_in_;
-    
+
     bool idle_;
 
     std::tuple<const Stub*, const Stub*, const Stub*> candtriplet_, candtriplet__;
