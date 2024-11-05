@@ -4,14 +4,22 @@
 
 using namespace trklet;
 
+// TripletEngineUnit
+//
+// This script sets a processing unit for the TrackletProcessorDisplaced
+// based on information from the middle stub and its projections in and out,
+// and a new triplet seed is checked and created for each processing step
+//
+// Author: Claire Savard, Nov. 2024
+
 TripletEngineUnit::TripletEngineUnit(const Settings* const settings,
-				     unsigned int layerdisk1,
-				     unsigned int layerdisk2,
-				     unsigned int layerdisk3,
-				     unsigned int iSeed,
-				     std::vector<VMStubsTEMemory*> innervmstubs,
-				     std::vector<VMStubsTEMemory*> outervmstubs)
-  : settings_(settings), candtriplets_(3) {
+                                     unsigned int layerdisk1,
+                                     unsigned int layerdisk2,
+                                     unsigned int layerdisk3,
+                                     unsigned int iSeed,
+                                     std::vector<VMStubsTEMemory*> innervmstubs,
+                                     std::vector<VMStubsTEMemory*> outervmstubs)
+    : settings_(settings), candtriplets_(3) {
   idle_ = true;
   layerdisk1_ = layerdisk1;
   layerdisk2_ = layerdisk2;
@@ -28,7 +36,7 @@ void TripletEngineUnit::init(const TrpEData& trpdata) {
   nproj_out_ = 0;
   nproj_in_ = 0;
   idle_ = false;
-  
+
   assert(!trpdata_.projbin_out_.empty() && !trpdata_.projbin_in_.empty());
   std::tie(next_out_, outmem_, nstub_out_) = trpdata_.projbin_out_[0];
   std::tie(next_in_, inmem_, nstub_in_) = trpdata_.projbin_in_[0];
@@ -42,7 +50,6 @@ void TripletEngineUnit::reset() {
 }
 
 void TripletEngineUnit::step() {
-
   if (goodtriplet__) {
     candtriplets_.store(candtriplet__);
   }
@@ -71,49 +78,33 @@ void TripletEngineUnit::step() {
       edm::LogVerbatim("Tracklet") << "Outer stub rejected because of wrong r/z bin";
     }
   } else {
-    
-    // duplicate seed 101000010011111010011110110011101011 110000110100000001101011000000011000 100011001100000001011001001100001101
-    if (trpdata_.stub_->strbare() == "110000110100000001101011000000011000" &&
-	outervmstub.stub()->strbare() == "100011001100000001011001001100001101" &&
-	innervmstub.stub()->strbare() == "101000010011111010011110110011101011"){
-      std::cout << "duplicate seed 101000010011111010011110110011101011 110000110100000001101011000000011000 100011001100000001011001001100001101\n"
-		<< "(innermem, outermem) = (" << innervmstubs_[inmem_]->getName() << ", " << outervmstubs_[outmem_]->getName() << ")\n"
-		<< "(istub_in, istub_out) = (" << istub_in_ << ", " << istub_out_ << ")\n";
-    }
-    //110101111011101010010001010111010110 101000000111011101111101001100001110 100000111011101100001001011110001100
-    if (trpdata_.stub_->strbare() == "101000000111011101111101001100001110" &&
-	outervmstub.stub()->strbare() == "100000111011101100001001011110001100" &&
-	innervmstub.stub()->strbare() == "110101111011101010010001010111010110"){
-      std::cout << "duplicate seed  110101111011101010010001010111010110 101000000111011101111101001100001110 100000111011101100001001011110001100\n"
-		<< "(innermem, outermem) = (" << innervmstubs_[inmem_]->getName() << ", " << outervmstubs_[outmem_]->getName() << ")\n"
-		<< "(istub_in, istub_out) = (" << istub_in_ << ", " << istub_out_ << ")\n";
-    }
-    
-    candtriplet_ = std::tuple<const Stub*, const Stub*, const Stub*>(innervmstub.stub(), trpdata_.stub_, outervmstub.stub());
+    candtriplet_ =
+        std::tuple<const Stub*, const Stub*, const Stub*>(innervmstub.stub(), trpdata_.stub_, outervmstub.stub());
     goodtriplet_ = true;
   }
-  
+
   // go to next projection (looping through all inner stubs for each outer stub)
   istub_in_++;
-  if (istub_in_ >= nstub_in_) { // if gone through all in stubs, move to next in proj bin
+  if (istub_in_ >= nstub_in_) {  // if gone through all in stubs, move to next in proj bin
     nproj_in_++;
     istub_in_ = 0;
-    if (nproj_in_ >= trpdata_.projbin_in_.size()) { // if gone through all in proj bins, move to next out stub
+    if (nproj_in_ >= trpdata_.projbin_in_.size()) {  // if gone through all in proj bins, move to next out stub
       istub_out_++;
       nproj_in_ = 0;
-      if (istub_out_ >= nstub_out_) { // if gone through all out stubs, move to next out proj bin
-	nproj_out_++;
-	istub_out_ = 0;
-	if (nproj_out_ >= trpdata_.projbin_out_.size()){ // if gone through all out proj bins, reset everything and stop engine unit
-	  istub_in_ = 0;
-	  istub_out_ = 0;
-	  nproj_in_ = 0;
-	  nproj_out_ = 0;
-	  idle_ = true;
-	  return;
-	}
-	// get next out proj bin
-	std::tie(next_out_, outmem_, nstub_out_) = trpdata_.projbin_out_[nproj_out_];
+      if (istub_out_ >= nstub_out_) {  // if gone through all out stubs, move to next out proj bin
+        nproj_out_++;
+        istub_out_ = 0;
+        if (nproj_out_ >=
+            trpdata_.projbin_out_.size()) {  // if gone through all out proj bins, reset everything and stop engine unit
+          istub_in_ = 0;
+          istub_out_ = 0;
+          nproj_in_ = 0;
+          nproj_out_ = 0;
+          idle_ = true;
+          return;
+        }
+        // get next out proj bin
+        std::tie(next_out_, outmem_, nstub_out_) = trpdata_.projbin_out_[nproj_out_];
       }
     }
     // get next in proj bin
