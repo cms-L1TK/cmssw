@@ -25,7 +25,7 @@ namespace trklet {
     VMStubsTEPHICM(unsigned int seednumber_,
                    unsigned int stubposition_,
                    std::vector<std::vector<VMStubsTEMemory*> > vmstubmem_)
-        : seednumber(seednumber_), stubposition(stubposition_), vmstubmem(vmstubmem_) {};
+        : seednumber(seednumber_), stubposition(stubposition_), vmstubmem(vmstubmem_){};
 
     unsigned int seednumber;    //seed number [0,11]
     unsigned int stubposition;  //stub position in the seed (only used by triplet seeds)

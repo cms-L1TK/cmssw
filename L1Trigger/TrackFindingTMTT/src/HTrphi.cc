@@ -160,7 +160,8 @@ namespace tmtt {
     }
     text << "\n";
     static std::once_flag printOnce;
-    std::call_once(printOnce, [](string t) { PrintL1trk() << t; }, text.str());
+    std::call_once(
+        printOnce, [](string t) { PrintL1trk() << t; }, text.str());
 
     // Note helix parameters at the centre of each HT cell.
     cellCenters_.clear();
