@@ -83,7 +83,7 @@ namespace hph {
     std::map<int, std::map<int, std::vector<int>>> layermap_;  // Hard-coded layermap in Old KF
     int nEtaRegions_;                                          // # of eta regions
     int nKalmanLayers_;                                        // # of maximum KF layers allowed
-  };  // Only needed by Old KF
+  };                                                           // Only needed by Old KF
 
   //Class that returns decoded information from hitpattern
   class HitPatternHelper {
