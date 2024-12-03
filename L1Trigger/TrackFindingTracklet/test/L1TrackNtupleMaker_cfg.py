@@ -106,7 +106,7 @@ process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring(*inp
 # Use skipEvents to select particular single events for test vectors
 #process.source.skipEvents = cms.untracked.uint32(11)
 
-process.TFileService = cms.Service("TFileService", fileName = cms.string('081324_64MergingCM_NoSorting_NoNewCM_100Events.root'), closeFileFast = cms.untracked.bool(True))
+process.TFileService = cms.Service("TFileService", fileName = cms.string('120224_Merging_NewSeedRank_32CM_1Bin_100Events_D98.root'), closeFileFast = cms.untracked.bool(True))
 process.Timing = cms.Service("Timing", summaryOnly = cms.untracked.bool(True))
 
 
