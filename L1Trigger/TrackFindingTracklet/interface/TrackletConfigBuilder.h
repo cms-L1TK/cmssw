@@ -212,15 +212,7 @@ namespace trklet {
 
     void writeProjectionMemories(std::ostream& os, std::ostream& memories, std::ostream& modules);
 
-    void writeSPMemories(std::ostream& os, std::ostream& memories, std::ostream& modules);
-
     void writeSPDMemories(std::ostream& os, std::ostream& memories, std::ostream& modules);
-
-    void writeAPMemories(std::ostream& os, std::ostream& memories, std::ostream& modules);
-
-    void writeCMMemories(std::ostream& os, std::ostream& memories, std::ostream& modules);
-
-    void writeVMPROJMemories(std::ostream& os, std::ostream& memories, std::ostream& modules);
 
     void writeFMMemories(std::ostream& os, std::ostream& memories, std::ostream& modules);
 
