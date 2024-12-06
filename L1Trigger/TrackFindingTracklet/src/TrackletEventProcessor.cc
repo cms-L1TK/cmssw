@@ -346,7 +346,7 @@ void TrackletEventProcessor::printSummary() {
                                << InputRouterTimer_.tottime() << "\n"
                                << "VMRouter              " << setw(10) << VMRouterTimer_.ntimes() << setw(20)
                                << setprecision(3) << VMRouterTimer_.avgtime() * 1000.0 << setw(20) << setprecision(3)
-                               << VMRouterTimer_.tottime()
+                               << VMRouterTimer_.tottime() << "\n"
 			       << "TrackletProcessor     " << setw(10) << TPTimer_.ntimes() << setw(20)
 			       << setprecision(3) << TPTimer_.avgtime() * 1000.0 << setw(20) << setprecision(3)
 			       << TPTimer_.tottime() << "\n"
