@@ -6,7 +6,6 @@
 #include "L1Trigger/TrackFindingTracklet/interface/TrackletCalculatorDisplaced.h"
 #include "L1Trigger/TrackFindingTracklet/interface/TrackletLUT.h"
 #include "L1Trigger/TrackFindingTracklet/interface/CircularBuffer.h"
-#include "L1Trigger/TrackFindingTracklet/interface/TrackletEngineUnit.h"
 #include "L1Trigger/TrackFindingTracklet/interface/TrackletParametersMemory.h"
 #include "L1Trigger/TrackFindingTracklet/interface/TrackletProjectionsMemory.h"
 #include "L1Trigger/TrackFindingTracklet/interface/TripletEngineUnit.h"

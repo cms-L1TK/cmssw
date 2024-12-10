@@ -1,5 +1,4 @@
 #include "L1Trigger/TrackFindingTracklet/interface/TripletEngineUnit.h"
-#include "L1Trigger/TrackFindingTracklet/interface/VMStubsTEMemory.h"
 #include "L1Trigger/TrackFindingTracklet/interface/Settings.h"
 
 using namespace trklet;
