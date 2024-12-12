@@ -61,10 +61,7 @@ TrackletProcessorDisplaced::TrackletProcessorDisplaced(string name, Settings con
 
   // set TC index
   iTC_ = region;
-  constexpr int TCIndexMin = 128;
-  constexpr int TCIndexMax = 191;
-  TCIndex_ = (iSeed_ << 4) + iTC_;
-  assert(TCIndex_ >= TCIndexMin && TCIndex_ < TCIndexMax);
+  TCIndex_ = (iSeed_ << settings.nbitsseed()) + iTC_;
 
   maxStep_ = settings_.maxStep("TPD");
 }
