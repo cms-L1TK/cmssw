@@ -37,7 +37,7 @@ MatchProcessor::MatchProcessor(string name, Settings const& settings, Globals* g
       rSSinner_(settings),
       rSSouter_(settings),
       diskRadius_(settings),
-      fullmatches_(12),
+      fullmatches_(2),
       rinvbendlut_(settings),
       luttable_(settings),
       inputProjBuffer_(3) {
@@ -124,13 +124,16 @@ void MatchProcessor::addOutput(MemoryBase* memory, string output) {
     edm::LogVerbatim("Tracklet") << "In " << name_ << " adding output to " << memory->getName() << " to output "
                                  << output;
   }
-  if (output.find("matchout") != std::string::npos) {
+  if (output.find("matchout0") != std::string::npos) {
     auto* tmp = dynamic_cast<FullMatchMemory*>(memory);
     assert(tmp != nullptr);
-    unsigned int iSeed = getISeed(tmp->getName());
-    assert(iSeed < fullmatches_.size());
-    assert(fullmatches_[iSeed] == nullptr);
-    fullmatches_[iSeed] = tmp;
+    fullmatches_[0] = tmp;
+    return;
+  }
+  if (output.find("matchout1") != std::string::npos) {
+    auto* tmp = dynamic_cast<FullMatchMemory*>(memory);
+    assert(tmp != nullptr);
+    fullmatches_[1] = tmp;
     return;
   }
   throw cms::Exception("BadConfig") << __FILE__ << " " << __LINE__ << " could not find output: " << output;
@@ -762,8 +765,12 @@ bool MatchProcessor::matchCalculator(Tracklet* tracklet, const Stub* fpgastub, b
       }
 
       int iSeed = tracklet->getISeed();
-      assert(fullmatches_[iSeed] != nullptr);
-      fullmatches_[iSeed]->addMatch(tracklet, fpgastub);
+      int iTB = 0;
+      if ( iSeed == 2 || iSeed == 4 || iSeed == 5 || iSeed == 6 ) {
+	iTB = 1;
+      }
+      assert(fullmatches_[iTB] != nullptr);
+      fullmatches_[iTB]->addMatch(tracklet, fpgastub);
 
       return true;
     } else {
@@ -950,8 +957,12 @@ bool MatchProcessor::matchCalculator(Tracklet* tracklet, const Stub* fpgastub, b
       }
 
       int iSeed = tracklet->getISeed();
-      assert(fullmatches_[iSeed] != nullptr);
-      fullmatches_[iSeed]->addMatch(tracklet, fpgastub);
+      int iTB = 0;
+      if ( iSeed == 2 || iSeed == 4 || iSeed == 5 || iSeed == 6 ) {
+	iTB = 1;
+      }
+      assert(fullmatches_[iTB] != nullptr);
+      fullmatches_[iTB]->addMatch(tracklet, fpgastub);
 
       return true;
     } else {

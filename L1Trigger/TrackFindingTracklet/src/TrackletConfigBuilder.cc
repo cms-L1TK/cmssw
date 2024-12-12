@@ -479,6 +479,13 @@ double TrackletConfigBuilder::rinv(double r1, double phi1, double r2, double phi
   return 2 * sin(deltaphi) / sqrt(r2 * r2 + r1 * r1 - 2 * r1 * r2 * cos(deltaphi));
 }
 
+std::string TrackletConfigBuilder::iTBStr(unsigned int iTB) const {
+  static std::string name[2] = {"AAAA", "BBBB"};
+
+  assert(iTB < 2);
+  return name[iTB];
+}
+
 std::string TrackletConfigBuilder::iSeedStr(unsigned int iSeed) const {
   static std::string name[8] = {"L1L2", "L2L3", "L3L4", "L5L6", "D1D2", "D3D4", "L1D1", "L2D1"};
 
@@ -652,12 +659,13 @@ void TrackletConfigBuilder::writeProjectionMemories(std::ostream& os, std::ostre
 	       << std::endl;
 	  }
 	} else {  // non-duplicate MPs configuration
-	  memories << "TrackletProjections: " + TPROJName(iSeed, iTC, ilayer, ireg) + " [54]" << std::endl;
-	  os << TPROJName(iSeed, iTC, ilayer, ireg) << " input=> " << TCName(iSeed, iTC) << ".projout"
-	     << LayerName(ilayer) << "PHI" << iTCStr(ireg) << " output=> " << PRName(ilayer, ireg) << ".projin"
-	     << std::endl;
+	  //memories << "TrackletProjections: " + TPROJName(iSeed, iTC, ilayer, ireg) + " [54]" << std::endl;
+	  //os << TPROJName(iSeed, iTC, ilayer, ireg) << " input=> " << TCName(iSeed, iTC) << ".projout"
+	  //   << LayerName(ilayer) << "PHI" << iTCStr(ireg) << " output=> " << PRName(ilayer, ireg) << ".projin"
+	  //   << std::endl;
 	}
 
+	/*
         for (unsigned int iMergedTC = 0 ; iMergedTC<nMergedTC[iSeed]; iMergedTC++) { 
 
           std::string mergetcstr = iMergedTCStr(iSeed, iMergedTC);
@@ -672,6 +680,7 @@ void TrackletConfigBuilder::writeProjectionMemories(std::ostream& os, std::ostre
 
           }
         }
+	*/
       }
     }
   }
@@ -685,11 +694,15 @@ void TrackletConfigBuilder::writeMergedProjectionMemories(std::ostream& os, std:
   unsigned int nMergedTC[8] = {6, 1, 2, 1, 1, 1, 2, 1};
 
   for (unsigned int iSeed = 0; iSeed < 8; iSeed++){
+    unsigned int iTB = 0;
+    if ( iSeed==2 || iSeed==4 || iSeed==5 || iSeed==6 ) {
+      iTB = 1;
+    }
     for (unsigned int iPC = 0; iPC < nMergedTC[iSeed]; iPC++) {
       process << "ProjectionCalculator: " << PCName(iSeed, iPC) << std::endl;
       memories << "TrackletParameters: MPAR_" << iSeedStr(iSeed) << iMergedTCStr(iSeed,iPC) << " [73]" << std::endl;
       os << "MPAR_"<<iSeedStr(iSeed) << iMergedTCStr(iSeed,iPC) << " input=> " << PCName(iSeed, iPC) << ".tparout"
-	 << " output=> FT_" <<iSeedStr(iSeed) << ".tparin" << std::endl;
+	 << " output=> TB_" <<iTBStr(iTB) << ".tparin" << std::endl;
     }
   } 
 
@@ -866,14 +879,14 @@ void TrackletConfigBuilder::writeFMMemories(std::ostream& os, std::ostream& memo
 	}
       } else {  // non-duplicate MPs configuration
 	modules << "MatchProcessor: MP_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << std::endl;
-	for (unsigned int iSeed = 0; iSeed < N_SEED_PROMPT; iSeed++) {
-	  if (matchport_[iSeed][ilayer] == -1)
-	    continue;
-	  memories << "FullMatch: FM_" << iSeedStr(iSeed) << "_" << LayerName(ilayer) << "PHI" << iTCStr(iReg)
+	for (unsigned int iTB = 0; iTB < N_TB; iTB++) {
+	  //if (matchportTB_[iTB][ilayer] == -1)
+	  //  continue;
+	  memories << "FullMatch: FM_" << iTBStr(iTB) << "_" << LayerName(ilayer) << "PHI" << iTCStr(iReg)
 		   << " [36]" << std::endl;
-	  os << "FM_" << iSeedStr(iSeed) << "_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << " input=> MP_"
-	     << LayerName(ilayer) << "PHI" << iTCStr(iReg) << ".matchout1 output=> FT_" << iSeedStr(iSeed)
-	     << ".fullmatch" << matchport_[iSeed][ilayer] << "in" << iReg + 1 << std::endl;
+	  os << "FM_" << iTBStr(iTB) << "_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << " input=> MP_"
+	     << LayerName(ilayer) << "PHI" << iTCStr(iReg) << ".matchout" << iTB << " output=> TB_" << iTBStr(iTB)
+	     << ".fullmatch" << ilayer << "in" << iReg + 1 << std::endl;
 	}
       }
     }
@@ -1135,20 +1148,22 @@ void TrackletConfigBuilder::writeTPARMemories(std::ostream& os, std::ostream& me
 }
 
 void TrackletConfigBuilder::writeTFMemories(std::ostream& os, std::ostream& memories, std::ostream& modules) {
-  for (unsigned int iSeed = 0; iSeed < N_SEED_PROMPT; iSeed++) {
-    memories << "TrackFit: TF_" << iSeedStr(iSeed) << " [126]" << std::endl;
-    modules << "FitTrack: FT_" << iSeedStr(iSeed) << std::endl;
-    os << "TF_" << iSeedStr(iSeed) << " input=> FT_" << iSeedStr(iSeed) << ".trackout output=> PD.trackin" << std::endl;
+  for (unsigned int iTB = 0; iTB < N_TB; iTB++) {
+    memories << "TrackFit: TF_" << iTBStr(iTB) << " [126]" << std::endl;
+    modules << "FitTrack: TB_" << iTBStr(iTB) << std::endl;
+    os << "TF_" << iTBStr(iTB) << " input=> TB_" << iTBStr(iTB) << ".trackout output=> PD.trackin" << std::endl;
   }
 }
 
 void TrackletConfigBuilder::writeCTMemories(std::ostream& os, std::ostream& memories, std::ostream& modules) {
   modules << "PurgeDuplicate: PD" << std::endl;
 
-  for (unsigned int iSeed = 0; iSeed < N_SEED_PROMPT; iSeed++) {
-    memories << "CleanTrack: CT_" << iSeedStr(iSeed) << " [126]" << std::endl;
-    os << "CT_" << iSeedStr(iSeed) << " input=> PD.trackout output=>" << std::endl;
-  }
+  memories << "CleanTrack: CT_AAAA" << " [126]" << std::endl;
+  os << "CT_AAAA" << " input=> PD.trackout output=>" << std::endl;
+
+  memories << "CleanTrack: CT_BBBB" << " [126]" << std::endl;
+  os << "CT_BBBB" << " input=> PD.trackout output=>" << std::endl;
+
 }
 
 void TrackletConfigBuilder::writeILMemories(std::ostream& os, std::ostream& memories, std::ostream& modules) {

@@ -105,10 +105,10 @@ void TrackletProcessor::addOutput(MemoryBase* memory, string output) {
     return;
   }
 
-  if (output.substr(0,4) == "proj") {
+  //if (output.substr(0,4) == "proj") {
     //Hack to keep proj output in config - but ignore in application
-    return;
-  }
+  //  return;
+  //}
 
   throw cms::Exception("BadConfig") << __FILE__ << " " << __LINE__ << " Could not find output : " << output;
 }

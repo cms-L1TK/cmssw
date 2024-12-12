@@ -38,6 +38,9 @@ namespace trklet {
     //Seed string, eg. L1L2
     std::string iSeedStr(unsigned int iSeed) const;
 
+    //TB string, AAAA or BBBB
+    std::string iTBStr(unsigned int iTB) const;
+
     //Return unsigned as string
     static std::string numStr(unsigned int i);
 
@@ -272,7 +275,7 @@ namespace trklet {
 
     //The projections to each layer/disk from a seed and TC
     std::vector<std::vector<std::pair<unsigned int, unsigned int> > > projections_[N_LAYER + N_DISK];
-
+    
     //Which matches are used for each seeding layer
     //                                                L1 L2 L3 L4 L5 L6 D1 D2 D3 D4 D5
     int matchport_[N_SEED_PROMPT][N_LAYER + N_DISK] = {{-1, -1, 1, 2, 3, 4, 4, 3, 2, 1, -1},       //L1L2
@@ -284,6 +287,11 @@ namespace trklet {
                                                        {-1, -1, -1, -1, -1, -1, -1, 1, 2, 3, 4},   //L1D1
                                                        {1, -1, -1, -1, -1, -1, -1, 2, 3, 4, -1}};  //L2D1
 
+    //Which seeds handled by each TB
+    int tbseed_[N_TB][4] = {{0, 1, 3, 7},
+                            {2, 4, 5, 6}};
+    
+    
     struct DTCinfo {
       std::string name;
       int layer;
