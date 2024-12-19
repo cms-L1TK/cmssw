@@ -446,7 +446,7 @@ namespace trklet {
 
     double benddecode(int ibend, int layerdisk, bool isPSmodule) const {
       if (layerdisk >= N_LAYER && (!isPSmodule))
-        layerdisk += (N_LAYER - 1);
+        layerdisk += N_DISK;
       double bend = benddecode_[layerdisk][ibend];
       assert(bend < 99.0);
       return bend;
