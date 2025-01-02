@@ -35,6 +35,15 @@ namespace trklet {
 
     bool matchCalculator(Tracklet* tracklet, const Stub* fpgastub, bool print, unsigned int istep);
 
+    void read_input_mems(bool& read_is_valid,
+                         std::vector<bool>& mem_hasdata,
+                         std::vector<int>& nentries,
+                         int& read_addr,
+                         const std::vector<int>& iMem,
+                         const std::vector<int>& iPage,
+                         unsigned int& imem,
+                         unsigned int& ipage);
+
   private:
     unsigned int layerdisk_;
     bool barrel_;
@@ -70,6 +79,11 @@ namespace trklet {
 
     //Number of r bits for the projection to use in LUT for disk
     int nrprojbits_;
+
+    //Pipeline variables for MatchCalculation
+    bool candidatematch_;
+    const Stub* fpgastub_;
+    Tracklet* tracklet_;
 
     AllStubsMemory* allstubs_;
     std::vector<VMStubsMEMemory*> vmstubs_;

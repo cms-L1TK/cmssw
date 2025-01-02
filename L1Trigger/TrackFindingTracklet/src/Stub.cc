@@ -46,7 +46,6 @@ Stub::Stub(L1TStub& stub, Settings const& settings, Globals& globals) : settings
   bitset<32> bendbits(stubwordbin.substr(nphibits + nzbits + nrbits + nalphabits + nndbits, nbendbits));
 
   int newbend = bendbits.to_ulong();
-  int diskpswrittenr;
   int newr = rbits.to_ulong();
   if (layerdisk_ < N_LAYER) {
     if (newr >= (1 << (nrbits - 1)))

@@ -38,6 +38,9 @@ namespace trklet {
     //Seed string, eg. L1L2
     std::string iSeedStr(unsigned int iSeed) const;
 
+    //TB string, AAAA or BBBB
+    std::string iTBStr(unsigned int iTB) const;
+
     //Return unsigned as string
     static std::string numStr(unsigned int i);
 
@@ -65,8 +68,8 @@ namespace trklet {
     //Merged tracklet projection name
     std::string MPROJName(unsigned int iSeed, unsigned int iTC, unsigned int ilayer, unsigned int ireg) const;
 
-    //Projection router name
-    std::string PRName(unsigned int ilayer, unsigned int ireg) const;
+    //MatchProcessor name
+    std::string MPName(unsigned int ilayer, unsigned int ireg) const;
 
   private:
     //
@@ -210,17 +213,7 @@ namespace trklet {
     //
     void writeMergedProjectionMemories(std::ostream& os, std::ostream& memories, std::ostream& modules);
 
-    void writeProjectionMemories(std::ostream& os, std::ostream& memories, std::ostream& modules);
-
-    void writeSPMemories(std::ostream& os, std::ostream& memories, std::ostream& modules);
-
     void writeSPDMemories(std::ostream& os, std::ostream& memories, std::ostream& modules);
-
-    void writeAPMemories(std::ostream& os, std::ostream& memories, std::ostream& modules);
-
-    void writeCMMemories(std::ostream& os, std::ostream& memories, std::ostream& modules);
-
-    void writeVMPROJMemories(std::ostream& os, std::ostream& memories, std::ostream& modules);
 
     void writeFMMemories(std::ostream& os, std::ostream& memories, std::ostream& modules);
 
@@ -291,6 +284,9 @@ namespace trklet {
                                                        {1, -1, -1, -1, -1, -1, 2, 3, -1, -1, 4},   //D3D4
                                                        {-1, -1, -1, -1, -1, -1, -1, 1, 2, 3, 4},   //L1D1
                                                        {1, -1, -1, -1, -1, -1, -1, 2, 3, 4, -1}};  //L2D1
+
+    //Which seeds handled by each TB
+    int tbseed_[N_TB][4] = {{0, 1, 3, 7}, {2, 4, 5, 6}};
 
     struct DTCinfo {
       std::string name;

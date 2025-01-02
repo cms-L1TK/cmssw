@@ -56,6 +56,7 @@ namespace trklet {
 
   private:
     std::vector<std::vector<VMStubME> > binnedstubs_;
+    unsigned int layerdisk_;
   };
 
 };  // namespace trklet

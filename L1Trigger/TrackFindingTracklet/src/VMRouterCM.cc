@@ -275,7 +275,6 @@ void VMRouterCM::execute(unsigned int) {
       }
 
       //Calculate the z and r position for the vmstub
-
       //Take the top nbitszfinebintable_ bits of the z coordinate
       int indexz = (stub->z().value() >> (stub->z().nbits() - nbitszfinebintable_)) & ((1 << nbitszfinebintable_) - 1);
       int indexr = -1;
@@ -326,30 +325,6 @@ void VMRouterCM::execute(unsigned int) {
       int melutOld = meTableOld_.lookup((indexzOld << nbitsrfinebintable_) + indexrOld);
 
       assert(melutOld >= 0);
-
-      int vmbin = melut >> NFINERZBITS;
-      if (negdisk)
-        vmbin += (1 << NFINERZBITS);
-      int rzfine = melut & ((1 << NFINERZBITS) - 1);
-
-      // pad disk PS bend word with a '0' in MSB so that all disk bends have 4 bits (for HLS compatibility)
-      int nbendbits = stub->bend().nbits();
-      if (layerdisk_ >= N_LAYER)
-        nbendbits = settings_.nbendbitsmedisk();
-
-      VMStubME vmstub(
-          stub,
-          stub->iphivmFineBins(settings_.nbitsallstubs(layerdisk_) + settings_.nbitsvmme(layerdisk_), NFINERZBITS),
-          FPGAWord(rzfine, NFINERZBITS, true, __LINE__, __FILE__),
-          FPGAWord(stub->bend().value(), nbendbits, true, __LINE__, __FILE__),
-          allStubIndex);
-
-      unsigned int nmems = vmstubsMEPHI_.size();
-
-      for (unsigned int i = 0; i < nmems; i++) {  // allows multiple VMStubs to be written for duplicated MPs
-        if (vmstubsMEPHI_[i] != nullptr)
-          vmstubsMEPHI_[i]->addStub(vmstub, ivm * nvmmebins_ + vmbin);
-      }
 
       //Fill the TE VM memories
       if (layerdisk_ >= N_LAYER && (!stub->isPSmodule()))
