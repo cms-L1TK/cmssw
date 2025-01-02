@@ -46,7 +46,7 @@ ProjectionCalculator::ProjectionCalculator(string name, Settings const& settings
       }
 
       for (unsigned int layerdisk = 0; layerdisk < N_LAYER + N_DISK; layerdisk++) {
-        std::vector<TrackletProjectionsMemory*> tmp(settings_.nallstubs(layerdisk), nullptr);
+        std::vector<std::vector<TrackletProjectionsMemory*>> tmp(settings_.nallstubs(layerdisk));
         outputproj_.push_back(tmp);
       }
 
@@ -100,16 +100,20 @@ void ProjectionCalculator::addOutput(MemoryBase* memory, string output) {
   }
   if (output == "projout") {
     auto* tmp = dynamic_cast<TrackletProjectionsMemory*>(memory);
-    unsigned int layerdisk = memory->getName()[memory->getName().size() - 5] - '1';   //layer or disk counting from 0
-    unsigned int phiregion = memory->getName()[memory->getName().size() - 1] - 'A';  //phiregion counting from 0
-    if (memory->getName()[memory->getName().size() - 6] == 'D') layerdisk += N_LAYER;
+    int extraMPOffset = 0;
+    if (memory->getName().substr(memory->getName().size()-2,2) == "_E") {
+      extraMPOffset = 2;
+    }
+    std::cout << "extraMPOffset: " << memory->getName() << " " << extraMPOffset << std::endl;
+    unsigned int layerdisk = memory->getName()[memory->getName().size() - 5 - extraMPOffset] - '1';   //layer or disk counting from 0
+    unsigned int phiregion = memory->getName()[memory->getName().size() - 1 - extraMPOffset] - 'A';  //phiregion counting from 0
+    if (memory->getName()[memory->getName().size() - 6 - extraMPOffset] == 'D') layerdisk += N_LAYER;
     projnames_.push_back(memory->getName());
     assert(layerdisk < N_LAYER + N_DISK);
     assert(phiregion < outputproj_[layerdisk].size());
-    //check that phiregion not already initialized
-    assert(outputproj_[layerdisk][phiregion] == nullptr);
+    assert(outputproj_[layerdisk][phiregion].size()<2);
     assert(tmp != nullptr);
-    outputproj_[layerdisk][phiregion] = tmp;
+    outputproj_[layerdisk][phiregion].push_back(tmp);
     return;
   }
 
@@ -341,8 +345,9 @@ void ProjectionCalculator::execute() {
           int iphivmRaw = fpgaphi.value() >> (fpgaphi.nbits() - 5);
           int iphi = iphivmRaw / (32 / settings_.nallstubs(layerdisk));
 
-          if (outputproj_[layerdisk][iphi] == nullptr) continue; 
-          outputproj_[layerdisk][iphi]->addProj(tracklet, projPage); // FIXME write to correct page - though doesn't affect emulation
+	  for (unsigned int i = 0; i < outputproj_[layerdisk][iphi].size(); i++) {
+	    outputproj_[layerdisk][iphi][i]->addProj(tracklet, projPage); // FIXME write to correct page - though doesn't affect emulation
+	  }
         } else{
 
           FPGAWord fpgar = tracklet->proj(layerdisk).fpgarzproj();
@@ -356,12 +361,12 @@ void ProjectionCalculator::execute() {
           int iphivmRaw = fpgaphi.value() >> (fpgaphi.nbits() - 5);
           int iphi = iphivmRaw / (32 / settings_.nallstubs(layerdisk));//>> settings_.nbitsallstubs(layerdisk);
           
-          if (outputproj_[layerdisk][iphi] == nullptr) continue; 
-
-          outputproj_[layerdisk][iphi]->addProj(tracklet, projPage); // FIXME write to correct page 
+	  for (unsigned int i = 0; i < outputproj_[layerdisk][iphi].size(); i++) {
+	    outputproj_[layerdisk][iphi][i]->addProj(tracklet, projPage); // FIXME write to correct page
+	  }
         }
       }
-    }
+     }
     }
   }
   }

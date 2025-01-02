@@ -608,83 +608,10 @@ std::string TrackletConfigBuilder::MPROJName(unsigned int iSeed,
   return "MPROJ_" + iSeedStr(iSeed) + iMergedTCStr(iSeed,iTC) + "_" + LayerName(ilayer) + "PHI" + iTCStr(ireg);
 }
 
-std::string TrackletConfigBuilder::PRName(unsigned int ilayer, unsigned int ireg) const {
+std::string TrackletConfigBuilder::MPName(unsigned int ilayer, unsigned int ireg) const {
   return "MP_" + LayerName(ilayer) + "PHI" + iTCStr(ireg);
 }
 
-
-void TrackletConfigBuilder::writeProjectionMemories(std::ostream& os, std::ostream& memories, std::ostream&) {
-  // Each TC (e.g. TC_L1L2D) writes a projection memory (TPROJ) for each layer the seed projects to,
-  // with name indicating the TC and which layer & phi region it projects to (e.g. TPROJ_L1L2D_L3PHIA).
-  //
-  // Each PR (e.g. PR_L3PHIA) reads all TPROJ memories for the given layer & phi region.
-
-  unsigned int nMergedTC[8] = {6, 1, 2, 1, 1, 1, 2, 1};
-
-  for (unsigned int ilayer = 0; ilayer < N_LAYER + N_DISK; ilayer++) {
-    for (unsigned int ireg = 0; ireg < projections_[ilayer].size(); ireg++) {
-      for (unsigned int imem = 0; imem < projections_[ilayer][ireg].size(); imem++) {
-        unsigned int iSeed = projections_[ilayer][ireg][imem].first;
-        unsigned int iTC = projections_[ilayer][ireg][imem].second;
-	if (duplicateMPs_) {
-	  if ((settings_.layersDisksDuplicatedEqualProjBalance()[ilayer]) && (ireg == 1 || ireg == 2)) {
-	    memories << "TrackletProjections: " + TPROJName(iSeed, iTC, ilayer, ireg) + " [54]" << std::endl;
-	    if (imem < projections_[ilayer][ireg].size() / 2) {
-	      os << TPROJName(iSeed, iTC, ilayer, ireg) << " input=> " << TCName(iSeed, iTC) << ".projout"
-		 << LayerName(ilayer) << "PHI" << iTCStr(ireg) << " output=> " << PRName(ilayer, ireg) << ".projin"
-		 << std::endl;
-	    } else {
-	      os << TPROJName(iSeed, iTC, ilayer, ireg) << " input=> " << TCName(iSeed, iTC) << ".projout"
-		 << LayerName(ilayer) << "PHI" << iTCStr(ireg) << " output=> " << PRName(ilayer, ireg) + "_E"
-		 << ".projin"  // duplicate MPs denoted by extra _E
-		 << std::endl;
-	    }
-	  } else if ((settings_.layersDisksDuplicatedWeightedProjBalance()[ilayer]) && (ireg == 1 || ireg == 2)) {
-	    memories << "TrackletProjections: " + TPROJName(iSeed, iTC, ilayer, ireg) + " [54]" << std::endl;
-	    if (imem < 4 ||
-		imem > 9) {  // FIXME need to replace magic numbers, corresponds to allowing MP1 4 L1L2 TCs, 3 L5L6 TCs, MP2 3 L1L2 3 L3L4 TCs
-	      os << TPROJName(iSeed, iTC, ilayer, ireg) << " input=> " << TCName(iSeed, iTC) << ".projout"
-		 << LayerName(ilayer) << "PHI" << iTCStr(ireg) << " output=> " << PRName(ilayer, ireg) << ".projin"
-		 << std::endl;
-	    } else {
-	      os << TPROJName(iSeed, iTC, ilayer, ireg) << " input=> " << TCName(iSeed, iTC) << ".projout"
-		 << LayerName(ilayer) << "PHI" << iTCStr(ireg) << " output=> " << PRName(ilayer, ireg) + "_E"
-		 << ".projin"  // duplicate MPs
-		 << std::endl;
-	    }
-	  } else {
-	    memories << "TrackletProjections: " + TPROJName(iSeed, iTC, ilayer, ireg) + " [54]" << std::endl;
-	    os << TPROJName(iSeed, iTC, ilayer, ireg) << " input=> " << TCName(iSeed, iTC) << ".projout"
-	       << LayerName(ilayer) << "PHI" << iTCStr(ireg) << " output=> " << PRName(ilayer, ireg) << ".projin"
-	       << std::endl;
-	  }
-	} else {  // non-duplicate MPs configuration
-	  //memories << "TrackletProjections: " + TPROJName(iSeed, iTC, ilayer, ireg) + " [54]" << std::endl;
-	  //os << TPROJName(iSeed, iTC, ilayer, ireg) << " input=> " << TCName(iSeed, iTC) << ".projout"
-	  //   << LayerName(ilayer) << "PHI" << iTCStr(ireg) << " output=> " << PRName(ilayer, ireg) << ".projin"
-	  //   << std::endl;
-	}
-
-	/*
-        for (unsigned int iMergedTC = 0 ; iMergedTC<nMergedTC[iSeed]; iMergedTC++) { 
-
-          std::string mergetcstr = iMergedTCStr(iSeed, iMergedTC);
-
-          if (mergetcstr.find(iTCStr(iTC)) != std::string::npos) {
-          
-            memories << "TrackletProjections: " + TPROJName(iSeed, iTC, ilayer, ireg) + " [54]" << std::endl;
-
-            os << TPROJName(iSeed, iTC, ilayer, ireg) << " input=> " << TCName(iSeed, iTC) << ".projout"
-              << LayerName(ilayer) << "PHI" << iTCStr(ireg) << " output=> " << PCName(iSeed, iMergedTC) << ".projin"
-              << std::endl;
-
-          }
-        }
-	*/
-      }
-    }
-  }
-}
 
 void TrackletConfigBuilder::writeMergedProjectionMemories(std::ostream& os, std::ostream& memories, std::ostream& process) {
   // Writed the merged projection memories as produced by the ProjectionCalculator mdoels
@@ -732,12 +659,29 @@ void TrackletConfigBuilder::writeMergedProjectionMemories(std::ostream& os, std:
 
 	  //std::cout << "Adding: " << mtprojname << std::endl;
 	  MPROJNames.insert(mtprojname);
-
-	  memories << "TrackletProjections: " + MPROJName(iSeed, iMergedTC, ilayer, ireg) + " [54]" << std::endl;
-	  os << MPROJName(iSeed, iMergedTC, ilayer, ireg) << " input=> " << PCName(iSeed, iMergedTC) << ".projout"
-	    //<< LayerName(ilayer) << "PHI" << iTCStr(ireg) 
-	     << " output=> " << PRName(ilayer, ireg) << ".projin"
-	     << std::endl;
+	  if (duplicateMPs_ && (settings_.layersDisksDuplicatedEqualProjBalance()[ilayer] ||
+				settings_.layersDisksDuplicatedWeightedProjBalance()[ilayer]) &&
+	      (ireg == 1 || ireg == 2)) {  // regions with worst truncation
+	    if (iSeed==0) {
+	      memories << "TrackletProjections: " + MPROJName(iSeed, iMergedTC, ilayer, ireg) + "_E [54]" << std::endl;
+	      os << MPROJName(iSeed, iMergedTC, ilayer, ireg) << "_E input=> " << PCName(iSeed, iMergedTC) << ".projout"
+		//<< LayerName(ilayer) << "PHI" << iTCStr(ireg) 
+		 << " output=> " << MPName(ilayer, ireg) << "_E.projin"
+		 << std::endl;
+	    } else {
+	      memories << "TrackletProjections: " + MPROJName(iSeed, iMergedTC, ilayer, ireg) + " [54]" << std::endl;
+	      os << MPROJName(iSeed, iMergedTC, ilayer, ireg) << " input=> " << PCName(iSeed, iMergedTC) << ".projout"
+		//<< LayerName(ilayer) << "PHI" << iTCStr(ireg) 
+		 << " output=> " << MPName(ilayer, ireg) << ".projin"
+		 << std::endl;
+	    }
+	  } else {
+	    memories << "TrackletProjections: " + MPROJName(iSeed, iMergedTC, ilayer, ireg) + " [54]" << std::endl;
+	    os << MPROJName(iSeed, iMergedTC, ilayer, ireg) << " input=> " << PCName(iSeed, iMergedTC) << ".projout"
+	      //<< LayerName(ilayer) << "PHI" << iTCStr(ireg) 
+	       << " output=> " << MPName(ilayer, ireg) << ".projin"
+	       << std::endl;
+	  }
 	}
       }
     }
@@ -843,49 +787,24 @@ void TrackletConfigBuilder::writeFMMemories(std::ostream& os, std::ostream& memo
 
   for (unsigned int ilayer = 0; ilayer < N_LAYER + N_DISK; ilayer++) {
     for (unsigned int iReg = 0; iReg < NRegions_[ilayer]; iReg++) {
-      if (duplicateMPs_) {
-	if ((settings_.layersDisksDuplicatedEqualProjBalance()[ilayer] ||
-	     settings_.layersDisksDuplicatedWeightedProjBalance()[ilayer]) &&
-	    (iReg == 1 || iReg == 2)) {  // regions with worst truncation
-	  modules << "MatchProcessor: MP_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << std::endl;
-	  modules << "MatchProcessor: MP_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) + "_E" << std::endl;
-	  for (unsigned int iSeed = 0; iSeed < N_SEED_PROMPT; iSeed++) {
-	    if (matchport_[iSeed][ilayer] == -1)
-	      continue;
-	    memories << "FullMatch: FM_" << iSeedStr(iSeed) << "_" << LayerName(ilayer) << "PHI" << iTCStr(iReg)
-		     << " [36]" << std::endl;
-	    memories << "FullMatch: FM_" << iSeedStr(iSeed) << "_" << LayerName(ilayer) << "PHI"
-		     << iTCStr(iReg) + "_E"
-		     << " [36]" << std::endl;
-	    os << "FM_" << iSeedStr(iSeed) << "_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << " input=> MP_"
-	       << LayerName(ilayer) << "PHI" << iTCStr(iReg) << ".matchout1 output=> FT_" << iSeedStr(iSeed)
-	       << ".fullmatch" << matchport_[iSeed][ilayer] << "in" << iReg + 1 << std::endl;
-	    os << "FM_" << iSeedStr(iSeed) << "_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) + "_E"
-	       << " input=> MP_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) + "_E"
-	       << ".matchout1 output=> FT_" << iSeedStr(iSeed) << ".fullmatch" << matchport_[iSeed][ilayer] << "in"
-	       << iReg + 1 << std::endl;
-	  }
-	} else {
-	  modules << "MatchProcessor: MP_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << std::endl;
-	  for (unsigned int iSeed = 0; iSeed < N_SEED_PROMPT; iSeed++) {
-	    if (matchport_[iSeed][ilayer] == -1)
-	      continue;
-	    memories << "FullMatch: FM_" << iSeedStr(iSeed) << "_" << LayerName(ilayer) << "PHI" << iTCStr(iReg)
-		     << " [36]" << std::endl;
-	    os << "FM_" << iSeedStr(iSeed) << "_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << " input=> MP_"
-	       << LayerName(ilayer) << "PHI" << iTCStr(iReg) << ".matchout1 output=> FT_" << iSeedStr(iSeed)
-	       << ".fullmatch" << matchport_[iSeed][ilayer] << "in" << iReg + 1 << std::endl;
-	  }
-	}
-      } else {  // non-duplicate MPs configuration
-	modules << "MatchProcessor: MP_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << std::endl;
+      modules << "MatchProcessor: MP_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << std::endl;
+      for (unsigned int iTB = 0; iTB < N_TB; iTB++) {
+	memories << "FullMatch: FM_" << iTBStr(iTB) << "_" << LayerName(ilayer) << "PHI" << iTCStr(iReg)
+		 << " [36]" << std::endl;
+	os << "FM_" << iTBStr(iTB) << "_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << " input=> MP_"
+	   << LayerName(ilayer) << "PHI" << iTCStr(iReg) << ".matchout" << iTB << " output=> TB_" << iTBStr(iTB)
+	   << ".fullmatch" << ilayer << "in" << iReg + 1 << std::endl;
+      }
+      //Write duplicate MPs
+      if (duplicateMPs_ && (settings_.layersDisksDuplicatedEqualProjBalance()[ilayer] ||
+			    settings_.layersDisksDuplicatedWeightedProjBalance()[ilayer]) &&
+	  (iReg == 1 || iReg == 2)) {  // regions with worst truncation
+	modules << "MatchProcessor: MP_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) + "_E" << std::endl;
 	for (unsigned int iTB = 0; iTB < N_TB; iTB++) {
-	  //if (matchportTB_[iTB][ilayer] == -1)
-	  //  continue;
 	  memories << "FullMatch: FM_" << iTBStr(iTB) << "_" << LayerName(ilayer) << "PHI" << iTCStr(iReg)
-		   << " [36]" << std::endl;
-	  os << "FM_" << iTBStr(iTB) << "_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << " input=> MP_"
-	     << LayerName(ilayer) << "PHI" << iTCStr(iReg) << ".matchout" << iTB << " output=> TB_" << iTBStr(iTB)
+		   << "_E [36]" << std::endl;
+	  os << "FM_" << iTBStr(iTB) << "_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << "_E input=> MP_"
+	     << LayerName(ilayer) << "PHI" << iTCStr(iReg) << "_E.matchout" << iTB << " output=> TB_" << iTBStr(iTB)
 	     << ".fullmatch" << ilayer << "in" << iReg + 1 << std::endl;
 	}
       }
@@ -903,43 +822,26 @@ void TrackletConfigBuilder::writeASMemories(std::ostream& os, std::ostream& memo
 
   for (unsigned int ilayer = 0; ilayer < N_LAYER + N_DISK; ilayer++) {
     for (unsigned int iReg = 0; iReg < NRegions_[ilayer]; iReg++) {
-      if (duplicateMPs_) {
-	if ((settings_.layersDisksDuplicatedEqualProjBalance()[ilayer] ||
-	     settings_.layersDisksDuplicatedWeightedProjBalance()[ilayer]) &&
-	    (iReg == 1 || iReg == 2)) {
-	  memories << "AllStubs: AS_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << "n1"
-		   << " [42]" << std::endl;
-	  memories << "AllStubs: AS_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << "n2"
-		   << " [42]" << std::endl;
-	  modules << "VMRouterCM: VMR_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << std::endl;
-	  os << "AS_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << "n1"
-	     << " input=> VMR_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << ".allstubout output=> MP_"
-	     << LayerName(ilayer) << "PHI" << iTCStr(iReg) << ".allstubin" << std::endl;
-	  os << "AS_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << "n2"
-	     << " input=> VMR_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << ".allstubout output=> MP_"
-	     << LayerName(ilayer) << "PHI" << iTCStr(iReg) + "_E"
-	     << ".allstubin" << std::endl;
-	} else {
-	  memories << "AllStubs: AS_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << "n1"
-		   << " [42]" << std::endl;
-	  modules << "VMRouterCM: VMR_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << std::endl;
-	  os << "AS_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << "n1"
-	     << " input=> VMR_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << ".allstubout output=> MP_"
-	     << LayerName(ilayer) << "PHI" << iTCStr(iReg) << ".allstubin" << std::endl;
-	}
-      } else {  // non duplicate MPs configuration
-	memories << "AllStubs: AS_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << "n1"
+      memories << "AllStubs: AS_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << "n1"
+	       << " [42]" << std::endl;
+      memories << "AllStubs: AS_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << "n2"
+	       << " [42]" << std::endl;
+      modules << "VMRouterCM: VMR_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << std::endl;
+      modules << "VMStubMERouter: VMSMER_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << std::endl;
+      os << "AS_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << "n1"
+	 << " input=> VMR_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << ".allstubout output=> VMSMER_"
+	 << LayerName(ilayer) << "PHI" << iTCStr(iReg) << ".allstubin" << std::endl;
+      os << "AS_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << "n2"
+	 << " input=> VMSMER_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << ".allstubout output=> MP_"
+	 << LayerName(ilayer) << "PHI" << iTCStr(iReg) << ".allstubin" << std::endl;
+      //Write duplicate MPs
+      if (duplicateMPs_ && (settings_.layersDisksDuplicatedEqualProjBalance()[ilayer] ||
+			    settings_.layersDisksDuplicatedWeightedProjBalance()[ilayer]) && (iReg == 1 || iReg == 2)) {
+	memories << "AllStubs: AS_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << "n3"
 		 << " [42]" << std::endl;
-	memories << "AllStubs: AS_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << "n2"
-		 << " [42]" << std::endl;
-	modules << "VMRouterCM: VMR_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << std::endl;
-	modules << "VMStubMERouter: VMSMER_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << std::endl;
-	os << "AS_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << "n1"
-	   << " input=> VMR_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << ".allstubout output=> VMSMER_"
-	   << LayerName(ilayer) << "PHI" << iTCStr(iReg) << ".allstubin" << std::endl;
-	os << "AS_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << "n2"
+	os << "AS_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << "n3"
 	   << " input=> VMSMER_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << ".allstubout output=> MP_"
-	   << LayerName(ilayer) << "PHI" << iTCStr(iReg) << ".allstubin" << std::endl;
+	   << LayerName(ilayer) << "PHI" << iTCStr(iReg) << "_E.allstubin" << std::endl;
       }
     }
   }
@@ -1067,31 +969,19 @@ void TrackletConfigBuilder::writeVMSMemories(std::ostream& os, std::ostream& mem
   //First write VMS memories used by MatchProcessor
   for (unsigned int ilayer = 0; ilayer < N_LAYER + N_DISK; ilayer++) {
     for (unsigned int iReg = 0; iReg < NRegions_[ilayer]; iReg++) {
-      if (duplicateMPs_) {
-	if ((settings_.layersDisksDuplicatedEqualProjBalance()[ilayer] ||
-	     settings_.layersDisksDuplicatedWeightedProjBalance()[ilayer]) &&
-	    (iReg == 1 || iReg == 2)) {
-	  memories << "VMStubsME: VMSME_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << "n1 [18]" << std::endl;
-	  memories << "VMStubsME: VMSME_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << "n2 [18]" << std::endl;
-	  os << "VMSME_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << "n1"
-	     << " input=> VMR_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << ".vmstuboutPHI" << iTCStr(iReg)
-	     << " output=> MP_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << ".vmstubin" << std::endl;
-	  os << "VMSME_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << "n2"
-	     << " input=> VMR_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << ".vmstuboutPHI" << iTCStr(iReg)
-	     << " output=> MP_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) + "_E"
-	     << ".vmstubin" << std::endl;
-	} else {
-	  memories << "VMStubsME: VMSME_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << "n1 [18]" << std::endl;
-	  os << "VMSME_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << "n1"
-	     << " input=> VMR_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << ".vmstuboutPHI" << iTCStr(iReg)
-	     << " output=> MP_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << ".vmstubin" << std::endl;
-	}
-      } else {  // non duplicate MPs configuration
-	memories << "VMStubsME: VMSME_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << "n2 [18]" << std::endl;
-	os << "VMSME_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << "n2"
+      memories << "VMStubsME: VMSME_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << "n2 [18]" << std::endl;
+      os << "VMSME_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << "n2"
+	 << " input=> VMSMER_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << ".vmstubout"
+	 << " output=> MP_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << ".vmstubin" << std::endl;
+      //Write duplicate MPs
+      if (duplicateMPs_ && (settings_.layersDisksDuplicatedEqualProjBalance()[ilayer] ||
+			    settings_.layersDisksDuplicatedWeightedProjBalance()[ilayer]) &&
+	  (iReg == 1 || iReg == 2)) {
+	memories << "VMStubsME: VMSME_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << "n3 [18]" << std::endl;
+	os << "VMSME_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << "n3"
 	   << " input=> VMSMER_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << ".vmstubout"
-	   << " output=> MP_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << ".vmstubin" << std::endl;
-      }
+	   << " output=> MP_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << "_E.vmstubin" << std::endl;
+      } 
     }
   }
 
@@ -1249,7 +1139,6 @@ void TrackletConfigBuilder::writeAll(std::ostream& wires, std::ostream& memories
   writeASMemories(wires, memories, modules);
   writeVMSMemories(wires, memories, modules);
   writeMergedProjectionMemories(wires, memories, modules);
-  writeProjectionMemories(wires, memories, modules);
   writeTPARMemories(wires, memories, modules);
   writeFMMemories(wires, memories, modules);
   writeTFMemories(wires, memories, modules);

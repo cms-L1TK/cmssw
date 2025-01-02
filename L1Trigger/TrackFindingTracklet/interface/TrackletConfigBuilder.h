@@ -68,8 +68,8 @@ namespace trklet {
     //Merged tracklet projection name
     std::string MPROJName(unsigned int iSeed, unsigned int iTC, unsigned int ilayer, unsigned int ireg) const;
 
-    //Projection router name
-    std::string PRName(unsigned int ilayer, unsigned int ireg) const;
+    //MatchProcessor name
+    std::string MPName(unsigned int ilayer, unsigned int ireg) const;
 
   private:
     //
@@ -212,8 +212,6 @@ namespace trklet {
     // This group of methods are used to print out the configuration as a file
     //
     void writeMergedProjectionMemories(std::ostream& os, std::ostream& memories, std::ostream& modules);
-
-    void writeProjectionMemories(std::ostream& os, std::ostream& memories, std::ostream& modules);
 
     void writeSPDMemories(std::ostream& os, std::ostream& memories, std::ostream& modules);
 

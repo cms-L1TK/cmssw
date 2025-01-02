@@ -30,7 +30,7 @@ namespace trklet {
 
   private:
 
-    std::vector<std::vector<TrackletProjectionsMemory*> > outputproj_; // projs now stored by layer/disk & phi region 
+    std::vector<std::vector<std::vector<TrackletProjectionsMemory*> > > outputproj_; // projs now stored by layer/disk & phi region 
 
     std::vector<TrackletParametersMemory*> inputpars_;
     std::vector<TrackletParametersMemory*> outputpars_;

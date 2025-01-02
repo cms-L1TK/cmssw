@@ -14,6 +14,9 @@ TrackletProjectionsMemory::TrackletProjectionsMemory(string name, Settings const
   initLayerDisk(pos + 1, layer_, disk_);
   hasProj_ = false;
   npage_ = name.size()-17;
+  if (name.substr(name.size()-2,2)=="_E") {
+    npage_ = name.size()-19;
+  }
   tracklets_.resize(npage_);
 }
 

@@ -175,6 +175,7 @@ void MatchProcessor::read_input_mems(bool &read_is_valid,
 				     unsigned int &imem,
 				     unsigned int &ipage) {
 
+
   bool any_mem_hasdata = false;
 
   for (unsigned int i=0; i<mem_hasdata.size(); i++) {
@@ -235,7 +236,7 @@ void MatchProcessor::execute(unsigned int iSector, double phimin) {
   */
 
 
-  bool print = getName() == "MP_D3PHIC" && iSector == 3;
+  bool print = getName() == "MP_L3PHIB_E" && iSector == 3;
   print = false;
 
   phimin_ = phimin;
@@ -262,7 +263,7 @@ void MatchProcessor::execute(unsigned int iSector, double phimin) {
 
   std::vector<int> iMem, iPage, nentries;
   std::vector<bool> mem_hasdata;
-  
+
   while (imem < inputprojs_.size()) {
     iMem.push_back(imem);
     iPage.push_back(ipage);
