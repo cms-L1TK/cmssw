@@ -350,9 +350,7 @@ L1FPGATrackProducer::~L1FPGATrackProducer() {
 
 ///////END RUN
 //
-void L1FPGATrackProducer::endRun(const edm::Run& run, const edm::EventSetup& iSetup) {
-  eventProcessor.printSummary();
-}
+void L1FPGATrackProducer::endRun(const edm::Run& run, const edm::EventSetup& iSetup) { eventProcessor.printSummary(); }
 
 ////////////
 // BEGIN JOB

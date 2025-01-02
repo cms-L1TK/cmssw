@@ -25,7 +25,7 @@ namespace trklet {
     VMStubsTEPHICM(unsigned int seednumber_,
                    unsigned int stubposition_,
                    std::vector<std::vector<VMStubsTEMemory*> > vmstubmem_)
-        : seednumber(seednumber_), stubposition(stubposition_), vmstubmem(vmstubmem_){};
+        : seednumber(seednumber_), stubposition(stubposition_), vmstubmem(vmstubmem_) {};
 
     unsigned int seednumber;    //seed number [0,11]
     unsigned int stubposition;  //stub position in the seed (only used by triplet seeds)
@@ -55,12 +55,12 @@ namespace trklet {
     //two VMs. nextrabits_ is the number of bits beyond the bits for the phivm that is used by overlapbits_
     unsigned int overlapbits_;
     unsigned int nextrabits_;
-    
+
     int nbitszfinebintable_;
     int nbitsrfinebintable_;
 
     unsigned int nvmmebins_;  //number of long z/r bins in VM
-    
+
     TrackletLUT meTable_;    //used for ME and outer TE barrel
     TrackletLUT diskTable_;  //outer disk used by D1, D2, and D4
 

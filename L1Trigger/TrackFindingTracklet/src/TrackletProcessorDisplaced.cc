@@ -162,7 +162,6 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
   phimax_ = phimax;
   iSector_ = iSector;
 
-
   // loop over the middle stubs in the potential seed
   for (unsigned int midmem = 0; midmem < middleallstubs_.size(); midmem++) {
     for (unsigned int i = 0; i < middleallstubs_[midmem]->nStubs(); i++) {
