@@ -14,7 +14,9 @@ using namespace std;
 using namespace trklet;
 
 FitTrack::FitTrack(string name, Settings const& settings, Globals* global)
-    : ProcessBase(name, settings, global), trackfit_(nullptr) {}
+    : ProcessBase(name, settings, global), trackfit_(nullptr) {
+  fullmatch_.resize(N_LAYER+N_DISK);
+}
 
 void FitTrack::addOutput(MemoryBase* memory, string output) {
   if (settings_.writetrace()) {
@@ -42,71 +44,17 @@ void FitTrack::addInput(MemoryBase* memory, string input) {
     seedtracklet_.push_back(tmp);
     return;
   }
-  if (input.substr(0, 11) == "fullmatch0i") {
-    auto* tmp = dynamic_cast<FullMatchMemory*>(memory);
-    assert(tmp != nullptr);
-    fullmatch0_.push_back(tmp);
-    return;
-  }
-  if (input.substr(0, 11) == "fullmatch1i") {
-    auto* tmp = dynamic_cast<FullMatchMemory*>(memory);
-    assert(tmp != nullptr);
-    fullmatch1_.push_back(tmp);
-    return;
-  }
-  if (input.substr(0, 11) == "fullmatch2i") {
-    auto* tmp = dynamic_cast<FullMatchMemory*>(memory);
-    assert(tmp != nullptr);
-    fullmatch2_.push_back(tmp);
-    return;
-  }
-  if (input.substr(0, 11) == "fullmatch3i") {
-    auto* tmp = dynamic_cast<FullMatchMemory*>(memory);
-    assert(tmp != nullptr);
-    fullmatch3_.push_back(tmp);
-    return;
-  }
-  if (input.substr(0, 11) == "fullmatch4i") {
-    auto* tmp = dynamic_cast<FullMatchMemory*>(memory);
-    assert(tmp != nullptr);
-    fullmatch4_.push_back(tmp);
-    return;
-  }
-  if (input.substr(0, 11) == "fullmatch5i") {
-    auto* tmp = dynamic_cast<FullMatchMemory*>(memory);
-    assert(tmp != nullptr);
-    fullmatch5_.push_back(tmp);
-    return;
-  }
-  if (input.substr(0, 11) == "fullmatch6i") {
-    auto* tmp = dynamic_cast<FullMatchMemory*>(memory);
-    assert(tmp != nullptr);
-    fullmatch6_.push_back(tmp);
-    return;
-  }
-  if (input.substr(0, 11) == "fullmatch7i") {
-    auto* tmp = dynamic_cast<FullMatchMemory*>(memory);
-    assert(tmp != nullptr);
-    fullmatch7_.push_back(tmp);
-    return;
-  }
-  if (input.substr(0, 11) == "fullmatch8i") {
-    auto* tmp = dynamic_cast<FullMatchMemory*>(memory);
-    assert(tmp != nullptr);
-    fullmatch8_.push_back(tmp);
-    return;
-  }
-  if (input.substr(0, 11) == "fullmatch9i") {
-    auto* tmp = dynamic_cast<FullMatchMemory*>(memory);
-    assert(tmp != nullptr);
-    fullmatch9_.push_back(tmp);
-    return;
-  }
-  if (input.substr(0, 11) == "fullmatch10") {
-    auto* tmp = dynamic_cast<FullMatchMemory*>(memory);
-    assert(tmp != nullptr);
-    fullmatch10_.push_back(tmp);
-    return;
+
+  for(unsigned int i = 0; i < N_LAYER + N_DISK; i++) {
+    std::ostringstream oss;
+    oss << "fullmatch" << i << "in";;
+    auto const& str = oss.str();
+    if (input.substr(0, 11) == str.substr(0, 11)) {
+      auto* tmp = dynamic_cast<FullMatchMemory*>(memory);
+      assert(tmp != nullptr);
+      fullmatch_[i].push_back(tmp);
+      return;
+    }
   }
 
   throw cms::Exception("BadConfig") << __FILE__ << " " << __LINE__ << " input = " << input << " not found";
@@ -126,85 +74,16 @@ void FitTrack::trackFitKF(Tracklet* tracklet,
     trackstublist.emplace_back(tracklet->outerFPGAStub());
 
     // Now get ALL matches (can have multiple per layer)
-    for (const auto& i : fullmatch1_) {
-      for (unsigned int j = 0; j < i->nMatches(); j++) {
-        if (i->getTracklet(j)->TCID() == tracklet->TCID()) {
-          trackstublist.push_back(i->getMatch(j).second);
-        }
+    for (unsigned int k = 0 ; k < fullmatch_.size(); k++){
+      for (const auto& i : fullmatch_[k]) {
+	for (unsigned int j = 0; j < i->nMatches(); j++) {
+	  if (i->getTracklet(j)->TCID() == tracklet->TCID()) {
+	    trackstublist.push_back(i->getMatch(j).second);
+	  }
+	}
       }
     }
 
-    for (const auto& i : fullmatch2_) {
-      for (unsigned int j = 0; j < i->nMatches(); j++) {
-        if (i->getTracklet(j)->TCID() == tracklet->TCID()) {
-          trackstublist.push_back(i->getMatch(j).second);
-        }
-      }
-    }
-
-    for (const auto& i : fullmatch3_) {
-      for (unsigned int j = 0; j < i->nMatches(); j++) {
-        if (i->getTracklet(j)->TCID() == tracklet->TCID()) {
-          trackstublist.push_back(i->getMatch(j).second);
-        }
-      }
-    }
-
-    for (const auto& i : fullmatch4_) {
-      for (unsigned int j = 0; j < i->nMatches(); j++) {
-        if (i->getTracklet(j)->TCID() == tracklet->TCID()) {
-          trackstublist.push_back(i->getMatch(j).second);
-        }
-      }
-    }
-
-    for (const auto& i : fullmatch5_) {
-      for (unsigned int j = 0; j < i->nMatches(); j++) {
-        if (i->getTracklet(j)->TCID() == tracklet->TCID()) {
-          trackstublist.push_back(i->getMatch(j).second);
-        }
-      }
-    }
-
-    for (const auto& i : fullmatch6_) {
-      for (unsigned int j = 0; j < i->nMatches(); j++) {
-        if (i->getTracklet(j)->TCID() == tracklet->TCID()) {
-          trackstublist.push_back(i->getMatch(j).second);
-        }
-      }
-    }
-
-    for (const auto& i : fullmatch7_) {
-      for (unsigned int j = 0; j < i->nMatches(); j++) {
-        if (i->getTracklet(j)->TCID() == tracklet->TCID()) {
-          trackstublist.push_back(i->getMatch(j).second);
-        }
-      }
-    }
-
-    for (const auto& i : fullmatch8_) {
-      for (unsigned int j = 0; j < i->nMatches(); j++) {
-        if (i->getTracklet(j)->TCID() == tracklet->TCID()) {
-          trackstublist.push_back(i->getMatch(j).second);
-        }
-      }
-    }
-
-    for (const auto& i : fullmatch9_) {
-      for (unsigned int j = 0; j < i->nMatches(); j++) {
-        if (i->getTracklet(j)->TCID() == tracklet->TCID()) {
-          trackstublist.push_back(i->getMatch(j).second);
-        }
-      }
-    }
-
-    for (const auto& i : fullmatch10_) {
-      for (unsigned int j = 0; j < i->nMatches(); j++) {
-        if (i->getTracklet(j)->TCID() == tracklet->TCID()) {
-          trackstublist.push_back(i->getMatch(j).second);
-        }
-      }
-    }
 
     // For merge removal, loop through the resulting list of stubs to calculate their stubids
     if (settings_.removalType() == "merge") {
@@ -970,33 +849,20 @@ void FitTrack::execute(deque<string>& streamTrackRaw,
                        vector<deque<StubStreamData>>& streamsStubRaw,
                        unsigned int iSector) {
   // merge
-  const std::vector<Tracklet*>& matches0 = orderedMatches(fullmatch0_);
-  const std::vector<Tracklet*>& matches1 = orderedMatches(fullmatch1_);
-  const std::vector<Tracklet*>& matches2 = orderedMatches(fullmatch2_);
-  const std::vector<Tracklet*>& matches3 = orderedMatches(fullmatch3_);
-  const std::vector<Tracklet*>& matches4 = orderedMatches(fullmatch4_);
-  const std::vector<Tracklet*>& matches5 = orderedMatches(fullmatch5_);
-  const std::vector<Tracklet*>& matches6 = orderedMatches(fullmatch6_);
-  const std::vector<Tracklet*>& matches7 = orderedMatches(fullmatch7_);
-  const std::vector<Tracklet*>& matches8 = orderedMatches(fullmatch8_);
-  const std::vector<Tracklet*>& matches9 = orderedMatches(fullmatch9_);
-  const std::vector<Tracklet*>& matches10 = orderedMatches(fullmatch10_);
+  std::vector<std::vector<Tracklet*>> matches;
 
+  for (unsigned int i = 0; i < fullmatch_.size(); i++) {
+    matches.push_back(orderedMatches(fullmatch_[i]));
+  }
+
+  
   bool print = getName() == "FT_D1D2" && iSector == 3;
   print = false;
 
   iSector_ = iSector;
 
-  if (settings_.debugTracklet() && (matches1.size() + matches2.size() + matches3.size() + matches4.size()) > 0) {
-    for (auto& imatch : fullmatch1_) {
-      edm::LogVerbatim("Tracklet") << imatch->getName() << " " << imatch->nMatches();
-    }
-    edm::LogVerbatim("Tracklet") << getName() << " matches : " << matches1.size() << " " << matches2.size() << " "
-                                 << matches3.size() << " " << matches4.size();
-  }
-
-  unsigned int indexArray[11];
-  for (unsigned int i = 0; i < 11; i++) {
+  unsigned int indexArray[N_LAYER + N_DISK];
+  for (unsigned int i = 0; i < N_LAYER + N_DISK; i++) {
     indexArray[i] = 0;
   }
 
@@ -1012,102 +878,15 @@ void FitTrack::execute(deque<string>& streamTrackRaw,
     count++;
     bestTracklet = nullptr;
 
-    if (indexArray[0] < matches0.size()) {
-      if (bestTracklet == nullptr) {
-        bestTracklet = matches0[indexArray[0]];
-      } else {
-        if (matches0[indexArray[0]]->TCID() < bestTracklet->TCID())
-          bestTracklet = matches0[indexArray[0]];
-      }
-    }
-
-    if (indexArray[1] < matches1.size()) {
-      if (bestTracklet == nullptr) {
-        bestTracklet = matches1[indexArray[1]];
-      } else {
-        if (matches1[indexArray[1]]->TCID() < bestTracklet->TCID())
-          bestTracklet = matches1[indexArray[1]];
-      }
-    }
-
-    if (indexArray[2] < matches2.size()) {
-      if (bestTracklet == nullptr) {
-        bestTracklet = matches2[indexArray[2]];
-      } else {
-        if (matches2[indexArray[2]]->TCID() < bestTracklet->TCID())
-          bestTracklet = matches2[indexArray[2]];
-      }
-    }
-
-    if (indexArray[3] < matches3.size()) {
-      if (bestTracklet == nullptr) {
-        bestTracklet = matches3[indexArray[3]];
-      } else {
-        if (matches3[indexArray[3]]->TCID() < bestTracklet->TCID())
-          bestTracklet = matches3[indexArray[3]];
-      }
-    }
-
-    if (indexArray[4] < matches4.size()) {
-      if (bestTracklet == nullptr) {
-        bestTracklet = matches4[indexArray[4]];
-      } else {
-        if (matches4[indexArray[4]]->TCID() < bestTracklet->TCID())
-          bestTracklet = matches4[indexArray[4]];
-      }
-    }
-
-    if (indexArray[5] < matches5.size()) {
-      if (bestTracklet == nullptr) {
-        bestTracklet = matches5[indexArray[5]];
-      } else {
-        if (matches5[indexArray[5]]->TCID() < bestTracklet->TCID())
-          bestTracklet = matches5[indexArray[5]];
-      }
-    }
-
-    if (indexArray[6] < matches6.size()) {
-      if (bestTracklet == nullptr) {
-        bestTracklet = matches6[indexArray[6]];
-      } else {
-        if (matches6[indexArray[6]]->TCID() < bestTracklet->TCID())
-          bestTracklet = matches6[indexArray[6]];
-      }
-    }
-
-    if (indexArray[7] < matches7.size()) {
-      if (bestTracklet == nullptr) {
-        bestTracklet = matches7[indexArray[7]];
-      } else {
-        if (matches7[indexArray[7]]->TCID() < bestTracklet->TCID())
-          bestTracklet = matches7[indexArray[7]];
-      }
-    }
-
-    if (indexArray[8] < matches8.size()) {
-      if (bestTracklet == nullptr) {
-        bestTracklet = matches8[indexArray[8]];
-      } else {
-        if (matches8[indexArray[8]]->TCID() < bestTracklet->TCID())
-          bestTracklet = matches8[indexArray[8]];
-      }
-    }
-
-    if (indexArray[9] < matches9.size()) {
-      if (bestTracklet == nullptr) {
-        bestTracklet = matches9[indexArray[9]];
-      } else {
-        if (matches9[indexArray[9]]->TCID() < bestTracklet->TCID())
-          bestTracklet = matches9[indexArray[9]];
-      }
-    }
-
-    if (indexArray[10] < matches10.size()) {
-      if (bestTracklet == nullptr) {
-        bestTracklet = matches10[indexArray[10]];
-      } else {
-        if (matches10[indexArray[10]]->TCID() < bestTracklet->TCID())
-          bestTracklet = matches10[indexArray[10]];
+    for(unsigned int i = 0; i<matches.size(); i++){
+      if (indexArray[i] < matches[i].size()) {
+	if (bestTracklet == nullptr) {
+	  bestTracklet = matches[i][indexArray[i]];
+	} else {
+	  if (matches[i][indexArray[i]]->TCID() < bestTracklet->TCID()) {
+	    bestTracklet = matches[i][indexArray[i]];
+	  }
+	}
       }
     }
 
@@ -1121,142 +900,25 @@ void FitTrack::execute(deque<string>& streamTrackRaw,
 
     //Counts unique hits in each layer
     int nMatchesUniq = 0;
-    bool match = false;
+
 
     if (print)
       std::cout << "istep = " << istep;
 
-    while (indexArray[0] < matches0.size() && matches0[indexArray[0]] == bestTracklet) {
-      if (print)
-        std::cout << " match0";
-      indexArray[0]++;
-      nMatches++;
-      match = true;
+    for(unsigned int i=0; i<matches.size(); i++){    
+      bool match = false;
+      while (indexArray[i] < matches[i].size() && matches[i][indexArray[i]] == bestTracklet) {
+	if (print)
+	  std::cout << " match"<<i;
+	indexArray[i]++;
+	nMatches++;
+	match = true;
+      }
+
+      if (match)
+	nMatchesUniq++;
     }
 
-    if (match)
-      nMatchesUniq++;
-    match = false;
-
-    while (indexArray[1] < matches1.size() && matches1[indexArray[1]] == bestTracklet) {
-      if (print)
-        std::cout << " match1";
-      indexArray[1]++;
-      nMatches++;
-      match = true;
-    }
-
-    if (match)
-      nMatchesUniq++;
-    match = false;
-
-    while (indexArray[2] < matches2.size() && matches2[indexArray[2]] == bestTracklet) {
-      if (print)
-        std::cout << " match2";
-      indexArray[2]++;
-      nMatches++;
-      match = true;
-    }
-
-    if (match)
-      nMatchesUniq++;
-    match = false;
-
-    while (indexArray[3] < matches3.size() && matches3[indexArray[3]] == bestTracklet) {
-      if (print)
-        std::cout << " match3";
-      indexArray[3]++;
-      nMatches++;
-      match = true;
-    }
-
-    if (match)
-      nMatchesUniq++;
-    match = false;
-
-    while (indexArray[4] < matches4.size() && matches4[indexArray[4]] == bestTracklet) {
-      if (print)
-        std::cout << " match4";
-      indexArray[4]++;
-      nMatches++;
-      match = true;
-    }
-
-    if (match)
-      nMatchesUniq++;
-    match = false;
-
-    while (indexArray[5] < matches5.size() && matches5[indexArray[5]] == bestTracklet) {
-      if (print)
-        std::cout << " match5";
-      indexArray[5]++;
-      nMatches++;
-      match = true;
-    }
-
-    if (match)
-      nMatchesUniq++;
-    match = false;
-
-    while (indexArray[6] < matches6.size() && matches6[indexArray[6]] == bestTracklet) {
-      if (print)
-        std::cout << " match6";
-      indexArray[6]++;
-      nMatches++;
-      match = true;
-    }
-
-    if (match)
-      nMatchesUniq++;
-    match = false;
-
-    while (indexArray[7] < matches7.size() && matches7[indexArray[7]] == bestTracklet) {
-      if (print)
-        std::cout << " match7";
-      indexArray[7]++;
-      nMatches++;
-      match = true;
-    }
-
-    if (match)
-      nMatchesUniq++;
-    match = false;
-
-    while (indexArray[8] < matches8.size() && matches8[indexArray[8]] == bestTracklet) {
-      if (print)
-        std::cout << " match8";
-      indexArray[8]++;
-      nMatches++;
-      match = true;
-    }
-
-    if (match)
-      nMatchesUniq++;
-    match = false;
-
-    while (indexArray[9] < matches9.size() && matches9[indexArray[9]] == bestTracklet) {
-      if (print)
-        std::cout << " match9";
-      indexArray[9]++;
-      nMatches++;
-      match = true;
-    }
-
-    if (match)
-      nMatchesUniq++;
-    match = false;
-
-    while (indexArray[10] < matches10.size() && matches10[indexArray[10]] == bestTracklet) {
-      if (print)
-        std::cout << " match10";
-      indexArray[10]++;
-      nMatches++;
-      match = true;
-    }
-
-    if (match)
-      nMatchesUniq++;
-    match = false;
 
     if (settings_.debugTracklet()) {
       edm::LogVerbatim("Tracklet") << getName() << " : nMatches = " << nMatches << " nMatchesUniq = " << nMatchesUniq;
