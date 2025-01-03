@@ -158,6 +158,54 @@ void FitTrack::trackFitKF(Tracklet* tracklet,
       }
     }
 
+    for (const auto& i : fullmatch5_) {
+      for (unsigned int j = 0; j < i->nMatches(); j++) {
+        if (i->getTracklet(j)->TCID() == tracklet->TCID()) {
+          trackstublist.push_back(i->getMatch(j).second);
+        }
+      }
+    }
+
+    for (const auto& i : fullmatch6_) {
+      for (unsigned int j = 0; j < i->nMatches(); j++) {
+        if (i->getTracklet(j)->TCID() == tracklet->TCID()) {
+          trackstublist.push_back(i->getMatch(j).second);
+        }
+      }
+    }
+
+    for (const auto& i : fullmatch7_) {
+      for (unsigned int j = 0; j < i->nMatches(); j++) {
+        if (i->getTracklet(j)->TCID() == tracklet->TCID()) {
+          trackstublist.push_back(i->getMatch(j).second);
+        }
+      }
+    }
+
+    for (const auto& i : fullmatch8_) {
+      for (unsigned int j = 0; j < i->nMatches(); j++) {
+        if (i->getTracklet(j)->TCID() == tracklet->TCID()) {
+          trackstublist.push_back(i->getMatch(j).second);
+        }
+      }
+    }
+
+    for (const auto& i : fullmatch9_) {
+      for (unsigned int j = 0; j < i->nMatches(); j++) {
+        if (i->getTracklet(j)->TCID() == tracklet->TCID()) {
+          trackstublist.push_back(i->getMatch(j).second);
+        }
+      }
+    }
+
+    for (const auto& i : fullmatch10_) {
+      for (unsigned int j = 0; j < i->nMatches(); j++) {
+        if (i->getTracklet(j)->TCID() == tracklet->TCID()) {
+          trackstublist.push_back(i->getMatch(j).second);
+        }
+      }
+    }
+
     // For merge removal, loop through the resulting list of stubs to calculate their stubids
     if (settings_.removalType() == "merge") {
       for (const auto& it : trackstublist) {
