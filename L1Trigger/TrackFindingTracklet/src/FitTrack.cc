@@ -15,7 +15,7 @@ using namespace trklet;
 
 FitTrack::FitTrack(string name, Settings const& settings, Globals* global)
     : ProcessBase(name, settings, global), trackfit_(nullptr) {
-  fullmatch_.resize(N_LAYER+N_DISK);
+  fullmatch_.resize(N_LAYER + N_DISK);
 }
 
 void FitTrack::addOutput(MemoryBase* memory, string output) {
@@ -45,9 +45,10 @@ void FitTrack::addInput(MemoryBase* memory, string input) {
     return;
   }
 
-  for(unsigned int i = 0; i < N_LAYER + N_DISK; i++) {
+  for (unsigned int i = 0; i < N_LAYER + N_DISK; i++) {
     std::ostringstream oss;
-    oss << "fullmatch" << i << "in";;
+    oss << "fullmatch" << i << "in";
+    ;
     auto const& str = oss.str();
     if (input.substr(0, 11) == str.substr(0, 11)) {
       auto* tmp = dynamic_cast<FullMatchMemory*>(memory);
@@ -74,16 +75,15 @@ void FitTrack::trackFitKF(Tracklet* tracklet,
     trackstublist.emplace_back(tracklet->outerFPGAStub());
 
     // Now get ALL matches (can have multiple per layer)
-    for (unsigned int k = 0 ; k < fullmatch_.size(); k++){
+    for (unsigned int k = 0; k < fullmatch_.size(); k++) {
       for (const auto& i : fullmatch_[k]) {
-	for (unsigned int j = 0; j < i->nMatches(); j++) {
-	  if (i->getTracklet(j)->TCID() == tracklet->TCID()) {
-	    trackstublist.push_back(i->getMatch(j).second);
-	  }
-	}
+        for (unsigned int j = 0; j < i->nMatches(); j++) {
+          if (i->getTracklet(j)->TCID() == tracklet->TCID()) {
+            trackstublist.push_back(i->getMatch(j).second);
+          }
+        }
       }
     }
-
 
     // For merge removal, loop through the resulting list of stubs to calculate their stubids
     if (settings_.removalType() == "merge") {
@@ -855,7 +855,6 @@ void FitTrack::execute(deque<string>& streamTrackRaw,
     matches.push_back(orderedMatches(fullmatch_[i]));
   }
 
-  
   bool print = getName() == "FT_D1D2" && iSector == 3;
   print = false;
 
@@ -878,15 +877,15 @@ void FitTrack::execute(deque<string>& streamTrackRaw,
     count++;
     bestTracklet = nullptr;
 
-    for(unsigned int i = 0; i<matches.size(); i++){
+    for (unsigned int i = 0; i < matches.size(); i++) {
       if (indexArray[i] < matches[i].size()) {
-	if (bestTracklet == nullptr) {
-	  bestTracklet = matches[i][indexArray[i]];
-	} else {
-	  if (matches[i][indexArray[i]]->TCID() < bestTracklet->TCID()) {
-	    bestTracklet = matches[i][indexArray[i]];
-	  }
-	}
+        if (bestTracklet == nullptr) {
+          bestTracklet = matches[i][indexArray[i]];
+        } else {
+          if (matches[i][indexArray[i]]->TCID() < bestTracklet->TCID()) {
+            bestTracklet = matches[i][indexArray[i]];
+          }
+        }
       }
     }
 
@@ -901,24 +900,22 @@ void FitTrack::execute(deque<string>& streamTrackRaw,
     //Counts unique hits in each layer
     int nMatchesUniq = 0;
 
-
     if (print)
       std::cout << "istep = " << istep;
 
-    for(unsigned int i=0; i<matches.size(); i++){    
+    for (unsigned int i = 0; i < matches.size(); i++) {
       bool match = false;
       while (indexArray[i] < matches[i].size() && matches[i][indexArray[i]] == bestTracklet) {
-	if (print)
-	  std::cout << " match"<<i;
-	indexArray[i]++;
-	nMatches++;
-	match = true;
+        if (print)
+          std::cout << " match" << i;
+        indexArray[i]++;
+        nMatches++;
+        match = true;
       }
 
       if (match)
-	nMatchesUniq++;
+        nMatchesUniq++;
     }
-
 
     if (settings_.debugTracklet()) {
       edm::LogVerbatim("Tracklet") << getName() << " : nMatches = " << nMatches << " nMatchesUniq = " << nMatchesUniq;
