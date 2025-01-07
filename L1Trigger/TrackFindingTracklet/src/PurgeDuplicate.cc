@@ -865,7 +865,7 @@ void PurgeDuplicate::doCompareAll(const std::vector<std::pair<int, int>>& stubsT
         bool barrel = (i > 0 && i <= N_LAYER);
         bool endcapA = (i > N_LAYER);
         bool endcapB = (i < 0);
-        int lay = barrel * (i - 1) + endcapA * (i - 5) - endcapB * i;  // encode in range 0-15
+        int lay = barrel * (i - 1) + endcapA * (i - (N_LAYER - 1)) - endcapB * i;  // encode in range 0-15
 
         if (!layerArr[lay]) {
           nShareLay++;
@@ -886,7 +886,7 @@ void PurgeDuplicate::doCompareBest(const std::vector<std::pair<int, int>>& stubs
     bool barrel = (i > 0 && i <= N_LAYER);
     bool endcapA = (i > N_LAYER);
     bool endcapB = (i < 0);
-    int lay = barrel * (i - 1) + endcapA * (i - 5) - endcapB * i;  // encode in range 0-15
+    int lay = barrel * (i - 1) + endcapA * (i - (N_LAYER - 1)) - endcapB * i;  // encode in range 0-15
     double nres = getPhiRes(sortedinputtracklets[itrk], fullStubslistsTrk[stcount]);
     double ores = 0;
     if (layStubidsTrk[lay] != -1) {
