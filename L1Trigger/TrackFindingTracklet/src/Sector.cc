@@ -336,21 +336,28 @@ void Sector::executeFT(vector<vector<string>>& streamsTrackRaw, vector<vector<St
   const int numChannels = streamsTrackRaw.size() / N_SECTOR;
   const int maxNumProjectionLayers = streamsStubRaw.size() / streamsTrackRaw.size();
   const int offsetTrack = isector_ * numChannels;
-  int channelTrack(0);
 
   for (auto& i : FT_) {
     // Temporary streams for a single TrackBuilder (i.e. seed type)
     deque<string> streamTrackTmp;
     vector<deque<StubStreamData>> streamsStubTmp(maxNumProjectionLayers);
     i->execute(streamTrackTmp, streamsStubTmp, isector_);
+
     if (!settings_.storeTrackBuilderOutput())
       continue;
-    const int offsetStub = (offsetTrack + channelTrack) * maxNumProjectionLayers;
-    streamsTrackRaw[offsetTrack + channelTrack] = vector<string>(streamTrackTmp.begin(), streamTrackTmp.end());
-    channelTrack++;
-    int channelStub(0);
-    for (auto& stream : streamsStubTmp)
-      streamsStubRaw[offsetStub + channelStub++] = vector<StubStreamData>(stream.begin(), stream.end());
+
+    for (unsigned int i=0; i < streamTrackTmp.size(); i++) {
+      std::string seedstr = streamTrackTmp[i].substr(1, settings_.nbitsseed());
+      unsigned int channelTrack = 0;
+      if (seedstr.size() == settings_.nbitsseed()) {
+	channelTrack = std::stoi(seedstr, nullptr, 2);
+      }
+      streamsTrackRaw[offsetTrack + channelTrack].push_back(streamTrackTmp[i]);
+      const int offsetStub = (offsetTrack + channelTrack) * maxNumProjectionLayers;
+      for (unsigned int j = 0; j < streamsStubTmp.size(); j++) {
+	streamsStubRaw[offsetStub + j].push_back(streamsStubTmp[j][i]);
+      }
+    }
   }
 }
 
