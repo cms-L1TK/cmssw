@@ -346,16 +346,16 @@ void Sector::executeFT(vector<vector<string>>& streamsTrackRaw, vector<vector<St
     if (!settings_.storeTrackBuilderOutput())
       continue;
 
-    for (unsigned int i=0; i < streamTrackTmp.size(); i++) {
+    for (unsigned int i = 0; i < streamTrackTmp.size(); i++) {
       std::string seedstr = streamTrackTmp[i].substr(1, settings_.nbitsseed());
       unsigned int channelTrack = 0;
       if (seedstr.size() == settings_.nbitsseed()) {
-	channelTrack = std::stoi(seedstr, nullptr, 2);
+        channelTrack = std::stoi(seedstr, nullptr, 2);
       }
       streamsTrackRaw[offsetTrack + channelTrack].push_back(streamTrackTmp[i]);
       const int offsetStub = (offsetTrack + channelTrack) * maxNumProjectionLayers;
       for (unsigned int j = 0; j < streamsStubTmp.size(); j++) {
-	streamsStubRaw[offsetStub + j].push_back(streamsStubTmp[j][i]);
+        streamsStubRaw[offsetStub + j].push_back(streamsStubTmp[j][i]);
       }
     }
   }
