@@ -305,6 +305,8 @@ L1FPGATrackProducer::L1FPGATrackProducer(edm::ParameterSet const& iConfig)
     settings_.setTableTEDFile(tableTEDFile.fullPath());
     settings_.setTableTREFile(tableTREFile.fullPath());
 
+    settings_.setNumTracksComparedPerBin(256);
+
     //FIXME: The TED and TRE tables are currently disabled by default, so we
     //need to allow for the additional tracklets that will eventually be
     //removed by these tables, once they are finalized
