@@ -301,7 +301,7 @@ namespace trklet {
     //Function which returns the value corresponding to the number of tracks that are compared to all the other tracks per rinv bin
     unsigned int numTracksComparedPerBin() const { return numTracksComparedPerBin_; }
     //Function which sets the value corresponding to the number of tracks that are compared to all the other tracks per rinv bin
-    void setNumTracksComparedPerBin(int numTracksComparedPerBin) {numTracksComparedPerBin_ = numTracksComparedPerBin;}
+    void setNumTracksComparedPerBin(int numTracksComparedPerBin) { numTracksComparedPerBin_ = numTracksComparedPerBin; }
     //Returns the rinv bin edges you need for duplicate removal bins
     const std::vector<double>& rinvBins() const { return rinvBins_; }
     //Returns the phi bin edges you need for duplicate removal bins
