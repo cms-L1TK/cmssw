@@ -297,7 +297,7 @@ void PurgeDuplicate::execute(std::vector<Track>& outputtracks, unsigned int iSec
               if (settings_.extended()) {
                 if (seedRank[itrk] < seedRank[jtrk]) {
                   mergedTrack[seedRankIdx[jtrk]] = true;
-                } 
+                }
               } else {
                 if (seedRank[itrk] <= seedRank[jtrk]) {
                   mergedTrack[seedRankIdx[jtrk]] = true;
