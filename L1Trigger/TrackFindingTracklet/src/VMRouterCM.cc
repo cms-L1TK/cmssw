@@ -327,8 +327,6 @@ void VMRouterCM::execute(unsigned int) {
       assert(melutOld >= 0);
 
       //Fill the TE VM memories
-      if (layerdisk_ >= N_LAYER && (!stub->isPSmodule()))
-        continue;
 
       for (auto& ivmstubTEPHI : vmstubsTEPHI_) {
         unsigned int iseed = ivmstubTEPHI.seednumber;
