@@ -56,7 +56,7 @@ void L1TrackNtuplePlot(TString type,
                        float TP_maxEta = 2.4,
                        float TP_maxLxy = 1.0,
                        float TP_maxD0 = 1.0,
-                       bool doDetailedPlots = false) {
+                       bool doDetailedPlots = true) {
   // type:              this is the name of the input file you want to process (minus ".root" extension)
   // type_dir:          this is the directory containing the input file you want to process. Note that this must end with a "/", as in "EventSets/"
   // TP_select_pdgid:   if non-zero, only select TPs with a given PDG ID
@@ -1021,6 +1021,7 @@ void L1TrackNtuplePlot(TString type,
   // number of tracks vs. efficiency (eta, pT)
   TH1F* h_trk_pt = new TH1F("trk_pt", Form(";Track p_{T} (GeV);Tracks / 0.5 GeV"), 200, 0., 100.);
   TH1F* h_trk_eta = new TH1F("trk_eta", Form(";Track #eta;Tracks / 0.026"), 200, -2.6, 2.6);
+  TH1F* h_trk_seed = new TH1F("trk_seed", Form(";Track seed;Tracks"), 12, 0, 12);
 
   // ----------------------------------------------------------------------------------------------------------------
   //        * * * * *     S T A R T   O F   A C T U A L   R U N N I N G   O N   E V E N T S     * * * * *
@@ -1081,6 +1082,7 @@ void L1TrackNtuplePlot(TString type,
       // Fill number of tracks vs track param
       h_trk_pt->Fill(trk_pt->at(it));
       h_trk_eta->Fill(trk_eta->at(it));
+      h_trk_seed->Fill(trk_seed->at(it));
 
       // fill all trk chi2 & chi2/dof histograms, including for chi2 r-phi and chi2 r-z
       float chi2 = trk_chi2->at(it);
@@ -3647,11 +3649,14 @@ void L1TrackNtuplePlot(TString type,
   if (doDetailedPlots) {
     h_trk_eta->Write();
     h_trk_pt->Write();
+    h_trk_seed->Write();
 
     h_trk_eta->Draw();
     c.SaveAs(DIR + type + "_trk_eta.pdf");
     h_trk_pt->Draw();
     c.SaveAs(DIR + type + "_trk_pt.pdf");
+    h_trk_seed->Draw();
+    c.SaveAs(DIR + type + "_trk_seed.pdf");
   }
 
   // Sample z0 resolution at a couple of rapidity points.
