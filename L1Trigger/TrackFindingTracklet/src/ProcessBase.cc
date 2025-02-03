@@ -159,7 +159,8 @@ unsigned int ProcessBase::getISeed(const std::string& name) {
   pos = name1.find('_');
   std::string name2 = name1.substr(0, pos);
 
-  unordered_map<string, unsigned int> seedmap = {{"AAAA", 0}, {"BBBB", 1}};
+  unordered_map<string, unsigned int> seedmap = {
+      {"AAAA", 0}, {"BBBB", 1}, {"L3L4L2", 8}, {"L5L6L4", 9}, {"L2L3D1", 10}, {"D1D2L2", 11}};
   auto found = seedmap.find(name2);
   if (found != seedmap.end())
     return found->second;
