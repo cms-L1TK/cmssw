@@ -17,7 +17,14 @@ TrackletProjectionsMemory::TrackletProjectionsMemory(string name, Settings const
   if (name.substr(name.size() - 2, 2) == "_E") {
     npage_ = name.size() - 19;
   }
-  tracklets_.resize(npage_);
+
+  // Displaced tracking still uses unmerged TPROJ memories for now, which we
+  // consider unpaged
+  if (name.substr(0, 5) == "TPROJ") {
+    npage_ = 0;
+  }
+
+  tracklets_.resize(max(npage_, 1));
 }
 
 void TrackletProjectionsMemory::addProj(Tracklet* tracklet, unsigned int page) {
@@ -37,7 +44,7 @@ void TrackletProjectionsMemory::addProj(Tracklet* tracklet, unsigned int page) {
 
   hasProj_ = true;
 
-  if (tracklets_[page].size() < (1 << (N_BITSMEMADDRESS - 1)) - 1) {
+  if (npage_ == 0 || tracklets_[page].size() < (1 << (N_BITSMEMADDRESS - 1)) - 1) {
     tracklets_[page].push_back(tracklet);
   }
 }
