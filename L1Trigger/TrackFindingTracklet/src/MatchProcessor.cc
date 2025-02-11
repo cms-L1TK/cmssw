@@ -767,7 +767,7 @@ bool MatchProcessor::matchCalculator(Tracklet* tracklet, const Stub* fpgastub, b
 
       unsigned int iSeed = tracklet->getISeed();
       int iTB = 0;
-      if (iSeed == 2 || iSeed == 4 || iSeed == 5 || iSeed == 6) {
+      if (iSeed == Seed::L3L4 || iSeed == Seed::D1D2 || iSeed == Seed::D3D4 || iSeed == Seed::L1D1) {
         iTB = 1;
       }
       if (iSeed >= N_SEED_PROMPT) {
@@ -962,7 +962,7 @@ bool MatchProcessor::matchCalculator(Tracklet* tracklet, const Stub* fpgastub, b
 
       unsigned int iSeed = tracklet->getISeed();
       int iTB = 0;
-      if (iSeed == 2 || iSeed == 4 || iSeed == 5 || iSeed == 6) {
+      if (iSeed == Seed::L3L4 || iSeed == Seed::D1D2 || iSeed == Seed::D3D4 || iSeed == Seed::L1D1) {
         iTB = 1;
       }
       if (iSeed >= N_SEED_PROMPT) {
