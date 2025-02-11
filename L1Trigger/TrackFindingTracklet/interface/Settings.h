@@ -22,12 +22,13 @@ namespace trklet {
 
   constexpr unsigned int N_SECTOR = 9;  // # of phi sectors for L1TK processing
 
-  constexpr int N_LAYER = 6;                 // # of barrel layers assumed
-  constexpr int N_DISK = 5;                  // # of endcap disks assumed
-  constexpr unsigned int N_PSLAYER = 3;      // # of barrel PS layers assumed
-  constexpr unsigned int N_SEED = 12;        // # of tracklet+triplet seeds
-  constexpr unsigned int N_SEED_PROMPT = 8;  // # of tracklet (prompt) seeds
-  constexpr unsigned int N_TB = 2;           // # of track builders
+  constexpr int N_LAYER = 6;                                         // # of barrel layers assumed
+  constexpr int N_DISK = 5;                                          // # of endcap disks assumed
+  constexpr unsigned int N_PSLAYER = 3;                              // # of barrel PS layers assumed
+  constexpr unsigned int N_SEED_PROMPT = 8;                          // # of tracklet (prompt) seeds
+  constexpr unsigned int N_SEED_DISPLACED = 4;                       // # of triplet (displaced) seeds
+  constexpr unsigned int N_SEED = N_SEED_PROMPT + N_SEED_DISPLACED;  // # of tracklet+triplet seeds
+  constexpr unsigned int N_TB = 2;                                   // # of track builders
 
   constexpr unsigned int N_DSS_MOD = 5;  // # of rings with 2S modules per disk
 
