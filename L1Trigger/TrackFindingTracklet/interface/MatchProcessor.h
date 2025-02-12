@@ -92,6 +92,9 @@ namespace trklet {
     int ialphafactinner_[N_DSS_MOD * 2];
     int ialphafactouter_[N_DSS_MOD * 2];
 
+    //Offset used to index full match memories
+    unsigned int fmMemOffset_;
+
     //Memory for the full matches
     std::vector<FullMatchMemory*> fullmatches_;
 

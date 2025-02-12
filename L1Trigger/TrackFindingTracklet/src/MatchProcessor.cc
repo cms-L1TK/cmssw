@@ -37,7 +37,8 @@ MatchProcessor::MatchProcessor(string name, Settings const& settings, Globals* g
       rSSinner_(settings),
       rSSouter_(settings),
       diskRadius_(settings),
-      fullmatches_(2),
+      fmMemOffset_(2),
+      fullmatches_(fmMemOffset_ + N_SEED_DISPLACED),
       rinvbendlut_(settings),
       luttable_(settings),
       inputProjBuffer_(3) {
@@ -123,18 +124,33 @@ void MatchProcessor::addOutput(MemoryBase* memory, string output) {
     edm::LogVerbatim("Tracklet") << "In " << name_ << " adding output to " << memory->getName() << " to output "
                                  << output;
   }
+  FullMatchMemory* tmp = nullptr;
+  unsigned int iSeed = N_SEED;
   if (output.find("matchout0") != std::string::npos) {
-    auto* tmp = dynamic_cast<FullMatchMemory*>(memory);
+    tmp = dynamic_cast<FullMatchMemory*>(memory);
     assert(tmp != nullptr);
-    fullmatches_[0] = tmp;
-    return;
+    iSeed = getISeed(tmp->getName());
+    if (iSeed < N_SEED_PROMPT) {
+      fullmatches_[0] = tmp;
+      return;
+    }
   }
   if (output.find("matchout1") != std::string::npos) {
-    auto* tmp = dynamic_cast<FullMatchMemory*>(memory);
+    tmp = dynamic_cast<FullMatchMemory*>(memory);
     assert(tmp != nullptr);
-    fullmatches_[1] = tmp;
+    iSeed = getISeed(tmp->getName());
+    if (iSeed < N_SEED_PROMPT) {
+      fullmatches_[1] = tmp;
+      return;
+    }
+  }
+  // Memories for triplet seeds are handled separately for now and placed at
+  // the end of the fullmatches_ vector
+  if (tmp != nullptr) {
+    fullmatches_[fmMemOffset_ + iSeed - N_SEED_PROMPT] = tmp;
     return;
   }
+
   throw cms::Exception("BadConfig") << __FILE__ << " " << __LINE__ << " could not find output: " << output;
 }
 
@@ -749,10 +765,13 @@ bool MatchProcessor::matchCalculator(Tracklet* tracklet, const Stub* fpgastub, b
         edm::LogVerbatim("Tracklet") << "Accepted full match in layer " << getName() << " " << tracklet;
       }
 
-      int iSeed = tracklet->getISeed();
+      unsigned int iSeed = tracklet->getISeed();
       int iTB = 0;
-      if (iSeed == 2 || iSeed == 4 || iSeed == 5 || iSeed == 6) {
+      if (iSeed == Seed::L3L4 || iSeed == Seed::D1D2 || iSeed == Seed::D3D4 || iSeed == Seed::L1D1) {
         iTB = 1;
+      }
+      if (iSeed >= N_SEED_PROMPT) {
+        iTB = fmMemOffset_ + iSeed - N_SEED_PROMPT;
       }
       assert(fullmatches_[iTB] != nullptr);
       fullmatches_[iTB]->addMatch(tracklet, fpgastub);
@@ -941,10 +960,13 @@ bool MatchProcessor::matchCalculator(Tracklet* tracklet, const Stub* fpgastub, b
         edm::LogVerbatim("Tracklet") << "Accepted full match in disk " << getName() << " " << tracklet;
       }
 
-      int iSeed = tracklet->getISeed();
+      unsigned int iSeed = tracklet->getISeed();
       int iTB = 0;
-      if (iSeed == 2 || iSeed == 4 || iSeed == 5 || iSeed == 6) {
+      if (iSeed == Seed::L3L4 || iSeed == Seed::D1D2 || iSeed == Seed::D3D4 || iSeed == Seed::L1D1) {
         iTB = 1;
+      }
+      if (iSeed >= N_SEED_PROMPT) {
+        iTB = fmMemOffset_ + iSeed - N_SEED_PROMPT;
       }
       assert(fullmatches_[iTB] != nullptr);
       fullmatches_[iTB]->addMatch(tracklet, fpgastub);

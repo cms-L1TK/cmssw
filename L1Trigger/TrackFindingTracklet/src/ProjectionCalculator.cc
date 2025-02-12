@@ -354,6 +354,15 @@ void ProjectionCalculator::execute() {
                 int iphivmRaw = fpgaphi.value() >> (fpgaphi.nbits() - 5);
                 int iphi = iphivmRaw / (32 / settings_.nallstubs(layerdisk));
 
+                if (outputproj_[layerdisk][iphi].empty()) {
+                  if (settings_.warnNoMem()) {
+                    edm::LogVerbatim("Tracklet") << "No projection memory exists in " << getName()
+                                                 << " for layer = " << layerdisk + 1 << " iphi = " << iphi + 1;
+                  }
+                  return;
+                }
+                assert(!outputproj_[layerdisk][iphi].empty());
+
                 for (unsigned int i = 0; i < outputproj_[layerdisk][iphi].size(); i++) {
                   outputproj_[layerdisk][iphi][i]->addProj(
                       tracklet, projPage);  // FIXME write to correct page - though doesn't affect emulation
@@ -369,6 +378,15 @@ void ProjectionCalculator::execute() {
                 FPGAWord fpgaphi = tracklet->proj(layerdisk).fpgaphiproj();
                 int iphivmRaw = fpgaphi.value() >> (fpgaphi.nbits() - 5);
                 int iphi = iphivmRaw / (32 / settings_.nallstubs(layerdisk));  //>> settings_.nbitsallstubs(layerdisk);
+
+                if (outputproj_[layerdisk][iphi].empty()) {
+                  if (settings_.warnNoMem()) {
+                    edm::LogVerbatim("Tracklet") << "No projection memory exists in " << getName()
+                                                 << " for disk = " << layerdisk - N_LAYER + 1 << " iphi = " << iphi + 1;
+                  }
+                  return;
+                }
+                assert(!outputproj_[layerdisk][iphi].empty());
 
                 for (unsigned int i = 0; i < outputproj_[layerdisk][iphi].size(); i++) {
                   outputproj_[layerdisk][iphi][i]->addProj(tracklet, projPage);  // FIXME write to correct page

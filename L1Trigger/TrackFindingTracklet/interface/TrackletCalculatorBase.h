@@ -83,36 +83,6 @@ namespace trklet {
                               double phider[N_DISK - 2],
                               double rder[N_DISK - 2]);
 
-    void exactproj(double rproj,
-                   double rinv,
-                   double phi0,
-                   double t,
-                   double z0,
-                   double& phiproj,
-                   double& zproj,
-                   double& phider,
-                   double& zder);
-
-    void exactprojdisk(double zproj,
-                       double rinv,
-                       double phi0,
-                       double t,
-                       double z0,
-                       double& phiproj,
-                       double& rproj,
-                       double& phider,
-                       double& rder);
-
-    void projlayer(int ir,
-                   int irinv,
-                   int iphi0,
-                   int it,
-                   int iz0,
-                   int& iz,
-                   int& iphi);  // lower case to differentiate from ProjectionCalculator functions
-
-    void projdisk(int iz, int irinv, int iphi0, int it, int iz0, int& ir, int& iphi, int& iderphi, int& iderr);
-
     void calcPars(unsigned int idr,
                   int iphi1,
                   int ir1,
@@ -124,12 +94,6 @@ namespace trklet {
                   int& iphi0_new,
                   int& iz0_new,
                   int& it_new);
-
-    void addDiskProj(Tracklet* tracklet, int disk);
-    bool addLayerProj(Tracklet* tracklet, int layer);
-
-    void addProjection(int layer, int iphi, TrackletProjectionsMemory* trackletprojs, Tracklet* tracklet);
-    void addProjectionDisk(int disk, int iphi, TrackletProjectionsMemory* trackletprojs, Tracklet* tracklet);
 
     bool goodTrackPars(bool goodrinv, bool goodz0);
 
