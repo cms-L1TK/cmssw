@@ -989,6 +989,7 @@ void FitTrack::execute(deque<string>& streamTrackRaw,
         if (bestTracklet->match(ilayer)) {
           const Residual& resid = bestTracklet->resid(ilayer);
           // create bit accurate 64 bit word
+	  // Need to extract the corrected r value 
           FPGAWord tmp(resid.stubptr()->rvalue(), 12);
           string r = tmp.str();
           const string& phi = resid.fpgaphiresid().str();
