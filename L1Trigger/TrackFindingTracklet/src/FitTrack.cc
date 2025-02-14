@@ -848,6 +848,7 @@ std::vector<Tracklet*> FitTrack::orderedMatches(vector<FullMatchMemory*>& fullma
 void FitTrack::execute(deque<string>& streamTrackRaw,
                        vector<deque<StubStreamData>>& streamsStubRaw,
                        unsigned int iSector) {
+
   // merge
   std::vector<std::vector<Tracklet*>> matches;
 
@@ -989,7 +990,8 @@ void FitTrack::execute(deque<string>& streamTrackRaw,
         if (bestTracklet->match(ilayer)) {
           const Residual& resid = bestTracklet->resid(ilayer);
           // create bit accurate 64 bit word
-          string r = resid.stubptr()->r().str();
+	  FPGAWord tmp(resid.stubptr()->rvalue(),12);
+          string r = tmp.str();
           const string& phi = resid.fpgaphiresid().str();
           const string& rz = resid.fpgarzresid().str();
           const L1TStub* stub = resid.stubptr()->l1tstub();
@@ -1020,4 +1022,5 @@ void FitTrack::execute(deque<string>& streamTrackRaw,
   if (settings_.writeMonitorData("FT")) {
     globals_->ofstream("fittrack.txt") << getName() << " " << countAll << " " << countFit << endl;
   }
+
 }
