@@ -998,15 +998,15 @@ void FitTrack::execute(deque<string>& streamTrackRaw,
           bool disk2S = (stub->disk() != 0) && (stub->isPSmodule() == 0);
           if (disk2S) {
             r = string(widthDisk2Sidentifier, '0') + r;
-	    //std::cout << "2s stub : " << r << std::endl; 
-	  }
+            //std::cout << "2s stub : " << r << std::endl;
+          }
           //bool diskPS = (stub->disk() != 0) && (stub->isPSmodule() != 0);
           //if (diskPS) {
-	  //  std::cout << "old r: " << r << " new r: " ;
-	  //  FPGAWord tmp(resid.stubptr()->rvalue(), 12);
-	  //  r = tmp.str();
-	  //  std::cout << r << std::endl;
-	  //}
+          //  std::cout << "old r: " << r << " new r: " ;
+          //  FPGAWord tmp(resid.stubptr()->rvalue(), 12);
+          //  r = tmp.str();
+          //  std::cout << r << std::endl;
+          //}
           const string& stubId = resid.fpgastubid().str();
           // store seed, L1TStub, and bit accurate 64 bit word in clock accurate output
           streamsStubRaw[ihit++].emplace_back(seedType, *stub, valid + stubId + r + phi + rz);

@@ -136,15 +136,15 @@ namespace trklet {
           const TTBV hwStubId(hw, channelAssignment_->tmWidthStubId(), 0, false);
           const int stubId = hwStubId.val();
           double r = hwR.val(baseR) + (barrel ? setup_->hybridLayerR(indexLayerId) : 0.0);
-	  //if (!barrel) {
-	  //  if (type != SensorModule::Disk2S) {
-	  //    std::cout << "Disk2S TrackMultiplexer r = " << r << " " << baseR << " " << widthR << std::endl;
-	  //  }
-	  // }
+          //if (!barrel) {
+          //  if (type != SensorModule::Disk2S) {
+          //    std::cout << "Disk2S TrackMultiplexer r = " << r << " " << baseR << " " << widthR << std::endl;
+          //  }
+          // }
           if (type == SensorModule::Disk2S) {
             r = setup_->disk2SR(indexLayerId, r);
-	    //std::cout << "Disk2S TrackMultiplexer r = " << r << " " << widthR << std::endl;
-	  }
+            //std::cout << "Disk2S TrackMultiplexer r = " << r << " " << widthR << std::endl;
+          }
           r = digi(r - setup_->chosenRofPhi(), baseUr_);
           double phi = hwPhi.val(basePhi);
           if (basePhi > baseUphi_)
