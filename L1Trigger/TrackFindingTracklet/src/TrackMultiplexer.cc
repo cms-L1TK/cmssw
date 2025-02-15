@@ -145,8 +145,8 @@ namespace trklet {
             r = setup_->disk2SR(indexLayerId, r);
             //std::cout << "Disk2S TrackMultiplexer r = " << r << " " << widthR << std::endl;
           }
-          std::cout << "layer barrel layerIDTracklet z r : " << layer << " " << barrel << " " << layerIdTracklet << " "
-                    << (hwRZ.val(baseRZ) * (barrel ? 1. : -cot)) << " " << r << std::endl;
+          //std::cout << "layer barrel layerIDTracklet z r : " << layer << " " << barrel << " " << layerIdTracklet << " "
+          //          << (hwRZ.val(baseRZ) * (barrel ? 1. : -cot)) << " " << r << std::endl;
           r = digi(r - setup_->chosenRofPhi(), baseUr_);
           double phi = hwPhi.val(basePhi);
           if (basePhi > baseUphi_)
