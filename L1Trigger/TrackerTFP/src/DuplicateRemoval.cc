@@ -44,7 +44,6 @@ namespace trackerTFP {
     tracks.reserve(nTracks);
     deque<Track*> stream;
     // merge 4 channel to 1
-    //for (int channel = 0; channel < numChannel; channel++ ) {
     for (int channel = numChannel - 1; channel >= 0; channel--) {
       const int offset = channel * numLayers;
       const vector<TrackKF*>& tracksChannel = tracksIn[channel];

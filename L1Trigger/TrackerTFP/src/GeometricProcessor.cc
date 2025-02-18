@@ -16,11 +16,13 @@ namespace trackerTFP {
                                          const Setup* setup,
                                          const DataFormats* dataFormats,
                                          const LayerEncoding* layerEncoding,
+                                         const DataFormat* cot,
                                          std::vector<StubGP>& stubs)
       : enableTruncation_(iConfig.getParameter<bool>("EnableTruncation")),
         setup_(setup),
         dataFormats_(dataFormats),
         layerEncoding_(layerEncoding),
+        cot_(cot),
         stubs_(stubs) {}
 
   // fill output products
@@ -89,10 +91,9 @@ namespace trackerTFP {
   StubGP* GeometricProcessor::produce(const StubPP& stub, int phiT, int zT) {
     static const DataFormat& dfPhiT = dataFormats_->format(Variable::phiT, Process::gp);
     static const DataFormat& dfZT = dataFormats_->format(Variable::zT, Process::gp);
-    static const DataFormat& dfCot = dataFormats_->format(Variable::cot, Process::gp);
     static const DataFormat& dfR = dataFormats_->format(Variable::r, Process::gp);
     static const DataFormat& dfL = dataFormats_->format(Variable::layer, Process::gp);
-    const double cot = dfCot.digi(dfZT.floating(zT) / setup_->chosenRofZ());
+    const double cot = cot_->digi(dfZT.floating(zT) / setup_->chosenRofZ());
     // determine kf layer id
     const vector<int>& le = layerEncoding_->layerEncoding(zT);
     const int layerId = setup_->layerId(stub.frame().first);

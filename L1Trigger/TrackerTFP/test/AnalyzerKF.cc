@@ -86,6 +86,8 @@ namespace trackerTFP {
     bool useMCTruth_;
     //
     int nEvents_ = 0;
+    //
+    int numRegions_;
 
     // Histograms
 
@@ -149,6 +151,7 @@ namespace trackerTFP {
     // helper class to store configurations
     setup_ = &iSetup.getData(esGetTokenSetup_);
     dataFormats_ = &iSetup.getData(esGetTokenDataFormats_);
+    numRegions_ = setup_->numRegions();
     // book histograms
     Service<TFileService> fs;
     TFileDirectory dir;
@@ -365,8 +368,7 @@ namespace trackerTFP {
     log_ << "                    fake rate = " << setw(wNums) << fracFake << endl;
     log_ << "               duplicate rate = " << setw(wNums) << fracDup << endl;
     log_ << "    state assessment fraction = " << setw(wNums) << fracSatest << endl;
-    log_ << "     number of states per TFP = " << setw(wNums) << (numStates + numStatesLost) / setup_->numRegions()
-         << endl;
+    log_ << "     number of states per TFP = " << setw(wNums) << (numStates + numStatesLost) / numRegions_ << endl;
     log_ << "=============================================================";
     LogPrint(moduleDescription().moduleName()) << log_.str();
   }

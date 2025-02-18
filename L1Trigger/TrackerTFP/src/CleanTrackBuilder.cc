@@ -41,14 +41,10 @@ namespace trackerTFP {
     static const int numLayers = setup_->numLayers();
     // loop over worker
     for (int channelOut = 0; channelOut < numChannelOut; channelOut++) {
-      //if (channelOut != 3)
-      //continue;
       // clean input tracks
       vector<deque<Track*>> streamsT(numChannel);
       vector<deque<Stub*>> streamsS(numChannel);
       for (int cin = 0; cin < numChannel; cin++) {
-        //if (cin != 1)
-        //continue;
         const int index = numChannel * cin + channelOut;
         cleanStream(streamsIn[index], streamsT[cin], streamsS[cin], index);
       }
@@ -71,8 +67,11 @@ namespace trackerTFP {
                                       deque<Track*>& tracks,
                                       deque<Stub*>& stubs,
                                       int channelId) {
+    static const int chan = setup_->kfNumWorker();
+    static const int mux = setup_->htNumBinsInv2R() / chan;
     static const DataFormat dfInv2R = dataFormats_->format(Variable::inv2R, Process::ht);
-    const double inv2R = dfInv2R.floating(dfInv2R.toSigned(channelId));
+    const int inv2Ru = mux * (channelId % chan) + channelId / chan;
+    const double inv2R = dfInv2R.floating(dfInv2R.toSigned(inv2Ru));
     const int offset = channelId * setup_->ctbMaxTracks();
     int trackId = offset;
     // identify tracks in input container
@@ -408,7 +407,46 @@ namespace trackerTFP {
         iFrame++;
         continue;
       }
+      const double inv2R = track->inv2R_;
       StubHT* s = nullptr;
+      TTBV hitPattern(0, setup_->numLayers());
+      for (int layer = 0; layer < setup_->numLayers(); layer++) {
+        Stub* stub = iStubs[layer][iFrame];
+        if (!stub)
+          continue;
+        s = stub->stubHT_;
+        hitPattern.set(layer);
+      }
+      const double phiT = dataFormats_->format(Variable::phiT, Process::ctb).floating(s->phiT());
+      const double zT = dataFormats_->format(Variable::zT, Process::ctb).floating(s->zT());
+      const TTBV& maybePattern = layerEncoding_->maybePattern(zT);
+      auto noTrack = [this, &maybePattern](const TTBV& pattern) {
+        // not enough seeding layer
+        if (pattern.count(0, setup_->kfMaxSeedingLayer()) < 2)
+          return true;
+        int nHits(0);
+        int nGaps(0);
+        bool doubleGap = false;
+        for (int layer = 0; layer < setup_->numLayers(); layer++) {
+          if (pattern.test(layer)) {
+            doubleGap = false;
+            if (++nHits == setup_->ctbMinLayers())
+              return false;
+          } else if (!maybePattern.test(layer)) {
+            if (++nGaps == setup_->kfMaxGaps() || doubleGap)
+              break;
+            doubleGap = true;
+          }
+        }
+        return true;
+      };
+      if (noTrack(hitPattern)) {
+        oTracks.insert(oTracks.end(), track->size_, nullptr);
+        for (deque<StubCTB*>& layer : oStubs)
+          layer.insert(layer.end(), track->size_, nullptr);
+        iFrame += track->size_;
+        continue;
+      }
       for (int layer = 0; layer < setup_->numLayers(); layer++) {
         for (int n = 0; n < track->size_; n++) {
           Stub* stub = iStubs[layer][iFrame + n];
@@ -426,9 +464,6 @@ namespace trackerTFP {
           oStubs[layer].push_back(&stubsCTB_.back());
         }
       }
-      const double inv2R = track->inv2R_;
-      const double phiT = dataFormats_->format(Variable::phiT, Process::ctb).floating(s->phiT());
-      const double zT = dataFormats_->format(Variable::zT, Process::ctb).floating(s->zT());
       tracksCTB_.emplace_back(TTTrackRef(), dataFormats_, inv2R, phiT, zT);
       oTracks.push_back(&tracksCTB_.back());
       oTracks.insert(oTracks.end(), track->size_ - 1, nullptr);

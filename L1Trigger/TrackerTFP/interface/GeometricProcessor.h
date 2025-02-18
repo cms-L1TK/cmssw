@@ -19,6 +19,7 @@ namespace trackerTFP {
                        const tt::Setup* setup_,
                        const DataFormats* dataFormats,
                        const LayerEncoding* layerEncoding,
+                       const DataFormat* cot,
                        std::vector<StubGP>& stubs);
     ~GeometricProcessor() {}
 
@@ -39,6 +40,8 @@ namespace trackerTFP {
     const DataFormats* dataFormats_;
     // provides layer encoding
     const LayerEncoding* layerEncoding_;
+    //
+    const DataFormat* cot_;
     // storage of output stubs
     std::vector<StubGP>& stubs_;
   };
