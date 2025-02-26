@@ -80,7 +80,7 @@ void TrackletEventProcessor::init(Settings const& theSettings, const tt::Setup* 
 
   sector_ = make_unique<Sector>(*settings_, globals_.get());
 
-  if (settings_->extended() || settings_->reduced()) {
+  if (settings_->reduced()) {
     ifstream inmem(settings_->memoryModulesFile().c_str());
     assert(inmem.good());
 
