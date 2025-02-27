@@ -13,6 +13,7 @@
 
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 #include "FWCore/Utilities/interface/Exception.h"
+#include "FWCore/ParameterSet/interface/FileInPath.h"
 
 namespace tt {
   class Setup;
@@ -74,8 +75,11 @@ namespace trklet {
     // processing & memory modules, wiring, etc.
     std::string const& fitPatternFile() const { return fitPatternFile_; }
     std::string const& processingModulesFile() const { return processingModulesFile_; }
+    std::string const& processingModulesFullPath() const { return edm::FileInPath(processingModulesFile()).fullPath(); }
     std::string const& memoryModulesFile() const { return memoryModulesFile_; }
+    std::string const& memoryModulesFullPath() const { return edm::FileInPath(memoryModulesFile()).fullPath(); }
     std::string const& wiresFile() const { return wiresFile_; }
+    std::string const& wiresFullPath() const { return edm::FileInPath(wiresFile()).fullPath(); }
     std::string const& tableTEDFile() const { return tableTEDFile_; }
     std::string const& tableTREFile() const { return tableTREFile_; }
 

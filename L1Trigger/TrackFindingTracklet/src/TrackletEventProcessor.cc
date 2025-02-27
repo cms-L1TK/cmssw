@@ -81,13 +81,13 @@ void TrackletEventProcessor::init(Settings const& theSettings, const tt::Setup* 
   sector_ = make_unique<Sector>(*settings_, globals_.get());
 
   if (settings_->reduced()) {
-    ifstream inmem(settings_->memoryModulesFile().c_str());
+    ifstream inmem(settings_->memoryModulesFullPath().c_str());
     assert(inmem.good());
 
-    ifstream inproc(settings_->processingModulesFile().c_str());
+    ifstream inproc(settings_->processingModulesFullPath().c_str());
     assert(inproc.good());
 
-    ifstream inwire(settings_->wiresFile().c_str());
+    ifstream inwire(settings_->wiresFullPath().c_str());
     assert(inwire.good());
 
     configure(inwire, inmem, inproc);
