@@ -19,10 +19,10 @@ l1tTTTracksFromTrackletEmulation = cms.EDProducer("L1FPGATrackProducer",
                                                Extended = cms.bool(False),
                                                Reduced = cms.bool(False),
                                                Hnpar = cms.uint32(4),
-                                            # These 3 files only used for reduced mode and set in Customize_cff.py
-                                                  memoryModulesFile = cms.string(""),
-                                                  processingModulesFile = cms.string(""),
-                                                  wiresFile = cms.string(""),
+                                               # These 3 files only used for reduced mode and set in Customize_cff.py
+                                               memoryModulesFile = cms.string(""),
+                                               processingModulesFile = cms.string(""),
+                                               wiresFile = cms.string(""),
                                                wiresJSONFile = cms.string("L1Trigger/TrackFindingTracklet/data/seedWiring.json"),
                                                # Quality Flag and Quality params
                                                TrackQuality = cms.bool(True),
