@@ -69,7 +69,7 @@ TrackletConfigBuilder::TrackletConfigBuilder(const Settings& settings, const tt:
     std::call_once(runOnce, &TrackletConfigBuilder::writeDTCphirange, this);
   }
 
-  std::ifstream file("L1Trigger/TrackFindingTracklet/data/seedWiring.json");
+  std::ifstream file(settings.wiresJSONFullPath().c_str());
   seedwires_ = nlohmann::ordered_json::parse(file, nullptr, true, true);
 }
 

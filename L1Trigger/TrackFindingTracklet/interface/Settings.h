@@ -80,6 +80,8 @@ namespace trklet {
     std::string const& memoryModulesFullPath() const { return edm::FileInPath(memoryModulesFile()).fullPath(); }
     std::string const& wiresFile() const { return wiresFile_; }
     std::string const& wiresFullPath() const { return edm::FileInPath(wiresFile()).fullPath(); }
+    std::string const& wiresJSONFile() const { return wiresJSONFile_; }
+    std::string const& wiresJSONFullPath() const { return edm::FileInPath(wiresJSONFile()).fullPath(); }
     std::string const& tableTEDFile() const { return tableTEDFile_; }
     std::string const& tableTREFile() const { return tableTREFile_; }
 
@@ -89,6 +91,7 @@ namespace trklet {
     }
     void setMemoryModulesFile(std::string memoryModulesFileName) { memoryModulesFile_ = memoryModulesFileName; }
     void setWiresFile(std::string wiresFileName) { wiresFile_ = wiresFileName; }
+    void setWiresJSONFile(std::string wiresJSONFileName) { wiresJSONFile_ = wiresJSONFileName; }
     void setTableTEDFile(std::string tableTEDFileName) { tableTEDFile_ = tableTEDFileName; }
     void setTableTREFile(std::string tableTREFileName) { tableTREFile_ = tableTREFileName; }
 
@@ -521,6 +524,7 @@ namespace trklet {
     std::string processingModulesFile_;
     std::string memoryModulesFile_;
     std::string wiresFile_;
+    std::string wiresJSONFile_;
     std::string tableTEDFile_;
     std::string tableTREFile_;
 

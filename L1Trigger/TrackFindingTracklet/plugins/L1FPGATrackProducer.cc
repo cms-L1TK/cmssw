@@ -161,6 +161,7 @@ private:
   std::string memoryModulesFile;
   std::string processingModulesFile;
   std::string wiresFile;
+  std::string wiresJSONFile;
 
   edm::FileInPath tableTEDFile;
   edm::FileInPath tableTREFile;
@@ -265,6 +266,7 @@ L1FPGATrackProducer::L1FPGATrackProducer(edm::ParameterSet const& iConfig)
   processingModulesFile = iConfig.getParameter<std::string>("processingModulesFile");
   memoryModulesFile = iConfig.getParameter<std::string>("memoryModulesFile");
   wiresFile = iConfig.getParameter<std::string>("wiresFile");
+  wiresJSONFile = iConfig.getParameter<std::string>("wiresJSONFile");
 
   failScenario_ = iConfig.getUntrackedParameter<int>("FailScenario", 0);
 
@@ -292,6 +294,7 @@ L1FPGATrackProducer::L1FPGATrackProducer(edm::ParameterSet const& iConfig)
   settings_.setProcessingModulesFile(processingModulesFile);
   settings_.setMemoryModulesFile(memoryModulesFile);
   settings_.setWiresFile(wiresFile);
+  settings_.setWiresJSONFile(wiresJSONFile);
 
   settings_.setFakefit(iConfig.getParameter<bool>("Fakefit"));
   settings_.setStoreTrackBuilderOutput(iConfig.getParameter<bool>("StoreTrackBuilderOutput"));
