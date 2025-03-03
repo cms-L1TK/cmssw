@@ -65,7 +65,7 @@ void ProjectionCalculator::projDisk(
     int iz, int irinv, int iphi0, int it, int iz0, int& ir, int& iphi, int& iderphi, int& iderr) {
   int iz0_sign = (it > 0) ? iz0 : -iz0;
 
-  assert(abs(it) < LUT_itinv_.size());
+  assert(abs(it) < static_cast<int>(LUT_itinv_.size()));
   int itinv = LUT_itinv_[abs(it)];
 
   iderphi = (-irinv * itinv) >> 17;
@@ -192,8 +192,8 @@ void ProjectionCalculator::execute() {
 
           std::vector<int> izr_LD(N_LAYER + N_DISK, 0);
           std::vector<int> iphi_LD(N_LAYER + N_DISK, 0);
-          std::vector<bool> valid_LD(N_LAYER + N_DISK, 0);
-          std::vector<bool> addedLayer(N_LAYER, 0);
+          std::vector<bool> valid_LD(N_LAYER + N_DISK, false);
+          std::vector<bool> addedLayer(N_LAYER, false);
           std::vector<int> der_phi_LD(2, 0);
           std::vector<int> der_zr_LD(2, 0);
 

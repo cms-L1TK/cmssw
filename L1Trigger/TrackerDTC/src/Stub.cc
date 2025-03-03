@@ -140,9 +140,9 @@ namespace trackerDTC {
     if (sm->type() == SensorModule::DiskPS ||
         sm->type() == SensorModule::Disk2S) {  // set negDisk bit based on which z-side of detector stub is in
       if (sm_->side())
-        nd_ = 0;
+        nd_ = false;
       else
-        nd_ = 1;
+        nd_ = true;
     }
 
     // encode bend

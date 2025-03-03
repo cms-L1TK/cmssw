@@ -300,8 +300,8 @@ void MatchProcessor::execute(unsigned int iSector, double phimin) {
     matchengine.reset();
   }
 
-  Tracklet* projdata = 0;
-  Tracklet* projdata_ = 0;
+  Tracklet* projdata = nullptr;
+  Tracklet* projdata_ = nullptr;
   bool validin = false;
   bool validin_ = false;
   bool validmem = false;
