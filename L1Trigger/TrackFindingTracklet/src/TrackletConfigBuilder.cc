@@ -1558,15 +1558,7 @@ void TrackletConfigBuilder::writeVMSMemoriesExt(std::ostream& os, std::ostream& 
         }
 
         // for overlap region seeds
-        string mem_large = mem.substr(0, 1);
-        if (mem_large == "a")
-          mem_large = "A";
-        else if (mem_large == "b")
-          mem_large = "B";
-        else if (mem_large == "c")
-          mem_large = "C";
-        else if (mem_large == "d")
-          mem_large = "D";
+        string mem_large{static_cast<char>(toupper(mem[0]))};
 
         os << "VMSTE_" << layerdisk2_ << "PHI" << mem << "n" << mem_tracker[mem_idx] << " input=> VMR_" << layerdisk2_
            << "PHI" << mem_large << ".vmstubout_seed_" << strSeedInt(seed) << " output=> TPD_" << seed << region
