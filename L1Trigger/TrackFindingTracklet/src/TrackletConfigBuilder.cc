@@ -25,6 +25,7 @@ TrackletConfigBuilder::TrackletConfigBuilder(const Settings& settings, const tt:
 
   duplicateMPs_ = settings.duplicateMPs();
   combinedmodules_ = settings.combined();
+  combinedmodules_ = true;  //debug overwrite
 
   extended_ = settings.extended();
 
@@ -48,7 +49,7 @@ TrackletConfigBuilder::TrackletConfigBuilder(const Settings& settings, const tt:
     NVMME_[layerdisk] = settings.nvmme(layerdisk);
   }
 
-  for (unsigned int iseed = 0; iseed < N_SEED_PROMPT; iseed++) {
+  for (unsigned int iseed = 0; iseed < N_SEED; iseed++) {
     NVMTE_[iseed] = std::pair<unsigned int, unsigned int>(settings.nvmte(0, iseed), settings.nvmte(1, iseed));
     NTC_[iseed] = settings.NTC(iseed);
   }
@@ -67,6 +68,9 @@ TrackletConfigBuilder::TrackletConfigBuilder(const Settings& settings, const tt:
     static std::once_flag runOnce;  // Only one thread should call this.
     std::call_once(runOnce, &TrackletConfigBuilder::writeDTCphirange, this);
   }
+
+  std::ifstream file(settings.wiresJSONFullPath().c_str());
+  seedwires_ = nlohmann::ordered_json::parse(file, nullptr, true, true);
 }
 
 //--- Calculate phi range of modules read by each DTC.
@@ -438,11 +442,28 @@ double TrackletConfigBuilder::rinv(double r1, double phi1, double r2, double phi
   return 2 * sin(deltaphi) / sqrt(r2 * r2 + r1 * r1 - 2 * r1 * r2 * cos(deltaphi));
 }
 
-std::string TrackletConfigBuilder::iSeedStr(unsigned int iSeed) const {
-  static std::string name[8] = {"L1L2", "L2L3", "L3L4", "L5L6", "D1D2", "D3D4", "L1D1", "L2D1"};
+void TrackletConfigBuilder::setLayDiskStr(string& layerdisk1, string& layerdisk2, string& layerdisk3, string seed) {
+  layerdisk1 = seed.substr(0, 2);
+  layerdisk2 = seed.substr(2, 2);
+  layerdisk3 = seed.substr(4, 2);
 
-  assert(iSeed < 8);
+  return;
+}
+
+std::string TrackletConfigBuilder::iSeedStr(unsigned int iSeed) const {
+  static std::string name[N_SEED] = {
+      "L1L2", "L2L3", "L3L4", "L5L6", "D1D2", "D3D4", "L1D1", "L2D1", "L3L4L2", "L5L6L4", "L2L3D1", "D1D2L2"};
+
+  assert(iSeed < N_SEED);
   return name[iSeed];
+}
+
+unsigned int TrackletConfigBuilder::strSeedInt(std::string strSeed) const {
+  for (unsigned int i = 0; i < N_SEED; i++)
+    if (iSeedStr(i) == strSeed)
+      return i;
+
+  throw cms::Exception("CorruptData") << strSeed + " not found in list of seeds\n";
 }
 
 std::string TrackletConfigBuilder::numStr(unsigned int i) {
@@ -563,6 +584,18 @@ void TrackletConfigBuilder::writeProjectionMemories(std::ostream& os, std::ostre
              << LayerName(ilayer) << "PHI" << iTCStr(ireg) << " output=> " << PRName(ilayer, ireg) << ".projin"
              << std::endl;
         }
+      }
+    }
+  }
+}
+
+void TrackletConfigBuilder::writeProjectionMemoriesExt(std::ostream& os, std::ostream& memories, std::ostream&) {
+  for (auto& [seed, seed_info] : seedwires_.items()) {
+    for (auto& [region, region_info] : seed_info.items()) {  //TPD instance
+      for (string proj : region_info["projections"]) {       // projection
+        memories << "TrackletProjections: TPROJ_" << seed << region << "_" << proj << " [54]" << std::endl;
+        os << "TPROJ_" << seed << region << "_" << proj << " input=> TPD_" << seed << region << ".projout" << proj
+           << " output=> MP_" << proj << ".projin" << std::endl;
       }
     }
   }
@@ -975,6 +1008,120 @@ void TrackletConfigBuilder::writeFMMemories(std::ostream& os, std::ostream& memo
   }
 }
 
+void TrackletConfigBuilder::writeFMMemoriesExt(std::ostream& os, std::ostream& memories, std::ostream& modules) {
+  for (unsigned int iSeed = N_SEED_PROMPT; iSeed < N_SEED; iSeed++) {
+    for (unsigned int ilayer = 0; ilayer < N_LAYER + N_DISK; ilayer++) {
+      for (unsigned int iReg = 0; iReg < NRegions_[ilayer]; iReg++) {
+        if (matchport_[iSeed][ilayer] == -1)
+          continue;
+
+        memories << "FullMatch: FM_" << iSeedStr(iSeed) << "_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << " [36]"
+                 << std::endl;
+        os << "FM_" << iSeedStr(iSeed) << "_" << LayerName(ilayer) << "PHI" << iTCStr(iReg) << " input=> MP_"
+           << LayerName(ilayer) << "PHI" << iTCStr(iReg) << ".matchout1 output=> FT_" << iSeedStr(iSeed) << ".fullmatch"
+           << matchport_[iSeed][ilayer] << "in" << iReg + 1 << std::endl;
+      }
+    }
+  }
+}
+
+void TrackletConfigBuilder::writeASMemoriesExt(std::ostream& os, std::ostream& memories, std::ostream& modules) {
+  string layerdisk1_, layerdisk2_, layerdisk3_;
+  map<string, int> mem_tracker;
+
+  for (auto& [seed, seed_info] : seedwires_.items()) {
+    // set layer/disk types based on input seed name
+    setLayDiskStr(layerdisk1_, layerdisk2_, layerdisk3_, seed);
+    for (auto& [region, region_info] : seed_info.items()) {  //TPD instance
+
+      for (string mem : region_info["middlestub"]) {  // write middle/first stub memories
+
+        // add to the memory tracker
+        string mem_idx = layerdisk1_ + "PHI" + mem;
+        if (mem_tracker.find(mem_idx) == mem_tracker.end()) {
+          mem_tracker[mem_idx] = 2;
+        } else {
+          mem_tracker[mem_idx]++;
+        }
+
+        memories << "AllStubs: AS_" << layerdisk1_ << "PHI" << mem << "n" << mem_tracker[mem_idx] << " [42]"
+                 << std::endl;
+        os << "AS_" << layerdisk1_ << "PHI" << mem << "n" << mem_tracker[mem_idx] << " input=> VMR_" << layerdisk1_
+           << "PHI" << mem << ".allstuboutn" << mem_tracker[mem_idx] << " output=> TPD_" << seed << region
+           << ".firstallstubin" << std::endl;
+      }
+
+      string temp_mem = "0";
+      for (string mem : region_info["outerstub"]) {  // write outer/second stub memories
+
+        // for overlap region seeds
+        if (mem.substr(0, 1) == "a")
+          mem = "A";
+        else if (mem.substr(0, 1) == "b")
+          mem = "B";
+        else if (mem.substr(0, 1) == "c")
+          mem = "C";
+        else if (mem.substr(0, 1) == "d")
+          mem = "D";
+
+        // parse to only get region A/B/etc for all stubs
+        if (temp_mem == mem.substr(0, 1))
+          continue;
+        else
+          temp_mem = mem.substr(0, 1);
+
+        // add to the memory tracker
+        string mem_idx = layerdisk2_ + "PHI" + temp_mem;
+        if (mem_tracker.find(mem_idx) == mem_tracker.end()) {
+          mem_tracker[mem_idx] = 2;
+        } else {
+          mem_tracker[mem_idx]++;
+        }
+
+        memories << "AllStubs: AS_" << layerdisk2_ << "PHI" << temp_mem << "n" << mem_tracker[mem_idx] << " [42]"
+                 << std::endl;
+        os << "AS_" << layerdisk2_ << "PHI" << temp_mem << "n" << mem_tracker[mem_idx] << " input=> VMR_" << layerdisk2_
+           << "PHI" << temp_mem << ".allstuboutn" << mem_tracker[mem_idx] << " output=> TPD_" << seed << region
+           << ".secondallstubin" << std::endl;
+      }
+
+      temp_mem = "0";
+      for (string mem : region_info["innerstub"]) {  // write inner/third stub memories
+
+        // for overlap region seeds
+        if (mem.substr(0, 1) == "x")
+          mem = "A";
+        else if (mem.substr(0, 1) == "y")
+          mem = "B";
+        else if (mem.substr(0, 1) == "z")
+          mem = "C";
+        else if (mem.substr(0, 1) == "w")
+          mem = "D";
+
+        // parse to only get region A/B/etc for all stubs
+        if (temp_mem == mem.substr(0, 1))
+          continue;
+        else
+          temp_mem = mem.substr(0, 1);
+
+        // add to the memory tracker
+        string mem_idx = layerdisk3_ + "PHI" + temp_mem;
+        if (mem_tracker.find(mem_idx) == mem_tracker.end()) {
+          mem_tracker[mem_idx] = 2;
+        } else {
+          mem_tracker[mem_idx]++;
+        }
+
+        memories << "AllStubs: AS_" << layerdisk3_ << "PHI" << temp_mem << "n" << mem_tracker[mem_idx] << " [42]"
+                 << std::endl;
+        os << "AS_" << layerdisk3_ << "PHI" << temp_mem << "n" << mem_tracker[mem_idx] << " input=> VMR_" << layerdisk3_
+           << "PHI" << temp_mem << ".allstuboutn" << mem_tracker[mem_idx] << " output=> TPD_" << seed << region
+           << ".thirdallstubin" << std::endl;
+      }
+    }
+  }
+}
+
 void TrackletConfigBuilder::writeASMemories(std::ostream& os, std::ostream& memories, std::ostream& modules) {
   // Each VMR writes AllStub memories (AS) for a single phi region (e.g. PHIC),
   // merging data from all DTCs related to this phi region. It does so by merging data from
@@ -1364,6 +1511,65 @@ void TrackletConfigBuilder::writeVMSMemories(std::ostream& os, std::ostream& mem
   }
 }
 
+void TrackletConfigBuilder::writeVMSMemoriesExt(std::ostream& os, std::ostream& memories, std::ostream&) {
+  string layerdisk1_, layerdisk2_, layerdisk3_;
+  map<string, int> mem_tracker;
+
+  for (auto& [seed, seed_info] : seedwires_.items()) {
+    // set layer/disk types based on input seed name
+    setLayDiskStr(layerdisk1_, layerdisk2_, layerdisk3_, seed);
+    for (auto& [region, region_info] : seed_info.items()) {  //TPD instance
+      for (string mem : region_info["innerstub"]) {          // write inner/third stub memories
+
+        // add to the memory tracker
+        string mem_idx = layerdisk3_ + "PHI" + mem;
+        if (mem_tracker.find(mem_idx) == mem_tracker.end()) {
+          mem_tracker[mem_idx] = 1;
+        } else {
+          mem_tracker[mem_idx]++;
+        }
+
+        // for overlap region seeds
+        string mem_large = mem.substr(0, 1);
+        if (mem_large == "x")
+          mem_large = "A";
+        else if (mem_large == "y")
+          mem_large = "B";
+        else if (mem_large == "z")
+          mem_large = "C";
+        else if (mem_large == "w")
+          mem_large = "D";
+
+        os << "VMSTE_" << layerdisk3_ << "PHI" << mem << "n" << mem_tracker[mem_idx] << " input=> VMR_" << layerdisk3_
+           << "PHI" << mem_large << ".vmstubout_seed_" << strSeedInt(seed) << " output=> TPD_" << seed << region
+           << ".thirdvmstubin" << std::endl;
+        memories << "VMStubsTE: VMSTE_" << layerdisk3_ << "PHI" << mem << "n" << mem_tracker[mem_idx] << " [18]"
+                 << std::endl;
+      }
+
+      for (string mem : region_info["outerstub"]) {  // write outer/second stub memories
+
+        // add to the memory tracker
+        string mem_idx = layerdisk2_ + "PHI" + mem;
+        if (mem_tracker.find(mem_idx) == mem_tracker.end()) {
+          mem_tracker[mem_idx] = 1;
+        } else {
+          mem_tracker[mem_idx]++;
+        }
+
+        // for overlap region seeds
+        string mem_large{static_cast<char>(toupper(mem[0]))};
+
+        os << "VMSTE_" << layerdisk2_ << "PHI" << mem << "n" << mem_tracker[mem_idx] << " input=> VMR_" << layerdisk2_
+           << "PHI" << mem_large << ".vmstubout_seed_" << strSeedInt(seed) << " output=> TPD_" << seed << region
+           << ".secondvmstubin" << std::endl;
+        memories << "VMStubsTE: VMSTE_" << layerdisk2_ << "PHI" << mem << "n" << mem_tracker[mem_idx] << " [18]"
+                 << std::endl;
+      }
+    }
+  }
+}
+
 void TrackletConfigBuilder::writeTPARMemories(std::ostream& os, std::ostream& memories, std::ostream& modules) {
   // Each TC module (e.g. TC_L1L2A) stores helix params in a single TPAR memory of similar name
   // (e.g. TPAR_L1L2A). The TPAR is subsequently read by the TrackBuilder (FT).
@@ -1389,8 +1595,27 @@ void TrackletConfigBuilder::writeTPARMemories(std::ostream& os, std::ostream& me
   }
 }
 
+void TrackletConfigBuilder::writeTPARMemoriesExt(std::ostream& os, std::ostream& memories, std::ostream& modules) {
+  for (unsigned int iSeed = N_SEED_PROMPT; iSeed < N_SEED; iSeed++) {
+    for (unsigned int iTP = 0; iTP < NTC_[iSeed]; iTP++) {
+      memories << "TrackletParameters: TPAR_" << iSeedStr(iSeed) << iTCStr(iTP) << " [56]" << std::endl;
+      modules << "TrackletProcessorDisplaced: TPD_" << iSeedStr(iSeed) << iTCStr(iTP) << std::endl;
+      os << "TPAR_" << iSeedStr(iSeed) << iTCStr(iTP) << " input=> TPD_" << iSeedStr(iSeed) << iTCStr(iTP)
+         << ".trackpar output=> FT_" << iSeedStr(iSeed) << ".tpar" << iTP + 1 << "in" << std::endl;
+    }
+  }
+}
+
 void TrackletConfigBuilder::writeTFMemories(std::ostream& os, std::ostream& memories, std::ostream& modules) {
   for (unsigned int iSeed = 0; iSeed < N_SEED_PROMPT; iSeed++) {
+    memories << "TrackFit: TF_" << iSeedStr(iSeed) << " [126]" << std::endl;
+    modules << "FitTrack: FT_" << iSeedStr(iSeed) << std::endl;
+    os << "TF_" << iSeedStr(iSeed) << " input=> FT_" << iSeedStr(iSeed) << ".trackout output=> PD.trackin" << std::endl;
+  }
+}
+
+void TrackletConfigBuilder::writeTFMemoriesExt(std::ostream& os, std::ostream& memories, std::ostream& modules) {
+  for (unsigned int iSeed = N_SEED_PROMPT; iSeed < N_SEED; iSeed++) {
     memories << "TrackFit: TF_" << iSeedStr(iSeed) << " [126]" << std::endl;
     modules << "FitTrack: FT_" << iSeedStr(iSeed) << std::endl;
     os << "TF_" << iSeedStr(iSeed) << " input=> FT_" << iSeedStr(iSeed) << ".trackout output=> PD.trackin" << std::endl;
@@ -1401,6 +1626,13 @@ void TrackletConfigBuilder::writeCTMemories(std::ostream& os, std::ostream& memo
   modules << "PurgeDuplicate: PD" << std::endl;
 
   for (unsigned int iSeed = 0; iSeed < N_SEED_PROMPT; iSeed++) {
+    memories << "CleanTrack: CT_" << iSeedStr(iSeed) << " [126]" << std::endl;
+    os << "CT_" << iSeedStr(iSeed) << " input=> PD.trackout output=>" << std::endl;
+  }
+}
+
+void TrackletConfigBuilder::writeCTMemoriesExt(std::ostream& os, std::ostream& memories, std::ostream& modules) {
+  for (unsigned int iSeed = N_SEED_PROMPT; iSeed < N_SEED; iSeed++) {
     memories << "CleanTrack: CT_" << iSeedStr(iSeed) << " [126]" << std::endl;
     os << "CT_" << iSeedStr(iSeed) << " input=> PD.trackout output=>" << std::endl;
   }
@@ -1489,7 +1721,7 @@ void TrackletConfigBuilder::writeAll(std::ostream& wires, std::ostream& memories
   writeASMemories(wires, memories, modules);
   writeVMSMemories(wires, memories, modules);
   writeSPMemories(wires, memories, modules);
-  writeSPDMemories(wires, memories, modules);
+  //writeSPDMemories(wires, memories, modules); //displaced specific? don't need
   writeProjectionMemories(wires, memories, modules);
   writeTPARMemories(wires, memories, modules);
   writeVMPROJMemories(wires, memories, modules);
@@ -1498,4 +1730,14 @@ void TrackletConfigBuilder::writeAll(std::ostream& wires, std::ostream& memories
   writeFMMemories(wires, memories, modules);
   writeTFMemories(wires, memories, modules);
   writeCTMemories(wires, memories, modules);
+
+  if (extended_) {
+    writeASMemoriesExt(wires, memories, modules);
+    writeVMSMemoriesExt(wires, memories, modules);
+    writeTFMemoriesExt(wires, memories, modules);
+    writeCTMemoriesExt(wires, memories, modules);
+    writeTPARMemoriesExt(wires, memories, modules);
+    writeFMMemoriesExt(wires, memories, modules);
+    writeProjectionMemoriesExt(wires, memories, modules);
+  }
 }

@@ -158,9 +158,10 @@ private:
 #ifndef USEHYBRID
   edm::FileInPath fitPatternFile;
 #endif
-  edm::FileInPath memoryModulesFile;
-  edm::FileInPath processingModulesFile;
-  edm::FileInPath wiresFile;
+  std::string memoryModulesFile;
+  std::string processingModulesFile;
+  std::string wiresFile;
+  std::string wiresJSONFile;
 
   edm::FileInPath tableTEDFile;
   edm::FileInPath tableTREFile;
@@ -262,9 +263,10 @@ L1FPGATrackProducer::L1FPGATrackProducer(edm::ParameterSet const& iConfig)
 
   asciiEventOutName_ = iConfig.getUntrackedParameter<string>("asciiFileName", "");
 
-  processingModulesFile = iConfig.getParameter<edm::FileInPath>("processingModulesFile");
-  memoryModulesFile = iConfig.getParameter<edm::FileInPath>("memoryModulesFile");
-  wiresFile = iConfig.getParameter<edm::FileInPath>("wiresFile");
+  processingModulesFile = iConfig.getParameter<std::string>("processingModulesFile");
+  memoryModulesFile = iConfig.getParameter<std::string>("memoryModulesFile");
+  wiresFile = iConfig.getParameter<std::string>("wiresFile");
+  wiresJSONFile = iConfig.getParameter<std::string>("wiresJSONFile");
 
   failScenario_ = iConfig.getUntrackedParameter<int>("FailScenario", 0);
 
@@ -289,9 +291,10 @@ L1FPGATrackProducer::L1FPGATrackProducer(edm::ParameterSet const& iConfig)
   fitPatternFile = iConfig.getParameter<edm::FileInPath>("fitPatternFile");
   settings_.setFitPatternFile(fitPatternFile.fullPath());
 #endif
-  settings_.setProcessingModulesFile(processingModulesFile.fullPath());
-  settings_.setMemoryModulesFile(memoryModulesFile.fullPath());
-  settings_.setWiresFile(wiresFile.fullPath());
+  settings_.setProcessingModulesFile(processingModulesFile);
+  settings_.setMemoryModulesFile(memoryModulesFile);
+  settings_.setWiresFile(wiresFile);
+  settings_.setWiresJSONFile(wiresJSONFile);
 
   settings_.setFakefit(iConfig.getParameter<bool>("Fakefit"));
   settings_.setStoreTrackBuilderOutput(iConfig.getParameter<bool>("StoreTrackBuilderOutput"));
@@ -318,8 +321,8 @@ L1FPGATrackProducer::L1FPGATrackProducer(edm::ParameterSet const& iConfig)
 #ifndef USEHYBRID
         << "fit pattern :     " << fitPatternFile.fullPath()
 #endif
-        << "\n process modules : " << processingModulesFile.fullPath()
-        << "\n memory modules :  " << memoryModulesFile.fullPath() << "\n wires          :  " << wiresFile.fullPath();
+        << "\n process modules : " << processingModulesFile << "\n memory modules :  " << memoryModulesFile
+        << "\n wires          :  " << wiresFile;
     if (extended_) {
       edm::LogVerbatim("Tracklet") << "table_TED    :  " << tableTEDFile.fullPath()
                                    << "\n table_TRE    :  " << tableTREFile.fullPath();
