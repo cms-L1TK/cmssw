@@ -61,6 +61,8 @@ namespace trackerTFP {
     const DataFormats* dataFormats_ = nullptr;
     // helper class to encode layer
     const LayerEncoding* layerEncoding_ = nullptr;
+    //
+    DataFormat cot_;
   };
 
   ProducerGP::ProducerGP(const ParameterSet& iConfig) : iConfig_(iConfig) {
@@ -80,6 +82,15 @@ namespace trackerTFP {
     dataFormats_ = &iSetup.getData(esGetTokenDataFormats_);
     // helper class to encode layer
     layerEncoding_ = &iSetup.getData(esGetTokenLayerEncoding_);
+    //
+    const DataFormat& zT = dataFormats_->format(Variable::zT, Process::gp);
+    const DataFormat& r = dataFormats_->format(Variable::r, Process::gp);
+    static const int width = setup_->widthDSPbb();
+    const double range = (zT.range() - zT.base() + 2. * setup_->beamWindowZ()) / setup_->chosenRofZ();
+    const double baseShifted = zT.base() / r.base();
+    const int baseShift = ceil(log2(range / baseShifted)) - width;
+    const double base = baseShifted * pow(2, baseShift);
+    cot_ = DataFormat(true, width, base, range);
   }
 
   void ProducerGP::produce(Event& iEvent, const EventSetup& iSetup) {
@@ -135,7 +146,7 @@ namespace trackerTFP {
       vector<StubGP> stubsGP;
       stubsGP.reserve(nStubsGP);
       // object to route Stubs of one region to one stream per sector
-      GeometricProcessor gp(iConfig_, setup_, dataFormats_, layerEncoding_, stubsGP);
+      GeometricProcessor gp(iConfig_, setup_, dataFormats_, layerEncoding_, &cot_, stubsGP);
       // empty h/w liked organized pointer to output data
       vector<deque<StubGP*>> streamsOut(numChannelOut);
       // fill output data

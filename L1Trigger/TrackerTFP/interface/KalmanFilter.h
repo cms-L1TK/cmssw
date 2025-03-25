@@ -47,6 +47,7 @@ namespace trackerTFP {
             double phiT,
             double cot,
             double zT,
+            double chi2,
             double chi20,
             double chi21,
             const TTBV& hitPattern,
@@ -61,6 +62,7 @@ namespace trackerTFP {
             phiT_(phiT),
             cot_(cot),
             zT_(zT),
+            chi2_(chi2),
             chi20_(chi20),
             chi21_(chi21),
             hitPattern_(hitPattern),
@@ -75,6 +77,7 @@ namespace trackerTFP {
       double phiT_;
       double cot_;
       double zT_;
+      double chi2_;
       double chi20_;
       double chi21_;
       TTBV hitPattern_;
@@ -139,8 +142,6 @@ namespace trackerTFP {
     std::vector<StubKF>& stubs_;
     // container of all Kalman Filter states
     std::deque<State> states_;
-    //
-    std::vector<Track> finals_;
     // current layer used during state propagation
     int layer_;
   };

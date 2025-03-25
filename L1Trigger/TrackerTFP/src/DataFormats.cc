@@ -182,12 +182,8 @@ namespace trackerTFP {
   template <>
   Format<Variable::cot, Process::gp>::Format(const Setup* setup) : DataFormat(true) {
     const Format<Variable::zT, Process::gp> zT(setup);
-    const Format<Variable::r, Process::dtc> r(setup);
-    width_ = setup->widthDSPbb();
-    range_ = (zT.range() - zT.base() + 2. * setup->beamWindowZ()) / setup->chosenRofZ();
-    base_ = zT.base() / r.base();
-    const int baseShift = ceil(log2(range_ / base_)) - width_;
-    base_ *= pow(2, baseShift);
+    range_ = (zT.range() + 2. * setup->beamWindowZ()) / setup->chosenRofZ();
+    base_ = (zT.base() + 2. * setup->beamWindowZ()) / setup->chosenRofZ();
   }
   template <>
   Format<Variable::layer, Process::gp>::Format(const Setup* setup) : DataFormat(false) {
@@ -252,7 +248,7 @@ namespace trackerTFP {
   Format<Variable::phiT, Process::kf>::Format(const Setup* setup) : DataFormat(true) {
     const Format<Variable::phiT, Process::tfp> tfp(setup);
     const Format<Variable::phiT, Process::ht> ht(setup);
-    range_ = ht.range() + 2. * ht.base();
+    range_ = ht.range();
     base_ = ht.base() * pow(2., floor(log2(tfp.base() / ht.base())));
     width_ = ceil(log2(range_ / base_));
   }
@@ -278,7 +274,8 @@ namespace trackerTFP {
     const Format<Variable::phi, Process::dtc> phi(setup);
     const Format<Variable::phiT, Process::kf> phiT(setup);
     const Format<Variable::inv2R, Process::kf> inv2R(setup);
-    range_ = phiT.base() + setup->maxRphi() * inv2R.base();
+    const Format<Variable::dPhi, Process::ctb> dPhi(setup);
+    range_ = 3. * phiT.base() + setup->maxRphi() * 3. * inv2R.base() + dPhi.range();
     base_ = phi.base();
     width_ = ceil(log2(range_ / base_));
   }

@@ -61,12 +61,13 @@ namespace trackerTFP {
     C22,
     C23,
     C33,
-    r0Shifted,
-    r1Shifted,
     r02,
     r12,
+    r02Shifted,
+    r12Shifted,
     chi20,
     chi21,
+    chi2,
     dH,
     invdH,
     invdH2,
@@ -224,17 +225,19 @@ namespace trackerTFP {
   template <>
   FormatKF<VariableKF::C33>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig);
   template <>
-  FormatKF<VariableKF::r0Shifted>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig);
-  template <>
-  FormatKF<VariableKF::r1Shifted>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig);
-  template <>
   FormatKF<VariableKF::r02>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig);
   template <>
   FormatKF<VariableKF::r12>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig);
   template <>
+  FormatKF<VariableKF::r02Shifted>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig);
+  template <>
+  FormatKF<VariableKF::r12Shifted>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig);
+  template <>
   FormatKF<VariableKF::chi20>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig);
   template <>
   FormatKF<VariableKF::chi21>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig);
+  template <>
+  FormatKF<VariableKF::chi2>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig);
 
   template <>
   FormatKF<VariableKF::dH>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig);

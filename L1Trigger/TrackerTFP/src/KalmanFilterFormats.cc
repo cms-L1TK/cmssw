@@ -21,7 +21,9 @@ namespace trackerTFP {
       "S00Shifted", "S01Shifted", "S12Shifted", "S13Shifted", "K00",          "K10",          "K21",       "K31",
       "R00",        "R11",        "R00Rough",   "R11Rough",   "invR00Approx", "invR11Approx", "invR00Cor", "invR11Cor",
       "invR00",     "invR11",     "C00",        "C01",        "C11",          "C22",          "C23",       "C33",
-      "r0Shifted",  "r1Shifted",  "r02",        "r12",        "chi20",        "chi21"};
+      "r02",        "r12",        "r02Shifted", "r12Shifted", "chi20",        "chi21",        "chi2",      "dH",
+      "invdH",      "invdH2",     "H2",         "Hm0",        "Hm1",          "Hv0",          "Hv1",       "H2v0",
+      "H2v1"};
 
   void KalmanFilterFormats::endJob() {
     const int wName =
@@ -355,9 +357,9 @@ namespace trackerTFP {
       : DataFormatKF(VariableKF::R00Rough, false, iConfig) {
     const FormatKF<VariableKF::R00> R00(dataFormats, iConfig);
     width_ = dataFormats->setup()->widthAddrBRAM18();
-    range_ = R00.range();
-    const int baseShift = R00.width() - width_ - 1;
+    const int baseShift = R00.width() - width_;
     base_ = pow(2., baseShift) * R00.base();
+    calcRange();
   }
 
   template <>
@@ -365,9 +367,9 @@ namespace trackerTFP {
       : DataFormatKF(VariableKF::R11Rough, false, iConfig) {
     const FormatKF<VariableKF::R11> R11(dataFormats, iConfig);
     width_ = dataFormats->setup()->widthAddrBRAM18();
-    range_ = R11.range();
-    const int baseShift = R11.width() - width_ - 1;
+    const int baseShift = R11.width() - width_;
     base_ = pow(2., baseShift) * R11.base();
+    calcRange();
   }
 
   template <>
@@ -491,40 +493,40 @@ namespace trackerTFP {
   }
 
   template <>
-  FormatKF<VariableKF::r0Shifted>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig)
-      : DataFormatKF(VariableKF::r0Shifted, true, iConfig) {
-    const DataFormat& x1 = dataFormats->format(Variable::phiT, Process::kf);
-    const int baseShift = iConfig.getParameter<int>("BaseShiftr0Shifted");
-    base_ = pow(2., baseShift) * x1.base();
-    width_ = dataFormats->setup()->widthDSPbb();
-    calcRange();
-  }
-
-  template <>
-  FormatKF<VariableKF::r1Shifted>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig)
-      : DataFormatKF(VariableKF::r1Shifted, true, iConfig) {
-    const DataFormat& x3 = dataFormats->format(Variable::zT, Process::kf);
-    const int baseShift = iConfig.getParameter<int>("BaseShiftr1Shifted");
-    base_ = pow(2., baseShift) * x3.base();
-    width_ = dataFormats->setup()->widthDSPbb();
-    calcRange();
-  }
-
-  template <>
   FormatKF<VariableKF::r02>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig)
       : DataFormatKF(VariableKF::r02, false, iConfig) {
-    const DataFormat& x1 = dataFormats->format(Variable::phiT, Process::kf);
-    const int baseShift = iConfig.getParameter<int>("BaseShiftr02");
-    base_ = pow(2., baseShift) * x1.base() * x1.base();
+    const FormatKF<VariableKF::r0> r0(dataFormats, iConfig);
     width_ = dataFormats->setup()->widthDSPbu();
+    const int baseShift = 2 * r0.width() - 1 - width_;
+    base_ = pow(2., baseShift) * r0.base() * r0.base();
     calcRange();
   }
 
   template <>
   FormatKF<VariableKF::r12>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig)
       : DataFormatKF(VariableKF::r12, false, iConfig) {
+    const FormatKF<VariableKF::r1> r1(dataFormats, iConfig);
+    width_ = dataFormats->setup()->widthDSPbu();
+    const int baseShift = 2 * r1.width() - 1 - width_;
+    base_ = pow(2., baseShift) * r1.base() * r1.base();
+    calcRange();
+  }
+
+  template <>
+  FormatKF<VariableKF::r02Shifted>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig)
+      : DataFormatKF(VariableKF::r02Shifted, false, iConfig) {
+    const DataFormat& x1 = dataFormats->format(Variable::phiT, Process::kf);
+    const int baseShift = iConfig.getParameter<int>("BaseShiftr02Shifted");
+    base_ = pow(2., baseShift) * x1.base() * x1.base();
+    width_ = dataFormats->setup()->widthDSPbu();
+    calcRange();
+  }
+
+  template <>
+  FormatKF<VariableKF::r12Shifted>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig)
+      : DataFormatKF(VariableKF::r12Shifted, false, iConfig) {
     const DataFormat& x3 = dataFormats->format(Variable::zT, Process::kf);
-    const int baseShift = iConfig.getParameter<int>("BaseShiftr12");
+    const int baseShift = iConfig.getParameter<int>("BaseShiftr12Shifted");
     base_ = pow(2., baseShift) * x3.base() * x3.base();
     width_ = dataFormats->setup()->widthDSPbu();
     calcRange();
@@ -549,18 +551,27 @@ namespace trackerTFP {
   }
 
   template <>
+  FormatKF<VariableKF::chi2>::FormatKF(const DataFormats* dataFormats, const edm::ParameterSet& iConfig)
+      : DataFormatKF(VariableKF::chi2, false, iConfig) {
+    const int baseShift = iConfig.getParameter<int>("BaseShiftchi2");
+    width_ = iConfig.getParameter<int>("Widthchi2");
+    base_ = pow(2., baseShift);
+    calcRange();
+  }
+
+  template <>
   FormatKF<VariableKF::dH>::FormatKF(const DataFormats* dataFormats, const ParameterSet& iConfig)
-      : DataFormatKF(VariableKF::end, false, iConfig) {
+      : DataFormatKF(VariableKF::dH, false, iConfig) {
     const Setup* setup = dataFormats->setup();
     const DataFormat& ctb = dataFormats->format(Variable::r, Process::ctb);
     width_ = setup->widthAddrBRAM18();
-    range_ = setup->outerRadius() - setup->innerRadius();
-    base_ = ctb.base() * pow(2, ceil(log2(range_ / ctb.base())) - width_);
+    base_ = ctb.base();
+    range_ = base_ * pow(2., width_);
   }
 
   template <>
   FormatKF<VariableKF::invdH>::FormatKF(const DataFormats* dataFormats, const ParameterSet& iConfig)
-      : DataFormatKF(VariableKF::end, false, iConfig) {
+      : DataFormatKF(VariableKF::invdH, false, iConfig) {
     const FormatKF<VariableKF::H00> H00(dataFormats, iConfig);
     const Setup* setup = dataFormats->setup();
     width_ = setup->widthDSPbu();
@@ -571,7 +582,7 @@ namespace trackerTFP {
 
   template <>
   FormatKF<VariableKF::invdH2>::FormatKF(const DataFormats* dataFormats, const ParameterSet& iConfig)
-      : DataFormatKF(VariableKF::end, false, iConfig) {
+      : DataFormatKF(VariableKF::invdH2, false, iConfig) {
     const FormatKF<VariableKF::H00> H00(dataFormats, iConfig);
     const Setup* setup = dataFormats->setup();
     width_ = setup->widthDSPbu();
@@ -583,14 +594,14 @@ namespace trackerTFP {
 
   template <>
   FormatKF<VariableKF::H2>::FormatKF(const DataFormats* dataFormats, const ParameterSet& iConfig)
-      : DataFormatKF(VariableKF::end, false, iConfig) {
+      : DataFormatKF(VariableKF::H2, false, iConfig) {
     const FormatKF<VariableKF::H00> H00(dataFormats, iConfig);
     base_ = H00.base() * H00.base();
   }
 
   template <>
   FormatKF<VariableKF::Hm0>::FormatKF(const DataFormats* dataFormats, const ParameterSet& iConfig)
-      : DataFormatKF(VariableKF::end, true, iConfig) {
+      : DataFormatKF(VariableKF::Hm0, true, iConfig) {
     const FormatKF<VariableKF::H00> H00(dataFormats, iConfig);
     const FormatKF<VariableKF::m0> m0(dataFormats, iConfig);
     base_ = H00.base() * m0.base();
@@ -598,7 +609,7 @@ namespace trackerTFP {
 
   template <>
   FormatKF<VariableKF::Hm1>::FormatKF(const DataFormats* dataFormats, const ParameterSet& iConfig)
-      : DataFormatKF(VariableKF::end, true, iConfig) {
+      : DataFormatKF(VariableKF::Hm1, true, iConfig) {
     const FormatKF<VariableKF::H12> H12(dataFormats, iConfig);
     const FormatKF<VariableKF::m1> m1(dataFormats, iConfig);
     base_ = H12.base() * m1.base();
@@ -606,42 +617,50 @@ namespace trackerTFP {
 
   template <>
   FormatKF<VariableKF::Hv0>::FormatKF(const DataFormats* dataFormats, const ParameterSet& iConfig)
-      : DataFormatKF(VariableKF::end, false, iConfig) {
+      : DataFormatKF(VariableKF::Hv0, true, iConfig) {
     const Setup* setup = dataFormats->setup();
     const FormatKF<VariableKF::H00> H00(dataFormats, iConfig);
     const FormatKF<VariableKF::v0> v0(dataFormats, iConfig);
+    const int baseShift = iConfig.getParameter<int>("BaseShiftHv0");
     width_ = setup->widthDSPab();
-    base_ = H00.base() * v0.base() * pow(2, H00.width() + v0.width() - width_);
+    base_ = H00.base() * v0.base() * pow(2, baseShift);
+    calcRange();
   }
 
   template <>
   FormatKF<VariableKF::Hv1>::FormatKF(const DataFormats* dataFormats, const ParameterSet& iConfig)
-      : DataFormatKF(VariableKF::end, false, iConfig) {
+      : DataFormatKF(VariableKF::Hv1, true, iConfig) {
     const FormatKF<VariableKF::H12> H12(dataFormats, iConfig);
     const Setup* setup = dataFormats->setup();
     const FormatKF<VariableKF::v1> v1(dataFormats, iConfig);
+    const int baseShift = iConfig.getParameter<int>("BaseShiftHv1");
     width_ = setup->widthDSPab();
-    base_ = H12.base() * v1.base() * pow(2, H12.width() + v1.width() - width_);
+    base_ = H12.base() * v1.base() * pow(2, baseShift);
+    calcRange();
   }
 
   template <>
   FormatKF<VariableKF::H2v0>::FormatKF(const DataFormats* dataFormats, const ParameterSet& iConfig)
-      : DataFormatKF(VariableKF::end, false, iConfig) {
+      : DataFormatKF(VariableKF::H2v0, false, iConfig) {
     const Setup* setup = dataFormats->setup();
     const FormatKF<VariableKF::H00> H00(dataFormats, iConfig);
     const FormatKF<VariableKF::v0> v0(dataFormats, iConfig);
+    const int baseShift = iConfig.getParameter<int>("BaseShiftH2v0");
     width_ = setup->widthDSPau();
-    base_ = H00.base() * H00.base() * v0.base() * pow(2, 2 * H00.width() + v0.width() - width_);
+    base_ = H00.base() * H00.base() * v0.base() * pow(2, baseShift);
+    calcRange();
   }
 
   template <>
   FormatKF<VariableKF::H2v1>::FormatKF(const DataFormats* dataFormats, const ParameterSet& iConfig)
-      : DataFormatKF(VariableKF::end, false, iConfig) {
+      : DataFormatKF(VariableKF::H2v1, false, iConfig) {
     const Setup* setup = dataFormats->setup();
     const FormatKF<VariableKF::H12> H12(dataFormats, iConfig);
     const FormatKF<VariableKF::v1> v1(dataFormats, iConfig);
+    const int baseShift = iConfig.getParameter<int>("BaseShiftH2v1");
     width_ = setup->widthDSPau();
-    base_ = H12.base() * H12.base() * v1.base() * pow(2, 2 * H12.width() + v1.width() - width_);
+    base_ = H12.base() * H12.base() * v1.base() * pow(2, baseShift);
+    calcRange();
   }
 
 }  // namespace trackerTFP
