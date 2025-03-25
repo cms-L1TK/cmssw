@@ -3,10 +3,8 @@
 #include "L1Trigger/TrackFindingTracklet/interface/Globals.h"
 #include "L1Trigger/TrackFindingTracklet/interface/AllStubsMemory.h"
 #include "L1Trigger/TrackFindingTracklet/interface/AllInnerStubsMemory.h"
-#include "L1Trigger/TrackFindingTracklet/interface/StubPairsMemory.h"
 #include "L1Trigger/TrackFindingTracklet/interface/Tracklet.h"
 #include "L1Trigger/TrackFindingTracklet/interface/Util.h"
-#include "L1Trigger/TrackFindingTracklet/interface/IMATH_TrackletCalculator.h"
 
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 #include "FWCore/Utilities/interface/Exception.h"
@@ -141,6 +139,7 @@ void TrackletProcessorDisplaced::addInput(MemoryBase* memory, string input) {
     outerallstubs_.push_back(tmp);
     return;
   }
+
   if (input == "thirdvmstubin") {
     auto* tmp = dynamic_cast<VMStubsTEMemory*>(memory);
     assert(tmp != nullptr);
@@ -289,12 +288,12 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
       if (layerdisk1_ >= LayerDisk::D1) {         // if a disk
         if (negdisk)
           indexz = (1 << nbitszfinebintable_) - indexz;
-        indexr = stub->r().value();
+        indexr = stub->rvalue();
         if (stub->isPSmodule()) {
-          indexr = stub->r().value() >> (stub->r().nbits() - nbitsrfinebintable_);
+          indexr = stub->rvalue() >> (stub->r().nbits() + 1 - nbitsrfinebintable_);
         }
       } else {  // else a layer
-        indexr = (((1 << (stub->r().nbits() - 1)) + stub->r().value()) >> (stub->r().nbits() - nbitsrfinebintable_));
+        indexr = (((1 << (stub->r().nbits() - 1)) + stub->rvalue()) >> (stub->r().nbits() - nbitsrfinebintable_));
       }
 
       // create lookupbits that define projections from middle stub

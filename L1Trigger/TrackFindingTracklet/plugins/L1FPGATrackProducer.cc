@@ -1,5 +1,5 @@
 //////////////////////////
-//  Producer by Anders  //
+//  Producer by Anders  //mo
 //     and Emmanuele    //
 //    july 2012 @ CU    //
 //////////////////////////
@@ -349,7 +349,7 @@ L1FPGATrackProducer::~L1FPGATrackProducer() {
 
 ///////END RUN
 //
-void L1FPGATrackProducer::endRun(const edm::Run& run, const edm::EventSetup& iSetup) {}
+void L1FPGATrackProducer::endRun(const edm::Run& run, const edm::EventSetup& iSetup) { eventProcessor.printSummary(); }
 
 ////////////
 // BEGIN JOB
@@ -770,13 +770,31 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
     L1TkTracksForOutput->push_back(aTrack);
   }
 
+  //
+  // This code is a bit of a hack, it fixes an issue where it was implied that tracks in the L1TkTracksForOutput
+  // were listed in the seed order. But with the two TrackBuilder configuration this was not longer true and
+  // the code below implemnts a fix to handle this for the streamsTrack data.
+  //
+  std::vector<int> iTrkStart(numStreamsTrack);
+  for (int channel = 0; channel < (int)numStreamsTrack; channel++) {
+    const int seedType = channel % channelAssignment_->numChannelsTrack();
+    const int phiregion = channel / channelAssignment_->numChannelsTrack();
+
+    for (unsigned int i = 0; i < (*L1TkTracksForOutput).size(); i++) {
+      if (phiregion == (int)L1TkTracksForOutput->at(i).phiSector() &&
+          seedType == (int)L1TkTracksForOutput->at(i).trackSeedType()) {
+        iTrkStart[channel] = i;
+        break;
+      }
+    }
+  }
+
   const OrphanHandle<TTTracks> oh = iEvent.emplace(putTokenTTTracks_, move(*L1TkTracksForOutput));
 
   // produce clock and bit accurate stream output tracks and stubs.
   // from end of tracklet pattern recognition.
   // Convertion here is from stream format that allows this code to run
   // outside CMSSW to the EDProduct one.
-  int iTrk(0);
   StreamsTrack streamsTrack(numStreamsTrack);
   StreamsStub streamsStub(numStreamsStub);
   for (int channel = 0; channel < (int)numStreamsTrack; channel++) {
@@ -787,6 +805,7 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
     const vector<string>& tracks = streamsTrackRaw[channel];
     StreamTrack& streamTrack = streamsTrack[channel];
     streamTrack.reserve(tracks.size());
+    int iTrk = iTrkStart[channel];
     for (int layer = 0; layer < numLayers; layer++)
       streamsStub[offsetOut + layer].reserve(tracks.size());
     for (int frame = 0; frame < (int)tracks.size(); frame++) {

@@ -23,11 +23,13 @@ namespace trklet {
 
   constexpr unsigned int N_SECTOR = 9;  // # of phi sectors for L1TK processing
 
-  constexpr int N_LAYER = 6;                 // # of barrel layers assumed
-  constexpr int N_DISK = 5;                  // # of endcap disks assumed
-  constexpr unsigned int N_PSLAYER = 3;      // # of barrel PS layers assumed
-  constexpr unsigned int N_SEED = 12;        // # of tracklet+triplet seeds
-  constexpr unsigned int N_SEED_PROMPT = 8;  // # of tracklet (prompt) seeds
+  constexpr int N_LAYER = 6;                                         // # of barrel layers assumed
+  constexpr int N_DISK = 5;                                          // # of endcap disks assumed
+  constexpr unsigned int N_PSLAYER = 3;                              // # of barrel PS layers assumed
+  constexpr unsigned int N_SEED_PROMPT = 8;                          // # of tracklet (prompt) seeds
+  constexpr unsigned int N_SEED_DISPLACED = 4;                       // # of triplet (displaced) seeds
+  constexpr unsigned int N_SEED = N_SEED_PROMPT + N_SEED_DISPLACED;  // # of tracklet+triplet seeds
+  constexpr unsigned int N_TB = 2;                                   // # of track builders
 
   constexpr unsigned int N_DSS_MOD = 5;  // # of rings with 2S modules per disk
 
@@ -95,6 +97,7 @@ namespace trklet {
     void setTableTEDFile(std::string tableTEDFileName) { tableTEDFile_ = tableTEDFileName; }
     void setTableTREFile(std::string tableTREFileName) { tableTREFile_ = tableTREFileName; }
 
+    unsigned int nndbitsstub(unsigned int layerdisk) const { return nndbitsstub_[layerdisk]; }
     unsigned int nzbitsstub(unsigned int layerdisk) const { return nzbitsstub_[layerdisk]; }
     unsigned int nphibitsstub(unsigned int layerdisk) const { return nphibitsstub_[layerdisk]; }
     unsigned int nrbitsstub(unsigned int layerdisk) const { return nrbitsstub_[layerdisk]; }
@@ -108,12 +111,7 @@ namespace trklet {
     unsigned int nbendbitsmedisk() const { return nbendbitsmedisk_; }
 
     bool useSeed(unsigned int iSeed) const { return useseeding_.find(iSeed) != useseeding_.end(); }
-    unsigned int nbitsvmte(unsigned int inner, unsigned int iSeed) const {
-      if (combined_) {
-        return nbitsvmtecm_[inner][iSeed];
-      }
-      return nbitsvmte_[inner][iSeed];
-    }
+    unsigned int nbitsvmte(unsigned int inner, unsigned int iSeed) const { return nbitsvmtecm_[inner][iSeed]; }
     unsigned int nvmte(unsigned int inner, unsigned int iSeed) const { return (1 << nbitsvmte(inner, iSeed)); }
 
     unsigned int nbitsvmme(unsigned int layerdisk) const { return nbitsvmme_[layerdisk]; }
@@ -147,12 +145,7 @@ namespace trklet {
     double half2SmoduleWidth() const { return half2SmoduleWidth_; }
 
     int nfinephi(unsigned int inner, unsigned int iSeed) const { return nfinephi_[inner][iSeed]; }
-    double nphireg(unsigned int inner, unsigned int iSeed) const {
-      if (combined_) {
-        return nphiregcm_[inner][iSeed];
-      }
-      return nphireg_[inner][iSeed];
-    }
+    double nphireg(unsigned int inner, unsigned int iSeed) const { return nphiregcm_[inner][iSeed]; }
     double lutwidthtab(unsigned int inner, unsigned int iSeed) const { return lutwidthtab_[inner][iSeed]; }
     double lutwidthtabextended(unsigned int inner, unsigned int iSeed) const {
       return lutwidthtabextended_[inner][iSeed];
@@ -178,9 +171,11 @@ namespace trklet {
     double rphicut2S(unsigned int iSeed, unsigned int idisk) const { return rphicut2S_[idisk][iSeed]; }
     double rcut2S(unsigned int iSeed, unsigned int idisk) const { return rcut2S_[idisk][iSeed]; }
 
+    unsigned int irmean(unsigned int iLayer) const { return irmean_[iLayer]; }
     double rmean(unsigned int iLayer) const { return irmean_[iLayer] * rmaxdisk_ / 4096; }
     double rmax(unsigned int iLayer) const { return rmean(iLayer) + drmax(); }
     double rmin(unsigned int iLayer) const { return rmean(iLayer) - drmax(); }
+    unsigned int izmean(unsigned int iDisk) const { return izmean_[iDisk]; }
     double zmean(unsigned int iDisk) const { return izmean_[iDisk] * zlength_ / 2048; }
     double zmax(unsigned int iDisk) const { return zmean(iDisk) + dzmax(); }
     double zmin(unsigned int iDisk) const { return zmean(iDisk) - dzmax(); }
@@ -212,11 +207,6 @@ namespace trklet {
     std::string memPath() const { return memPath_; }
     std::string tablePath() const { return tablePath_; }
 
-    bool writeVerilog() const { return writeVerilog_; }
-    bool writeHLS() const { return writeHLS_; }
-    bool writeInvTable() const { return writeInvTable_; }
-    bool writeHLSInvTable() const { return writeHLSInvTable_; }
-
     unsigned int writememsect() const { return writememsect_; }
 
     bool enableTripletTables() const { return enableTripletTables_; }
@@ -245,8 +235,7 @@ namespace trklet {
 
     std::string geomext() const {
       std::string geo = extended_ ? "hourglassExtended" : "hourglass";
-      if (combined_)
-        geo += "Combined";
+      geo += "Combined";
       return geo;
     }
 
@@ -282,8 +271,6 @@ namespace trklet {
     const std::array<bool, N_LAYER + N_DISK>& layersDisksDuplicatedWeightedProjBalance() const {
       return layersDisksDuplicatedWeightedProjBalance_;
     }
-    bool combined() const { return combined_; }
-    void setCombined(bool combined) { combined_ = combined; }
     bool reduced() const { return reduced_; }
     void setReduced(bool reduced) { reduced_ = reduced; }
     bool inventStubs() const { return inventStubs_; }
@@ -356,7 +343,9 @@ namespace trklet {
 
     double kz() const { return 2.0 * zlength_ / (1 << nzbitsstub_[0]); }
     double kz(unsigned int layerdisk) const { return 2.0 * zlength_ / (1 << nzbitsstub_[layerdisk]); }
-    double kr() const { return rmaxdisk_ / (1 << nrbitsstub_[N_LAYER]); }
+    double kr() const {
+      return rmaxdisk_ / (1 << (nrbitsstub_[N_LAYER] + 1));
+    }  // + 1 required to offset artificial decrease in # of diskps r bits from 12 -> 11 to make space for negDisk bit
     double krbarrel() const { return 2.0 * drmax() / (1 << nrbitsstub_[0]); }
 
     double maxrinv() const { return maxrinv_; }
@@ -540,9 +529,10 @@ namespace trklet {
     std::array<unsigned int, N_LAYER> irmean_{{851, 1269, 1784, 2347, 2936, 3697}};
     std::array<unsigned int, N_DISK> izmean_{{2239, 2645, 3163, 3782, 4523}};
 
+    std::array<unsigned int, N_LAYER + N_DISK> nndbitsstub_{{0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1}};
     std::array<unsigned int, N_LAYER + N_DISK> nzbitsstub_{{12, 12, 12, 8, 8, 8, 7, 7, 7, 7, 7}};
     std::array<unsigned int, N_LAYER + N_DISK> nphibitsstub_{{14, 14, 14, 17, 17, 17, 14, 14, 14, 14, 14}};
-    std::array<unsigned int, N_LAYER + N_DISK> nrbitsstub_{{7, 7, 7, 7, 7, 7, 12, 12, 12, 12, 12}};
+    std::array<unsigned int, N_LAYER + N_DISK> nrbitsstub_{{7, 7, 7, 7, 7, 7, 11, 11, 11, 11, 11}};
 
     unsigned int nrbitsprojderdisk_{9};
     unsigned int nbitsphiprojderL123_{10};
@@ -556,11 +546,6 @@ namespace trklet {
 
     std::array<unsigned int, N_LAYER + N_DISK> nbitsallstubs_{{3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2}};
     std::array<unsigned int, N_LAYER + N_DISK> nbitsvmme_{{2, 3, 3, 3, 3, 3, 3, 2, 2, 2, 2}};
-    std::array<std::array<unsigned int, N_SEED>, 3> nbitsvmte_{
-        {{{2, 2, 2, 2, 2, 2, 1, 1, 2, 2, 3, 2}},  // (3 = #stubs/triplet, only row 1+2 used for tracklet)
-         {{3, 2, 3, 3, 2, 2, 2, 2, 3, 3, 2, 2}},
-         {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1}}}};
-
     std::array<std::array<unsigned int, N_SEED>, 3> nbitsvmtecm_{
         {{{2, 2, 2, 2, 2, 2, 1, 1, 2, 2, 3, 2}},  // (3 = #stubs/triplet, only row 1+2 used for tracklet)
          {{3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2, 2}},
@@ -689,13 +674,6 @@ namespace trklet {
          {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3}}}};  //outermost (triplets only)
 
     //These are the number of bits used for the VM regions in the TE by seedindex
-    //FIXME not independed nbitsvmte
-    std::array<std::array<unsigned int, N_SEED>, 3> nphireg_{
-        {{{5, 4, 4, 4, 4, 4, 4, 3, 4, 4, 5, 4}},    //inner
-         {{5, 4, 5, 5, 4, 4, 4, 4, 4, 4, 4, 4}},    //outer
-         {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 4}}}};  //outermost (triplets only)
-
-    //For combined modules
     std::array<std::array<unsigned int, N_SEED>, 3> nphiregcm_{
         {{{5, 4, 4, 4, 4, 4, 4, 3, 4, 4, 5, 4}},    //inner
          {{5, 5, 5, 5, 5, 5, 5, 5, 4, 4, 4, 4}},    //outer
@@ -894,16 +872,7 @@ namespace trklet {
         {"IR", 156},  //IR will run at a higher clock speed to handle
                       //input links running at 25 Gbits/s
         //Set to 108 to match firmware project 240 MHz clock
-
-        {"VMR", 107},
-        {"TE", 107},
-        {"TC", 108},
-        {"PR", 108},
-        {"ME", 108},
-        //NOTE: The MC is set to 108, but `mergedepth`
-        //removes 3 iterations to emulate the delay
-        //due to the HLS priority encoder
-        {"MC", 108},
+        {"VMR", 108},
         {"TB", 108},
         {"MP", 108},
         {"TP", 108},
@@ -967,12 +936,6 @@ namespace trklet {
     std::string memPath_{"L1Trigger/TrackFindingTracklet/data/MemPrints/"};  //path for writing memories
     std::string tablePath_{"L1Trigger/TrackFindingTracklet/data/LUTs/"};     //path for writing LUTs
 
-    // Write various lookup tables and autogenerated code (from iMath)
-    bool writeVerilog_{false};      //Write out auto-generated Verilog mudules used by TCs
-    bool writeHLS_{false};          //Write out auto-generated HLS mudules used by TCs
-    bool writeInvTable_{false};     //Write out tables of drinv and invt in tracklet calculator for Verilog module
-    bool writeHLSInvTable_{false};  //Write out tables of drinv and invt in tracklet calculator for HLS module
-
     unsigned int writememsect_{3};  //writemem only for this sector (note that the files will have _4 extension)
 
     bool enableTripletTables_{false};  //Enable the application of the TED and
@@ -1032,7 +995,7 @@ namespace trklet {
     // This is a temporary fix for compatibilty with HLS. We will need to implement multiple match
     // printing in emulator eventually, possibly after CMSSW-integration inspired rewrites
     // Use false when generating HLS files, use true when doing full hybrid tracking
-    bool doMultipleMatches_{true};
+    bool doMultipleMatches_{false};
 
     // NEXT 2 VALUES OVERRIDDEN BY PYTHON CFG
     // if true, run a dummy fit, producing TTracks directly from output of tracklet pattern reco stage
@@ -1046,16 +1009,9 @@ namespace trklet {
     bool reduced_{false};        // use reduced (Summer Chain) config
     bool inventStubs_{false};    // invent seeding stub coordinates based on tracklet traj
 
-    // Use combined TP (TE+TC) & MP (PR+ME+MC) config (with prompt tracking)
-    bool combined_{true};
-    // N.B. For extended tracking, this combined_ is overridden by python cfg
-    // to false, but combined modules are nonetheless used by default.
-    // If you don't want them, edit l1tTTTracksFromTrackletEmulation_cfi.py
-    // to refer to *_hourglassExtended.dat .
-
     // Use chain with duplicated MPs for L3,L4 to reduce truncation issue
     // Balances load from projections roughly in half for each of the two MPs
-    bool duplicateMPs_{false};
+    bool duplicateMPs_{true};
 
     // Determines which layers, disks the MatchProcessor is duplicated for
     // (note: in TCB by default always duplicated for phi B, C as truncation is significantly worse than A, D)
@@ -1063,12 +1019,12 @@ namespace trklet {
 
     // EqualProjBalancing is for layers for which the projections to each duplicated MP are split in half sequentially
     std::array<bool, N_LAYER + N_DISK> layersDisksDuplicatedEqualProjBalance_{
-        {false, false, false, false, false, false, false, false, false, false, false}};
+        {false, false, true, true, true, true, false, false, true, true, false}};
 
     // Weighted proj balancing is for specifically L4, L5 where the split of the projections is weighted to account for
     // Higher occupancy in the L1L2 seed to minimize truncation
     std::array<bool, N_LAYER + N_DISK> layersDisksDuplicatedWeightedProjBalance_{
-        {false, false, false, false, false, false, false, false, false, false, false}};
+        {false, false, true, true, true, true, false, false, true, true, false}};
 
     // Example use where for L3, L4, L5, D2, D3, the layers/disks where truncation is worst
     //std::array<bool, N_LAYER + N_DISK> layersDisksDuplicatedEqualProjBalance_{{0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0}};

@@ -45,11 +45,17 @@ namespace trklet {
     //Seed int value
     unsigned int strSeedInt(std::string strSeed) const;
 
+    //TB string, AAAA or BBBB
+    std::string iTBStr(unsigned int iTB) const;
+
     //Return unsigned as string
     static std::string numStr(unsigned int i);
 
     //Return iTC as string - ie A, B, C, etc
     std::string iTCStr(unsigned int iTC) const;
+
+    //Return iTC as string - ie AB, CD, ABC, etc
+    static std::string iMergedTCStr(unsigned int iSeed, unsigned int iMergedTC);
 
     //The region string A, B, C etc for layers and disks; X, Y, Z etc for overlap
     std::string iRegStr(unsigned int iReg, unsigned int iSeed) const;
@@ -57,14 +63,20 @@ namespace trklet {
     //TC Name
     std::string TCName(unsigned int iSeed, unsigned int iTC) const;
 
+    //TC Name
+    std::string PCName(unsigned int iSeed, unsigned int iMergedTC) const;
+
     //Name of layer or disk, e.g. L1 or D1
     static std::string LayerName(unsigned int ilayer);
 
     //Tracklet projection name
     std::string TPROJName(unsigned int iSeed, unsigned int iTC, unsigned int ilayer, unsigned int ireg) const;
 
-    //Projection router name
-    std::string PRName(unsigned int ilayer, unsigned int ireg) const;
+    //Merged tracklet projection name
+    std::string MPROJName(unsigned int iSeed, unsigned int iTC, unsigned int ilayer, unsigned int ireg) const;
+
+    //MatchProcessor name
+    std::string MPName(unsigned int ilayer, unsigned int ireg) const;
 
   private:
     //
@@ -206,19 +218,11 @@ namespace trklet {
     //
     // This group of methods are used to print out the configuration as a file
     //
-    void writeProjectionMemories(std::ostream& os, std::ostream& memories, std::ostream& modules);
-
     void writeProjectionMemoriesExt(std::ostream& os, std::ostream& memories, std::ostream& modules);
 
-    void writeSPMemories(std::ostream& os, std::ostream& memories, std::ostream& modules);
+    void writeMergedProjectionMemories(std::ostream& os, std::ostream& memories, std::ostream& modules);
 
     void writeSPDMemories(std::ostream& os, std::ostream& memories, std::ostream& modules);
-
-    void writeAPMemories(std::ostream& os, std::ostream& memories, std::ostream& modules);
-
-    void writeCMMemories(std::ostream& os, std::ostream& memories, std::ostream& modules);
-
-    void writeVMPROJMemories(std::ostream& os, std::ostream& memories, std::ostream& modules);
 
     void writeFMMemories(std::ostream& os, std::ostream& memories, std::ostream& modules);
 
@@ -253,8 +257,7 @@ namespace trklet {
     unsigned int NSector_;  //Number of sectors
     double rcrit_;          //critical radius that defines the sector
 
-    bool duplicateMPs_;     //if true write configuration with MPs duplicated for L3,L4
-    bool combinedmodules_;  //if true write configuration for combined modules
+    bool duplicateMPs_;  //if true write configuration with MPs duplicated for L3,L4
 
     bool extended_;  //if true write configuration for extended configuration
 
@@ -307,6 +310,9 @@ namespace trklet {
 
     //allStub, VMStub, and projection wires for the displaced tracking
     nlohmann::ordered_json seedwires_;
+
+    //Which seeds handled by each TB
+    int tbseed_[N_TB][4] = {{0, 1, 3, 7}, {2, 4, 5, 6}};
 
     struct DTCinfo {
       std::string name;

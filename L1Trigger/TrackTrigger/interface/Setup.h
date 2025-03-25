@@ -242,8 +242,18 @@ namespace tt {
 
     // Hybrid specific parameter
 
-    // max number of layer connected to one DTC
-    double hybridNumLayers() const { return hybridNumLayers_; }
+    // cut on stub pt in GeV, also defines region overlap shape
+    double hybridMinPtStub() const { return hybridMinPtStub_; }
+    // cut on andidate pt in GeV
+    double hybridMinPtCand() const { return hybridMinPtCand_; }
+    // cut on stub eta
+    double hybridMaxEta() const { return hybridMaxEta_; }
+    // critical radius defining region overlap shape in cm
+    double hybridChosenRofPhi() const { return hybridChosenRofPhi_; }
+    // max number of detector layer connected to one DTC
+    int hybridNumLayers() const { return hybridNumLayers_; }
+    // number of bits used for stub negative disk (w.r.t. z region of detector) boolean for module types (barrelPS, barrel2S, diskPS, disk2S)
+    int hybridWidthND(SensorModule::Type type) const { return hybridWidthsND_.at(type); }
     // number of bits used for stub r w.r.t layer/disk centre for module types (barrelPS, barrel2S, diskPS, disk2S)
     int hybridWidthR(SensorModule::Type type) const { return hybridWidthsR_.at(type); }
     // number of bits used for stub z w.r.t layer/disk centre for module types (barrelPS, barrel2S, diskPS, disk2S)
@@ -558,10 +568,20 @@ namespace tt {
 
     // Hybrid specific parameter
     edm::ParameterSet pSetHybrid_;
+    // cut on stub pt in GeV, also defines region overlap shape
+    double hybridMinPtStub_;
+    // cut on andidate pt in GeV
+    double hybridMinPtCand_;
+    // cut on stub eta
+    double hybridMaxEta_;
+    // critical radius defining region overlap shape in cm
+    double hybridChosenRofPhi_;
     // max number of layers connected to one DTC
     int hybridNumLayers_;
     // number of outer PS rings for disk 1, 2, 3, 4, 5
     std::vector<int> hybridNumRingsPS_;
+    // number of bits used for stub negative disk (w.r.t. z region of detector) boolean for module types (barrelPS, barrel2S, diskPS, disk2S)
+    std::vector<int> hybridWidthsND_;
     // number of bits used for stub r w.r.t layer/disk centre for module types (barrelPS, barrel2S, diskPS, disk2S)
     std::vector<int> hybridWidthsR_;
     // number of bits used for stub z w.r.t layer/disk centre for module types (barrelPS, barrel2S, diskPS, disk2S)
