@@ -94,7 +94,7 @@ namespace trackerTFP {
     const TrackDR track(frameTrack, df);
     double trackchi2rphi(0.);
     double trackchi2rz(0.);
-    TTBV hitPattern(0, streamStub.size());
+    TTBV hitPattern(0, setup->numLayers());
     vector<TTStubRef> ttStubRefs;
     ttStubRefs.reserve(setup->numLayers());
     for (int layer = 0; layer < (int)streamStub.size(); layer++) {
@@ -106,8 +106,8 @@ namespace trackerTFP {
       ttStubRefs.push_back(frameStub.first);
       const double m20 = tq->format(VariableTQ::m20).digi(pow(stub.phi(), 2));
       const double m21 = tq->format(VariableTQ::m21).digi(pow(stub.z(), 2));
-      const double invV0 = tq->format(VariableTQ::invV0).digi(1. / pow(stub.dPhi(), 2));
-      const double invV1 = tq->format(VariableTQ::invV1).digi(1. / pow(stub.dZ(), 2));
+      const double invV0 = tq->format(VariableTQ::invV0).digi(1. / pow(2. * stub.dPhi(), 2));
+      const double invV1 = tq->format(VariableTQ::invV1).digi(1. / pow(2. * stub.dZ(), 2));
       const double stubchi2rphi = tq->format(VariableTQ::chi2rphi).digi(m20 * invV0);
       const double stubchi2rz = tq->format(VariableTQ::chi2rz).digi(m21 * invV1);
       trackchi2rphi += stubchi2rphi;
@@ -153,8 +153,11 @@ namespace trackerTFP {
     const vector<ap_fixed<10, 5>>& output = bdt.decision_function({cot, z0, chi2B, nstub, n_missint, chi2rphi, chi2rz});
     const float mva = output[0].to_float();
     // fill frame
-    TTBV ttBV = hitPattern;
-    ttBV += TTBV(tq->toBinMVA(mva), widthMVA_);
+    string hits = hitPattern.str();
+    reverse(hits.begin(), hits.end());
+    TTBV ttBV(hits);
+    //ttBV += TTBV(tq->toBinMVA(mva), widthMVA_);
+    ttBV += TTBV(0, widthMVA_);
     tq->format(VariableTQ::chi2rphi).attach(trackchi2rphi, ttBV);
     tq->format(VariableTQ::chi2rz).attach(trackchi2rz, ttBV);
     frame_ = ttBV.bs();
@@ -164,33 +167,37 @@ namespace trackerTFP {
   FormatTQ<VariableTQ::m20>::FormatTQ(const DataFormats* dataFormats, const edm::ParameterSet& iConfig)
       : DataFormat(false) {
     const Format<Variable::phi, Process::kf> phi(dataFormats->setup());
-    width_ = iConfig.getParameter<int>("WidthM20");
-    base_ = pow(phi.base(), 2) * pow(2., width_ - phi.width());
-    calcRange();
+    base_ = pow(phi.base(), 2);
+    range_ = pow(phi.range(), 2) / 4.;
+    width_ = 2 * phi.width();
   }
   template <>
   FormatTQ<VariableTQ::m21>::FormatTQ(const DataFormats* dataFormats, const edm::ParameterSet& iConfig)
       : DataFormat(false) {
     const Format<Variable::z, Process::gp> z(dataFormats->setup());
-    width_ = iConfig.getParameter<int>("WidthM21");
-    base_ = pow(z.base(), 2) * pow(2., width_ - z.width());
-    calcRange();
+    base_ = pow(z.base(), 2);
+    range_ = pow(z.range(), 2) / 4.;
+    width_ = 2 * z.width();
   }
   template <>
   FormatTQ<VariableTQ::invV0>::FormatTQ(const DataFormats* dataFormats, const edm::ParameterSet& iConfig)
       : DataFormat(false) {
     const Format<Variable::dPhi, Process::ctb> dPhi(dataFormats->setup());
     width_ = iConfig.getParameter<int>("WidthInvV0");
-    range_ = 4.0 / pow(dPhi.base(), 2);
-    calcBase();
+    range_ = 1. / pow(dPhi.base(), 2) * pow(2, width_) / (pow(2, width_) - 1);
+    base_ = pow(dPhi.base(), -2);
+    const int shift = ceil(log2(range_ / base_)) - width_;
+    base_ *= pow(2., shift);
   }
   template <>
   FormatTQ<VariableTQ::invV1>::FormatTQ(const DataFormats* dataFormats, const edm::ParameterSet& iConfig)
       : DataFormat(false) {
     const Format<Variable::dZ, Process::ctb> dZ(dataFormats->setup());
     width_ = iConfig.getParameter<int>("WidthInvV1");
-    range_ = 4.0 / pow(dZ.base(), 2);
-    calcBase();
+    range_ = 1. / pow(dZ.base(), 2) * pow(2, width_) / (pow(2, width_) - 1);
+    base_ = pow(dZ.base(), -2);
+    const int shift = ceil(log2(range_ / base_)) - width_;
+    base_ *= pow(2., shift);
   }
   template <>
   FormatTQ<VariableTQ::chi2rphi>::FormatTQ(const DataFormats* dataFormats, const edm::ParameterSet& iConfig)
