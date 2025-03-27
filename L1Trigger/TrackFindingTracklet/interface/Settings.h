@@ -446,7 +446,7 @@ namespace trklet {
     //have the factor if 2
     double krprojshiftdisk() const { return 2 * kr(); }
 
-    double benddecode(int ibend, int layerdisk, bool isPSmodule) const {
+    double benddecode(unsigned int ibend, unsigned int layerdisk, bool isPSmodule) const {
       if (layerdisk >= N_LAYER && (!isPSmodule))
         layerdisk += N_DISK;
       double bend = benddecode_[layerdisk][ibend];
@@ -454,7 +454,7 @@ namespace trklet {
       return bend;
     }
 
-    double bendcut(int ibend, int layerdisk, bool isPSmodule) const {
+    double bendcut(unsigned int ibend, unsigned int layerdisk, bool isPSmodule) const {
       if (layerdisk >= N_LAYER && (!isPSmodule))
         layerdisk += N_DISK;
       double bendcut = bendcut_[layerdisk][ibend];
