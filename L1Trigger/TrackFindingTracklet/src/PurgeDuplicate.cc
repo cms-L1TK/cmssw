@@ -245,12 +245,7 @@ void PurgeDuplicate::execute(std::vector<Track>& outputtracks, unsigned int iSec
             continue;
           }
           // If the number of tracks able to be compared is more than the number of comparison modules, continue
-          if (CM > settings_.numTracksComparedPerBin()) {
-            continue;
-          }
           for (unsigned int jtrk = itrk + 1; jtrk < numStublists; jtrk++) {
-            if (itrk >= settings_.numTracksComparedPerBin())
-              continue;
             // Get primary track stubids = (layer, unique stub index within layer)
             const std::vector<std::pair<int, int>>& stubsTrk1 = sortedinputstubidslists[itrk];
 
