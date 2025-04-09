@@ -344,6 +344,7 @@ void VMRouterCM::execute(unsigned int) {
         }
 
         int lutval = -999;
+        int stub_rbin = 0;
 
         if (inner > 0) {
           if (layerdisk_ < N_LAYER) {
@@ -351,10 +352,33 @@ void VMRouterCM::execute(unsigned int) {
           } else {
             if (inner == 2 && iseed == Seed::L2L3D1) {
               lutval = 0;
-              if (stub->rvalue() < 10) {
-                lutval = 8 * (1 + (stub->rvalue() >> 2));
+              if (stub->r().value() < 10 || (stub->r().value() > settings_.rmindiskl2overlapvm() / settings_.kr()) ) { // 2S stub, or PS above certain r
+                // from https://github.com/cms-L1TK/cmssw/blob/68ae83ab542b996d3e46317c3646e300e3602946/L1Trigger/TrackFindingTracklet/src/Stub.cc#L152
+                int NBINS = settings_.NLONGVMBINS() * settings_.NLONGVMBINS() / 2;  
+                double stub_r_approx = stub->rapprox();
+                if (stub_r_approx < settings_.rmindiskvm()) // TrackletLUT L1340, 22.5 cm
+                  stub_r_approx = settings_.rmindiskvm();
+
+                stub_rbin = NBINS * (stub_r_approx - settings_.rmindiskl2overlapvm()) / (settings_.rmaxdisk() - settings_.rmindiskl2overlapvm());
+                if (stub_rbin < 0)
+                  stub_rbin = 0;
+                if (stub_rbin >= NBINS)
+                  stub_rbin = NBINS - 1;
+
+                int value = stub_rbin / 8; //shift right by 3
+                // the positive/negative z region is taken into account within the addVMStub function
+                // https://github.com/cms-L1TK/cmssw/blob/4b3e9e1c8c0bc1d6d2509fd02f39f1510d6e5184/L1Trigger/TrackFindingTracklet/src/VMStubsTEMemory.cc#L94
+                // if (stub->zapprox() < 0.0)
+                //   value += 4;
+
+                // the *2 was needed in the LUT to include the next bin flag, but not used here
+                value *= 8; //shift left by 3
+                value += ((stub_rbin) & 7);
+                assert(value / 8 < 15);
+                lutval = value;
+                
               } else {
-                if (stub->rvalue() < settings_.rmindiskl3overlapvm() / settings_.kr()) {
+                if (stub->rvalue() < settings_.rmindiskl2overlapvm() / settings_.kr()) {
                   lutval = -1;
                 }
               }
@@ -363,11 +387,11 @@ void VMRouterCM::execute(unsigned int) {
                                        : diskTableOld_.lookup((indexzOld << nbitsrfinebintable_) + indexrOld));
               if (lutval == 0)
                 continue;
-            }
+            } // end if inner > 0 and in disk
           }
           if (lutval == -1)
             continue;
-        } else {
+        } else { // inner == 0
           if (iseed < Seed::L1D1 || iseed > Seed::L2D1) {
             lutval = innerTable_.lookup((indexzOld << nbitsrfinebintable_) + indexrOld);
           } else {
@@ -398,7 +422,7 @@ void VMRouterCM::execute(unsigned int) {
 
         int bin = -1;
         if (inner != 0) {
-          bin = binlookup.value() >> settings_.NLONGVMBITS();
+          bin = binlookup.value() >> settings_.NLONGVMBITS();  // this is the large grain bin
           unsigned int tmp = binlookup.value() & (settings_.NLONGVMBINS() - 1);  //three bits in outer layers
           binlookup.set(tmp, settings_.NLONGVMBITS(), true, __LINE__, __FILE__);
         }
