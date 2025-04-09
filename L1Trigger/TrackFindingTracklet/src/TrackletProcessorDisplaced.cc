@@ -282,7 +282,6 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
       }
 
       bool negdisk = (stub->disk().value() < 0); // check if disk in negative z region
-      bool negside = (stub->zapprox() < 0); // check if barrel stub but in negative z region
       
       // get r/z index of the middle stub
       int indexz = (((1 << (stub->z().nbits() - 1)) + stub->z().value()) >> (stub->z().nbits() - nbitszfinebintable_));
