@@ -352,7 +352,7 @@ void VMRouterCM::execute(unsigned int) {
           } else {
             if (inner == 2 && iseed == Seed::L2L3D1) {
               lutval = 0;
-              if (stub->r().value() < 10 || (stub->r().value() > settings_.rmindiskl2overlapvm() / settings_.kr()) ) { // 2S stub, or PS above certain r
+              if (stub->rvalue() < 10 || (stub->rvalue() > settings_.rmindiskl2overlapvm() / settings_.kr()) ) { // 2S stub, or PS above certain r
                 // from https://github.com/cms-L1TK/cmssw/blob/68ae83ab542b996d3e46317c3646e300e3602946/L1Trigger/TrackFindingTracklet/src/Stub.cc#L152
                 int NBINS = settings_.NLONGVMBINS() * settings_.NLONGVMBINS() / 2;  
                 double stub_r_approx = stub->rapprox();
