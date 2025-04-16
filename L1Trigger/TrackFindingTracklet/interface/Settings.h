@@ -1053,6 +1053,7 @@ namespace trklet {
     //Overlap size for the overlap phi bins in DR
     double phiOverlapSize_{M_PI / 360};
     //The maximum number of tracks that are compared to all the other tracks per rinv bin
+    //VALUE AUTOMATICALLY SET TO INFINITY FOR EXTENDED TRACKING
     int numTracksComparedPerBin_{32};
 
     double sensorSpacing_2S_{0.18};

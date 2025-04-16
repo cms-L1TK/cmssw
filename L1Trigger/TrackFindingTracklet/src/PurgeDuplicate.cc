@@ -293,6 +293,7 @@ void PurgeDuplicate::execute(std::vector<Track>& outputtracks, unsigned int iSec
             if (nShareLay >= settings_.minIndStubs()) {  // For number of shared stub merge condition
               dupMap[seedRankIdx[itrk]][seedRankIdx[jtrk]] = true;
               dupMap[seedRankIdx[jtrk]][seedRankIdx[itrk]] = true;
+              // Until extended tracking is optimized, we will keep the comparison of the displaced seeds the same which uses < and not <=
               if ((seedRank[seedRankIdx[itrk]] == 9) && (seedRank[seedRankIdx[jtrk]] == 9)) {
                 if (seedRank[seedRankIdx[itrk]] < seedRank[seedRankIdx[jtrk]]) {
                   mergedTrack[seedRankIdx[jtrk]] = true;
