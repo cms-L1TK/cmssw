@@ -352,9 +352,12 @@ void VMRouterCM::execute(unsigned int) {
           } else {
             if (inner == 2 && iseed == Seed::L2L3D1) {
               lutval = 0;
-              if (stub->rvalue() < 10 || (stub->rvalue() > settings_.rmindiskl2overlapvm() /
-                                                               settings_.kr())) {  // 2S stub, or PS above certain r
-                // from https://github.com/cms-L1TK/cmssw/blob/68ae83ab542b996d3e46317c3646e300e3602946/L1Trigger/TrackFindingTracklet/src/Stub.cc#L152
+              // Define a lutval for 2S stubs, or PS stubs above a certain radius.
+              // For 2S stubs, the actual radius is not stored, rather, an index to the ring it's returned by ->rvalue(), and
+              // there are N_DSS_MOD (5) rings per each endcap.
+              // Therefore if the index is less than 10 it means the stub is on a 2S module.
+              if (stub->rvalue() < (int)N_DSS_MOD * 2 ||
+                  (stub->rvalue() > settings_.rmindiskl2overlapvm() / settings_.kr())) {
                 int NBINS = settings_.NLONGVMBINS() * settings_.NLONGVMBINS() / 2;
                 double stub_r_approx = stub->rapprox();
                 if (stub_r_approx < settings_.rmindiskvm())  // TrackletLUT L1340, 22.5 cm
