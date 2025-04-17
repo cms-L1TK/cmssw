@@ -370,15 +370,15 @@ void VMRouterCM::execute(unsigned int) {
                 if (stub_rbin >= NBINS)
                   stub_rbin = NBINS - 1;
 
-                int value = stub_rbin / 8;  //shift right by 3
+                int value = stub_rbin / 8;  // shift right by 3: get the value for the large grain bin
                 // the positive/negative z region is taken into account within the addVMStub function
                 // https://github.com/cms-L1TK/cmssw/blob/4b3e9e1c8c0bc1d6d2509fd02f39f1510d6e5184/L1Trigger/TrackFindingTracklet/src/VMStubsTEMemory.cc#L94
                 // if (stub->zapprox() < 0.0)
                 //   value += 4;
 
                 // the *2 was needed in the LUT to include the next bin flag, but not used here
-                value *= 8;  //shift left by 3
-                value += ((stub_rbin) & 7);
+                value *= 8;                  //shift left by 3
+                value += ((stub_rbin) & 7);  // add to the lut the value of the fine grain bin (3 bits)
                 assert(value / 8 < 15);
                 lutval = value;
 
