@@ -56,7 +56,7 @@ void L1TrackNtuplePlot(TString type,
                        float TP_maxEta = 2.4,
                        float TP_maxLxy = 1.0,
                        float TP_maxD0 = 1.0,
-                       bool doDetailedPlots = true) {
+                       bool doDetailedPlots = false) {
   // type:              this is the name of the input file you want to process (minus ".root" extension)
   // type_dir:          this is the directory containing the input file you want to process. Note that this must end with a "/", as in "EventSets/"
   // TP_select_pdgid:   if non-zero, only select TPs with a given PDG ID
@@ -708,7 +708,6 @@ void L1TrackNtuplePlot(TString type,
   // total track rates
 
   TH1F* h_trk_all_vspt = new TH1F("trk_all_vspt", ";Track p_{T} [GeV]; ", 50, 0, 25);
-  TH1F* h_trk_all_vsseed = new TH1F("trk_all_vsseed", ";Track seed;", 12, 0, 12);
   TH1F* h_trk_loose_vspt = new TH1F("trk_loose_vspt", ";Track p_{T} [GeV]; ", 50, 0, 25);
   TH1F* h_trk_genuine_vspt = new TH1F("trk_genuine_vspt", ";Track p_{T} [GeV]; ", 50, 0, 25);
   TH1F* h_trk_notloose_vspt = new TH1F(
@@ -719,7 +718,6 @@ void L1TrackNtuplePlot(TString type,
                                         50,
                                         0,
                                         25);  //where a TP is genuinely matched to more than one L1 track
-  TH1F* h_trk_duplicate_vsseed = new TH1F("trk_duplicate_vsseed", "; Track seed;", 12, 0, 12);
   TH1F* h_tp_vspt = new TH1F("tp_vspt", ";TP p_{T} [GeV]; ", 50, 0, 25);
 
   // ----------------------------------------------------------------------------------------------------------------
@@ -1021,7 +1019,6 @@ void L1TrackNtuplePlot(TString type,
   // number of tracks vs. efficiency (eta, pT)
   TH1F* h_trk_pt = new TH1F("trk_pt", Form(";Track p_{T} (GeV);Tracks / 0.5 GeV"), 200, 0., 100.);
   TH1F* h_trk_eta = new TH1F("trk_eta", Form(";Track #eta;Tracks / 0.026"), 200, -2.6, 2.6);
-  TH1F* h_trk_seed = new TH1F("trk_seed", Form(";Track seed;Tracks"), 12, 0, 12);
 
   // ----------------------------------------------------------------------------------------------------------------
   //        * * * * *     S T A R T   O F   A C T U A L   R U N N I N G   O N   E V E N T S     * * * * *
@@ -1082,7 +1079,6 @@ void L1TrackNtuplePlot(TString type,
       // Fill number of tracks vs track param
       h_trk_pt->Fill(trk_pt->at(it));
       h_trk_eta->Fill(trk_eta->at(it));
-      h_trk_seed->Fill(trk_seed->at(it));
 
       // fill all trk chi2 & chi2/dof histograms, including for chi2 r-phi and chi2 r-z
       float chi2 = trk_chi2->at(it);
@@ -1161,7 +1157,6 @@ void L1TrackNtuplePlot(TString type,
         ntrk_pt2++;
         ntrkevt_pt2++;
         h_trk_all_vspt->Fill(trk_pt->at(it));
-        h_trk_all_vsseed->Fill(trk_seed->at(it));
         if (trk_genuine->at(it) == 1) {
           ntrk_genuine_pt2++;
           ntrkevt_genuine_pt2++;
@@ -1266,7 +1261,6 @@ void L1TrackNtuplePlot(TString type,
             for (int inm = 1; inm < tp_nmatch->at(it); inm++) {  // N.B. Loop doesn't start at zero.
               ntp_nmatch++;
               h_trk_duplicate_vspt->Fill(matchtrk_pt->at(it));
-              h_trk_duplicate_vsseed->Fill(matchtrk_seed->at(it));
             }
           }
         }
@@ -3430,13 +3424,11 @@ void L1TrackNtuplePlot(TString type,
   // "fake rates"
 
   h_trk_all_vspt->Sumw2();
-  h_trk_all_vsseed->Sumw2();
   h_trk_loose_vspt->Sumw2();
   h_trk_genuine_vspt->Sumw2();
   h_trk_notloose_vspt->Sumw2();
   h_trk_notgenuine_vspt->Sumw2();
   h_trk_duplicate_vspt->Sumw2();
-  h_trk_duplicate_vsseed->Sumw2();
   h_tp_vspt->Sumw2();
 
   // fraction of not genuine tracks
@@ -3468,15 +3460,6 @@ void L1TrackNtuplePlot(TString type,
   h_duplicatefrac_pt->Write();
   h_duplicatefrac_pt->Draw();
   c.SaveAs(DIR + type + "_duplicatefrac.pdf");
-
-  TH1F* h_duplicatefrac_seed = (TH1F*)h_trk_duplicate_vsseed->Clone();
-  h_duplicatefrac_seed->SetName("duplicatefrac_seed");
-  h_duplicatefrac_seed->GetYaxis()->SetTitle("Duplicate fraction");
-  h_duplicatefrac_seed->Divide(h_trk_duplicate_vsseed, h_trk_all_vsseed, 1.0, 1.0, "B");
-
-  h_duplicatefrac_seed->Write();
-  h_duplicatefrac_seed->Draw();
-  c.SaveAs(DIR + type + "_duplicatefrac_seed.pdf");
 
   // ---------------------------------------------------------------------------------------------------------
   // total track rates vs pt
@@ -3649,14 +3632,11 @@ void L1TrackNtuplePlot(TString type,
   if (doDetailedPlots) {
     h_trk_eta->Write();
     h_trk_pt->Write();
-    h_trk_seed->Write();
 
     h_trk_eta->Draw();
     c.SaveAs(DIR + type + "_trk_eta.pdf");
     h_trk_pt->Draw();
     c.SaveAs(DIR + type + "_trk_pt.pdf");
-    h_trk_seed->Draw();
-    c.SaveAs(DIR + type + "_trk_seed.pdf");
   }
 
   // Sample z0 resolution at a couple of rapidity points.
