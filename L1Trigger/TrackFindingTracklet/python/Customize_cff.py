@@ -24,6 +24,7 @@ def reducedConfig(process):
   # TO DO: Eliminate cfg param IRChannelsIn by taking this info from Tracklet wiring map.
   process.ChannelAssignment.IRChannelsIn = cms.vint32( 0, 1, 25, 2, 26, 4, 5, 29, 6, 30, 7, 31, 8, 9, 33 )
   process.l1tTTTracksFromTrackletEmulation.Reduced = True
+  process.l1tTTTracksFromTrackletEmulation.DoMultipleMatches = False
   process.l1tTTTracksFromTrackletEmulation.memoryModulesFile = 'L1Trigger/TrackFindingTracklet/data/memorymodules_reduced.dat'
   process.l1tTTTracksFromTrackletEmulation.processingModulesFile = 'L1Trigger/TrackFindingTracklet/data/processingmodules_reduced.dat'
   process.l1tTTTracksFromTrackletEmulation.wiresFile = 'L1Trigger/TrackFindingTracklet/data/wires_reduced.dat'
