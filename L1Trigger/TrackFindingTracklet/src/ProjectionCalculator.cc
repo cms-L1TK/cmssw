@@ -359,7 +359,7 @@ void ProjectionCalculator::execute() {
                     edm::LogVerbatim("Tracklet") << "No projection memory exists in " << getName()
                                                  << " for layer = " << layerdisk + 1 << " iphi = " << iphi + 1;
                   }
-                  return;
+                  continue;
                 }
                 assert(!outputproj_[layerdisk][iphi].empty());
 
@@ -384,7 +384,7 @@ void ProjectionCalculator::execute() {
                     edm::LogVerbatim("Tracklet") << "No projection memory exists in " << getName()
                                                  << " for disk = " << layerdisk - N_LAYER + 1 << " iphi = " << iphi + 1;
                   }
-                  return;
+                  continue;
                 }
                 assert(!outputproj_[layerdisk][iphi].empty());
 
