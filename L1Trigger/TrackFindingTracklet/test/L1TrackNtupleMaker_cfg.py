@@ -23,7 +23,7 @@ GEOMETRY = "D98"
 # 'HYBRID_NEWKF' (baseline, 4par fit, with bit-accurate KF emulation),
 # 'HYBRID_REDUCED' to use the "L5L6" seeding only reduced configuration.
 # (Or legacy algos 'TMTT' or 'TRACKLET').
-L1TRKALGO = 'HYBRID'
+L1TRKALGO = 'HYBRID_NEWKF_DISPLACED'
 
 WRITE_DATA = False
 
@@ -168,7 +168,7 @@ elif (L1TRKALGO == 'HYBRID_DISPLACED'):
     L1TRUTH_NAME = "TTTrackAssociatorFromPixelDigisExtended"
 
 # HYBRID_NEWKF: prompt tracking or reduced
-elif (L1TRKALGO == 'HYBRID_NEWKF' or L1TRKALGO == 'HYBRID_REDUCED'):
+elif (L1TRKALGO == 'HYBRID_NEWKF' or L1TRKALGO == 'HYBRID_REDUCED' or L1TRKALGO == 'HYBRID_NEWKF_DISPLACED'):
     process.load( 'L1Trigger.TrackFindingTracklet.Producer_cff' )
     process.load( 'L1Trigger.TrackFindingTracklet.Analyzer_cff' )
     NHELIXPAR = 4
@@ -185,8 +185,13 @@ elif (L1TRKALGO == 'HYBRID_NEWKF' or L1TRKALGO == 'HYBRID_REDUCED'):
     from L1Trigger.TrackFindingTracklet.Customize_cff import *
     if (L1TRKALGO == 'HYBRID_NEWKF'):
         fwConfig( process )
+    if (L1TRKALGO == 'HYBRID_NEWKF_DISPLACED'):
+        customize_HYBRID_NEWKF_DISPLACED(process)     
     if (L1TRKALGO == 'HYBRID_REDUCED'):
         reducedConfig( process )
+       
+
+
     # Needed by L1TrackNtupleMaker
     process.HitPatternHelperSetup.useNewKF = True
 

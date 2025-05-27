@@ -72,3 +72,9 @@ def oldKFConfig(process):
   process.ProducerKF.TrackFitSettings.KalmanHOalpha           = 0
   process.ProducerKF.TrackFitSettings.KalmanHOhelixExp        = True
   process.ProducerKF.TrackFitSettings.KalmanDebugLevel        = 0
+
+def customize_HYBRID_NEWKF_DISPLACED(process):
+    print('Applying HYBRID_NEWKF_DISPLACED customization')
+    process.ProducerKF.use5parfit = cms.bool(True)
+    process.ProducerTM.ChannelAssignment = cms.string('HYBRID_DISPLACED')
+    return process
