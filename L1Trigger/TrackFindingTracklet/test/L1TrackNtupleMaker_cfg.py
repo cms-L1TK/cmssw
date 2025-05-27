@@ -21,9 +21,10 @@ GEOMETRY = "D98"
 # Set L1 tracking algorithm:
 # 'HYBRID' (baseline, 4par fit) or 'HYBRID_DISPLACED' (extended, 5par fit).
 # 'HYBRID_NEWKF' (baseline, 4par fit, with bit-accurate KF emulation),
+# 'HYBRID_NEWKF_DISPLACED' (bit-accurate KF emulation with HYBRID_DISPLACED channel assignment, 5par fit)
 # 'HYBRID_REDUCED' to use the "L5L6" seeding only reduced configuration.
 # (Or legacy algos 'TMTT' or 'TRACKLET').
-L1TRKALGO = 'HYBRID_NEWKF_DISPLACED'
+L1TRKALGO = 'HYBRID'
 
 WRITE_DATA = False
 
@@ -168,6 +169,7 @@ elif (L1TRKALGO == 'HYBRID_DISPLACED'):
     L1TRUTH_NAME = "TTTrackAssociatorFromPixelDigisExtended"
 
 # HYBRID_NEWKF: prompt tracking or reduced
+# HYBRID_NEWKF_DISPLACED: 5par fit and uses HYBRID_DISPLACED channel assignment
 elif (L1TRKALGO == 'HYBRID_NEWKF' or L1TRKALGO == 'HYBRID_REDUCED' or L1TRKALGO == 'HYBRID_NEWKF_DISPLACED'):
     process.load( 'L1Trigger.TrackFindingTracklet.Producer_cff' )
     process.load( 'L1Trigger.TrackFindingTracklet.Analyzer_cff' )
