@@ -42,15 +42,15 @@ namespace trklet {
   private:
     //
     void convert(const Event& iEvent,
-                const EDGetTokenT<StreamsTrack>& tokenTracks,
-                const EDGetTokenT<StreamsStub>& tokenStubs,
-                vector<vector<Frame>>& bits,
-                bool TB = false) const;
+                 const EDGetTokenT<StreamsTrack>& tokenTracks,
+                 const EDGetTokenT<StreamsStub>& tokenStubs,
+                 vector<vector<Frame>>& bits,
+                 bool TB = false) const;
     //
     void convert(const Event& iEvent,
-                const EDGetTokenT<StreamsTrack>& tokenTracks,
-                const EDGetTokenT<Streams>& tokenQuality,
-                vector<vector<Frame>>& bits) const;
+                 const EDGetTokenT<StreamsTrack>& tokenTracks,
+                 const EDGetTokenT<Streams>& tokenQuality,
+                 vector<vector<Frame>>& bits) const;
     //
     template <typename T>
     void convert(const T& collection, vector<vector<Frame>>& bits) const;
@@ -98,7 +98,7 @@ namespace trklet {
     if (labelOut != "ProducerIRin")
       edGetTokenTracksOut_ = consumes<StreamsTrack>(InputTag(labelOut, branchTracks));
     edGetTokenQuality_ = consumes<Streams>(InputTag("ProducerTQ", branchTracks));
-      // book ES products
+    // book ES products
     esGetTokenSetup_ = esConsumes<Setup, SetupRcd, Transition::BeginRun>();
     esGetTokenChannelAssignment_ = esConsumes<ChannelAssignment, ChannelAssignmentRcd, Transition::BeginRun>();
     esGetTokenDemonstrator_ = esConsumes<Demonstrator, DemonstratorRcd, Transition::BeginRun>();
@@ -128,7 +128,7 @@ namespace trklet {
       convert(iEvent, edGetTokenTracksIn_, edGetTokenStubsIn_, input, TBin_);
     if (TQout_)
       convert(iEvent, edGetTokenTracksOut_, edGetTokenQuality_, output);
-      else
+    else
       convert(iEvent, edGetTokenTracksOut_, edGetTokenStubsOut_, output, TBout_);
     if (demonstrator_->analyze(input, output))
       nEventsSuccessful_++;
