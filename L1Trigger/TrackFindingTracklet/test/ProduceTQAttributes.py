@@ -50,13 +50,7 @@ process.GlobalTag = GlobalTag(process.GlobalTag, '133X_mcRun4_realistic_v1', '')
 # input and output
 ############################################################
 
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(100))
-
-#--- To use MCsamples scripts, defining functions get*data*() for easy MC access,
-#--- follow instructions in https://github.com/cms-L1TK/MCsamples
-
-#from MCsamples.Scripts.getCMSdata_cfi import *
-#from MCsamples.Scripts.getCMSlocaldata_cfi import *
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(1))
 
 inputMC = ["/store/relval/CMSSW_14_0_0_pre2/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU_133X_mcRun4_realistic_v1_STD_2026D98_PU200_RV229-v1/2580000/0b2b0b0b-f312-48a8-9d46-ccbadc69bbfd.root"]
 
@@ -99,22 +93,35 @@ process.dtc = cms.Path(process.StubAssociator + process.ProducerDTC + process.An
 # L1 tracking
 ############################################################
 
-process.load("L1Trigger.TrackFindingTracklet.L1HybridEmulationTracks_cff")
-
-process.load( 'L1Trigger.TrackFindingTracklet.Producer_cff' )
-process.load( 'L1Trigger.TrackFindingTracklet.Analyzer_cff' )
-NHELIXPAR = 4
+process.load ("L1Trigger.TrackFindingTracklet.L1HybridEmulationTracks_cff")
+process.load ('L1Trigger.TrackFindingTracklet.Producer_cff')
+process.load ('L1Trigger.TrackFindingTracklet.Analyzer_cff')
 L1TRK_NAME  = process.TrackFindingTrackletAnalyzer_params.OutputLabelTFP.value()
 L1TRK_LABEL = process.TrackFindingTrackletProducer_params.BranchTTTracks.value()
 L1TRUTH_NAME = "TTTrackAssociatorFromPixelDigis"
-process.TTTrackAssociatorFromPixelDigis.TTTracks = cms.VInputTag( cms.InputTag(L1TRK_NAME, L1TRK_LABEL) )
-process.HybridNewKF = cms.Sequence(process.L1THybridTracks + process.ProducerTM + process.ProducerDR + process.ProducerKF + process.ProducerTQ + process.ProducerTFP)
+
+process.TTTrackAssociatorFromPixelDigis.TTTracks = cms.VInputTag(cms.InputTag(L1TRK_NAME, L1TRK_LABEL))
+process.HybridNewKF = cms.Sequence( process.L1THybridTracks + 
+                                    process.ProducerTM      + 
+                                    process.ProducerDR      + 
+                                    process.ProducerKF      + 
+                                    process.ProducerTQ      + 
+                                    process.ProducerTFP)
+
 process.TTTracksEmulation = cms.Path(process.HybridNewKF)
-#process.TTTracksEmulationWithTruth = cms.Path(process.HybridNewKF +  process.TrackTriggerAssociatorTracks)
-# Optionally include code producing performance plots & end-of-job summary.
-process.load( 'SimTracker.TrackTriggerAssociation.StubAssociator_cff' )
-process.TTTracksEmulationWithTruth = cms.Path(process.HybridNewKF +  process.TrackTriggerAssociatorTracks + process.StubAssociator +  process.AnalyzerTracklet + process.AnalyzerTM + process.AnalyzerDR + process.AnalyzerKF + process.AnalyzerTQ + process.AnalyzerTFP )
+
+process.load('SimTracker.TrackTriggerAssociation.StubAssociator_cff')
+process.TTTracksEmulationWithTruth = cms.Path( process.HybridNewKF                   +  
+                                               process.TrackTriggerAssociatorTracks  + 
+                                               process.StubAssociator                +  
+                                               process.AnalyzerTracklet              + 
+                                               process.AnalyzerTM                    + 
+                                               process.AnalyzerDR                    + 
+                                               process.AnalyzerKF                    + 
+                                               process.AnalyzerTQ                    + 
+                                               process.AnalyzerTFP)
+
 from L1Trigger.TrackFindingTracklet.Customize_cff import *
-fwConfig( process )
+fwConfig(process)
 # Needed by L1TrackNtupleMaker
 process.HitPatternHelperSetup.useNewKF = True
