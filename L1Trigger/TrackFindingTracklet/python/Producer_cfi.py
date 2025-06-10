@@ -19,6 +19,6 @@ TrackFindingTrackletProducer_params = cms.PSet (
   UseTTStubParameters      = cms.bool  ( True  ),                              # track parameter are recalculated from seed TTStub positions
   ApplyNonLinearCorrection = cms.bool  ( True  ),                              # 
   Use5ParameterFit         = cms.bool  ( False ),                              # double precision simulation of 5 parameter fit instead of bit accurate emulation of 4 parameter fit
-  UseKFsimmulation         = cms.bool  ( False )                               # simulate KF instead of emulate
-
+  UseKFsimmulation         = cms.bool  ( False ),                              # simulate KF instead of emulate
+  ProduceAttributeFile     = cms.bool  ( True )
 )

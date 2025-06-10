@@ -75,7 +75,8 @@ namespace trackerTFP {
     TrackQuality(const edm::ParameterSet& iConfig, const DataFormats* dataFormats);
     ~TrackQuality() {}
     // object to represent tracks
-    struct Track {
+    struct Track 
+    {
       Track(const tt::FrameTrack& frameTrack, const tt::StreamStub& streamStub, const TrackQuality* tq);
       // track frame
       tt::FrameTrack frameTrack_;
@@ -83,6 +84,9 @@ namespace trackerTFP {
       tt::Frame frame_;
       // collection of stubs forming track
       tt::StreamStub streamStub_;
+
+      double a_cot, a_z0, a_chi2rz, a_chi2rphi, a_chi2bend, a_nlay_miss, a_nstub;
+      bool track_label;
     };
     // provides dataformats
     const DataFormats* dataFormats() const { return dataFormats_; }
