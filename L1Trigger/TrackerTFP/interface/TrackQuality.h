@@ -63,7 +63,7 @@ namespace trackerTFP {
   FormatTQ<VariableTQ::chi2rz>::FormatTQ(const DataFormats* dataFormats, const edm::ParameterSet& iConfig);
 
   /*! \class  trackerTFP::TrackQuality
-   *  \brief  Bit accurate emulation of the track quality BDT
+   *  \brief  Bit accurate emulation of the track quality BDT including calculation of chi2s.
    *  \author C.Brown
    *  \date   28/07/20
    *  \update 2024, June by Claire Savard
