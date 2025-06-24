@@ -47,14 +47,21 @@ namespace trklet {
                  vector<vector<Frame>>& bits,
                  bool TB = false) const;
     //
+    void convert(const Event& iEvent,
+                 const EDGetTokenT<StreamsTrack>& tokenTracks,
+                 const EDGetTokenT<Streams>& tokenQuality,
+                 vector<vector<Frame>>& bits) const;
+    //
     template <typename T>
     void convert(const T& collection, vector<vector<Frame>>& bits) const;
-    // ED input token of Tracks
+    // ED input token of Stubs
     EDGetTokenT<StreamsStub> edGetTokenStubsIn_;
     EDGetTokenT<StreamsStub> edGetTokenStubsOut_;
-    // ED input token of Stubs
+    // ED input token of Tracks
     EDGetTokenT<StreamsTrack> edGetTokenTracksIn_;
     EDGetTokenT<StreamsTrack> edGetTokenTracksOut_;
+    // ED input token of quality
+    EDGetTokenT<Streams> edGetTokenQuality_;
     // Setup token
     ESGetToken<Setup, SetupRcd> esGetTokenSetup_;
     // ChannelAssignment token
@@ -74,6 +81,8 @@ namespace trklet {
     //
     bool TBin_;
     bool TBout_;
+    bool TQin_;
+    bool TQout_;
   };
 
   AnalyzerDemonstrator::AnalyzerDemonstrator(const ParameterSet& iConfig) {
@@ -88,6 +97,7 @@ namespace trklet {
       edGetTokenTracksIn_ = consumes<StreamsTrack>(InputTag(labelIn, branchTracks));
     if (labelOut != "ProducerIRin")
       edGetTokenTracksOut_ = consumes<StreamsTrack>(InputTag(labelOut, branchTracks));
+    edGetTokenQuality_ = consumes<Streams>(InputTag("ProducerTQ", branchTracks));
     // book ES products
     esGetTokenSetup_ = esConsumes<Setup, SetupRcd, Transition::BeginRun>();
     esGetTokenChannelAssignment_ = esConsumes<ChannelAssignment, ChannelAssignmentRcd, Transition::BeginRun>();
@@ -95,6 +105,8 @@ namespace trklet {
     //
     TBin_ = labelIn == "l1tTTTracksFromTrackletEmulation";
     TBout_ = labelOut == "l1tTTTracksFromTrackletEmulation";
+    TQin_ = labelIn == "ProducerTQ";
+    TQout_ = labelOut == "ProducerTQ";
   }
 
   void AnalyzerDemonstrator::beginRun(const Run& iEvent, const EventSetup& iSetup) {
@@ -110,8 +122,14 @@ namespace trklet {
     nEvents_++;
     vector<vector<Frame>> input;
     vector<vector<Frame>> output;
-    convert(iEvent, edGetTokenTracksIn_, edGetTokenStubsIn_, input, TBin_);
-    convert(iEvent, edGetTokenTracksOut_, edGetTokenStubsOut_, output, TBout_);
+    if (TQin_)
+      convert(iEvent, edGetTokenTracksIn_, edGetTokenQuality_, input);
+    else
+      convert(iEvent, edGetTokenTracksIn_, edGetTokenStubsIn_, input, TBin_);
+    if (TQout_)
+      convert(iEvent, edGetTokenTracksOut_, edGetTokenQuality_, output);
+    else
+      convert(iEvent, edGetTokenTracksOut_, edGetTokenStubsOut_, output, TBout_);
     if (demonstrator_->analyze(input, output))
       nEventsSuccessful_++;
   }
@@ -163,6 +181,22 @@ namespace trklet {
         for (int channelStubs = 0; channelStubs < numChannelStubs; channelStubs++)
           convert(handleStubs->at(offsetStubs + channelStubs), bits);
       }
+    }
+  }
+
+  //
+  void AnalyzerDemonstrator::convert(const Event& iEvent,
+                                     const EDGetTokenT<StreamsTrack>& tokenTracks,
+                                     const EDGetTokenT<Streams>& tokenQuality,
+                                     vector<vector<Frame>>& bits) const {
+    const StreamsTrack& tracks = iEvent.get(tokenTracks);
+    const Streams& quality = iEvent.get(tokenQuality);
+    bits.reserve(2);
+    for (int region = 0; region < setup_->numRegions(); region++) {
+      convert(tracks[region], bits);
+      bits.emplace_back();
+      vector<Frame>& bvs = bits.back();
+      bvs = quality[region];
     }
   }
 
