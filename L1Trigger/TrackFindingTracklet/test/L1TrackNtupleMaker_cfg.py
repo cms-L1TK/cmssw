@@ -21,6 +21,7 @@ GEOMETRY = "D98"
 # Set L1 tracking algorithm:
 # 'HYBRID' (baseline, 4par fit) or 'HYBRID_DISPLACED' (extended, 5par fit).
 # 'HYBRID_NEWKF' (baseline, 4par fit, with bit-accurate KF emulation),
+# 'HYBRID_NEWKF_DISPLACED' is extended 5par fit with bit-accurate KF emulation, still under development
 # 'HYBRID_REDUCED' to use the "L5L6" seeding only reduced configuration.
 # (Or legacy algos 'TMTT' or 'TRACKLET').
 L1TRKALGO = 'HYBRID'
@@ -188,6 +189,50 @@ elif (L1TRKALGO == 'HYBRID_NEWKF' or L1TRKALGO == 'HYBRID_REDUCED'):
     if (L1TRKALGO == 'HYBRID_REDUCED'):
         reducedConfig( process )
     # Needed by L1TrackNtupleMaker
+    process.HitPatternHelperSetup.useNewKF = True
+
+# HYBRID_NEWKF_DISPLACED
+elif (L1TRKALGO == 'HYBRID_NEWKF_DISPLACED'):
+    process.load('L1Trigger.TrackFindingTracklet.Producer_cff')
+    process.load('L1Trigger.TrackFindingTracklet.Analyzer_cff')
+
+    NHELIXPAR = 5
+    L1TRK_NAME  = process.TrackFindingTrackletAnalyzer_params.OutputLabelTFP.value()
+    L1TRK_LABEL = process.TrackFindingTrackletProducer_params.BranchTTTracks.value()
+    L1TRUTH_NAME = "TTTrackAssociatorFromPixelDigisExtended"
+
+    process.ProducerTM.InputLabelTM = cms.string("l1tTTTracksFromExtendedTrackletEmulation")
+
+    process.AnalyzerTM.InputTag = cms.InputTag("l1tTTTracksFromExtendedTrackletEmulation", "Level1TTTracks")
+    process.TTTrackAssociatorFromPixelDigisExtended.TTTracks = cms.VInputTag(cms.InputTag(L1TRK_NAME, L1TRK_LABEL))
+
+    process.HybridNewKFDisplaced = cms.Sequence(
+        process.L1TExtendedHybridTracks + 
+        process.ProducerTM + 
+        process.ProducerDR + 
+        process.ProducerKF + 
+        process.ProducerTQ + 
+        process.ProducerTFP
+    )
+
+    process.TTTracksEmulation = cms.Path(process.HybridNewKFDisplaced)
+
+    process.load('SimTracker.TrackTriggerAssociation.StubAssociator_cff')
+    process.TTTracksEmulationWithTruth = cms.Path(
+        process.HybridNewKFDisplaced +
+        process.TrackTriggerAssociatorTracks +
+        process.StubAssociator +
+        process.AnalyzerTracklet + 
+        process.AnalyzerTM + 
+        process.AnalyzerDR + 
+        process.AnalyzerKF + 
+        process.AnalyzerTQ + 
+        process.AnalyzerTFP
+    )
+
+    from L1Trigger.TrackFindingTracklet.Customize_cff import *
+    fwConfigDisp(process)
+
     process.HitPatternHelperSetup.useNewKF = True
 
 # LEGACY ALGORITHM (EXPERTS ONLY): TRACKLET
