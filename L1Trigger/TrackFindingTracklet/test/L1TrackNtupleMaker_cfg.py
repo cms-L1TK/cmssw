@@ -23,7 +23,7 @@ GEOMETRY = "D98"
 # 'HYBRID_NEWKF' (baseline, 4par fit, with bit-accurate KF emulation),
 # 'HYBRID_REDUCED' to use the "L5L6" seeding only reduced configuration.
 # 'HYBRID_DISPLACED_NEWKF_KILL' displaced tracklet followed by DR emulation and 5 param fit sim
-# 'HYBRID_DISPLACED_NEWKF_MERGE' displaced tracklet followed by 5 param fit sim
+# 'HYBRID_DISPLACED_NEWKF_MERGE' displaced tracklet followed by DR simulation and 5 param fit sim
 # (Or legacy algos 'TMTT' or 'TRACKLET').
 L1TRKALGO = 'HYBRID'
 
