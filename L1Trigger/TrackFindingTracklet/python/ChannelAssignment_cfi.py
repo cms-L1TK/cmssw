@@ -20,6 +20,21 @@ ChannelAssignment_params = cms.PSet (
     MinIdenticalStubs    = cms.int32(  3 )  # min number of shared stubs to identify duplicates
   ),
 
+  # TQ parameter
+  TQ = cms.PSet (
+    WidthChi21        = cms.int32(  20 ), # Number of bits used to represent chi2rphi
+    WidthChi20        = cms.int32(  20 ), # Number of bits used to represent chi2rz
+    BaseShiftChi21    = cms.int32( -10 ), # Base of chi2rphi gets shifted by that power of 2 w.r.t 1
+    BaseShiftChi20    = cms.int32( -10 ), # Base of chi2rz gets shifted by that power of 2 w.r.t 1
+    WidthInvV0        = cms.int32(  16 ), # Number of bits used for looked up inverse phi uncertainty squared
+    WidthInvV1        = cms.int32(  16 ), # Number of bits used for looked up inverse z uncertainty squared
+    WidthBDTchi20     = cms.int32(   6 ), # Number of bits used to represent chi2rphi used by BDT
+    WidthBDTchi21     = cms.int32(   6 ), # Number of bits used to represent chi2rz used by BDT
+    BaseShiftBDTchi20 = cms.int32(  -4 ), # Base of chi2rphi gets shifted by that power of 2 w.r.t 1 used by BDT
+    BaseShiftBDTchi21 = cms.int32(  -4 ), # Base of chi2rz gets shifted by that power of 2 w.r.t 1 used by BDT
+    WidthMVA          = cms.int32(   3 )  # number of bits used for mva
+  ),
+
   SeedTypes = cms.vstring( "L1L2", "L2L3", "L3L4", "L5L6", "D1D2", "D3D4", "L1D1", "L2D1" ), # seed types used in tracklet algorithm (position gives int value)
 
   SeedTypesSeedLayers = cms.PSet (      # seeding layers of seed types using default layer id [barrel: 1-6, discs: 11-15]

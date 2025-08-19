@@ -39,6 +39,18 @@ namespace trklet {
     const edm::ParameterSet& pSetDR = iConfig.getParameter<edm::ParameterSet>("DR");
     iConfig_.numComparisonModules_ = pSetDR.getParameter<int>("NumComparisonModules");
     iConfig_.minIdenticalStubs_ = pSetDR.getParameter<int>("MinIdenticalStubs");
+    const edm::ParameterSet& pSetTQ = iConfig.getParameter<edm::ParameterSet>("TQ");
+    iConfig_.tqWidthChi20_ = pSetTQ.getParameter<int>("WidthChi20");
+    iConfig_.tqWidthChi21_ = pSetTQ.getParameter<int>("WidthChi21");
+    iConfig_.tqBaseShiftChi20_ = pSetTQ.getParameter<int>("BaseShiftChi20");
+    iConfig_.tqBaseShiftChi21_ = pSetTQ.getParameter<int>("BaseShiftChi21");
+    iConfig_.tqWidthInvV0_ = pSetTQ.getParameter<int>("WidthInvV0"),
+    iConfig_.tqWidthInvV1_ = pSetTQ.getParameter<int>("WidthInvV1"),
+    iConfig_.tqWidthBDTchi20_ = pSetTQ.getParameter<int>("WidthBDTchi20"),
+    iConfig_.tqWidthBDTchi21_ = pSetTQ.getParameter<int>("WidthBDTchi21"),
+    iConfig_.tqBaseShiftBDTchi20_ = pSetTQ.getParameter<int>("BaseShiftBDTchi20"),
+    iConfig_.tqBaseShiftBDTchi21_ = pSetTQ.getParameter<int>("BaseShiftBDTchi21"),
+    iConfig_.tqWidthMVA_ = pSetTQ.getParameter<int>("WidthMVA"),
     iConfig_.tmMuxOrderInt_.reserve(iConfig_.tmMuxOrder_.size());
     for (const std::string& s : iConfig_.tmMuxOrder_)
       iConfig_.tmMuxOrderInt_.push_back(std::distance(

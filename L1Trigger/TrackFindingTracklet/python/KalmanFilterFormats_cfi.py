@@ -2,7 +2,7 @@ import FWCore.ParameterSet.Config as cms
 
 HybridKalmanFilterFormats_params = cms.PSet (
 
-  EnableIntegerEmulation = cms.bool( True ), # enables emulation of integer calculations
+  EnableIntegerEmulation = cms.bool( False ), # enables emulation of integer calculations
 
   WidthR00 = cms.int32( 20 ), # number of bits used to represent R00
   WidthR11 = cms.int32( 20 ), # number of bits used to represent R11
@@ -29,7 +29,7 @@ HybridKalmanFilterFormats_params = cms.PSet (
 
   BaseShiftS00          = cms.int32(  -4 ), # precision difference in powers of 2 between S00 and inv2R x phiT
   BaseShiftS01          = cms.int32( -12 ), # precision difference in powers of 2 between S01 and phiT x phiT
-  BaseShiftS12          = cms.int32(   0 ), # precision difference in powers of 2 between S12 and cotTheta x zT
+  BaseShiftS12          = cms.int32(   1 ), # precision difference in powers of 2 between S12 and cotTheta x zT
   BaseShiftS13          = cms.int32(  -1 ), # precision difference in powers of 2 between S13 and zT x zT
 
   BaseShiftR00          = cms.int32(  -5 ), # precision difference in powers of 2 between R00 and phiT x phiT

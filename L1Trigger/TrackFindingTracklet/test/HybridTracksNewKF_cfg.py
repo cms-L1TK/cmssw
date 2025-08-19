@@ -21,8 +21,12 @@ process.load( 'L1Trigger.TrackTrigger.TrackTrigger_cff' )
 from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:phase2_realistic', '')
 
+# load code that provides cleaned cluster to TP association
+process.load( 'SimTracker.TrackTriggerAssociation.Cleaner_cff' )
 # load code that associates stubs with mctruth
 process.load( 'SimTracker.TrackTriggerAssociation.StubAssociator_cff' )
+# load code that analyzes mc truth
+process.load( 'L1Trigger.TrackTrigger.AnalyzerMC_cff' )
 # load code that produces DTCStubs
 process.load( 'L1Trigger.TrackerDTC.DTC_cff' )
 # load code that analyzes DTCStubs
@@ -39,13 +43,13 @@ oldKFConfig( process )
 process.l1tTTTracksFromTrackletEmulation.readMoreMcTruth = False
 
 # build schedule
-process.mc       = cms.Sequence( process.StubAssociator                             )
+process.mc       = cms.Sequence( process.Cleaner + process.StubAssociator + process.AnalyzerMC )
 process.dtc      = cms.Sequence( process.ProducerDTC     + process.AnalyzerDTC      )
 process.tracklet = cms.Sequence( process.L1THybridTracks + process.AnalyzerTracklet )
 process.tm       = cms.Sequence( process.ProducerTM      + process.AnalyzerTM       )
 process.dr       = cms.Sequence( process.ProducerDR      + process.AnalyzerDR       )
 process.kf       = cms.Sequence( process.ProducerKF      + process.AnalyzerKF       )
-process.tq       = cms.Sequence( process.ProducerTQ      + process.AnalyzerTQ       )
+process.tq       = cms.Sequence( process.ProducerTQ      )#+ process.AnalyzerTQ       )
 process.tfp      = cms.Sequence( process.ProducerTFP     + process.AnalyzerTFP      )
 process.tt       = cms.Path( process.mc + process.dtc + process.tracklet + process.tm + process.dr + process.kf + process.tq + process.tfp )
 process.schedule = cms.Schedule( process.tt )
@@ -59,6 +63,7 @@ options = VarParsing.VarParsing( 'analysis' )
 #from MCsamples.RelVal_1260_D88.PU200_TTbar_14TeV_cfi import *
 #inputMC = getCMSdataFromCards()
 Samples = ["/store/mc/Phase2Spring24DIGIRECOMiniAOD/TT_TuneCP5_14TeV-powheg-pythia8/GEN-SIM-DIGI-RAW-MINIAOD/PU200_Trk1GeV_140X_mcRun4_realistic_v4-v2/130000/00c7f40e-b44e-4eea-a86b-def8f7d82b0e.root"]
+#Samples = ["/store/trimmed.root"]
 options.register( 'inputMC', Samples, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.string, "Files to be processed" )
 # specify number of events to process.
 options.register( 'Events',100,VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.int, "Number of Events to analyze" )

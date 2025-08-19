@@ -29,6 +29,10 @@ TrackQuality_params = cms.PSet(
   Widthchi2rphi     = cms.int32(     20 ), # Number of bits used to represent chi2rphi
   Widthchi2rz       = cms.int32(     20 ), # Number of bits used to represent chi2rz
   BaseShiftchi2rphi = cms.int32(    -10 ), # Base of chi2rphi gets shifted by that power of 2 w.r.t 1
-  BaseShiftchi2rz   = cms.int32(    -10 )  # Base of chi2rz gets shifted by that power of 2 w.r.t 1
+  BaseShiftchi2rz   = cms.int32(    -10 ), # Base of chi2rz gets shifted by that power of 2 w.r.t 1
+  WidthBDTchi20     = cms.int32(      6 ), # Number of bits used to represent chi2rphi used by BDT
+  WidthBDTchi21     = cms.int32(      6 ), # Number of bits used to represent chi2rz used by BDT
+  BaseShiftBDTchi20 = cms.int32(     -4 ), # Base of chi2rphi gets shifted by that power of 2 w.r.t 1 used by BDT
+  BaseShiftBDTchi21 = cms.int32(     -4 )  # Base of chi2rz gets shifted by that power of 2 w.r.t 1 used by BDT
 
 )

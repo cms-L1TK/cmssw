@@ -20,7 +20,6 @@ namespace trackerTFP {
       auto cc = setWhatProduced(this);
       esGetToken_ = cc.consumes();
       iConfig_.model_ = iConfig.getParameter<edm::FileInPath>("Model");
-      iConfig_.featureNames_ = iConfig.getParameter<std::vector<std::string>>("FeatureNames");
       iConfig_.baseShiftCot_ = iConfig.getParameter<int>("BaseShiftCot");
       iConfig_.baseShiftZ0_ = iConfig.getParameter<int>("BaseShiftZ0");
       iConfig_.baseShiftAPfixed_ = iConfig.getParameter<int>("BaseShiftAPfixed");
@@ -35,6 +34,10 @@ namespace trackerTFP {
       iConfig_.widthchi2rz_ = iConfig.getParameter<int>("Widthchi2rz");
       iConfig_.baseShiftchi2rphi_ = iConfig.getParameter<int>("BaseShiftchi2rphi");
       iConfig_.baseShiftchi2rz_ = iConfig.getParameter<int>("BaseShiftchi2rz");
+      iConfig_.widthBDTchi20_ = iConfig.getParameter<int>("WidthBDTchi20");
+      iConfig_.widthBDTchi21_ = iConfig.getParameter<int>("WidthBDTchi21");
+      iConfig_.baseShiftBDTchi20_ = iConfig.getParameter<int>("BaseShiftBDTchi20");
+      iConfig_.baseShiftBDTchi21_ = iConfig.getParameter<int>("BaseShiftBDTchi21");
     }
     ~ProducerTrackQuality() override = default;
     std::unique_ptr<TrackQuality> produce(const DataFormatsRcd& rcd) {

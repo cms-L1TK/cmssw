@@ -242,15 +242,15 @@ namespace trklet {
         if (setup_->enableTruncation() && frame >= setup_->numFramesHigh())
           valid = false;
         // kill tracks outside of fiducial range
-        if (!dataFormats_->format(Variable::phiT, Process::tm).inRange(phiT, true))
+        if (!dataFormats_->format(Variable::phiT, Process::tm).isCovered(phiT))
           valid = false;
-        if (!dataFormats_->format(Variable::zT, Process::tm).inRange(zT, true))
+        if (!dataFormats_->format(Variable::zT, Process::tm).isCovered(zT))
           valid = false;
         // stub range checks
         for (Stub* stub : stubs) {
-          if (!dataFormats_->format(Variable::phi, Process::tm).inRange(stub->phi_, true))
+          if (!dataFormats_->format(Variable::phi, Process::tm).isCovered(stub->phi_))
             stub->valid_ = false;
-          if (!dataFormats_->format(Variable::z, Process::tm).inRange(stub->z_, true))
+          if (!dataFormats_->format(Variable::z, Process::tm).isCovered(stub->z_))
             stub->valid_ = false;
         }
         // layer check
@@ -300,11 +300,11 @@ namespace trklet {
       track.cot_ -= dcot;
       track.zT_ -= dzT;
       // range checks
-      if (!dataFormats_->format(Variable::inv2R, Process::tm).inRange(track.inv2R_, true))
+      if (!dataFormats_->format(Variable::inv2R, Process::tm).isCovered(track.inv2R_))
         track.valid_ = false;
-      if (!dataFormats_->format(Variable::phiT, Process::tm).inRange(track.phiT_, true))
+      if (!dataFormats_->format(Variable::phiT, Process::tm).isCovered(track.phiT_))
         track.valid_ = false;
-      if (!dataFormats_->format(Variable::zT, Process::tm).inRange(track.zT_, true))
+      if (!dataFormats_->format(Variable::zT, Process::tm).isCovered(track.zT_))
         track.valid_ = false;
       // adjust stub residuals by track parameter shifts
       for (Stub* stub : track.stubs_) {
@@ -314,9 +314,9 @@ namespace trklet {
         stub->phi_ = digi(stub->phi_ + dphi, baseLphi_);
         stub->z_ = digi(stub->z_ + dz, baseLz_);
         // range checks
-        if (!dataFormats_->format(Variable::phi, Process::tm).inRange(stub->phi_, true))
+        if (!dataFormats_->format(Variable::phi, Process::tm).isCovered(stub->phi_))
           stub->valid_ = false;
-        if (!dataFormats_->format(Variable::z, Process::tm).inRange(stub->z_, true))
+        if (!dataFormats_->format(Variable::z, Process::tm).isCovered(stub->z_))
           stub->valid_ = false;
       }
     }

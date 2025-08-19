@@ -240,8 +240,6 @@ namespace tt {
     bool psModule(const TTStubRef& ttStubRef) const;
     // return sensor moduel type
     SensorModule::Type type(const TTStubRef& ttStubRef) const;
-    // checks if stub collection is considered forming a reconstructable track
-    bool reconstructable(const std::vector<TTStubRef>& ttStubRefs) const;
     //
     TTBV layerMap(const std::vector<int>& ints) const;
     //

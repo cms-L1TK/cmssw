@@ -9,20 +9,17 @@
 
 namespace trklet {
 
-  TrackFindingProcessor::TrackFindingProcessor(const tt::Setup* setup,
-                                               const DataFormats* dataFormats,
-                                               const trackerTFP::TrackQuality* trackQuality)
-      : setup_(setup), dataFormats_(dataFormats), trackQuality_(trackQuality) {
+  TrackFindingProcessor::TrackFindingProcessor(const tt::Setup* setup, const DataFormats* dataFormats)
+      : setup_(setup), dataFormats_(dataFormats) {
     bfield_ = setup_->bField();
   }
 
   //
-  TrackFindingProcessor::Track::Track(const tt::FrameTrack& frameTrack,
-                                      const tt::Frame& frameTQ,
+  TrackFindingProcessor::Track::Track(const tt::FrameTrack& frameTrackKF,
+                                      const tt::FrameTrack& frameTrackTQ,
                                       const std::vector<TTStubRef>& ttStubRefs,
-                                      const DataFormats* df,
-                                      const trackerTFP::TrackQuality* tq)
-      : ttTrackRef_(frameTrack.first), ttStubRefs_(ttStubRefs), valid_(true) {
+                                      const DataFormats* df)
+      : ttTrackRef_(frameTrackKF.first), ttStubRefs_(ttStubRefs), valid_(true) {
     partials_.reserve(partial_in);
     const double rangeInvR = -2. * TTTrack_TrackWord::minRinv;
     const double rangePhi0 = -2. * TTTrack_TrackWord::minPhi0;
@@ -40,18 +37,17 @@ namespace trklet {
     const TTBV valid = TTBV(1, TTTrack_TrackWord::TrackBitWidths::kValidSize);
     // convert bits into nice formats
     const tt::Setup* setup = df->setup();
-    const TrackKF track(frameTrack, df);
-    inv2R_ = track.inv2R();
-    phiT_ = track.phiT();
-    cot_ = track.cot();
-    zT_ = track.zT();
+    const TrackKF trackKF(frameTrackKF, df);
+    inv2R_ = trackKF.inv2R();
+    phiT_ = trackKF.phiT();
+    cot_ = trackKF.cot();
+    zT_ = trackKF.zT();
     const double d0 = std::max(std::min(ttTrackRef_->d0(), -TTTrack_TrackWord::minD0), TTTrack_TrackWord::minD0);
-    TTBV ttBV = TTBV(frameTQ);
-    tq->format(trackerTFP::VariableTQ::chi2rz).extract(ttBV, chi2rz_);
-    tq->format(trackerTFP::VariableTQ::chi2rphi).extract(ttBV, chi2rphi_);
-    mva_ = TTBV(ttBV, trackerTFP::widthMVA_).val();
-    ttBV >>= trackerTFP::widthMVA_;
-    hitPattern_ = TTBV(ttBV, setup->numLayers());
+    const TrackTQ trackTQ(frameTrackTQ, df);
+    chi2rphi_ = trackTQ.chi20();
+    chi2rz_ = trackTQ.chi21();
+    mva_ = trackTQ.mva();
+    hitPattern_ = TTBV(trackTQ.hitPattern(), setup->numLayers());
     channel_ = cot_ < 0. ? 0 : 1;
     // convert nice formats into bits
     const double z0 = zT_ - cot_ * setup->chosenRofZ();
@@ -102,14 +98,14 @@ namespace trklet {
   }
 
   // fill output products
-  void TrackFindingProcessor::produce(const tt::StreamsTrack& inputs,
-                                      const tt::Streams& inputsAdd,
+  void TrackFindingProcessor::produce(const tt::StreamsTrack& inputsKF,
+                                      const tt::StreamsTrack& inputsTQ,
                                       const tt::StreamsStub& stubs,
                                       tt::TTTracks& ttTracks,
                                       tt::StreamsTrack& outputs) {
     // organize input tracks
     std::vector<std::deque<Track*>> streams(outputs.size());
-    consume(inputs, inputsAdd, stubs, streams);
+    consume(inputsKF, inputsTQ, stubs, streams);
     // emualte data format f/w
     produce(streams, outputs);
     // produce TTTracks
@@ -117,28 +113,28 @@ namespace trklet {
   }
 
   //
-  void TrackFindingProcessor::consume(const tt::StreamsTrack& inputs,
-                                      const tt::Streams& inputsAdd,
+  void TrackFindingProcessor::consume(const tt::StreamsTrack& inputsKF,
+                                      const tt::StreamsTrack& inputsTQ,
                                       const tt::StreamsStub& stubs,
                                       std::vector<std::deque<Track*>>& outputs) {
     // count input objects
     int nTracks(0);
     auto valid = [](int sum, const tt::FrameTrack& frame) { return sum + (frame.first.isNonnull() ? 1 : 0); };
-    for (const tt::StreamTrack& tracks : inputs)
+    for (const tt::StreamTrack& tracks : inputsKF)
       nTracks += std::accumulate(tracks.begin(), tracks.end(), 0, valid);
     tracks_.reserve(nTracks);
     // convert input data
     for (int region = 0; region < setup_->numRegions(); region++) {
       const int offsetTFP = region * setup_->tfpNumChannel();
       const int offsetStub = region * setup_->numLayers();
-      const tt::StreamTrack& streamKF = inputs[region];
-      const tt::Stream& streamTQ = inputsAdd[region];
+      const tt::StreamTrack& streamKF = inputsKF[region];
+      const tt::StreamTrack& streamTQ = inputsTQ[region];
       for (int channel = 0; channel < setup_->tfpNumChannel(); channel++)
         outputs[offsetTFP + channel] = std::deque<Track*>(streamKF.size(), nullptr);
       for (int frame = 0; frame < (int)streamKF.size(); frame++) {
-        const tt::FrameTrack& frameTrack = streamKF[frame];
-        const tt::Frame& frameTQ = streamTQ[frame];
-        if (frameTrack.first.isNull())
+        const tt::FrameTrack& frameTrackKF = streamKF[frame];
+        const tt::FrameTrack& frameTrackTQ = streamTQ[frame];
+        if (frameTrackKF.first.isNull())
           continue;
         std::vector<TTStubRef> ttStubRefs;
         ttStubRefs.reserve(setup_->numLayers());
@@ -147,7 +143,7 @@ namespace trklet {
           if (ttStubRef.isNonnull())
             ttStubRefs.push_back(ttStubRef);
         }
-        tracks_.emplace_back(frameTrack, frameTQ, ttStubRefs, dataFormats_, trackQuality_);
+        tracks_.emplace_back(frameTrackKF, frameTrackTQ, ttStubRefs, dataFormats_);
         Track& track = tracks_.back();
         outputs[offsetTFP + track.channel_][frame] = track.valid_ ? &track : nullptr;
       }

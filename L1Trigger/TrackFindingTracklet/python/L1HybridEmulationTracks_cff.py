@@ -7,6 +7,7 @@ from L1Trigger.TrackFindingTracklet.l1tTTTracksFromTrackletEmulation_cfi import 
 from SimTracker.TrackTriggerAssociation.TrackTriggerAssociator_cff import *
 
 from L1Trigger.TrackFindingTracklet.ProducerHPH_cff import *
+from L1Trigger.TrackerTFP.TrackQuality_cff import *
 
 # prompt hybrid emulation
 TTTrackAssociatorFromPixelDigis.TTTracks = cms.VInputTag(cms.InputTag("l1tTTTracksFromTrackletEmulation", "Level1TTTracks") )

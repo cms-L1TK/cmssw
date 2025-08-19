@@ -20,7 +20,7 @@ namespace trklet {
     const int width = setup_->widthAddrBRAM18() - 1;
     const double base = r.base() * pow(2., r.width() - width);
     const double range = r.range();
-    r_ = DataFormat(true, width, base, range);
+    r_ = DataFormat(true, base, range);
     tmNumLayers_ = channelAssignment_->tmNumLayers();
     phi_ = dataFormats_->format(Variable::phi, Process::dr);
   }

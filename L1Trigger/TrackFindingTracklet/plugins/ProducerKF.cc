@@ -125,13 +125,13 @@ namespace trklet {
     const std::string& branchTracks = iConfig.getParameter<std::string>("BranchTracks");
     const std::string& branchTruncated = iConfig.getParameter<std::string>("BranchTruncated");
     // book in- and output ED products
-    edGetTokenStubs_ = consumes<tt::StreamsStub>(edm::InputTag(label, branchStubs));
-    edGetTokenTracks_ = consumes<tt::StreamsTrack>(edm::InputTag(label, branchTracks));
-    edPutTokenStubs_ = produces<tt::StreamsStub>(branchStubs);
-    edPutTokenTracks_ = produces<tt::StreamsTrack>(branchTracks);
-    edPutTokenTTTracks_ = produces<tt::TTTracks>(branchTracks);
-    edPutTokenNumStatesAccepted_ = produces<int>(branchTracks);
-    edPutTokenNumStatesTruncated_ = produces<int>(branchTruncated);
+    edGetTokenStubs_ = consumes(edm::InputTag(label, branchStubs));
+    edGetTokenTracks_ = consumes(edm::InputTag(label, branchTracks));
+    edPutTokenStubs_ = produces(branchStubs);
+    edPutTokenTracks_ = produces(branchTracks);
+    edPutTokenTTTracks_ = produces(branchTracks);
+    edPutTokenNumStatesAccepted_ = produces(branchTracks);
+    edPutTokenNumStatesTruncated_ = produces(branchTruncated);
     // book ES products
     esGetTokenSetup_ = esConsumes();
     esGetTokenDataFormats_ = esConsumes<edm::Transition::BeginRun>();

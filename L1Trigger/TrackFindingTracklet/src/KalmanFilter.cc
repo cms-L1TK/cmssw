@@ -165,13 +165,13 @@ namespace trklet {
       const double cot = trackFitted.tanLambda();
       const double zT = trackFitted.z0() + cot * setup_->chosenRofZ();
       // check for bit overflows
-      if (!dataFormats_->format(Variable::inv2R, Process::kf).inRange(inv2R, true))
+      if (!dataFormats_->format(Variable::inv2R, Process::kf).isCovered(inv2R))
         continue;
-      if (!dataFormats_->format(Variable::phiT, Process::kf).inRange(phiT, true))
+      if (!dataFormats_->format(Variable::phiT, Process::kf).isCovered(phiT))
         continue;
-      if (!dataFormats_->format(Variable::cot, Process::kf).inRange(cot, true))
+      if (!dataFormats_->format(Variable::cot, Process::kf).isCovered(cot))
         continue;
-      if (!dataFormats_->format(Variable::zT, Process::kf).inRange(zT, true))
+      if (!dataFormats_->format(Variable::zT, Process::kf).isCovered(zT))
         continue;
       const double d0 = trackFitted.d0();
       const double x0 = inv2R - trackFound->inv2R();
@@ -200,9 +200,9 @@ namespace trklet {
         const double dZ = s.dZ();
         const int layer = std::distance(stubsState.begin(), it);
         // check for bit overflows
-        if (!dataFormats_->format(Variable::phi, Process::kf).inRange(phi, true))
+        if (!dataFormats_->format(Variable::phi, Process::kf).isCovered(phi))
           continue;
-        if (!dataFormats_->format(Variable::z, Process::kf).inRange(z, true))
+        if (!dataFormats_->format(Variable::z, Process::kf).isCovered(z))
           continue;
         hitPattern.set(layer);
         stubsKF.emplace_back(s, r, phi, z, dPhi, dZ);

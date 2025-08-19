@@ -464,14 +464,6 @@ namespace tt {
     return sigma + digi;
   }
 
-  // checks if stub collection is considered forming a reconstructable track
-  bool Setup::reconstructable(const std::vector<TTStubRef>& ttStubRefs) const {
-    std::set<int> hitPattern;
-    for (const TTStubRef& ttStubRef : ttStubRefs)
-      hitPattern.insert(layerId(ttStubRef));
-    return (int)hitPattern.size() >= minLayers_;
-  }
-
   //
   TTBV Setup::module(double r, double z) const {
     static constexpr int layer1 = 0;
