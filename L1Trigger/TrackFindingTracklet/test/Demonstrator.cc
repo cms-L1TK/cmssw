@@ -19,15 +19,15 @@
 
 namespace trklet {
 
-  /*! \class  trklet::AnalyzerDemonstrator
+  /*! \class  trklet::Demonstrator
    *  \brief  calls questasim to simulate the f/w and compares the results with clock-and-bit-accurate emulation.
    *          At the end the number of passing events (not a single bit error) are reported.
    *  \author Thomas Schuh
    *  \date   2022, March
    */
-  class AnalyzerDemonstrator : public edm::one::EDAnalyzer<edm::one::WatchRuns> {
+  class Demonstrator : public edm::one::EDAnalyzer<edm::one::WatchRuns> {
   public:
-    AnalyzerDemonstrator(const edm::ParameterSet& iConfig);
+    Demonstrator(const edm::ParameterSet& iConfig);
     void beginJob() override {}
     void beginRun(const edm::Run& iEvent, const edm::EventSetup& iSetup) override;
     void analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) override;
@@ -80,7 +80,7 @@ namespace trklet {
     bool TQout_;
   };
 
-  AnalyzerDemonstrator::AnalyzerDemonstrator(const edm::ParameterSet& iConfig) {
+  Demonstrator::Demonstrator(const edm::ParameterSet& iConfig) {
     // book in- and output ED products
     const std::string& labelIn = iConfig.getParameter<std::string>("LabelIn");
     const std::string& labelOut = iConfig.getParameter<std::string>("LabelOut");
@@ -104,7 +104,7 @@ namespace trklet {
     TQout_ = labelOut == "ProducerTQ";
   }
 
-  void AnalyzerDemonstrator::beginRun(const edm::Run& iEvent, const edm::EventSetup& iSetup) {
+  void Demonstrator::beginRun(const edm::Run& iEvent, const edm::EventSetup& iSetup) {
     //
     setup_ = &iSetup.getData(esGetTokenSetup_);
     //
@@ -113,7 +113,7 @@ namespace trklet {
     demonstrator_ = &iSetup.getData(esGetTokenDemonstrator_);
   }
 
-  void AnalyzerDemonstrator::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
+  void Demonstrator::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
     nEvents_++;
     std::vector<std::vector<tt::Frame>> input;
     std::vector<std::vector<tt::Frame>> output;
@@ -130,11 +130,11 @@ namespace trklet {
   }
 
   //
-  void AnalyzerDemonstrator::convert(const edm::Event& iEvent,
-                                     const edm::EDGetTokenT<tt::StreamsTrack>& tokenTracks,
-                                     const edm::EDGetTokenT<tt::StreamsStub>& tokenStubs,
-                                     std::vector<std::vector<tt::Frame>>& bits,
-                                     bool TB) const {
+  void Demonstrator::convert(const edm::Event& iEvent,
+                             const edm::EDGetTokenT<tt::StreamsTrack>& tokenTracks,
+                             const edm::EDGetTokenT<tt::StreamsStub>& tokenStubs,
+                             std::vector<std::vector<tt::Frame>>& bits,
+                             bool TB) const {
     const bool tracks = !tokenTracks.isUninitialized();
     const bool stubs = !tokenStubs.isUninitialized();
     edm::Handle<tt::StreamsStub> handleStubs;
@@ -180,10 +180,10 @@ namespace trklet {
   }
 
   //
-  void AnalyzerDemonstrator::convert(const edm::Event& iEvent,
-                                     const edm::EDGetTokenT<tt::StreamsTrack>& tokenTracks,
-                                     const edm::EDGetTokenT<tt::Streams>& tokenQuality,
-                                     std::vector<std::vector<tt::Frame>>& bits) const {
+  void Demonstrator::convert(const edm::Event& iEvent,
+                             const edm::EDGetTokenT<tt::StreamsTrack>& tokenTracks,
+                             const edm::EDGetTokenT<tt::Streams>& tokenQuality,
+                             std::vector<std::vector<tt::Frame>>& bits) const {
     const tt::StreamsTrack& tracks = iEvent.get(tokenTracks);
     const tt::Streams& quality = iEvent.get(tokenQuality);
     bits.reserve(2);
@@ -197,14 +197,14 @@ namespace trklet {
 
   //
   template <typename T>
-  void AnalyzerDemonstrator::convert(const T& collection, std::vector<std::vector<tt::Frame>>& bits) const {
+  void Demonstrator::convert(const T& collection, std::vector<std::vector<tt::Frame>>& bits) const {
     bits.emplace_back();
     std::vector<tt::Frame>& bvs = bits.back();
     bvs.reserve(collection.size());
     transform(collection.begin(), collection.end(), back_inserter(bvs), [](const auto& frame) { return frame.second; });
   }
 
-  void AnalyzerDemonstrator::endJob() {
+  void Demonstrator::endJob() {
     std::stringstream log;
     log << "Successrate: " << nEventsSuccessful_ << " / " << nEvents_ << " = " << nEventsSuccessful_ / (double)nEvents_;
     edm::LogPrint(moduleDescription().moduleName()) << log.str();
@@ -212,4 +212,4 @@ namespace trklet {
 
 }  // namespace trklet
 
-DEFINE_FWK_MODULE(trklet::AnalyzerDemonstrator);
+DEFINE_FWK_MODULE(trklet::Demonstrator);

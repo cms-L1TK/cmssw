@@ -57,8 +57,10 @@ namespace trackerTFP {
                    bool perfect = true) const;
     // ED input token of stubs
     edm::EDGetTokenT<tt::StreamsStub> edGetTokenStubs_;
-    // ED input token of tracks
-    edm::EDGetTokenT<tt::StreamsTrack> edGetTokenTracks_;
+    // ED input token of KF tracks
+    edm::EDGetTokenT<tt::StreamsTrack> edGetTokenTracksKF_;
+    // ED input token of TQ additional track info
+    edm::EDGetTokenT<tt::StreamsTrack> edGetTokenTracksTQ_;
     // ED input token of TTStubRef to TPPtr association for tracking efficiency
     edm::EDGetTokenT<tt::StubAssociation> edGetTokenSelection_;
     // ED input token of TTStubRef to recontructable TPPtr association
@@ -93,11 +95,13 @@ namespace trackerTFP {
   AnalyzerTQ::AnalyzerTQ(const edm::ParameterSet& iConfig) : useMCTruth_(iConfig.getParameter<bool>("UseMCTruth")) {
     usesResource("TFileService");
     // book in- and output ED products
-    const std::string& label = iConfig.getParameter<std::string>("OutputLabelTQ");
+    const std::string& labelKF = iConfig.getParameter<std::string>("OutputLabelKF");
+    const std::string& labelTQ = iConfig.getParameter<std::string>("OutputLabelTQ");
     const std::string& branchStubs = iConfig.getParameter<std::string>("BranchStubs");
     const std::string& branchTracks = iConfig.getParameter<std::string>("BranchTracks");
-    edGetTokenStubs_ = consumes<tt::StreamsStub>(edm::InputTag(label, branchStubs));
-    edGetTokenTracks_ = consumes<tt::StreamsTrack>(edm::InputTag(label, branchTracks));
+    edGetTokenStubs_ = consumes<tt::StreamsStub>(edm::InputTag(labelKF, branchStubs));
+    edGetTokenTracksKF_ = consumes<tt::StreamsTrack>(edm::InputTag(labelKF, branchTracks));
+    edGetTokenTracksTQ_ = consumes<tt::StreamsTrack>(edm::InputTag(labelTQ, branchTracks));
     if (useMCTruth_) {
       const auto& inputTagSelecttion = iConfig.getParameter<edm::InputTag>("InputTagSelection");
       const auto& inputTagReconstructable = iConfig.getParameter<edm::InputTag>("InputTagReconstructable");
@@ -145,7 +149,7 @@ namespace trackerTFP {
   void AnalyzerTQ::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
     // read in ht products
     const tt::StreamsStub& acceptedStubs = iEvent.get(edGetTokenStubs_);
-    const tt::StreamsTrack& acceptedTracks = iEvent.get(edGetTokenTracks_);
+    const tt::StreamsTrack& acceptedTracks = iEvent.get(edGetTokenTracksKF_);
     // read in MCTruth
     tt::Associator selection = iSetup.getData(esGetTokenAssociator_);
     tt::Associator reconstructable = iSetup.getData(esGetTokenAssociator_);
