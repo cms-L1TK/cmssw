@@ -213,11 +213,11 @@ elif (L1TRKALGO == 'HYBRID_DISPLACED_NEWKF_KILL' or L1TRKALGO == 'HYBRID_DISPLAC
     if (L1TRKALGO == 'HYBRID_DISPLACED_NEWKF_MERGE'):
         displacedNewKFMergeConfig( process )
         process.HybridNewKF = cms.Sequence(process.L1TExtendedHybridTracks + process.ProducerFakeDR + process.ProducerKF + process.ProducerTQ + process.ProducerTFP)
-        process.TTTracksEmulationWithTruth = cms.Path(process.HybridNewKF + process.L1TExtendedHybridTracksWithAssociators + process.StubAssociator +  process.AnalyzerTracklet + process.AnalyzerDR + process.AnalyzerKF + process.AnalyzerTQ + process.AnalyzerTFP)
+        process.TTTracksEmulationWithTruth = cms.Path(process.HybridNewKF + process.L1TExtendedHybridTracksWithAssociators + process.StubAssociator +  process.AnalyzerTracklet + process.AnalyzerDR + process.AnalyzerKF + process.AnalyzerTFP)
     elif(L1TRKALGO == 'HYBRID_DISPLACED_NEWKF_KILL'):
         displacedNewKFKillConfig( process )
         process.HybridNewKF = cms.Sequence(process.L1TExtendedHybridTracks + process.ProducerFakeTM + process.ProducerDR + process.ProducerKF + process.ProducerTQ + process.ProducerTFP)
-        process.TTTracksEmulationWithTruth = cms.Path(process.HybridNewKF + process.L1TExtendedHybridTracksWithAssociators + process.StubAssociator +  process.AnalyzerTracklet + process.AnalyzerTM + process.AnalyzerDR + process.AnalyzerKF + process.AnalyzerTQ + process.AnalyzerTFP)
+        process.TTTracksEmulationWithTruth = cms.Path(process.HybridNewKF + process.L1TExtendedHybridTracksWithAssociators + process.StubAssociator +  process.AnalyzerTracklet + process.AnalyzerTM + process.AnalyzerDR + process.AnalyzerKF + process.AnalyzerTFP)
     process.TTTracksEmulation = cms.Path(process.HybridNewKF)
 
 # LEGACY ALGORITHM (EXPERTS ONLY): TRACKLET
