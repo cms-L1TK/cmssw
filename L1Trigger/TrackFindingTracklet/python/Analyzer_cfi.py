@@ -12,12 +12,16 @@ TrackFindingTrackletAnalyzer_params = cms.PSet (
   NumChannel = cms.int32   (      1 ), # to be costumized
   NumRegions = TrackTrigger_params.DTC.NumRegions,
   NumLayers  = TrackTrigger_params.TrackFinding.NumLayers,
-  InputTagReconstructable = cms.InputTag("StubAssociator", "Reconstructable" ), #
-  InputTagSelection       = cms.InputTag("StubAssociator", "UseForAlgEff"    ), #
-  OutputLabelTM  = cms.string  ( "ProducerTM"  ), #
-  OutputLabelDR  = cms.string  ( "ProducerDR"  ), #
-  OutputLabelKF  = cms.string  ( "ProducerKF"  ), #
-  OutputLabelTQ  = cms.string  ( "ProducerTQ"  ), #
-  OutputLabelTFP = cms.string  ( "ProducerTFP" ), #
+
+  LabelMC    = cms.string( "StubAssociator" ),
+  BranchFake = cms.string( "UseForFake"     ),
+  BranchDup  = cms.string( "UseForDup"      ),
+  BranchEff  = cms.string( "UseForEff"      ),
+
+  OutputLabelTM  = cms.string( "ProducerTM"  ), #
+  OutputLabelDR  = cms.string( "ProducerDR"  ), #
+  OutputLabelKF  = cms.string( "ProducerKF"  ), #
+  OutputLabelTQ  = cms.string( "ProducerTQ"  ), #
+  OutputLabelTFP = cms.string( "ProducerTFP" ), #
 
 )

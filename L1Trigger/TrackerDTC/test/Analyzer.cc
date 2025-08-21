@@ -74,11 +74,9 @@ namespace trackerDTC {
     void fill(const tt::StreamStub& stream, int region, int channel, int& sum, TH2F* th2f);
 
     // ED input token of DTC stubs
-    edm::EDGetTokenT<TTDTC> edGetTokenTTDTC_;
-    // ED input token of TTStubRef to TPPtr association for tracking efficiency
-    edm::EDGetTokenT<tt::StubAssociation> edGetTokenSelection_;
-    // ED input token of TTStubRef to recontructable TPPtr association
-    edm::EDGetTokenT<tt::StubAssociation> edGetTokenReconstructable_;
+    edm::EDGetTokenT<TTDTC> edGetTokenReco_;
+    // ED input token of StubAssociation with selected TPs
+    edm::EDGetTokenT<tt::StubAssociation> edGetTokenMC_;
     // Setup token
     edm::ESGetToken<tt::Setup, tt::SetupRcd> esGetTokenSetup_;
     // Associator token
@@ -111,14 +109,11 @@ namespace trackerDTC {
   Analyzer::Analyzer(const edm::ParameterSet& iConfig) : useMCTruth_(iConfig.getParameter<bool>("UseMCTruth")) {
     usesResource("TFileService");
     // book in- and output ED products
-    const auto& inputTagTTDTC = iConfig.getParameter<edm::InputTag>("InputTagDTC");
-    const auto& inputTagTTStubs = iConfig.getParameter<edm::InputTag>("InputTagTTStubs");
-    edGetTokenTTDTC_ = consumes<TTDTC>(inputTagTTDTC);
+    const auto& inputTagReco = iConfig.getParameter<edm::InputTag>("InputTagReco");
+    edGetTokenReco_ = consumes(inputTagReco);
     if (useMCTruth_) {
-      const auto& inputTagSelection = iConfig.getParameter<edm::InputTag>("InputTagSelection");
-      const auto& inputTagReconstructable = iConfig.getParameter<edm::InputTag>("InputTagReconstructable");
-      edGetTokenSelection_ = consumes<tt::StubAssociation>(inputTagSelection);
-      edGetTokenReconstructable_ = consumes<tt::StubAssociation>(inputTagReconstructable);
+      const auto& inputTagMC = iConfig.getParameter<edm::InputTag>("InputTagMC");
+      edGetTokenMC_ = consumes(inputTagMC);
     }
     // book ES product
     esGetTokenSetup_ = esConsumes<edm::Transition::BeginRun>();
@@ -188,15 +183,13 @@ namespace trackerDTC {
 
   void Analyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
     // read in dtc products
-    const TTDTC& ttDTC = iEvent.get(edGetTokenTTDTC_);
+    const TTDTC& ttDTC = iEvent.get(edGetTokenReco_);
     // read in MCTruth
-    tt::Associator selection = iSetup.getData(esGetTokenAssociator_);
-    tt::Associator reconstructable = iSetup.getData(esGetTokenAssociator_);
+    tt::Associator associator = iSetup.getData(esGetTokenAssociator_);
     if (useMCTruth_) {
-      selection.consume(iEvent.get(edGetTokenSelection_));
-      reconstructable.consume(iEvent.get(edGetTokenReconstructable_));
-      prof_->Fill(4, selection.numTPs());
-      for (const auto& p : selection.getTrackingParticleToTTStubsMap())
+      associator.consume(iEvent.get(edGetTokenMC_));
+      prof_->Fill(4, associator.numTPs());
+      for (const auto& p : associator.getTrackingParticleToTTStubsMap())
         fill(p.first, hisEffMC_);
     }
     // analyze dtc products and find still reconstrucable TrackingParticles
@@ -214,17 +207,17 @@ namespace trackerDTC {
         for (const tt::FrameStub& frame : stream) {
           if (frame.first.isNull())
             continue;
-          for (const TPPtr& tpPtr : selection.findTrackingParticlePtrs(frame.first)) {
+          for (const TPPtr& tpPtr : associator.findTrackingParticlePtrs(frame.first)) {
             auto it = mapTPsTTStubs.find(tpPtr);
             if (it == mapTPsTTStubs.end()) {
               it = mapTPsTTStubs.emplace(tpPtr, std::vector<TTStubRef>()).first;
-              it->second.reserve(selection.findTTStubRefs(tpPtr).size());
+              it->second.reserve(associator.findTTStubRefs(tpPtr).size());
             }
             it->second.push_back(frame.first);
           }
         }
         for (const auto& p : mapTPsTTStubs)
-          if (selection.reconstructable(p.second))
+          if (associator.reconstructable(p.second))
             tpPtrs.insert(p.first);
       }
       prof_->Fill(1, nStubs);

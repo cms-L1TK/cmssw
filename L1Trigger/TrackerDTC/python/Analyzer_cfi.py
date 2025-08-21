@@ -4,9 +4,8 @@ import FWCore.ParameterSet.Config as cms
 
 TrackerDTCAnalyzer_params = cms.PSet (
 
-  UseMCTruth              = cms.bool( True ),                                    # eneables analyze of TPs
-  InputTagReconstructable = cms.InputTag( "StubAssociator", "Reconstructable" ), #
-  InputTagSelection       = cms.InputTag( "StubAssociator", "UseForAlgEff"    ), #
-  InputTagDTC             = cms.InputTag( "ProducerDTC",    "StubAccepted"    )  # DTC stubs
+  UseMCTruth   = cms.bool( True ),                                 # eneables analyze of TPs
+  InputTagMC   = cms.InputTag( "StubAssociator", "UseForEff"    ), # Assoc map
+  InputTagReco = cms.InputTag( "ProducerDTC",    "StubAccepted" )  # DTC stubs
 
 )

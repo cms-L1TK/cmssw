@@ -53,10 +53,12 @@ namespace tt {
     std::vector<double> limitsE_ = {1., 100., 2.4, 15., 10.};
     // ED input token of tracks
     edm::EDGetTokenT<std::vector<L1Track>> edGetTokenTracks_;
-    // ED input token of TTStubRef to TPPtr association for tracking efficiency
-    edm::EDGetTokenT<StubAssociation> edGetTokenSelection_;
-    // ED input token of TTStubRef to recontructable TPPtr association
-    edm::EDGetTokenT<StubAssociation> edGetTokenReconstructable_;
+    // ED output token for stub association for fake rate
+    edm::EDGetTokenT<StubAssociation> edGetTokenFake_;
+    // ED output token for stub association duplicate rate
+    edm::EDGetTokenT<StubAssociation> edGetTokenDup_;
+    // ED output token for stub association for tracking efficiency
+    edm::EDGetTokenT<StubAssociation> edGetTokenEff_;
     // Setup token
     edm::ESGetToken<Setup, SetupRcd> esGetTokenSetup_;
     // Associator token
@@ -93,10 +95,13 @@ namespace tt {
     // book in- and output ED products
     edGetTokenTracks_ = consumes(inputTag_);
     if (useMCTruth_) {
-      const auto& inputTagSelecttion = iConfig.getParameter<edm::InputTag>("InputTagSelection");
-      const auto& inputTagReconstructable = iConfig.getParameter<edm::InputTag>("InputTagReconstructable");
-      edGetTokenSelection_ = consumes(inputTagSelecttion);
-      edGetTokenReconstructable_ = consumes(inputTagReconstructable);
+      const std::string& labelMC = iConfig.getParameter<std::string>("LabelMC");
+      const std::string& branchFake = iConfig.getParameter<std::string>("BranchFake");
+      const std::string& branchDup = iConfig.getParameter<std::string>("BranchDup");
+      const std::string& branchEff = iConfig.getParameter<std::string>("BranchEff");
+      edGetTokenFake_ = consumes(edm::InputTag(labelMC, branchFake));
+      edGetTokenDup_ = consumes(edm::InputTag(labelMC, branchDup));
+      edGetTokenEff_ = consumes(edm::InputTag(labelMC, branchEff));
     }
     // book ES products
     esGetTokenSetup_ = esConsumes();
@@ -110,16 +115,17 @@ namespace tt {
     // book histograms
     edm::Service<TFileService> fs;
     TFileDirectory dir = fs->mkdir(name_);
-    prof_ = dir.make<TProfile>("Counts", ";", 9, 0.5, 9.5);
+    prof_ = dir.make<TProfile>("Counts", ";", 10, 0.5, 10.5);
     prof_->GetXaxis()->SetBinLabel(1, "Region Stubs");
     prof_->GetXaxis()->SetBinLabel(2, "Region Tracks");
     prof_->GetXaxis()->SetBinLabel(3, "All Tracks");
     prof_->GetXaxis()->SetBinLabel(4, "Matched to any Tracks");
-    prof_->GetXaxis()->SetBinLabel(5, "Duplicates");
+    prof_->GetXaxis()->SetBinLabel(5, "Matched for Duplicates");
     prof_->GetXaxis()->SetBinLabel(6, "Found Any TPs");
-    prof_->GetXaxis()->SetBinLabel(7, "Found Selected TPs");
-    prof_->GetXaxis()->SetBinLabel(8, "Found Perfect TPs");
-    prof_->GetXaxis()->SetBinLabel(9, "All TPs");
+    prof_->GetXaxis()->SetBinLabel(7, "Found for Duplicates TPs");
+    prof_->GetXaxis()->SetBinLabel(8, "Found Selected TPs");
+    prof_->GetXaxis()->SetBinLabel(9, "Found Perfect TPs");
+    prof_->GetXaxis()->SetBinLabel(10, "All TPs");
     // resoultions
     dir = fs->mkdir(name_ + "/Res");
     for (int i = 0; i < static_cast<int>(resolutions_.size()); i++) {
@@ -136,7 +142,6 @@ namespace tt {
   }
 
   void AnalyzerTTTrack::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
-    std::cout << "a" << std::flush;
     const Setup& setup = iSetup.getData(esGetTokenSetup_);
     auto fillEff = [&setup](const TPPtr& tpPtr, std::vector<TH1F*>& his) {
       his[0]->Fill(tpPtr->charge() / tpPtr->pt() * setup.invPtToDphi());
@@ -148,17 +153,19 @@ namespace tt {
     // read in tracks
     const std::vector<L1Track>& ttTracks = iEvent.get(edGetTokenTracks_);
     // read in MCTruth
-    Associator selection = iSetup.getData(esGetTokenAssociator_);
-    Associator reconstructable = iSetup.getData(esGetTokenAssociator_);
+    Associator forFake = iSetup.getData(esGetTokenAssociator_);
+    Associator forDup = iSetup.getData(esGetTokenAssociator_);
+    Associator forEff = iSetup.getData(esGetTokenAssociator_);
     if (useMCTruth_) {
-      selection.consume(iEvent.get(edGetTokenSelection_));
-      reconstructable.consume(iEvent.get(edGetTokenReconstructable_));
-      prof_->Fill(9, selection.numTPs());
-      for (const auto& p : selection.getTrackingParticleToTTStubsMap())
+      forFake.consume(iEvent.get(edGetTokenFake_));
+      forDup.consume(iEvent.get(edGetTokenDup_));
+      forEff.consume(iEvent.get(edGetTokenEff_));
+      prof_->Fill(9, forEff.numTPs());
+      for (const auto& p : forEff.getTrackingParticleToTTStubsMap())
         fillEff(p.first, hisEffTotal_);
     }
     // analyze and associate tracks with TrackingParticles
-    std::set<TPPtr> tpPtrsAny;
+    std::set<TPPtr> tpPtrsDup;
     std::set<TPPtr> tpPtrsSelection;
     std::set<TPPtr> tpPtrsPerfect;
     const int allTracks = ttTracks.size();
@@ -166,28 +173,24 @@ namespace tt {
     int allDuplicates(0);
     std::vector<int> regionStubs(setup.numRegions(), 0);
     std::vector<int> regionTracks(setup.numRegions(), 0);
-    std::cout << "b" << std::flush;
     for (const L1Track& ttTrack : ttTracks) {
       const int region = ttTrack.phiSector();
       const std::vector<TTStubRef>& ttStubRefs = ttTrack.getStubRefs();
       regionTracks[region]++;
       regionStubs[region] += ttStubRefs.size();
-      const std::vector<TPPtr> any = reconstructable.associate(ttStubRefs);
+      const std::vector<TPPtr> any = forFake.associate(ttStubRefs);
       if (any.empty())
         continue;
       allMatched++;
-      const std::vector<TPPtr> select = selection.associate(ttStubRefs);
-      const std::vector<TPPtr> perfect = selection.associateFinal(ttStubRefs);
+      const std::vector<TPPtr> dup = forDup.associate(ttStubRefs);
+      if (dup.empty())
+        continue;
+      allDuplicates++;
+      tpPtrsDup.insert(dup.begin(), dup.end());
+      const std::vector<TPPtr> select = forEff.associate(ttStubRefs);
+      const std::vector<TPPtr> perfect = forEff.associateFinal(ttStubRefs);
       tpPtrsSelection.insert(select.begin(), select.end());
       tpPtrsPerfect.insert(perfect.begin(), perfect.end());
-      bool duplicate(false);
-      for (const TPPtr& tpPtr : any)
-        if (tpPtrsAny.contains(tpPtr))
-          duplicate = true;
-      if (duplicate)
-        allDuplicates++;
-      else
-        tpPtrsAny.insert(any.begin(), any.end());
       // calc resolutions
       const double tt_inv2R = -.5 * ttTrack.rInv();
       const double tt_pt = -setup.invPtToDphi() / tt_inv2R;
@@ -222,7 +225,6 @@ namespace tt {
         }
       }
     }
-    std::cout << "c" << std::flush;
     for (int num : regionStubs)
       prof_->Fill(1, num);
     for (int num : regionTracks)
@@ -230,13 +232,12 @@ namespace tt {
     prof_->Fill(3, allTracks);
     prof_->Fill(4, allMatched);
     prof_->Fill(5, allDuplicates);
-    prof_->Fill(6, tpPtrsAny.size());
+    prof_->Fill(6, tpPtrsDup.size());
     prof_->Fill(7, tpPtrsSelection.size());
     prof_->Fill(8, tpPtrsPerfect.size());
     for (const TPPtr& tpPtr : tpPtrsPerfect)
       fillEff(tpPtr, hisEffPassed_);
     nEvents_++;
-    std::cout << "d" << std::flush;
   }
 
   void AnalyzerTTTrack::endJob() {
@@ -253,13 +254,14 @@ namespace tt {
     const double allTracks = prof_->GetBinContent(3);
     const double allMatched = prof_->GetBinContent(4);
     const double allDuplicates = prof_->GetBinContent(5);
+    const double numDup = prof_->GetBinContent(6);
     const double numSelection = prof_->GetBinContent(7);
     const double numPerfect = prof_->GetBinContent(8);
     const double allTPs = prof_->GetBinContent(9);
     const double errStubs = prof_->GetBinError(1);
     const double errTracks = prof_->GetBinError(2);
     const double fracFake = (allTracks - allMatched) / allTracks;
-    const double fracDup = allDuplicates / allTracks;
+    const double fracDup = (allDuplicates - numDup) / allTracks;
     const double effMax = numSelection / allTPs;
     const double effPerfect = numPerfect / allTPs;
     const double errEffMax = std::sqrt(effMax * (1. - effMax) / allTPs / nEvents_);
@@ -279,7 +281,7 @@ namespace tt {
          << std::endl;
     log_ << "                  fake rate = " << std::setw(wNums) << fracFake << std::endl;
     log_ << "             duplicate rate = " << std::setw(wNums) << fracDup << std::endl;
-    log_ << "===========================================================" + std::string(name_.length(), '=');
+    log_ << "=============================================================";
     edm::LogPrint(moduleDescription().moduleName()) << log_.str();
   }
 

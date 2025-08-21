@@ -45,9 +45,9 @@ namespace tt {
     // ED input token of TTClusterAssociation
     edm::EDGetTokenT<TTClusterAssMap> getTokenTTClusterAssMap_;
     // ED input token of StubAssociation with reconstructable TPs
-    edm::EDGetTokenT<StubAssociation> getTokenReconstructable_;
+    edm::EDGetTokenT<StubAssociation> getTokenFake_;
     // ED input token of StubAssociation with selected TPs
-    edm::EDGetTokenT<StubAssociation> getTokenSelection_;
+    edm::EDGetTokenT<StubAssociation> getTokenEff_;
     // Setup token
     edm::ESGetToken<tt::Setup, tt::SetupRcd> esGetTokenSetup_;
     // Histograms
@@ -58,14 +58,14 @@ namespace tt {
 
   AnalyzerMC::AnalyzerMC(edm::ParameterSet const& iConfig) {
     const std::string& label = iConfig.getParameter<std::string>("StubAssociation");
-    const std::string& reconstructable = iConfig.getParameter<std::string>("BranchReconstructable");
-    const std::string& selection = iConfig.getParameter<std::string>("BranchSelection");
+    const std::string& branchFake = iConfig.getParameter<std::string>("BranchFake");
+    const std::string& branchEff = iConfig.getParameter<std::string>("BranchEff");
     const edm::InputTag& inputTagTTStubs = iConfig.getParameter<edm::InputTag>("InputTagTTStubs");
     const edm::InputTag& inputTagTTClusterAssMap = iConfig.getParameter<edm::InputTag>("InputTagTTClusterAssMap");
     edGetTokenTTStubs_ = consumes(inputTagTTStubs);
     getTokenTTClusterAssMap_ = consumes(inputTagTTClusterAssMap);
-    getTokenReconstructable_ = consumes(edm::InputTag(label, reconstructable));
-    getTokenSelection_ = consumes(edm::InputTag(label, selection));
+    getTokenFake_ = consumes(edm::InputTag(label, branchFake));
+    getTokenEff_ = consumes(edm::InputTag(label, branchEff));
     // book ES product
     esGetTokenSetup_ = esConsumes();
     // log config
@@ -108,16 +108,16 @@ namespace tt {
       }
     }
     // get number of TPs
-    const StubAssociation& reconstructable = iEvent.get(getTokenReconstructable_);
-    const StubAssociation& selection = iEvent.get(getTokenSelection_);
+    const StubAssociation& forFake = iEvent.get(getTokenFake_);
+    const StubAssociation& forEff = iEvent.get(getTokenEff_);
     const double numRegions = setup->numRegions();
     // store
     prof_->Fill(1, nStubs / numRegions);
     prof_->Fill(2, nMatched / numRegions);
-    prof_->Fill(3, reconstructable.numStubs() / numRegions);
+    prof_->Fill(3, forFake.numStubs() / numRegions);
     prof_->Fill(4, ttClusterAssMap.getTrackingParticleToTTClustersMap().size());
-    prof_->Fill(5, reconstructable.numTPs() / numRegions);
-    prof_->Fill(6, selection.numTPs() / numRegions);
+    prof_->Fill(5, forFake.numTPs() / numRegions);
+    prof_->Fill(6, forEff.numTPs() / numRegions);
   }
 
   // prints out Monte Carlo summary
@@ -152,7 +152,7 @@ namespace tt {
          << errTPsReco << std::endl;
     log_ << "number of TPs for eff   per TFP = " << std::setw(wNums) << numTPsEff << " +- " << std::setw(wErrs)
          << errTPsEff << std::endl;
-    log_ << "=============================================================" << std::endl;
+    log_ << "=============================================================";
     edm::LogPrint(moduleDescription().moduleName()) << log_.str();
   }
 
