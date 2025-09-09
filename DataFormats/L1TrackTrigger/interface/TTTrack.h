@@ -90,7 +90,9 @@ public:
   ~TTTrack();
 
   /// Track components
-  const std::vector<edm::Ref<edmNew::DetSetVector<TTStub<T> >, TTStub<T> > >& getStubRefs() const { return theStubRefs; }
+  const std::vector<edm::Ref<edmNew::DetSetVector<TTStub<T> >, TTStub<T> > >& getStubRefs() const {
+    return theStubRefs;
+  }
   void addStubRef(edm::Ref<edmNew::DetSetVector<TTStub<T> >, TTStub<T> > aStub) { theStubRefs.push_back(aStub); }
   void setStubRefs(std::vector<edm::Ref<edmNew::DetSetVector<TTStub<T> >, TTStub<T> > > aStubs) {
     theStubRefs = aStubs;
