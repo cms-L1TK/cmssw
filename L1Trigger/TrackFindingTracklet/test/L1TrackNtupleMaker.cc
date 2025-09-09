@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////
 //                                                                  //
 //  Analyzer for making mini-ntuple for L1 track performance plots  //
-//                                                                  //   
+//                                                                  //
 //////////////////////////////////////////////////////////////////////
 
 ////////////////////
@@ -193,7 +193,8 @@ private:
   std::vector<int>* m_trk_combinatoric;
   std::vector<float>* m_trk_MVA1;
   // Matched TP (filled if track genuine)
-  std::vector<int>* m_trk_matchtp_eventtype;  //0 = fake track (not genuine), 1 = TP from signal pp event, 2 = TP from pileup
+  std::vector<int>*
+      m_trk_matchtp_eventtype;  //0 = fake track (not genuine), 1 = TP from signal pp event, 2 = TP from pileup
   std::vector<int>* m_trk_matchtp_pdgid;
   std::vector<float>* m_trk_matchtp_pt;
   std::vector<float>* m_trk_matchtp_eta;
@@ -1082,7 +1083,7 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
       float tmp_trk_z0 = iterL1Track->z0();  //cm
       float tmp_trk_tanL = iterL1Track->tanL();
       int tmp_trk_charge = (int)TMath::Sign(1, iterL1Track->rInv());
-      
+
       int tmp_trk_hitpattern = 0;
       tmp_trk_hitpattern = (int)iterL1Track->hitPattern();
       hph::HitPatternHelper hph(hphSetup, tmp_trk_hitpattern, tmp_trk_tanL, tmp_trk_z0);
@@ -1252,17 +1253,18 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
       float tmp_matchtp_lxy = -999;
       float tmp_matchtp_d0 = -999;
 
-      if (tmp_trk_genuine) { // Change this to allow matching for loosely genuine tracks too
-      
+      if (tmp_trk_genuine) {  // Change this to allow matching for loosely genuine tracks too
+
         edm::Ptr<TrackingParticle> my_tp = MCTruthTTTrackHandle->findTrackingParticlePtr(l1track_ptr);
-        if (my_tp.isNull()) assert(false); // Should never happen
+        if (my_tp.isNull())
+          assert(false);  // Should never happen
 
         int tmp_eventid = my_tp->eventId().event();
 
         if (tmp_eventid > 0)
-          tmp_matchtp_eventtype = 2; // Genuine track from pileup
+          tmp_matchtp_eventtype = 2;  // Genuine track from pileup
         else
-          tmp_matchtp_eventtype = 1; // Genuine track from signal pp vertex
+          tmp_matchtp_eventtype = 1;  // Genuine track from signal pp vertex
 
         tmp_matchtp_pdgid = my_tp->pdgId();
         tmp_matchtp_pt = my_tp->pt();
@@ -1407,7 +1409,7 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
     float c_converted = CLHEP::c_light / 1.0E5;
     float r2_inv = tmp_tp_charge * c_converted * b_field / tmp_tp_pt / 2.0;
 
-    float tmp_tp_x0p = delx - (1. / (2. * r2_inv) * sin(tmp_tp_phi)); // centre of track circle (except sign ...)
+    float tmp_tp_x0p = delx - (1. / (2. * r2_inv) * sin(tmp_tp_phi));  // centre of track circle (except sign ...)
     float tmp_tp_y0p = dely + (1. / (2. * r2_inv) * cos(tmp_tp_phi));
     float tmp_tp_rp = sqrt(tmp_tp_x0p * tmp_tp_x0p + tmp_tp_y0p * tmp_tp_y0p);
     float tmp_tp_d0 = tmp_tp_charge * tmp_tp_rp - (1. / (2. * r2_inv));
@@ -1554,9 +1556,9 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
             edm::LogVerbatim("Tracklet") << "    (loose genuine!) ";
         }
 
-        if (!tmp_trk_genuine) // Change this to study effect on efficiency of looser association
+        if (!tmp_trk_genuine)  // Change this to study effect on efficiency of looser association
           continue;
-        
+
         // ----------------------------------------------------------------------------------------------
         // further require L1 track to be (loosely) genuine, that there is only one TP matched to the track
         // + have >= L1Tk_minNStub stubs for it to be a valid match (only relevant is your track collection
@@ -1632,7 +1634,7 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
     if (nMatch > 1 && DebugMode)
       edm::LogVerbatim("Tracklet") << "WARNING *** 2 or more matches to genuine L1 tracks ***";
 
-    if (nMatch > 0) { // TP matches at least 1 genuine track
+    if (nMatch > 0) {  // TP matches at least 1 genuine track
       tmp_matchtrk_pt = matchedTracks.at(i_track)->momentum().perp();
       tmp_matchtrk_charge = (int)TMath::Sign(1, matchedTracks.at(i_track)->rInv());
       tmp_matchtrk_eta = matchedTracks.at(i_track)->momentum().eta();
