@@ -188,7 +188,7 @@ namespace trackerTFP {
       int tmp(0);
       associate(tracks, selection, tpPtrsSelection, tmp);
       associate(tracks, selection, tpPtrsPerfect, tmp, true);
-      associate(tracks, reconstructable, tpPtrs, nAllMatched);
+      associate(tracks, reconstructable, tpPtrs, nAllMatched, true);
     }
     for (const TPPtr& tpPtr : tpPtrsSelection)
       fill(tpPtr, hisEff_);
