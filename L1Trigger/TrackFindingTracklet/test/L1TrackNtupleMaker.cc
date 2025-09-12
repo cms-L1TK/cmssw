@@ -193,6 +193,7 @@ private:
   std::vector<int>* m_trk_combinatoric;
   std::vector<float>* m_trk_MVA1;
   // Matched TP (filled if track genuine)
+  // N.B. This TP not required to have stubs in at least 4 layers.
   std::vector<int>*
       m_trk_matchtp_eventtype;  //0 = fake track (not genuine), 1 = TP from signal pp event, 2 = TP from pileup
   std::vector<int>* m_trk_matchtp_pdgid;
@@ -226,6 +227,7 @@ private:
   std::vector<int>* m_tp_injet_vhighpt;
 
   // Best genuine *L1 track* (if any) that matches TP. Will exist if tp_nmatch > 0
+  // Only filled for TP that have stubs in at least 4 layers.
   std::vector<float>* m_matchtrk_pt;
   std::vector<float>* m_matchtrk_eta;
   std::vector<float>* m_matchtrk_phi;
