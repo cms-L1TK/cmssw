@@ -974,15 +974,15 @@ void L1TrackNtuplePlot(TString type,
   TH1F* h_ntrk_genuine_pt10 =
       new TH1F("ntrk_genuine_pt10", ";# genuine tracks (p_{T} > 10 GeV) / event; Events", 100, 0, 100.0);
 
-  // Max N tracks from a sector per event
+  // Max N tracks from a sector per event (electronics truncates at 108)
   TH1F* h_ntrkPerNonantPerLink_all =
-      new TH1F("ntrkPerNonantPerLink_all", ";Max. # tracks from a sector / event; Events", 50, 0, 100.0);
+      new TH1F("ntrkPerNonantPerLink_all", ";Max. # tracks from a sector / event; Events", 30, -2., 118.);
   TH1F* h_ntrkPerNonantPerLink_pt2 = new TH1F(
-      "ntrkPerNonantPerLink_pt2", ";Max. # tracks from a sector (p_{T} > 2 GeV) / event; Events", 50, 0, 100.0);
+      "ntrkPerNonantPerLink_pt2", ";Max. # tracks from a sector (p_{T} > 2 GeV) / event; Events", 30, -2., 118.);
   TH1F* h_ntrkPerNonantPerLink_pt3 = new TH1F(
-      "ntrkPerNonantPerLink_pt3", ";Max. # tracks from a sector (p_{T} > 3 GeV) / event; Events", 50, 0, 100.0);
+      "ntrkPerNonantPerLink_pt3", ";Max. # tracks from a sector (p_{T} > 3 GeV) / event; Events", 30, -2., 118.);
   TH1F* h_ntrkPerNonantPerLink_pt4 = new TH1F(
-      "ntrkPerNonantPerLink_pt4", ";Max. # tracks from a sector (p_{T} > 10 GeV) / event; Events", 50, 0, 100.0);
+      "ntrkPerNonantPerLink_pt4", ";Max. # tracks from a sector (p_{T} > 10 GeV) / event; Events", 30, -2, 118);
 
   // number of tracks vs. efficiency (eta, pT)
   TH1F* h_trk_pt = new TH1F("trk_pt", Form(";Track p_{T} (GeV);Tracks / 0.5 GeV"), 200, 0., 100.);
@@ -1035,10 +1035,10 @@ void L1TrackNtuplePlot(TString type,
 
     // Each sector uses two output links to output tracks to L1 trigger.
     constexpr unsigned int nNonants = 9, nLink = 2;
-    vector<unsigned int> nTrksPerSectorPerLink_all(nNonants * nLink, 0);
-    vector<unsigned int> nTrksPerSectorPerLink_pt2(nNonants * nLink, 0);
-    vector<unsigned int> nTrksPerSectorPerLink_pt3(nNonants * nLink, 0);
-    vector<unsigned int> nTrksPerSectorPerLink_pt4(nNonants * nLink, 0);
+    vector<unsigned int> nTrksPerNonantPerLink_all(nNonants * nLink, 0);
+    vector<unsigned int> nTrksPerNonantPerLink_pt2(nNonants * nLink, 0);
+    vector<unsigned int> nTrksPerNonantPerLink_pt3(nNonants * nLink, 0);
+    vector<unsigned int> nTrksPerNonantPerLink_pt4(nNonants * nLink, 0);
 
     for (int it = 0; it < (int)trk_pt->size(); it++) {  // Loop reco tracks
       // ----------------------------------------------------------------------------------------------------------------
@@ -1120,17 +1120,17 @@ void L1TrackNtuplePlot(TString type,
       if (trk_eta->at(it) > 0)
         linkOut += nNonants;
 
-      ++nTrksPerSectorPerLink_all.at(linkOut);
+      ++nTrksPerNonantPerLink_all.at(linkOut);
 
       if (std::abs(trk_eta->at(it)) > TP_maxEta || trk_pt->at(it) < TP_minPt)
         continue;
 
       if (trk_pt->at(it) > 2.0)
-        ++nTrksPerSectorPerLink_pt2.at(linkOut);
+        ++nTrksPerNonantPerLink_pt2.at(linkOut);
       if (trk_pt->at(it) > 3.0)
-        ++nTrksPerSectorPerLink_pt3.at(linkOut);
+        ++nTrksPerNonantPerLink_pt3.at(linkOut);
       if (trk_pt->at(it) > 4.0)
-        ++nTrksPerSectorPerLink_pt4.at(linkOut);
+        ++nTrksPerNonantPerLink_pt4.at(linkOut);
 
       if (trk_pt->at(it) > 2.0) {
         ntrk_pt2++;
@@ -1194,14 +1194,11 @@ void L1TrackNtuplePlot(TString type,
     h_ntrk_genuine_pt3->Fill(ntrkevt_genuine_pt3);
     h_ntrk_genuine_pt10->Fill(ntrkevt_genuine_pt10);
 
-    h_ntrkPerNonantPerLink_all->Fill(
-        *std::max_element(nTrksPerSectorPerLink_all.begin(), nTrksPerSectorPerLink_all.end()));
-    h_ntrkPerNonantPerLink_pt2->Fill(
-        *std::max_element(nTrksPerSectorPerLink_pt2.begin(), nTrksPerSectorPerLink_pt2.end()));
-    h_ntrkPerNonantPerLink_pt3->Fill(
-        *std::max_element(nTrksPerSectorPerLink_pt3.begin(), nTrksPerSectorPerLink_pt3.end()));
-    h_ntrkPerNonantPerLink_pt4->Fill(
-        *std::max_element(nTrksPerSectorPerLink_pt4.begin(), nTrksPerSectorPerLink_pt4.end()));
+    const float nTrkPerLinkOverflow = h_ntrkPerNonantPerLink_all->GetXaxis()->GetXmax() - 0.1; // Add overflow bin
+    h_ntrkPerNonantPerLink_all->Fill(min(float(*std::max_element(nTrksPerNonantPerLink_all.begin(), nTrksPerNonantPerLink_all.end())), nTrkPerLinkOverflow));
+    h_ntrkPerNonantPerLink_pt2->Fill(min(float(*std::max_element(nTrksPerNonantPerLink_pt2.begin(), nTrksPerNonantPerLink_pt2.end())), nTrkPerLinkOverflow));
+    h_ntrkPerNonantPerLink_pt3->Fill(min(float(*std::max_element(nTrksPerNonantPerLink_pt3.begin(), nTrksPerNonantPerLink_pt3.end())), nTrkPerLinkOverflow));
+    h_ntrkPerNonantPerLink_pt4->Fill(min(float(*std::max_element(nTrksPerNonantPerLink_pt4.begin(), nTrksPerNonantPerLink_pt4.end())), nTrkPerLinkOverflow));
 
     // ----------------------------------------------------------------------------------------------------------------
     // Loop tracking particles
@@ -3569,33 +3566,36 @@ void L1TrackNtuplePlot(TString type,
   h_ntrkPerNonantPerLink_all->GetYaxis()->SetTitle("Fraction of events");
   h_ntrkPerNonantPerLink_all->GetXaxis()->SetTitle("Max no. of transmitted tracks/nonant/link");
 
-  h_ntrkPerNonantPerLink_all->SetLineColor(1);
-  h_ntrkPerNonantPerLink_pt2->SetLineColor(4);
-  h_ntrkPerNonantPerLink_pt3->SetLineColor(2);
-  h_ntrkPerNonantPerLink_pt4->SetLineColor(8);
+  h_ntrkPerNonantPerLink_all->SetFillColor(8);
+  h_ntrkPerNonantPerLink_all->SetFillStyle(1001);
+  h_ntrkPerNonantPerLink_pt2->SetMarkerColor(4);
+  h_ntrkPerNonantPerLink_pt2->SetMarkerStyle(21);
+  h_ntrkPerNonantPerLink_pt3->SetMarkerColor(2);
+  h_ntrkPerNonantPerLink_pt3->SetMarkerStyle(22);
+  h_ntrkPerNonantPerLink_pt4->SetMarkerColor(1);
+  h_ntrkPerNonantPerLink_pt4->SetMarkerStyle(23);
 
   max = h_ntrkPerNonantPerLink_all->GetMaximum();
-  h_ntrkPerNonantPerLink_all->SetAxisRange(0.00001, max * 5, "Y");
-  h_ntrkPerNonantPerLink_all->SetAxisRange(0., 100, "X");
+  h_ntrkPerNonantPerLink_all->SetAxisRange(0.0003, max * 5, "Y");
 
-  h_ntrkPerNonantPerLink_all->Draw("hist");
-  h_ntrkPerNonantPerLink_pt2->Draw("same,hist");
-  h_ntrkPerNonantPerLink_pt3->Draw("same,hist");
-  h_ntrkPerNonantPerLink_pt4->Draw("same,hist");
+  h_ntrkPerNonantPerLink_all->Draw("HIST");
+  h_ntrkPerNonantPerLink_pt4->Draw("PEX0,same");
+  h_ntrkPerNonantPerLink_pt3->Draw("PEX0,same");
+  h_ntrkPerNonantPerLink_pt2->Draw("PEX0,same");
   gPad->SetLogy();
 
-  TLegend* l = new TLegend(0.6, 0.55, 0.85, 0.85);
+  TLegend* l = new TLegend(0.6, 0.7, 0.85, 0.95);
   l->SetFillStyle(0);
   l->SetBorderSize(0);
   l->SetTextSize(0.04);
-  l->AddEntry(h_ntrkPerNonantPerLink_all, "no p_{T}cut", "l");
-  l->AddEntry(h_ntrkPerNonantPerLink_pt2, "p_{T}^{track} > 2 GeV", "l");
-  l->AddEntry(h_ntrkPerNonantPerLink_pt3, "p_{T}^{track} > 3 GeV", "l");
-  l->AddEntry(h_ntrkPerNonantPerLink_pt4, "p_{T}^{track} > 4 GeV", "l");
+  l->AddEntry(h_ntrkPerNonantPerLink_all, "no p_{T}cut", "f");
+  l->AddEntry(h_ntrkPerNonantPerLink_pt2, "p_{T}^{track} > 2 GeV", "p");
+  l->AddEntry(h_ntrkPerNonantPerLink_pt3, "p_{T}^{track} > 3 GeV", "p");
+  l->AddEntry(h_ntrkPerNonantPerLink_pt4, "p_{T}^{track} > 4 GeV", "p");
   l->SetTextFont(42);
   l->Draw();
 
-  c.SaveAs(DIR + type + "_trackRatePerPhiSector_log.pdf");
+  c.SaveAs(DIR + type + "_trackRatePerNonantPerLink_log.pdf");
   gPad->SetLogy(0);
 
   h_ntrk_genuine_pt2->Write();
