@@ -1194,11 +1194,19 @@ void L1TrackNtuplePlot(TString type,
     h_ntrk_genuine_pt3->Fill(ntrkevt_genuine_pt3);
     h_ntrk_genuine_pt10->Fill(ntrkevt_genuine_pt10);
 
-    const float nTrkPerLinkOverflow = h_ntrkPerNonantPerLink_all->GetXaxis()->GetXmax() - 0.1; // Add overflow bin
-    h_ntrkPerNonantPerLink_all->Fill(min(float(*std::max_element(nTrksPerNonantPerLink_all.begin(), nTrksPerNonantPerLink_all.end())), nTrkPerLinkOverflow));
-    h_ntrkPerNonantPerLink_pt2->Fill(min(float(*std::max_element(nTrksPerNonantPerLink_pt2.begin(), nTrksPerNonantPerLink_pt2.end())), nTrkPerLinkOverflow));
-    h_ntrkPerNonantPerLink_pt3->Fill(min(float(*std::max_element(nTrksPerNonantPerLink_pt3.begin(), nTrksPerNonantPerLink_pt3.end())), nTrkPerLinkOverflow));
-    h_ntrkPerNonantPerLink_pt4->Fill(min(float(*std::max_element(nTrksPerNonantPerLink_pt4.begin(), nTrksPerNonantPerLink_pt4.end())), nTrkPerLinkOverflow));
+    const float nTrkPerLinkOverflow = h_ntrkPerNonantPerLink_all->GetXaxis()->GetXmax() - 0.1;  // Add overflow bin
+    h_ntrkPerNonantPerLink_all->Fill(
+        min(float(*std::max_element(nTrksPerNonantPerLink_all.begin(), nTrksPerNonantPerLink_all.end())),
+            nTrkPerLinkOverflow));
+    h_ntrkPerNonantPerLink_pt2->Fill(
+        min(float(*std::max_element(nTrksPerNonantPerLink_pt2.begin(), nTrksPerNonantPerLink_pt2.end())),
+            nTrkPerLinkOverflow));
+    h_ntrkPerNonantPerLink_pt3->Fill(
+        min(float(*std::max_element(nTrksPerNonantPerLink_pt3.begin(), nTrksPerNonantPerLink_pt3.end())),
+            nTrkPerLinkOverflow));
+    h_ntrkPerNonantPerLink_pt4->Fill(
+        min(float(*std::max_element(nTrksPerNonantPerLink_pt4.begin(), nTrksPerNonantPerLink_pt4.end())),
+            nTrkPerLinkOverflow));
 
     // ----------------------------------------------------------------------------------------------------------------
     // Loop tracking particles
