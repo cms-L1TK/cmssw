@@ -141,6 +141,10 @@ namespace trklet {
     int baseShiftC22_;
     int baseShiftC23_;
     int baseShiftC33_;
+    int baseShiftHv0_;
+    int baseShiftHv1_;
+    int baseShiftH2v0_;
+    int baseShiftH2v1_;
   };
 
   class DataFormatKF {
@@ -148,7 +152,7 @@ namespace trklet {
     DataFormatKF(const VariableKF& v, bool twos, bool enableIntegerEmulation, int width, double base, double range);
     ~DataFormatKF() = default;
     double digi(double val) const {
-      return enableIntegerEmulation_ ? (std::floor(val / base_ + 1.e-11) + .5) * base_ : val;
+      return enableIntegerEmulation_ ? (std::floor(val / base_ + 1.e-12) + .5) * base_ : val;
     }
     bool twos() const { return twos_; }
     int width() const { return width_; }
@@ -160,7 +164,7 @@ namespace trklet {
     // returns false if data format would oferflow for this double value
     bool inRange(double d) const;
     void updateRangeActual(double d);
-    int integer(double d) const { return floor(d / base_ + 1.e-11); }
+    int integer(double d) const { return floor(d / base_ + 1.e-12); }
 
   protected:
     VariableKF v_;

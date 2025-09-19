@@ -16,14 +16,16 @@ namespace trklet {
       "v0",         "v1",         "r0",         "r1",         "S00",          "S01",          "S12",       "S13",
       "S00Shifted", "S01Shifted", "S12Shifted", "S13Shifted", "K00",          "K10",          "K21",       "K31",
       "R00",        "R11",        "R00Rough",   "R11Rough",   "invR00Approx", "invR11Approx", "invR00Cor", "invR11Cor",
-      "invR00",     "invR11",     "C00",        "C01",        "C11",          "C22",          "C23",       "C33"};
+      "invR00",     "invR11",     "C00",        "C01",        "C11",          "C22",          "C23",       "C33",
+      "dH",         "invdH",      "invdH2",     "H2",         "Hm0",          "Hm1",          "Hv0",       "Hv1",
+      "H2v0",       "H2v1"};
 
   void KalmanFilterFormats::endJob(std::stringstream& ss) {
     const int wName =
         std::strlen(*std::max_element(variableKFstrs_.begin(), variableKFstrs_.end(), [](const auto& a, const auto& b) {
           return std::strlen(a) < std::strlen(b);
         }));
-    for (VariableKF v = VariableKF::begin; v != VariableKF::dH; v = VariableKF(+v + 1)) {
+    for (VariableKF v = VariableKF::begin; v != VariableKF::end; v = VariableKF(+v + 1)) {
       const double r =
           format(v).twos() ? std::max(std::abs(format(v).min()), std::abs(format(v).max())) * 2. : format(v).max();
       const int delta = format(v).width() - std::ceil(std::log2(r / format(v).base()));
@@ -491,7 +493,7 @@ namespace trklet {
     const int width = dataFormats->setup()->widthAddrBRAM18();
     const double range = dataFormats->setup()->outerRadius() - dataFormats->setup()->innerRadius();
     const double base = H00.base() * std::pow(2, ceil(log2(range / H00.base())) - width);
-    return DataFormatKF(VariableKF::end, false, iConfig.enableIntegerEmulation_, width, base, range);
+    return DataFormatKF(VariableKF::dH, false, iConfig.enableIntegerEmulation_, width, base, range);
   }
 
   template <>
@@ -501,7 +503,7 @@ namespace trklet {
     const double range = 1. / dataFormats->setup()->kfMinSeedDeltaR();
     const int baseShift = std::ceil(std::log2(range * std::pow(2., -width) * H00.base()));
     const double base = std::pow(2., baseShift) / H00.base();
-    return DataFormatKF(VariableKF::end, false, iConfig.enableIntegerEmulation_, width, base, range);
+    return DataFormatKF(VariableKF::invdH, false, iConfig.enableIntegerEmulation_, width, base, range);
   }
 
   template <>
@@ -512,7 +514,7 @@ namespace trklet {
     const double baseH2 = H00.base() * H00.base();
     const int baseShift = std::ceil(std::log2(range * std::pow(2., -width) * baseH2));
     const double base = std::pow(2., baseShift) / baseH2;
-    return DataFormatKF(VariableKF::end, false, iConfig.enableIntegerEmulation_, width, base, range);
+    return DataFormatKF(VariableKF::invdH2, false, iConfig.enableIntegerEmulation_, width, base, range);
   }
 
   template <>
@@ -521,7 +523,7 @@ namespace trklet {
     const int width = H00.width() + H00.width();
     const double base = H00.base() * H00.base();
     const double range = H00.range() * H00.range();
-    return DataFormatKF(VariableKF::end, false, iConfig.enableIntegerEmulation_, width, base, range);
+    return DataFormatKF(VariableKF::H2, false, iConfig.enableIntegerEmulation_, width, base, range);
   }
 
   template <>
@@ -531,7 +533,7 @@ namespace trklet {
     const int width = H00.width() + m0.width();
     const double base = H00.base() * m0.base();
     const double range = H00.range() * m0.range();
-    return DataFormatKF(VariableKF::end, false, iConfig.enableIntegerEmulation_, width, base, range);
+    return DataFormatKF(VariableKF::Hm0, true, iConfig.enableIntegerEmulation_, width, base, range);
   }
 
   template <>
@@ -541,7 +543,7 @@ namespace trklet {
     const int width = H12.width() + m1.width();
     const double base = H12.base() * m1.base();
     const double range = H12.range() * m1.range();
-    return DataFormatKF(VariableKF::end, false, iConfig.enableIntegerEmulation_, width, base, range);
+    return DataFormatKF(VariableKF::Hm1, true, iConfig.enableIntegerEmulation_, width, base, range);
   }
 
   template <>
@@ -549,9 +551,10 @@ namespace trklet {
     const DataFormatKF H00 = makeDataFormat<VariableKF::H00>(dataFormats, iConfig);
     const DataFormatKF v0 = makeDataFormat<VariableKF::v0>(dataFormats, iConfig);
     const int width = dataFormats->setup()->widthDSPab();
-    const double base = H00.base() * v0.base() * pow(2, H00.width() + v0.width() - width);
-    const double range = H00.range() * v0.range();
-    return DataFormatKF(VariableKF::end, false, iConfig.enableIntegerEmulation_, width, base, range);
+    const int baseShift = iConfig.baseShiftHv0_;
+    const double base = H00.base() * v0.base() * std::pow(2, baseShift);
+    const double range = base * std::pow(2., width);
+    return DataFormatKF(VariableKF::Hv0, true, iConfig.enableIntegerEmulation_, width, base, range);
   }
 
   template <>
@@ -559,19 +562,21 @@ namespace trklet {
     const DataFormatKF H12 = makeDataFormat<VariableKF::H12>(dataFormats, iConfig);
     const DataFormatKF v1 = makeDataFormat<VariableKF::v1>(dataFormats, iConfig);
     const int width = dataFormats->setup()->widthDSPab();
-    const double base = H12.base() * v1.base() * pow(2, H12.width() + v1.width() - width);
-    const double range = H12.range() * v1.range();
-    return DataFormatKF(VariableKF::end, false, iConfig.enableIntegerEmulation_, width, base, range);
+    const int baseShift = iConfig.baseShiftHv1_;
+    const double base = H12.base() * v1.base() * std::pow(2, baseShift);
+    const double range = base * std::pow(2., width);
+    return DataFormatKF(VariableKF::Hv1, true, iConfig.enableIntegerEmulation_, width, base, range);
   }
 
   template <>
   DataFormatKF makeDataFormat<VariableKF::H2v0>(const DataFormats* dataFormats, const ConfigKF& iConfig) {
     const DataFormatKF H00 = makeDataFormat<VariableKF::H00>(dataFormats, iConfig);
     const DataFormatKF v0 = makeDataFormat<VariableKF::v0>(dataFormats, iConfig);
+    const int baseShift = iConfig.baseShiftH2v0_;
     const int width = dataFormats->setup()->widthDSPau();
-    const double base = H00.base() * H00.base() * v0.base() * pow(2, 2 * H00.width() + v0.width() - width);
-    const double range = H00.range() * H00.range() * v0.range();
-    return DataFormatKF(VariableKF::end, false, iConfig.enableIntegerEmulation_, width, base, range);
+    const double base = H00.base() * H00.base() * v0.base() * std::pow(2, baseShift);
+    const double range = base * std::pow(2., width);
+    return DataFormatKF(VariableKF::H2v0, false, iConfig.enableIntegerEmulation_, width, base, range);
   }
 
   template <>
@@ -579,9 +584,10 @@ namespace trklet {
     const DataFormatKF H12 = makeDataFormat<VariableKF::H12>(dataFormats, iConfig);
     const DataFormatKF v1 = makeDataFormat<VariableKF::v1>(dataFormats, iConfig);
     const int width = dataFormats->setup()->widthDSPau();
-    const double base = H12.base() * H12.base() * v1.base() * pow(2, 2 * H12.width() + v1.width() - width);
-    const double range = H12.range() * H12.range() * v1.range();
-    return DataFormatKF(VariableKF::end, false, iConfig.enableIntegerEmulation_, width, base, range);
+    const int baseShift = iConfig.baseShiftH2v1_;
+    const double base = H12.base() * H12.base() * v1.base() * std::pow(2, baseShift);
+    const double range = base * std::pow(2., width);
+    return DataFormatKF(VariableKF::H2v1, false, iConfig.enableIntegerEmulation_, width, base, range);
   }
 
 }  // namespace trklet

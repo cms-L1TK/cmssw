@@ -73,6 +73,8 @@ namespace tt {
     int nEvents_ = 0;
     // Histograms
     TProfile* prof_;
+    TH1F* hisLayer_;
+    TH1F* hisStubs_;
     std::vector<TH1F*> hisRes_;
     std::vector<TProfile*> profRes_;
     std::vector<TH1F*> hisEffPassed_;
@@ -126,6 +128,8 @@ namespace tt {
     prof_->GetXaxis()->SetBinLabel(8, "Found Selected TPs");
     prof_->GetXaxis()->SetBinLabel(9, "Found Perfect TPs");
     prof_->GetXaxis()->SetBinLabel(10, "All TPs");
+    hisLayer_ = dir.make<TH1F>("Layer Occupancy", ";", 8, -0.5, 7.5);
+    hisStubs_ = dir.make<TH1F>("Stubs per Track", ";", 8, .5, 8.5);
     // resoultions
     dir = fs->mkdir(name_ + "/Res");
     for (int i = 0; i < static_cast<int>(resolutions_.size()); i++) {
@@ -178,6 +182,10 @@ namespace tt {
       const std::vector<TTStubRef>& ttStubRefs = ttTrack.getStubRefs();
       regionTracks[region]++;
       regionStubs[region] += ttStubRefs.size();
+      const TTBV hitPattern((int)ttTrack.hitPattern(), setup.numLayers());
+      for (int layer : hitPattern.ids())
+        hisLayer_->Fill(layer);
+      hisStubs_->Fill(hitPattern.count());
       const std::vector<TPPtr> any = forFake.associate(ttStubRefs);
       if (any.empty())
         continue;
