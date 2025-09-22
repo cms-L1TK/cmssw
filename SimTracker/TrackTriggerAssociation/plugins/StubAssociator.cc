@@ -138,8 +138,6 @@ namespace tt {
     std::map<TPPtr, std::set<TTStubRef>> mapPrimaryTPPtrsTTStubRefs;
     for (auto& p : mapTPPtrsTTStubRefs) {
       const TPPtr primary = associator->getPrimaryTP(p.first);
-      std::deque<TPPtr> chain;
-      associator->fillTPChain(chain, primary);
       std::set<TTStubRef>& ttStubRefs = mapPrimaryTPPtrsTTStubRefs[primary];
       ttStubRefs.insert(p.second.begin(), p.second.end());
     }

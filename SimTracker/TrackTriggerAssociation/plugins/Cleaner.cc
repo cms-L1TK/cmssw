@@ -15,18 +15,20 @@
 
 #include <string>
 #include <vector>
+#include <deque>
 #include <set>
 #include <map>
-#include <algorithm>
+#include <functional>
 #include <utility>
 
 namespace tt {
 
   /*! \class  tt::Cleaner
-   *  \brief  creates TrackingParticleCollection with at least one associated cluster in the TP chain.
-   *          adds missing decay vertices to those TPs.
-   *          creates TrackingVertexCollection with all vertices for those TPs.
-              creates TTClusterAssociationMap with those TPs
+   *  \brief  creates TrackingParticleCollection with at least one direct or indirect
+   *          (via parent or child) associated cluster.
+   *          creates TrackingVertexCollection with all vertices (with corrected
+   *          parent TP connection) for those TPs.
+   *          creates TTClusterAssociationMap with those TPs
    *  \author Thomas Schuh
    *  \date   2025, Aug
    */
@@ -37,14 +39,8 @@ namespace tt {
 
   private:
     void produce(edm::Event&, const edm::EventSetup&) override;
-    // returns start of TP chain
-    TPPtr getPrimaryTP(const TPPtr&) const;
-    // fills set with TP chain downstream starting from given TPPtr
-    void fillTPChainDown(std::set<TPPtr>&, const TPPtr&) const;
-    // fills set with TP chain upstream starting from given TPPtr
-    void fillTPChainUp(std::set<TPPtr>&, const TPPtr&) const;
     // ED input token of existing TTClusterAssociation
-    edm::EDGetTokenT<TTClusterAssMap> edGetToken_;
+    edm::EDGetTokenT<TTClusterAssMap> edGetTokenAssoc_;
     // ED output token of clean TPs
     edm::EDPutTokenT<std::vector<TrackingParticle>> edPutTokenTPs_;
     // ED output token of clean TVs
@@ -57,117 +53,123 @@ namespace tt {
     const edm::InputTag& inputTag = iConfig.getParameter<edm::InputTag>("InputTag");
     const std::string& branch = iConfig.getParameter<std::string>("Branch");
     // book in- and output ed products
-    edGetToken_ = consumes<TTClusterAssMap>(inputTag);
+    edGetTokenAssoc_ = consumes<TTClusterAssMap>(inputTag);
     edPutTokenTPs_ = produces<std::vector<TrackingParticle>>(branch);
     edPutTokenTVs_ = produces<std::vector<TrackingVertex>>(branch);
     edPutTokenAssoc_ = produces<TTClusterAssMap>(branch);
   }
 
-  // returns start of TP chain
-  TPPtr Cleaner::getPrimaryTP(const TPPtr& tpPtr) const {
-    const TVRef& tvRefParent = tpPtr->parentVertex();
-    if (tvRefParent->nSourceTracks() > 0) {
-      const TPRef& tpRefParent = *tvRefParent->sourceTracks_begin();
-      const TPPtr tpPtrParent = edm::refToPtr(tpRefParent);
-      return this->getPrimaryTP(tpPtrParent);
-    }
-    return tpPtr;
-  }
-
-  // fills set with TP chain downstream starting from given TPPtr
-  void Cleaner::fillTPChainDown(std::set<TPPtr>& tpPtrs, const TPPtr& tpPtr) const {
-    tpPtrs.insert(tpPtr);
-    if (!tpPtr->decayVertices().empty()) {
-      const TVRef& tvRefChild = *tpPtr->decayVertices_begin();
-      const TPRef& tpRefChild = *tvRefChild->daughterTracks_begin();
-      const TPPtr tpPtrChild = edm::refToPtr(tpRefChild);
-      this->fillTPChainDown(tpPtrs, tpPtrChild);
-    }
-  }
-
-  // fills set with TP chain upstream starting from given TPPtr
-  void Cleaner::fillTPChainUp(std::set<TPPtr>& tpPtrs, const TPPtr& tpPtr) const {
-    tpPtrs.insert(tpPtr);
-    const TVRef& tvRefParent = tpPtr->parentVertex();
-    if (tvRefParent->nSourceTracks() > 0) {
-      const TPRef& tpRefParent = *tvRefParent->sourceTracks_begin();
-      const TPPtr tpPtrParent = edm::refToPtr(tpRefParent);
-      this->fillTPChainUp(tpPtrs, tpPtrParent);
-    }
-  }
-
   void Cleaner::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
-    const TTClusterAssMap& ttClusterAssMap = iEvent.get(edGetToken_);
+    const TTClusterAssMap& ttClusterAssMap = iEvent.get(edGetTokenAssoc_);
     const auto& refProdTPs = iEvent.getRefBeforePut(edPutTokenTPs_);
     const auto& refProdTVs = iEvent.getRefBeforePut(edPutTokenTVs_);
-    // get primay TPs & childs with at least one associated cluster
-    std::map<TPPtr, std::set<TPPtr>> primaries;
+    // get primay TPs with at least one direct or indirect (via child) associated cluster
+    std::set<TPPtr> tpPtrPrimaries;
+    std::function<void(const TPPtr&)> addPrimaryTPPtr;
+    addPrimaryTPPtr = [&addPrimaryTPPtr, &tpPtrPrimaries](const TPPtr& tpPtr) {
+      const TVRef& tvRefParent = tpPtr->parentVertex();
+      if (tvRefParent->nSourceTracks() > 0) {
+        const TPRef& tpRefParent = *tvRefParent->sourceTracks_begin();
+        const TPPtr tpPtrParent = edm::refToPtr(tpRefParent);
+        addPrimaryTPPtr(tpPtrParent);
+      }
+      tpPtrPrimaries.insert(tpPtr);
+    };
+    // loop over association map
     for (const auto& p : ttClusterAssMap.getTrackingParticleToTTClustersMap()) {
+      // ignore TPs without associated cluster
       if (p.second.empty())
         continue;
+      // ignore TPs with only associated null cluster refs
       if (std::all_of(p.second.begin(), p.second.end(), [](const auto& c) { return c.isNull(); }))
         continue;
-      const TPPtr primary = this->getPrimaryTP(p.first);
-      primaries[primary].insert(p.first);
+      // find and fill primary TP into tpPrimaries
+      addPrimaryTPPtr(p.first);
     }
-    // fill childs without associated cluster
-    std::vector<std::vector<TPPtr>> tpChains;
-    tpChains.reserve(primaries.size());
-    for (const auto& p : primaries) {
-      std::set<TPPtr> chain;
-      this->fillTPChainDown(chain, p.first);
-      for (const TPPtr& tpPtr : p.second) {
-        this->fillTPChainDown(chain, tpPtr);
-        this->fillTPChainUp(chain, tpPtr);
+    // get all children of those primaries
+    std::set<TPPtr> tpPtrChilds;
+    std::function<void(const TPPtr&)> addChildTPPtr;
+    addChildTPPtr = [&addChildTPPtr, &tpPtrChilds](const TPPtr& tpPtrParent) {
+      if (tpPtrParent->decayVertices().empty())
+        return;
+      const TVRef& tvRef = *tpPtrParent->decayVertices_begin();
+      for (auto it = tvRef->daughterTracks_begin(); it != tvRef->daughterTracks_end(); it++) {
+        const TPPtr tpPtrChild = edm::refToPtr(*it);
+        tpPtrChilds.insert(tpPtrChild);
+        addChildTPPtr(tpPtrChild);
       }
-      tpChains.emplace_back(chain.begin(), chain.end());
-    }
-    // count TPs and TVs
-    auto acc = [](int sum, const auto& tpPtrs) { return sum + tpPtrs.size(); };
-    const int size = std::accumulate(tpChains.begin(), tpChains.end(), 0, acc);
-    // create TPs with TVs and associate TPs with TTCluster
-    std::vector<TrackingParticle> tps;
-    tps.reserve(size);
-    std::vector<TrackingVertex> tvs;
-    tvs.reserve(size);
+    };
+    for (const TPPtr& tpPtr : tpPtrPrimaries)
+      addChildTPPtr(tpPtr);
+    // identify primaries which are actually a child and remove them from primaries
+    std::set<TPPtr> tpPtrFakePrimaries;
+    std::set_intersection(tpPtrPrimaries.begin(),
+                          tpPtrPrimaries.end(),
+                          tpPtrChilds.begin(),
+                          tpPtrChilds.end(),
+                          std::inserter(tpPtrFakePrimaries, tpPtrFakePrimaries.begin()));
+    for (const TPPtr& tpPtr : tpPtrFakePrimaries)
+      tpPtrPrimaries.erase(tpPtr);
+    // create TPs + TVs and associate TPs with TTCluster
+    std::deque<TrackingParticle> tps;
+    std::deque<TrackingVertex> tvs;
     std::map<TPPtr, std::vector<TTClusterRef>> mapTPPtrClusterRefs;
     std::map<TTClusterRef, std::vector<TPPtr>> mapTTClusterRefTPPtrs;
-    int index(-1);
-    for (const std::vector<TPPtr>& chain : tpChains) {
-      for (const TPPtr& tpPtr : chain) {
-        index++;
-        // construct TV
-        const TVRef& tvRef = tpPtr->parentVertex();
-        tvs.emplace_back(tvRef->position(), tvRef->inVolume(), tvRef->eventId());
-        TrackingVertex& tv = tvs.back();
-        tv.addDaughterTrack(TPRef(refProdTPs, index));
-        if (tpPtr != chain.front())
-          tv.addParentTrack(TPRef(refProdTPs, index - 1));
-        // construct TP
-        tps.emplace_back(tpPtr->g4Tracks().front(), TVRef(refProdTVs, index));
-        TrackingParticle& tp = tps.back();
-        tp.setNumberOfHits(tpPtr->numberOfHits());
-        tp.setNumberOfTrackerHits(tpPtr->numberOfTrackerHits());
-        tp.setNumberOfTrackerLayers(tpPtr->numberOfTrackerLayers());
-        if (tpPtr != chain.back())
-          tp.addDecayVertex(TVRef(refProdTVs, index + 1));
-        // associate
-        const TPPtr clean(edm::refToPtr(*tv.daughterTracks_begin()));
-        for (const auto& cluster : ttClusterAssMap.findTTClusterRefs(tpPtr)) {
-          if (cluster.isNull())
-            continue;
-          mapTPPtrClusterRefs[clean].push_back(cluster);
-          mapTTClusterRefTPPtrs[cluster].push_back(clean);
-        }
-      }
+    std::function<TPRef(const TPPtr&, const TVRef&)> copy;
+    copy =
+        [&copy, &tps, &tvs, &mapTPPtrClusterRefs, &mapTTClusterRefTPPtrs, &ttClusterAssMap, &refProdTPs, &refProdTVs](
+            const TPPtr& tpPtrOld, const TVRef& tvRefNewParent) {
+          // constuct TP
+          tps.emplace_back(tpPtrOld->g4Tracks().front(), tvRefNewParent);
+          TrackingParticle& tpNew = tps.back();
+          TPRef tpRefNew(refProdTPs, static_cast<int>(tps.size()) - 1);
+          tpNew.setNumberOfHits(tpPtrOld->numberOfHits());
+          tpNew.setNumberOfTrackerHits(tpPtrOld->numberOfTrackerHits());
+          tpNew.setNumberOfTrackerLayers(tpPtrOld->numberOfTrackerLayers());
+          // associate
+          const TPPtr tpPtrNew = edm::refToPtr(tpRefNew);
+          for (const auto& cluster : ttClusterAssMap.findTTClusterRefs(tpPtrOld)) {
+            // ignore null cluster refs
+            if (cluster.isNull())
+              continue;
+            mapTPPtrClusterRefs[tpPtrNew].push_back(cluster);
+            mapTTClusterRefTPPtrs[cluster].push_back(tpPtrNew);
+          }
+          // stop recurse if no childs are present
+          if (tpPtrOld->decayVertices().empty())
+            return tpRefNew;
+          // construct decay TV
+          const TVRef& tvRefOld = *tpPtrOld->decayVertices_begin();
+          tvs.emplace_back(tvRefOld->position(), tvRefOld->inVolume(), tvRefOld->eventId());
+          TrackingVertex& tvNewDecay = tvs.back();
+          TVRef tvRefNewDecay(refProdTVs, static_cast<int>(tvs.size()) - 1);
+          tvNewDecay.addParentTrack(tpRefNew);
+          tpNew.addDecayVertex(tvRefNewDecay);
+          // recurse over childs
+          for (auto it = tvRefOld->daughterTracks_begin(); it != tvRefOld->daughterTracks_end(); it++) {
+            const TPPtr tpPtrOldChild = edm::refToPtr(*it);
+            TPRef tpRefNewChild = copy(tpPtrOldChild, tvRefNewDecay);
+            tvNewDecay.addDaughterTrack(tpRefNewChild);
+          }
+          return tpRefNew;
+        };
+    for (const TPPtr& tpPtrOld : tpPtrPrimaries) {
+      // construct primary TV
+      const TVRef& tvRefOld = tpPtrOld->parentVertex();
+      tvs.emplace_back(tvRefOld->position(), tvRefOld->inVolume(), tvRefOld->eventId());
+      TrackingVertex& tvNew = tvs.back();
+      TVRef tvRefNew(refProdTVs, static_cast<int>(tvs.size()) - 1);
+      // create new TP copies of primaries with children and associate those with TTCluster
+      TPRef tpRefNew = copy(tpPtrOld, tvRefNew);
+      tvNew.addDaughterTrack(tpRefNew);
     }
     // create TTClusterAssMap
     TTClusterAssMap assoc;
     assoc.setTTClusterToTrackingParticlesMap(mapTTClusterRefTPPtrs);
     assoc.setTrackingParticleToTTClustersMap(mapTPPtrClusterRefs);
     // store products
-    iEvent.emplace(edPutTokenTPs_, std::move(tps));
-    iEvent.emplace(edPutTokenTVs_, std::move(tvs));
+    iEvent.emplace(edPutTokenTPs_, tps.begin(), tps.end());
+    iEvent.emplace(edPutTokenTVs_, tvs.begin(), tvs.end());
     iEvent.emplace(edPutTokenAssoc_, std::move(assoc));
   }
 

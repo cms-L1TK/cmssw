@@ -67,10 +67,8 @@ namespace tt {
     int numStubs() const { return sa_->numStubs(); }
     // total number of TPs associated with stubs
     int numTPs() const { return sa_->numTPs(); }
-    // returns start of TP chain
+    // returns primary TP
     TPPtr getPrimaryTP(const TPPtr&) const;
-    // fills deque with TP chain downstream starting from  given TPPtr
-    void fillTPChain(std::deque<TPPtr>&, const TPPtr&) const;
 
   private:
     // configuration

@@ -10,7 +10,7 @@
 
 namespace tt {
 
-  // returns start of TP chain
+  // returns primary TP
   TPPtr Associator::getPrimaryTP(const TPPtr& tpPtr) const {
     const TVRef& tvRefParent = tpPtr->parentVertex();
     if (tvRefParent->nSourceTracks() > 0) {
@@ -19,17 +19,6 @@ namespace tt {
       return this->getPrimaryTP(tpPtrParent);
     }
     return tpPtr;
-  }
-
-  // fills deque with TP chain downstream starting from  given TPPtr
-  void Associator::fillTPChain(std::deque<TPPtr>& tpPtrs, const TPPtr& tpPtr) const {
-    tpPtrs.push_back(tpPtr);
-    if (!tpPtr->decayVertices().empty()) {
-      const TVRef& tvRefChild = *tpPtr->decayVertices_begin();
-      const TPRef& tpRefChild = *tvRefChild->daughterTracks_begin();
-      const TPPtr tpPtrChild = edm::refToPtr(tpRefChild);
-      this->fillTPChain(tpPtrs, tpPtrChild);
-    }
   }
 
   // checks if stub collection is considered forming a reconstructable track

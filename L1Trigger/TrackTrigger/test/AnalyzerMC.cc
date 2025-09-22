@@ -43,11 +43,15 @@ namespace tt {
     // ED input token of TTStubs
     edm::EDGetTokenT<TTStubDetSetVec> edGetTokenTTStubs_;
     // ED input token of TTClusterAssociation
-    edm::EDGetTokenT<TTClusterAssMap> getTokenTTClusterAssMap_;
+    edm::EDGetTokenT<TTClusterAssMap> edGetTokenTTClusterAssMap_;
+    // ED input token of TPs
+    edm::EDGetTokenT<TrackingParticleCollection> edGetTokenTPs_;
+    // ED input token of TVs
+    edm::EDGetTokenT<TrackingVertexCollection> edGetTokenTVs_;
     // ED input token of StubAssociation with reconstructable TPs
-    edm::EDGetTokenT<StubAssociation> getTokenFake_;
+    edm::EDGetTokenT<StubAssociation> edGetTokenFake_;
     // ED input token of StubAssociation with selected TPs
-    edm::EDGetTokenT<StubAssociation> getTokenEff_;
+    edm::EDGetTokenT<StubAssociation> edGetTokenEff_;
     // Setup token
     edm::ESGetToken<tt::Setup, tt::SetupRcd> esGetTokenSetup_;
     // Histograms
@@ -57,15 +61,16 @@ namespace tt {
   };
 
   AnalyzerMC::AnalyzerMC(edm::ParameterSet const& iConfig) {
+    usesResource("TFileService");
     const std::string& label = iConfig.getParameter<std::string>("StubAssociation");
     const std::string& branchFake = iConfig.getParameter<std::string>("BranchFake");
     const std::string& branchEff = iConfig.getParameter<std::string>("BranchEff");
     const edm::InputTag& inputTagTTStubs = iConfig.getParameter<edm::InputTag>("InputTagTTStubs");
-    const edm::InputTag& inputTagTTClusterAssMap = iConfig.getParameter<edm::InputTag>("InputTagTTClusterAssMap");
+    const edm::InputTag& inputTagMC = iConfig.getParameter<edm::InputTag>("InputTagMC");
     edGetTokenTTStubs_ = consumes(inputTagTTStubs);
-    getTokenTTClusterAssMap_ = consumes(inputTagTTClusterAssMap);
-    getTokenFake_ = consumes(edm::InputTag(label, branchFake));
-    getTokenEff_ = consumes(edm::InputTag(label, branchEff));
+    edGetTokenTTClusterAssMap_ = consumes(inputTagMC);
+    edGetTokenFake_ = consumes(edm::InputTag(label, branchFake));
+    edGetTokenEff_ = consumes(edm::InputTag(label, branchEff));
     // book ES product
     esGetTokenSetup_ = esConsumes();
     // log config
@@ -92,7 +97,7 @@ namespace tt {
     const Setup* setup = &iSetup.getData(esGetTokenSetup_);
     // count stubs & matched stubs
     const TTStubDetSetVec& ttStubDetSetVec = iEvent.get(edGetTokenTTStubs_);
-    const TTClusterAssMap& ttClusterAssMap = iEvent.get(getTokenTTClusterAssMap_);
+    const TTClusterAssMap& ttClusterAssMap = iEvent.get(edGetTokenTTClusterAssMap_);
     int nStubs(0);
     int nMatched(0);
     for (const auto& module : ttStubDetSetVec) {
@@ -108,14 +113,14 @@ namespace tt {
       }
     }
     // get number of TPs
-    const StubAssociation& forFake = iEvent.get(getTokenFake_);
-    const StubAssociation& forEff = iEvent.get(getTokenEff_);
+    const StubAssociation& forFake = iEvent.get(edGetTokenFake_);
+    const StubAssociation& forEff = iEvent.get(edGetTokenEff_);
     const double numRegions = setup->numRegions();
     // store
     prof_->Fill(1, nStubs / numRegions);
     prof_->Fill(2, nMatched / numRegions);
     prof_->Fill(3, forFake.numStubs() / numRegions);
-    prof_->Fill(4, ttClusterAssMap.getTrackingParticleToTTClustersMap().size());
+    prof_->Fill(4, ttClusterAssMap.getTrackingParticleToTTClustersMap().size() / numRegions);
     prof_->Fill(5, forFake.numTPs() / numRegions);
     prof_->Fill(6, forEff.numTPs() / numRegions);
   }
@@ -139,12 +144,12 @@ namespace tt {
     const int wNums = std::ceil(std::log10(*std::max_element(nums.begin(), nums.end()))) + 5;
     const int wErrs = std::ceil(std::log10(*std::max_element(errs.begin(), errs.end()))) + 5;
     log_ << "=============================================================" << std::endl;
-    log_ << "                         Monte Carlo  SUMMARY                         " << std::endl;
+    log_ << "                     Monte Carlo  SUMMARY                    " << std::endl;
     log_ << "number of stubs         per TFP = " << std::setw(wNums) << numStubs << " +- " << std::setw(wErrs)
          << errStubs << std::endl;
     log_ << "number of matched stubs per TFP = " << std::setw(wNums) << numStubsMatched << " +- " << std::setw(wErrs)
          << errStubsMatched << std::endl;
-    log_ << "number of    reco stubs per TFP = " << std::setw(wNums) << numStubsReco << " +- " << std::setw(wErrs)
+    log_ << "number of reco stubs    per TFP = " << std::setw(wNums) << numStubsReco << " +- " << std::setw(wErrs)
          << errStubsReco << std::endl;
     log_ << "number of any TPs       per TFP = " << std::setw(wNums) << numTPsAny << " +- " << std::setw(wErrs)
          << errTPsAny << std::endl;
