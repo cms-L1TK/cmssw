@@ -27,7 +27,7 @@
 namespace trklet {
 
   /*! \class  trklet::ProducerFakeTM
-   *  \brief  tranforms tracklet TTTracks into KF emulator input format
+   *  \brief  tranforms tracklet TTTracks into DR emulator input format
    *  \author Thomas Schuh
    *  \date   2025, July
    */
