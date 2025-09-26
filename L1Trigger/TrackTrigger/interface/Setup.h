@@ -241,22 +241,6 @@ namespace tt {
     // return sensor moduel type
     SensorModule::Type type(const TTStubRef& ttStubRef) const;
     //
-    TTBV layerMap(const std::vector<int>& ints) const;
-    //
-    TTBV layerMap(const TTBV& hitPattern, const std::vector<int>& ints) const;
-    //
-    std::vector<int> layerMap(const TTBV& hitPattern, const TTBV& ttBV) const;
-    //
-    std::vector<int> layerMap(const TTBV& ttBV) const;
-    // stub projected phi uncertainty
-    double dPhi(const TTStubRef& ttStubRef, double inv2R) const;
-    // stub projected z uncertainty
-    double dZ(const TTStubRef& ttStubRef) const;
-    // stub projected chi2phi wheight
-    double v0(const TTStubRef& ttStubRef, double inv2R) const;
-    // stub projected chi2z wheight
-    double v1(const TTStubRef& ttStubRef, double cot) const;
-    //
     const std::vector<SensorModule>& sensorModules() const { return sensorModules_; }
     //
     TTBV module(double r, double z) const;
@@ -266,8 +250,6 @@ namespace tt {
     bool barrel(const TTBV& module) const { return module[gpPosBarrel_]; }
     //
     bool tilted(const TTBV& module) const { return module[gpPosTilted_]; }
-    // stub projected phi uncertainty for given module type, stub radius and track curvature
-    double dPhi(const TTBV& module, double r, double inv2R) const;
 
     // Firmware specific Parameter
 

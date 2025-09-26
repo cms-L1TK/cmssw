@@ -100,16 +100,18 @@ namespace trklet {
       const double cot = ttTrackRef->tanL();
       const double zT = ttTrackRef->z0() + cot * setup->chosenRofZ();
       // range checks
-      const bool validInv2R = dataFormats->format(Variable::inv2R, Process::dr).inRange(inv2R);
-      const bool validPhiT = dataFormats->format(Variable::phiT, Process::dr).inRange(phiT);
-      const bool validZT = dataFormats->format(Variable::zT, Process::dr).inRange(zT);
+      const bool validInv2R = dataFormats->format(Variable::inv2R, Process::dr).isCovered(inv2R);
+      const bool validPhiT = dataFormats->format(Variable::phiT, Process::dr).isCovered(phiT);
+      const bool validZT = dataFormats->format(Variable::zT, Process::dr).isCovered(zT);
       if (!validInv2R || !validPhiT || !validZT)
         continue;
       // track parameter shifts to adjust stubs
       const double dinv2R = inv2R - dataFormats->format(Variable::inv2R, Process::dr).digi(inv2R);
       const double dphiT = phiT - dataFormats->format(Variable::phiT, Process::dr).digi(phiT);
-      const double dcot = cot - dataFormats->format(Variable::zT, Process::dr).digi(zT) / setup->chosenRofZ();
-      const double dzT = zT - dataFormats->format(Variable::zT, Process::dr).digi(zT);
+      const double newZT = dataFormats->format(Variable::zT, Process::dr).digi(zT);
+      const double newCot = newZT / setup->chosenRofZ();
+      const double dcot = cot - newCot;
+      const double dzT = zT - newZT;
       // process stubs
       const int offset = iRegion * setup->numLayers();
       const std::vector<int>& le = layerEncoding->layerEncoding(zT);
@@ -127,7 +129,7 @@ namespace trklet {
         const double rZ = gp.perp() - setup->chosenRofZ();
         double phi = tt::deltaPhi(gp.phi() - iRegion * setup->baseRegion() - phiT - r * inv2R);
         double z = gp.z() - zT - rZ * cot;
-        const double dZ = .5 * sm->dZ();
+        const double dZ = .5 * sm->dZ(newCot);
         const double dPhi = .5 * sm->dPhi(inv2R);
         // linear correction
         const double d = inv2R * gp.perp();
@@ -138,11 +140,11 @@ namespace trklet {
         phi += dphiT + r * dinv2R;
         z += dzT + rZ * dcot;
         // range checks
-        const bool validR = dataFormats->format(Variable::r, Process::dr).inRange(r);
-        const bool validPhi = dataFormats->format(Variable::phi, Process::dr).inRange(phi);
-        const bool validZ = dataFormats->format(Variable::z, Process::dr).inRange(z);
-        const bool validDPhi = dataFormats->format(Variable::dPhi, Process::dr).inRange(dPhi);
-        const bool validDZ = dataFormats->format(Variable::dZ, Process::dr).inRange(dZ);
+        const bool validR = dataFormats->format(Variable::r, Process::dr).isCovered(r);
+        const bool validPhi = dataFormats->format(Variable::phi, Process::dr).isCovered(phi);
+        const bool validZ = dataFormats->format(Variable::z, Process::dr).isCovered(z);
+        const bool validDPhi = dataFormats->format(Variable::dPhi, Process::dr).isCovered(dPhi);
+        const bool validDZ = dataFormats->format(Variable::dZ, Process::dr).isCovered(dZ);
         if (!validR || !validPhi || !validZ || !validDPhi || !validDZ)
           continue;
         // store stub

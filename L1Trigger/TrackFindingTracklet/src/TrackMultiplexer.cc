@@ -134,11 +134,11 @@ namespace trklet {
           double z = digi(hwRZ.val(baseRZ) * (barrel ? 1. : -cot), baseUz_);
           // determine module type
           bool psTilt = setup_->psModule(ttStubRef);
-          if (barrel) {
+          if (barrel && psTilt) {
             const double posZ = (r + digi(setup_->chosenRofPhi(), baseUr_)) * cot + z0 + z;
             const int indexLayerId = setup_->indexLayerId(ttStubRef);
             const double limit = setup_->tiltedLayerLimitZ(indexLayerId);
-            psTilt = std::abs(posZ) < limit;
+            psTilt = std::abs(posZ) > limit;
           }
           stubs_.emplace_back(ttStubRef, layerIdTracklet, stubId, r, phi, z, psTilt);
           stubs.push_back(&stubs_.back());
@@ -206,15 +206,14 @@ namespace trklet {
           double phi = 0.;
           double z = 0.;
           // determine module type
-          bool psTilt;
-          if (barrel) {
+          bool psTilt = setup_->psModule(ttStubRef);
+          if (barrel && psTilt) {
             const int indexLayerId = setup_->indexLayerId(ttStubRef);
             const double limit = digi(setup_->tiltedLayerLimitZ(indexLayerId), baseUz_);
             const double posR = digi(setup_->hybridLayerR(layerId - setup_->offsetLayerId()), baseUr_);
             const double posZ = digi(posR * cot + z0, baseUz_);
-            psTilt = std::abs(posZ) < limit;
-          } else
-            psTilt = true;
+            psTilt = std::abs(posZ) > limit;
+          }
           stubs_.emplace_back(ttStubRef, trackletLayerId, stubId, r, phi, z, psTilt);
           stubs.push_back(&stubs_.back());
         }
