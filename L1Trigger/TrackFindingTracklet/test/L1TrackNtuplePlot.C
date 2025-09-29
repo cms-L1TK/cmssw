@@ -71,19 +71,20 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
   constexpr int L1Tk_minNstub = 4;
   constexpr float L1Tk_maxChi2 = 999999;
   constexpr float L1Tk_maxChi2dof = 999999.;
-// Use looser impact-parameter related cuts for displaced tracking studies.
+  // Use looser impact-parameter related cuts for displaced tracking studies.
+  // (These cuts affect tracking efficiency, but not duplicate or fake rate).
   const float TP_maxLxy = useDisplacedTrkCuts ? 10.0 : 1.0;
   const float TP_maxLz = useDisplacedTrkCuts ? 60.0 : 30.0;
   const float TP_maxD0 = useDisplacedTrkCuts ? 10.0 : 1.0;
   const float TP_maxZ0 = useDisplacedTrkCuts ? 30.0 : 15.0;
-// Optionally also tighten Pt and Eta cuts.
-//if (useDisplacedTrkCuts) {
-//  TP_minPt = 3.0;
-//  TP_maxEta = 2.0;
-//}
+  // Optionally also tighten Pt and Eta cuts.
+  // if (useDisplacedTrkCuts) {
+  //   TP_minPt = 3.0;
+  //   TP_maxEta = 2.0;
+  // }
 
   constexpr bool doGausFit = false;  //do gaussian fit for resolution vs eta/pt plots
-  
+
   gROOT->SetBatch();
   gErrorIgnoreLevel = kWarning;
 
@@ -688,7 +689,7 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
 
   TH1F* h_trk_all_vsseed = new TH1F("trk_all_seed", ";Seed type; ", 15, -0.5, 14.5);
   TH1F* h_trk_fake_vsseed = new TH1F("trk_fake_seed", ";Seed type; ", 15, -0.5, 14.5);
-  
+
   // ----------------------------------------------------------------------------------------------------------------
 
   TH1F* h_tp_z0 = new TH1F("tp_z0", ";Tracking particle z_{0} [cm]; Tracking particles / 1.0 cm", 50, -25.0, 25.0);
@@ -2433,7 +2434,7 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
   // -------------------------------------------------------------------------------------------
 
   TString type = inputRootFile;
-  
+
   if (TP_select_pdgid != 0) {
     char pdgidtxt[500];
     sprintf(pdgidtxt, "_pdgid%i", TP_select_pdgid);
@@ -3508,7 +3509,7 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
   gPad->SetLogy();
   c.SaveAs(DIR + type + "_trackrate_vspt_log.pdf");
   gPad->SetLogy(0);
-  
+
   // ---------------------------------------------------------------------------------------------------------
   // total track rates vs seed
 
@@ -3519,7 +3520,7 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
   h_trk_all_vsseed->GetXaxis()->SetTitle("Seed type");
   h_trk_all_vsseed->SetLineColor(4);
   h_trk_all_vsseed->SetLineStyle(1);
-  
+
   h_trk_fake_vsseed->SetLineColor(2);
   h_trk_fake_vsseed->SetLineStyle(2);
 

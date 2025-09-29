@@ -47,5 +47,4 @@ if (-e TrkPlots) rm -r TrkPlots
 cat results.out
 echo "Tracking performance summary written to results.out"
 echo "Track performance histograms written to TrkPlots/"  
-
 exit
