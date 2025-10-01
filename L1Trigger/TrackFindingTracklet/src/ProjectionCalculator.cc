@@ -178,7 +178,7 @@ void ProjectionCalculator::execute(unsigned int iSector, double phimin) {
           }
         }
 
-	//FIXME logic here is confusing
+	//FIXME logic here is confusing with two loops and counting nPar1 and nPar2
         for (unsigned int k = 0; k < outputpars_.size(); k++) {  // add copy of par to merged par output memory
           std::string oname = outputpars_[k]->getName();
           int parPage = iname[9] - oname[9];
