@@ -149,8 +149,6 @@ void ProjectionCalculator::addInput(MemoryBase* memory, string input) {
 }
 
 void ProjectionCalculator::execute(unsigned int iSector, double phimin) {
-
-
   //bool print = getName() == "PC_L2L3ABCD" && iSector == 3;
 
   unsigned int nPar1 = 0;
@@ -163,7 +161,6 @@ void ProjectionCalculator::execute(unsigned int iSector, double phimin) {
     std::vector<std::string> seedNames = {"L1L2", "L2L3", "L3L4", "L5L6", "D1D2", "D3D4", "L1D1", "L2D1"};
 
     for (int iSeed = 0; iSeed < 8; ++iSeed) {
-
       std::string seed = iname.substr(5, 4);  // extract seed from name
       bool psSeed = !(iSeed == Seed::L3L4 || iSeed == Seed::L5L6);
       if (seed == seedNames[iSeed]) {  // FIXME find easier way to get iSeed (probably from seed name)
@@ -178,20 +175,22 @@ void ProjectionCalculator::execute(unsigned int iSector, double phimin) {
           }
         }
 
-	//FIXME logic here is confusing with two loops and counting nPar1 and nPar2
+        //FIXME logic here is confusing with two loops and counting nPar1 and nPar2
         for (unsigned int k = 0; k < outputpars_.size(); k++) {  // add copy of par to merged par output memory
           std::string oname = outputpars_[k]->getName();
           int parPage = iname[9] - oname[9];
           for (unsigned int j = 0; j < inputpars_[i]->nTracklets(); j++) {
-	    if (nPar1>=settings_.maxStep("PC")) continue;
-	    nPar1++;
+            if (nPar1 >= settings_.maxStep("PC"))
+              continue;
+            nPar1++;
             outputpars_[k]->addTracklet(inputpars_[i]->getTracklet(j), parPage);
           }
         }
 
         for (unsigned int k = 0; k < inputpars_[i]->nTracklets(); k++) {
-	  if (nPar2>=settings_.maxStep("PC")) continue;
-	  nPar2++;
+          if (nPar2 >= settings_.maxStep("PC"))
+            continue;
+          nPar2++;
           auto tracklet = inputpars_[i]->getTracklet(k);
           //double phi0 = tracklet->phi0(); // non-digi track params, currently unneeded / unused
           //double z0 = tracklet->z0();
@@ -253,9 +252,9 @@ void ProjectionCalculator::execute(unsigned int iSector, double phimin) {
             int izproj = settings_.izmean(iDisk % N_LAYER);
             projDisk(izproj, irinv, iphi0, it, iz0, izr_LD[iDisk], iphi_LD[iDisk], der_phi_LD[1], der_zr_LD[1]);
             valid_LD[iDisk] = izr_LD[iDisk] >= irmindisk && izr_LD[iDisk] < irmaxdisk && ((it > tcut) || (it < -tcut));
-	    //if (print) {
-	    //  std::cout << "iDisk iphi_LD : " << iDisk << " " << iphi_LD[iDisk] << " valid: " << valid_LD[iDisk] << std::endl;
-	    //}
+            //if (print) {
+            //  std::cout << "iDisk iphi_LD : " << iDisk << " " << iphi_LD[iDisk] << " valid: " << valid_LD[iDisk] << std::endl;
+            //}
           }
 
           ///////////////////////////////////
