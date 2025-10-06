@@ -158,7 +158,7 @@ private:
 
   TTree* eventTree;
 
-  // all L1 tracks
+  //--- all L1 tracks
   std::vector<float>* m_trk_pt;
   std::vector<float>* m_trk_eta;
   std::vector<float>* m_trk_phi;
@@ -192,10 +192,11 @@ private:
   std::vector<int>* m_trk_unknown;
   std::vector<int>* m_trk_combinatoric;
   std::vector<float>* m_trk_MVA1;
-  // Matched TP (filled if track genuine)
+
+  //--- Matched TP info (filled if track genuine)
   // N.B. This TP not required to have stubs in at least 4 layers.
-  std::vector<int>*
-      m_trk_matchtp_eventtype;  //0 = fake track (not genuine), 1 = TP from signal pp event, 2 = TP from pileup
+  
+  std::vector<int>* m_trk_matchtp_eventtype; //event type: 0 = fake track (not genuine), 1 = TP from signal pp event, 2 = TP from pileup
   std::vector<int>* m_trk_matchtp_pdgid;
   std::vector<float>* m_trk_matchtp_pt;
   std::vector<float>* m_trk_matchtp_eta;
@@ -209,7 +210,7 @@ private:
   std::vector<int>* m_trk_injet_vhighpt;  //is the track within dR<0.4 of a genjet with pt > 200 GeV?
   std::vector<std::vector<int>>* m_trk_layers;
 
-  // all tracking particles
+  //--- all tracking particles passing cuts in cfg file (e.g. >=4 stub layers)
   std::vector<float>* m_tp_pt;
   std::vector<float>* m_tp_eta;
   std::vector<float>* m_tp_phi;
@@ -226,7 +227,7 @@ private:
   std::vector<int>* m_tp_injet_highpt;
   std::vector<int>* m_tp_injet_vhighpt;
 
-  // Best genuine *L1 track* (if any) that matches TP. Will exist if tp_nmatch > 0
+  //--- Best genuine *L1 track* (if any) that matches TP. Will exist if tp_nmatch > 0
   // Only filled for TP that have stubs in at least 4 layers.
   std::vector<float>* m_matchtrk_pt;
   std::vector<float>* m_matchtrk_eta;

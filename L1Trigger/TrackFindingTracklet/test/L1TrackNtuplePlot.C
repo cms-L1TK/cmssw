@@ -138,7 +138,7 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
   // ----------------------------------------------------------------------------------------------------------------
   // define leafs & branches
 
-  // tracking particles
+  // all tracking particles passing cuts in cfg file (e.g. >=4 stub layers)
   vector<float>* tp_pt;
   vector<float>* tp_eta;
   vector<float>* tp_phi;
@@ -155,6 +155,7 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
   vector<int>* tp_injet_vhighpt;
 
   // *L1 track* properties, for tracking particles matched to a L1 track
+  // Will exist if tp_nmatch > 0.
   // (If TP matched more than one track, only the track with lowest chi2/dof stored here).
   vector<float>* matchtrk_pt;
   vector<float>* matchtrk_eta;
