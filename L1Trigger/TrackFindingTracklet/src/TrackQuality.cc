@@ -4,6 +4,9 @@
 #include <string>
 #include <numeric>
 
+#include "conifer.h"
+#include "ap_fixed.h"
+
 namespace trklet {
 
   // read in and organize input tracks and stubs
@@ -68,10 +71,20 @@ namespace trklet {
         chi20 += dfChi20.digi(m02 * invV0);
         chi21 += dfChi21.digi(m12 * invV1);
       }
+
+      // Accumulating all BDT Attributes //
       chi20 = dfChi20.limit(chi20);
       chi21 = dfChi21.limit(chi21);
-      // emulate bdt
-      //// to be done ////
+      double zT = (*frame.track_).zT();
+      double cot = (*frame.track_).cot();
+      std::string s = hitPattern.str();
+      std::reverse(s.begin(), s.end());
+      s.pop_back();
+      int value = std::bitset<8>(s).to_ulong();
+
+      // BDT Inference //
+      // std::cout << "BDT output: " << bdt_->decision_function({0, 0, 0, 0, 0, 0}).at(0) << std::endl;
+
       // build output Track
       TrackTQ trackTQ(*frame.track_, chi20, chi21, 0, hitPattern);
       // store result

@@ -15,8 +15,8 @@ process = cms.Process("L1TrackNtuple")
 ############################################################
 
 # D110 recommended (but D98 still works)
-GEOMETRY = "D98"
-#GEOMETRY = "D110"
+#GEOMETRY = "D98"
+GEOMETRY = "D110"
 
 # Set L1 tracking algorithm:
 # 'HYBRID' (baseline, 4par fit) or 'HYBRID_DISPLACED' (extended, 5par fit).
@@ -25,7 +25,7 @@ GEOMETRY = "D98"
 # 'HYBRID_DISPLACED_NEWKF_KILL' displaced tracklet followed by DR emulation and 5 param fit sim
 # 'HYBRID_DISPLACED_NEWKF_MERGE' displaced tracklet followed by DR simulation and 5 param fit sim
 # (Or legacy algos 'TMTT' or 'TRACKLET').
-L1TRKALGO = 'HYBRID'
+L1TRKALGO = 'HYBRID_NEWKF'
 
 WRITE_DATA = False
 

@@ -6,6 +6,7 @@ TrackFindingTrackletProducer_params = cms.PSet (
 
   InputTagTracklet = cms.InputTag( "l1tTTTracksFromExtendedTrackletEmulation",  "Level1TTTracks" ), # Tracklet TTTracks
   InputLabelTFP    = cms.string  ( "ProducerTQ"      ),                  #
+  TQModelAbsPath   = cms.string  ( "L1Trigger/TrackFindingTracklet/data/default_model.json" ), #
   InputLabelTQ     = cms.string  ( "ProducerKF"      ),                  #
   InputLabelKF     = cms.string  ( "ProducerDR"      ),                  #
   InputLabelDR     = cms.string  ( "ProducerTM"      ),                  #

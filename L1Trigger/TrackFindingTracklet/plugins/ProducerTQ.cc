@@ -21,7 +21,7 @@ namespace trklet {
   /*! \class  trklet::ProducerTQ
    *  \brief  Bit accurate emulation of the track quality BDT
    *  \author Thomas Schuh
-   *  \date   20245, Aug
+   *  \date   2025, Aug
    */
   class ProducerTQ : public edm::stream::EDProducer<> {
   public:
@@ -47,12 +47,16 @@ namespace trklet {
     const DataFormats* dataFormats_ = nullptr;
     // Internal data formats
     TrackQuality::InternalFormats internalFormats_;
+
+    conifer::BDT<ap_fixed<20, 10>, ap_fixed<20, 10>>* bdt_;
   };
 
   ProducerTQ::ProducerTQ(const edm::ParameterSet& iConfig) {
     const std::string& label = iConfig.getParameter<std::string>("InputLabelTQ");
     const std::string& branchStubs = iConfig.getParameter<std::string>("BranchStubs");
     const std::string& branchTracks = iConfig.getParameter<std::string>("BranchTracks");
+    const std::string& tqModelAbsPath = iConfig.getParameter<std::string>("TQModelAbsPath");
+    bdt_ = new conifer::BDT<ap_fixed<20, 10>, ap_fixed<20, 10>>(tqModelAbsPath);
     // book in- and output ED products
     edGetTokenStubs_ = consumes(edm::InputTag(label, branchStubs));
     edGetTokenTracks_ = consumes(edm::InputTag(label, branchTracks));
@@ -124,7 +128,7 @@ namespace trklet {
     //produce TQ product
     for (int region = 0; region < setup->numRegions(); region++) {
       // object emulating tq algorithm
-      TrackQuality tq(setup, dataFormats_, internalFormats_, region);
+      TrackQuality tq(setup, dataFormats_, internalFormats_, region, bdt_);
       // read in and organize input tracks and stubs
       tq.consume(streamsTracks, streamsStubs);
       // fills output products
