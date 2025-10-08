@@ -280,8 +280,7 @@ namespace trklet {
                 std::vector<TH1F*>(),
                 std::vector<TProfile*>(),
                 true);
-      associate(
-          tracks, tracksStubs, region, selection, tpPtrsMax, tmp, std::vector<TH1F*>(), std::vector<TProfile*>());
+      associate(tracks, tracksStubs, region, selection, tpPtrsMax, tmp, std::vector<TH1F*>(), std::vector<TProfile*>());
       numTracks += nRegionTracks;
       prof_->Fill(1, nRegionStubs);
       prof_->Fill(2, nRegionTracks);

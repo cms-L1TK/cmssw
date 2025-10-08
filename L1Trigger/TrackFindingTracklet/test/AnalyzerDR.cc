@@ -209,7 +209,7 @@ namespace trklet {
     // printout summary
     const double totalTPs = prof_->GetBinContent(9);
     const double numStubs = prof_->GetBinContent(1);
-    const double numTracks = prof_->GetBinContent(2);  // tracks/nonant/event
+    const double numTracks = prof_->GetBinContent(2);    // tracks/nonant/event
     const double totalTracks = prof_->GetBinContent(5);  // tracks/tracker/event
     const double numTracksMatched = prof_->GetBinContent(4);
     const double numTPsAll = prof_->GetBinContent(6);
