@@ -195,8 +195,9 @@ private:
 
   //--- Matched TP info (filled if track genuine)
   // N.B. This TP not required to have stubs in at least 4 layers.
-  
-  std::vector<int>* m_trk_matchtp_eventtype; //event type: 0 = fake track (not genuine), 1 = TP from signal pp event, 2 = TP from pileup
+
+  std::vector<int>*
+      m_trk_matchtp_eventtype;  //event type: 0 = fake track (not genuine), 1 = TP from signal pp event, 2 = TP from pileup
   std::vector<int>* m_trk_matchtp_pdgid;
   std::vector<float>* m_trk_matchtp_pt;
   std::vector<float>* m_trk_matchtp_eta;
