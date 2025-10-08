@@ -240,7 +240,7 @@ namespace trackerTFP {
     log_ << "max     tracking efficiency = " << std::setw(wNums) << eff << " +- " << std::setw(wErrs) << errEff
          << std::endl;
     log_ << "                  fake rate = " << std::setw(wNums) << fracFake << std::endl;
-    log_ << "             duplicate rate = " << std::setw(wNums) << fracDup <<" "<<numTPsAll<<" "<<numTPsEffPerfect<<" / "<<totalTracks<< std::endl;
+    log_ << "             duplicate rate = " << std::setw(wNums) << fracDup << std::endl;
     log_ << "=============================================================";
     edm::LogPrint(moduleDescription().moduleName()) << log_.str();
   }
