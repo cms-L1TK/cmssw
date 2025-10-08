@@ -163,6 +163,8 @@ private:
   std::vector<float>* m_trk_phi;
   std::vector<float>* m_trk_d0;  // (filled if L1Tk_nPar==5, else 999)
   std::vector<float>* m_trk_z0;
+  std::vector<float>* m_trk_tanL;
+  std::vector<float>* m_trk_zT;
   std::vector<float>* m_trk_chi2;
   std::vector<float>* m_trk_chi2_dof;
   std::vector<float>* m_trk_chi2rphi;
@@ -344,6 +346,8 @@ void L1TrackNtupleMaker::endJob() {
   delete m_trk_eta;
   delete m_trk_phi;
   delete m_trk_z0;
+  delete m_trk_tanL;
+  delete m_trk_zT;
   delete m_trk_d0;
   delete m_trk_chi2;
   delete m_trk_chi2_dof;
@@ -467,6 +471,8 @@ void L1TrackNtupleMaker::beginJob() {
   m_trk_eta = new std::vector<float>;
   m_trk_phi = new std::vector<float>;
   m_trk_z0 = new std::vector<float>;
+  m_trk_tanL = new std::vector<float>;
+  m_trk_zT = new std::vector<float>;
   m_trk_d0 = new std::vector<float>;
   m_trk_chi2 = new std::vector<float>;
   m_trk_chi2_dof = new std::vector<float>;
@@ -585,6 +591,8 @@ void L1TrackNtupleMaker::beginJob() {
     eventTree->Branch("trk_phi", &m_trk_phi);
     eventTree->Branch("trk_d0", &m_trk_d0);
     eventTree->Branch("trk_z0", &m_trk_z0);
+    eventTree->Branch("trk_tanL", &m_trk_tanL);
+    eventTree->Branch("trk_zT", &m_trk_zT);
     eventTree->Branch("trk_chi2", &m_trk_chi2);
     eventTree->Branch("trk_chi2_dof", &m_trk_chi2_dof);
     eventTree->Branch("trk_chi2rphi", &m_trk_chi2rphi);
@@ -731,6 +739,8 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
     m_trk_phi->clear();
     m_trk_d0->clear();
     m_trk_z0->clear();
+    m_trk_tanL->clear();
+    m_trk_zT->clear();
     m_trk_chi2->clear();
     m_trk_chi2_dof->clear();
     m_trk_chi2rphi->clear();
@@ -1208,6 +1218,7 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
       m_trk_eta->push_back(tmp_trk_eta);
       m_trk_phi->push_back(tmp_trk_phi);
       m_trk_z0->push_back(tmp_trk_z0);
+      m_trk_tanL->push_back(tmp_trk_tanL);
       if (L1Tk_nPar == 5)
         m_trk_d0->push_back(tmp_trk_d0);
       else
@@ -1366,6 +1377,7 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
       for (int layer : hitPattern.ids())
         layers.push_back(le[layer]);
       m_trk_layers->push_back(layers);
+      m_trk_zT->push_back(zT);
 
     }  //end track loop
 
