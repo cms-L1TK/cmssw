@@ -77,19 +77,45 @@ namespace trklet {
       chi21 = dfChi21.limit(chi21);
       double zT = (*frame.track_).zT();
       double cot = (*frame.track_).cot();
-      std::string s = hitPattern.str();
-      std::reverse(s.begin(), s.end());
-      s.pop_back();
-      int value = std::bitset<8>(s).to_ulong();
-
+      int nstub = hitPattern.count();
+      int n_missint = get_ninterior(hitPattern);
       // BDT Inference //
-      // std::cout << "BDT output: " << bdt_->decision_function({0, 0, 0, 0, 0, 0}).at(0) << std::endl;
-
+      const AP_FIXED_BDT& mva_raw = bdt_->decision_function({nstub, zT, cot, chi20, chi21, n_missint}).at(0);
+      const AP_INT_BDT& mva_ = mva_raw.range(mva_raw.width - 1, 0);
+      const int mva = packMVA(mva_);
       // build output Track
-      TrackTQ trackTQ(*frame.track_, chi20, chi21, 0, hitPattern);
+      TrackTQ trackTQ(*frame.track_, chi20, chi21, mva, hitPattern);
       // store result
       output.push_back(trackTQ.frame());
     }
+  }
+
+  const int TrackQuality::packMVA(const AP_INT_BDT& mva) const {
+    int out = 0;
+    for (int i = 0; i < 8; ++i) {
+      if ((mva > kMVABinEdges[i]) && (mva <= kMVABinEdges[i + 1])) {
+        out = i;
+        break;
+      }
+    }
+    return out;
+  }
+
+  const int TrackQuality::get_ninterior(const TTBV& hitPattern) const {
+    std::string s = hitPattern.str();
+    std::reverse(s.begin(), s.end());
+    if (!s.empty())
+      s.pop_back();
+    const size_t first_one = s.find('1');
+    const size_t last_one  = s.rfind('1');
+    if (first_one == std::string::npos || first_one == last_one)
+      return 0;
+    int count = 0;
+    for (size_t i = first_one + 1; i < last_one; ++i) {
+      if (s[i] == '0')
+        ++count;
+    }
+  return count;
   }
 
 }  // namespace trklet
