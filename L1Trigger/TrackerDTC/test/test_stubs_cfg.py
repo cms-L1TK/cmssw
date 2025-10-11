@@ -21,3 +21,5 @@ process.source = cms.Source(
 )
 
 process.run = cms.Path(process.ProducerDTC)
+
+process.TFileService = cms.Service( "TFileService", fileName = cms.string( "OT_DTC_Stubs.root" ) )
