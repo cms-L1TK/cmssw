@@ -16,6 +16,10 @@
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 
+// ROOT histos
+#include <TH1F.h>
+#include <TH2D.h>
+
 // TTStubDetSetVec + related typedefs
 #include "DataFormats/L1TrackTrigger/interface/TTTypes.h"
 // DetId
@@ -47,19 +51,28 @@ namespace trackerDTC
         const edm::InputTag inputTag_;
         edm::EDGetTokenT<TTStubDetSetVec> edGetTokenTTStubs_;
 
-        // Setup ES token (Event transition, used in analyze)
-        edm::ESGetToken<tt::Setup, tt::SetupRcd> esGetTokenSetup_;
+        // Setup ES tokens
+        edm::ESGetToken<tt::Setup, tt::SetupRcd> esGetTokenSetup_;             // Event (used in analyze)
+        edm::ESGetToken<tt::Setup, tt::SetupRcd> esGetTokenSetupBeginRun_;     // BeginRun (used to book TH2D)
 
-        // Histogram: number of stubs on DTC 0 per event
-        TH1F* hisDTC0Stubs_{nullptr};
+        // Histogram: total number of stubs across ALL DTCs per event
+        TH1F* hisAllDTCStubs_{nullptr};
+
+        // TH2D: x = DTC id, y = number of stubs (per event)
+        TH2D* h2DTCvsStubs_{nullptr};
+
+        // Y-axis range for stub counts
+        static constexpr int kMaxOccY_ = 500;
+        static constexpr int kNBinsY_  = 100;
   };
 
   AnalyzerDTCStubs::AnalyzerDTCStubs(const edm::ParameterSet& iConfig)
       : inputTag_(iConfig.getParameter<edm::InputTag>("InputTag")) 
   {
-    usesResource("TFileService");  // we’ll book a histogram
-    edGetTokenTTStubs_ = consumes<TTStubDetSetVec>(inputTag_);
-    esGetTokenSetup_   = esConsumes();  // default = Event (used in analyze)
+    usesResource("TFileService");
+    edGetTokenTTStubs_   = consumes<TTStubDetSetVec>(inputTag_);
+    esGetTokenSetup_     = esConsumes();                                  // Event
+    esGetTokenSetupBeginRun_ = esConsumes<edm::Transition::BeginRun>();   // BeginRun
 
     LogDebug("AnalyzerDTCStubs") << "Constructed with InputTag: " << inputTag_;
   }
@@ -68,25 +81,36 @@ namespace trackerDTC
   {
     LogDebug("AnalyzerDTCStubs") << "beginJob()";
 
-    // Book histogram once
     edm::Service<TFileService> fs;
-    // Choose reasonable range; adjust later if you see saturation.
-    // Here: range 0..4096 with 256 bins (like example style: maxOcc/16 bins).
-    const int    maxOcc = 2000;
-    const int    nBins  = 100;
-    const double lo     = -0.5;
-    const double hi     = maxOcc - 0.5;
 
-    hisDTC0Stubs_ = fs->make<TH1F>("HisDTC0StubOccupancy",
-                                   "DTC 0 Stub Occupancy;# stubs in DTC 0 per event;Events",
-                                   nBins, lo, hi);
+    // TH1F: global (all DTCs) stub occupancy per event
+    const double lo = -0.5;
+    const double hi = kMaxOccY_ - 0.5;
+    hisAllDTCStubs_ = fs->make<TH1F>("HisAllDTCStubOccupancy",
+                                     "All DTCs Stub Occupancy;# stubs (sum over all DTCs) per event;Events",
+                                     kNBinsY_, lo, hi);
   }
 
   void AnalyzerDTCStubs::beginRun(const edm::Run& iRun, const edm::EventSetup& iSetup) 
   {
     LogDebug("AnalyzerDTCStubs") << "beginRun(): run=" << iRun.run();
+
+    // Book TH2D using numDTCs from Setup
+    const tt::Setup& setup = iSetup.getData(esGetTokenSetupBeginRun_);
+    const int numDTCs = setup.numDTCs();
+
+    edm::Service<TFileService> fs;
+    const double xlo = -0.5;
+    const double xhi = numDTCs - 0.5;
+    const double ylo = -0.5;
+    const double yhi = kMaxOccY_ - 0.5;
+
+    h2DTCvsStubs_ = fs->make<TH2D>("DTCvsStubOccupancy",
+                                   "Stub Occupancy per DTC;DTC id;# stubs per event",
+                                   numDTCs, xlo, xhi,
+                                   kNBinsY_, ylo, yhi);
+
     (void)iRun;
-    (void)iSetup;
   }
 
   void AnalyzerDTCStubs::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) 
@@ -111,7 +135,7 @@ namespace trackerDTC
       return;
     }
 
-    // Reorganize stubs into [DTC][module] containers
+    // Reorganize stubs into [DTC][module]
     std::vector<std::vector<std::vector<TTStubRef>>> stubsDTCs(
         number_of_dtcs, std::vector<std::vector<TTStubRef>>(number_of_modules));
 
@@ -128,18 +152,30 @@ namespace trackerDTC
             stubsModule.emplace_back(makeRefTo(handle, ttStub));
     }
 
-    // Count stubs in DTC 0 across all its modules
-    int nStubsDTC0 = 0;
-    if (!stubsDTCs.empty()) {
-      const auto& dtc0 = stubsDTCs.at(0);
-      for (const auto& modVec : dtc0)
-        nStubsDTC0 += static_cast<int>(modVec.size());
+    // Global count across ALL DTCs for this event
+    
+    for (int dtcId = 0; dtcId < number_of_dtcs; ++dtcId)
+    {
+        int nStubsAllDTCs = 0;
+        for (const auto& modVec : stubsDTCs[dtcId])
+        {
+            nStubsAllDTCs += static_cast<int>(modVec.size());
+        }
+        if (hisAllDTCStubs_) hisAllDTCStubs_->Fill(nStubsAllDTCs);
     }
 
-    if (hisDTC0Stubs_) hisDTC0Stubs_->Fill(nStubsDTC0);
+    // Per-DTC view (2D): (x = DTC id, y = total stubs in that DTC this event)
+    if (h2DTCvsStubs_) {
+      for (int dtcId = 0; dtcId < number_of_dtcs; ++dtcId) {
+        int nStubsThisDTC = 0;
+        for (const auto& modVec : stubsDTCs[dtcId])
+          nStubsThisDTC += static_cast<int>(modVec.size());
+        h2DTCvsStubs_->Fill(dtcId, nStubsThisDTC);
+      }
+    }
 
-    LogDebug("AnalyzerDTCStubs") << "DTC 0 has " << nStubsDTC0
-                                 << " stubs in this event; DetSets in input = " << handle->size();
+    //LogDebug("AnalyzerDTCStubs") << "All DTCs total stubs this event = " << nStubsAllDTCs
+    //                             << "; DetSets in input = " << handle->size();
   }
 
   void AnalyzerDTCStubs::endRun(const edm::Run& iRun, const edm::EventSetup& iSetup) 
