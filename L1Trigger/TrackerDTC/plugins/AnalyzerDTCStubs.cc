@@ -64,11 +64,9 @@ namespace trackerDTC
         // NEW: Throughput in Gbps per event (sum over all DTCs)
         TH1F* hisThroughputGbps_{nullptr};
 
-        // Y-axis range for stub counts
         static constexpr int kMaxOccY_ = 500;
         static constexpr int kNBinsY_  = 100;
 
-        // Assumptions for throughput
         static constexpr double kEventRateHz_ = 750e3;  // 750 kHz
         static constexpr int    kBitsPerStub_ = 64;     // 64 bits per stub
   };
@@ -78,8 +76,8 @@ namespace trackerDTC
   {
     usesResource("TFileService");
     edGetTokenTTStubs_       = consumes<TTStubDetSetVec>(inputTag_);
-    esGetTokenSetup_         = esConsumes();                                  // Event
-    esGetTokenSetupBeginRun_ = esConsumes<edm::Transition::BeginRun>();       // BeginRun
+    esGetTokenSetup_         = esConsumes();
+    esGetTokenSetupBeginRun_ = esConsumes<edm::Transition::BeginRun>();
 
     LogDebug("AnalyzerDTCStubs") << "Constructed with InputTag: " << inputTag_;
   }
@@ -90,7 +88,6 @@ namespace trackerDTC
 
     edm::Service<TFileService> fs;
 
-    // TH1F: global (all DTCs) stub occupancy per event
     const double lo = -0.5;
     const double hi = kMaxOccY_ - 0.5;
     hisAllDTCStubs_ = fs->make<TH1F>("HisAllDTCStubOccupancy",
@@ -102,13 +99,11 @@ namespace trackerDTC
   {
     LogDebug("AnalyzerDTCStubs") << "beginRun(): run=" << iRun.run();
 
-    // Book TH2D and throughput histogram using numDTCs from Setup
     const tt::Setup& setup = iSetup.getData(esGetTokenSetupBeginRun_);
     const int numDTCs = setup.numDTCs();
 
     edm::Service<TFileService> fs;
 
-    // TH2D: per-DTC occupancy
     const double xlo = -0.5;
     const double xhi = numDTCs - 0.5;
     const double ylo = -0.5;
@@ -119,12 +114,10 @@ namespace trackerDTC
                                    numDTCs, xlo, xhi,
                                    kNBinsY_, ylo, yhi);
 
-    // TH1F: throughput in Gbps, based on worst-case stub count estimate
-    // Max total stubs per event (rough estimate): numDTCs * kMaxOccY_
     const double maxGbps         = 25.0;
-    const int    nBinsGbps       = 100;  // resolution of distribution
+    const int    nBinsGbps       = 100;
     const double loGbps          = 0.0;
-    const double hiGbps          = maxGbps;  // ensure > 0
+    const double hiGbps          = maxGbps;
 
     hisThroughputGbps_ = fs->make<TH1F>("HisThroughputGbps",
                                         "Throughput;Gbps;Events",
@@ -139,12 +132,10 @@ namespace trackerDTC
                                  << " run=" << iEvent.id().run()
                                  << " lumi=" << iEvent.id().luminosityBlock();
 
-    // Fetch setup (Event transition)
     const tt::Setup& setup      = iSetup.getData(esGetTokenSetup_);
     const int number_of_dtcs    = setup.numDTCs();
     const int number_of_modules = setup.numModulesPerDTC();
 
-    // Fetch TTStubDetSetVec
     edm::Handle<TTStubDetSetVec> handle;
     iEvent.getByToken(edGetTokenTTStubs_, handle);
 
@@ -155,13 +146,11 @@ namespace trackerDTC
       return;
     }
 
-    // Reorganize stubs into [DTC][module]
     std::vector<std::vector<std::vector<TTStubRef>>> stubsDTCs(
         number_of_dtcs, std::vector<std::vector<TTStubRef>>(number_of_modules));
 
     for (auto module = handle->begin(); module != handle->end(); ++module) 
     {
-        // DetSetVec->detId + 1 = tk layout det id (per ProducerDTC pattern)
         const DetId detId = module->detId() + setup.offsetDetIdDSV();
         tt::SensorModule* sm = setup.sensorModule(detId);
 
@@ -172,7 +161,6 @@ namespace trackerDTC
             stubsModule.emplace_back(makeRefTo(handle, ttStub));
     }
 
-    // Fill per-DTC 2D histogram
     if (h2DTCvsStubs_) 
     {
       for (int dtcId = 0; dtcId < number_of_dtcs; ++dtcId) 
@@ -186,7 +174,6 @@ namespace trackerDTC
       }
     }
 
-    // Compute total stubs across ALL DTCs for this event (for global occupancy & throughput)
     for (int dtcId = 0; dtcId < number_of_dtcs; ++dtcId)
     {
         int nStubsAllDTCs = 0;
