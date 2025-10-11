@@ -53,7 +53,7 @@ namespace trackerDTC
 
         // Setup ES tokens
         edm::ESGetToken<tt::Setup, tt::SetupRcd> esGetTokenSetup_;             // Event (used in analyze)
-        edm::ESGetToken<tt::Setup, tt::SetupRcd> esGetTokenSetupBeginRun_;     // BeginRun (used to book TH2D)
+        edm::ESGetToken<tt::Setup, tt::SetupRcd> esGetTokenSetupBeginRun_;     // BeginRun (used to book TH2D / throughput bins)
 
         // Histogram: total number of stubs across ALL DTCs per event
         TH1F* hisAllDTCStubs_{nullptr};
@@ -61,18 +61,25 @@ namespace trackerDTC
         // TH2D: x = DTC id, y = number of stubs (per event)
         TH2D* h2DTCvsStubs_{nullptr};
 
+        // NEW: Throughput in Gbps per event (sum over all DTCs)
+        TH1F* hisThroughputGbps_{nullptr};
+
         // Y-axis range for stub counts
         static constexpr int kMaxOccY_ = 500;
         static constexpr int kNBinsY_  = 100;
+
+        // Assumptions for throughput
+        static constexpr double kEventRateHz_ = 750e3;  // 750 kHz
+        static constexpr int    kBitsPerStub_ = 64;     // 64 bits per stub
   };
 
   AnalyzerDTCStubs::AnalyzerDTCStubs(const edm::ParameterSet& iConfig)
       : inputTag_(iConfig.getParameter<edm::InputTag>("InputTag")) 
   {
     usesResource("TFileService");
-    edGetTokenTTStubs_   = consumes<TTStubDetSetVec>(inputTag_);
-    esGetTokenSetup_     = esConsumes();                                  // Event
-    esGetTokenSetupBeginRun_ = esConsumes<edm::Transition::BeginRun>();   // BeginRun
+    edGetTokenTTStubs_       = consumes<TTStubDetSetVec>(inputTag_);
+    esGetTokenSetup_         = esConsumes();                                  // Event
+    esGetTokenSetupBeginRun_ = esConsumes<edm::Transition::BeginRun>();       // BeginRun
 
     LogDebug("AnalyzerDTCStubs") << "Constructed with InputTag: " << inputTag_;
   }
@@ -95,11 +102,13 @@ namespace trackerDTC
   {
     LogDebug("AnalyzerDTCStubs") << "beginRun(): run=" << iRun.run();
 
-    // Book TH2D using numDTCs from Setup
+    // Book TH2D and throughput histogram using numDTCs from Setup
     const tt::Setup& setup = iSetup.getData(esGetTokenSetupBeginRun_);
     const int numDTCs = setup.numDTCs();
 
     edm::Service<TFileService> fs;
+
+    // TH2D: per-DTC occupancy
     const double xlo = -0.5;
     const double xhi = numDTCs - 0.5;
     const double ylo = -0.5;
@@ -109,6 +118,17 @@ namespace trackerDTC
                                    "Stub Occupancy per DTC;DTC id;# stubs per event",
                                    numDTCs, xlo, xhi,
                                    kNBinsY_, ylo, yhi);
+
+    // TH1F: throughput in Gbps, based on worst-case stub count estimate
+    // Max total stubs per event (rough estimate): numDTCs * kMaxOccY_
+    const double maxGbps         = 25.0;
+    const int    nBinsGbps       = 100;  // resolution of distribution
+    const double loGbps          = 0.0;
+    const double hiGbps          = maxGbps;  // ensure > 0
+
+    hisThroughputGbps_ = fs->make<TH1F>("HisThroughputGbps",
+                                        "Throughput;Gbps;Events",
+                                        nBinsGbps, loGbps, hiGbps);
 
     (void)iRun;
   }
@@ -152,8 +172,21 @@ namespace trackerDTC
             stubsModule.emplace_back(makeRefTo(handle, ttStub));
     }
 
-    // Global count across ALL DTCs for this event
-    
+    // Fill per-DTC 2D histogram
+    if (h2DTCvsStubs_) 
+    {
+      for (int dtcId = 0; dtcId < number_of_dtcs; ++dtcId) 
+      {
+        int nStubsThisDTC = 0;
+        for (const auto& modVec : stubsDTCs[dtcId])
+        {
+          nStubsThisDTC += static_cast<int>(modVec.size());
+        }
+        h2DTCvsStubs_->Fill(dtcId, nStubsThisDTC);
+      }
+    }
+
+    // Compute total stubs across ALL DTCs for this event (for global occupancy & throughput)
     for (int dtcId = 0; dtcId < number_of_dtcs; ++dtcId)
     {
         int nStubsAllDTCs = 0;
@@ -162,20 +195,13 @@ namespace trackerDTC
             nStubsAllDTCs += static_cast<int>(modVec.size());
         }
         if (hisAllDTCStubs_) hisAllDTCStubs_->Fill(nStubsAllDTCs);
+        if (hisThroughputGbps_) 
+        {
+            const double gbps = (static_cast<double>(nStubsAllDTCs) * kBitsPerStub_ * kEventRateHz_) / 1e9;
+            hisThroughputGbps_->Fill(gbps);
+        }
     }
 
-    // Per-DTC view (2D): (x = DTC id, y = total stubs in that DTC this event)
-    if (h2DTCvsStubs_) {
-      for (int dtcId = 0; dtcId < number_of_dtcs; ++dtcId) {
-        int nStubsThisDTC = 0;
-        for (const auto& modVec : stubsDTCs[dtcId])
-          nStubsThisDTC += static_cast<int>(modVec.size());
-        h2DTCvsStubs_->Fill(dtcId, nStubsThisDTC);
-      }
-    }
-
-    //LogDebug("AnalyzerDTCStubs") << "All DTCs total stubs this event = " << nStubsAllDTCs
-    //                             << "; DetSets in input = " << handle->size();
   }
 
   void AnalyzerDTCStubs::endRun(const edm::Run& iRun, const edm::EventSetup& iSetup) 
