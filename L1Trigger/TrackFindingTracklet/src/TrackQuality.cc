@@ -80,7 +80,17 @@ namespace trklet {
       int nstub = hitPattern.count();
       int n_missint = get_ninterior(hitPattern);
       // BDT Inference //
-      const AP_FIXED_BDT& mva_raw = bdt_->decision_function({nstub, zT, cot, chi20, chi21, n_missint}).at(0);
+      const AP_FIXED_BDT f_nstub    = (AP_FIXED_BDT)nstub;
+      const AP_FIXED_BDT f_zT       = transform_zT(zT);
+      const AP_FIXED_BDT f_cot      = transform_cot(cot);
+      const AP_FIXED_BDT f_chi20    = (AP_FIXED_BDT)chi20;
+      const AP_FIXED_BDT f_chi21    = (AP_FIXED_BDT)chi21;
+      const AP_FIXED_BDT f_n_miss   = (AP_FIXED_BDT)n_missint;
+      const std::vector<AP_FIXED_BDT> features = 
+      {
+       f_nstub, f_zT, f_cot, f_chi20, f_chi21, f_n_miss
+      };
+      const AP_FIXED_BDT& mva_raw = bdt_->decision_function(features).at(0);
       const AP_INT_BDT& mva_ = mva_raw.range(mva_raw.width - 1, 0);
       const int mva = packMVA(mva_);
       // build output Track
@@ -99,6 +109,22 @@ namespace trklet {
       }
     }
     return out;
+  }
+
+  const  TrackQuality::AP_FIXED_BDT TrackQuality::transform_zT(const float& zT) const {
+      int zT_vivado_view_int = std::floor(187.5351440760983 * zT);
+      AP_FIXED_BDT zT_fixed; 
+      const AP_INT_BDT zT_int (zT_vivado_view_int);
+      zT_fixed.range(19, 0) = zT_int.range(19, 0);
+      return zT_fixed;
+  }
+
+  const TrackQuality::AP_FIXED_BDT TrackQuality::transform_cot(const float& cot) const {
+    int cot_vivado_view_int = std::floor(4869.970502268804 * cot);
+    AP_FIXED_BDT cot_fixed;
+    const AP_INT_BDT cot_int(cot_vivado_view_int);
+    cot_fixed.range(19, 0) = cot_int.range(19, 0);
+    return cot_fixed;
   }
 
   const int TrackQuality::get_ninterior(const TTBV& hitPattern) const {

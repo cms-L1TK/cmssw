@@ -69,6 +69,8 @@ namespace trklet {
 
     const int get_ninterior(const TTBV& hitPattern) const;
     const int packMVA(const AP_INT_BDT& mva) const;
+    const AP_FIXED_BDT transform_zT (const float& zT) const;
+    const AP_FIXED_BDT transform_cot (const float& cot) const;
 
     // helper class to store configurations
     const tt::Setup* setup_;
