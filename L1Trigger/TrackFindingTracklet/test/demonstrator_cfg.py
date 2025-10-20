@@ -41,11 +41,11 @@ process.schedule = cms.Schedule( process.demo )
 import FWCore.ParameterSet.VarParsing as VarParsing
 options = VarParsing.VarParsing( 'analysis' )
 # specify input MC
-Samples = [""]
+Samples = ["/store/relval/CMSSW_15_1_0_pre3/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU_150X_mcRun4_realistic_v1_STD_Run4D110_PU-v1/2590000/00c675dc-1517-4af7-8dd4-841e0668fefe.root"]
 
 options.register( 'inputMC', Samples, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.string, "Files to be processed" )
 # specify number of events to process.
-options.register( 'Events',100,VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.int, "Number of Events to analyze" )
+options.register( 'Events',1,VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.int, "Number of Events to analyze" )
 options.parseArguments()
 
 process.options = cms.untracked.PSet( wantSummary = cms.untracked.bool(False) )
