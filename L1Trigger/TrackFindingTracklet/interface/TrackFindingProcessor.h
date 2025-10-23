@@ -22,8 +22,7 @@ namespace trklet {
     ~TrackFindingProcessor() = default;
 
     // produce TTTracks
-    void produce(
-        const tt::StreamsTrack&, const tt::StreamsTrack&, const tt::StreamsStub&, tt::TTTracks&, tt::StreamsTrack&);
+    void produce(const tt::StreamsTrack&, const tt::StreamsStub&, tt::TTTracks&, tt::StreamsTrack&);
     // produce StreamsTrack
     void produce(const std::vector<TTTrackRef>&, tt::StreamsTrack&) const;
 
@@ -41,6 +40,8 @@ namespace trklet {
     // type representing a track
     struct Track {
       Track(const tt::FrameTrack&, const tt::FrameTrack&, const std::vector<TTStubRef>&, const DataFormats*);
+      // basetransformation of val from baseHigh into baseLow using widthMultiplier bit multiplication
+      double redigi(double val, double baseHigh, double baseLow, int widthMultiplier) const;
       const TTTrackRef& ttTrackRef_;
       const std::vector<TTStubRef> ttStubRefs_;
       bool valid_;
@@ -48,21 +49,19 @@ namespace trklet {
       TTBV hitPattern_;
       int channel_;
       int mva_;
-      double inv2R_;
-      double phiT_;
+      double invR_;
+      double phi0_;
       double cot_;
-      double zT_;
-      double chi2rphi_;
-      double chi2rz_;
+      double z0_;
+      double d0_;
+      int chi20_;
+      int chi21_;
     };
     // remove and return first element of deque, returns nullptr if empty
     template <class T>
     T* pop_front(std::deque<T*>& ts) const;
     //
-    void consume(const tt::StreamsTrack&,
-                 const tt::StreamsTrack&,
-                 const tt::StreamsStub&,
-                 std::vector<std::deque<Track*>>&);
+    void consume(const tt::StreamsTrack&, const tt::StreamsStub&, std::vector<std::deque<Track*>>&);
     // emualte data format f/w
     void produce(std::vector<std::deque<Track*>>&, tt::StreamsTrack&) const;
     // produce TTTracks

@@ -36,8 +36,7 @@ namespace trklet {
   private:
     void produce(edm::Event&, const edm::EventSetup&) override;
     // ED input token of stubs and tracks
-    edm::EDGetTokenT<tt::StreamsTrack> edGetTokenTracksKF_;
-    edm::EDGetTokenT<tt::StreamsTrack> edGetTokenTracksTQ_;
+    edm::EDGetTokenT<tt::StreamsTrack> edGetTokenTracks_;
     edm::EDGetTokenT<tt::StreamsStub> edGetTokenStubs_;
     // ED output token for accepted stubs and tracks
     edm::EDPutTokenT<tt::TTTracks> edPutTokenTTTracks_;
@@ -49,15 +48,13 @@ namespace trklet {
   };
 
   ProducerTFP::ProducerTFP(const edm::ParameterSet& iConfig) {
-    const std::string& labelTracksKF = iConfig.getParameter<std::string>("InputLabelTQ");
-    const std::string& labelTracksTQ = iConfig.getParameter<std::string>("InputLabelTFP");
+    const std::string& labelTracks = iConfig.getParameter<std::string>("InputLabelTFP");
     const std::string& labelStubs = iConfig.getParameter<std::string>("InputLabelTQ");
     const std::string& branchTracks = iConfig.getParameter<std::string>("BranchTracks");
     const std::string& branchTTTracks = iConfig.getParameter<std::string>("BranchTTTracks");
     const std::string& branchStubs = iConfig.getParameter<std::string>("BranchStubs");
     // book in- and output ED products
-    edGetTokenTracksKF_ = consumes(edm::InputTag(labelTracksKF, branchTracks));
-    edGetTokenTracksTQ_ = consumes(edm::InputTag(labelTracksTQ, branchTracks));
+    edGetTokenTracks_ = consumes(edm::InputTag(labelTracks, branchTracks));
     edGetTokenStubs_ = consumes(edm::InputTag(labelStubs, branchStubs));
     edPutTokenTTTracks_ = produces(branchTTTracks);
     edPutTokenTracks_ = produces(branchTracks);
@@ -75,12 +72,11 @@ namespace trklet {
     tt::TTTracks ttTracks;
     tt::StreamsTrack streamsTrack(setup->numRegions() * setup->tfpNumChannel());
     // read in TQ Products
-    const tt::StreamsTrack& tracksKF = iEvent.get(edGetTokenTracksKF_);
-    const tt::StreamsTrack& tracksTQ = iEvent.get(edGetTokenTracksTQ_);
+    const tt::StreamsTrack& tracks = iEvent.get(edGetTokenTracks_);
     const tt::StreamsStub& stubs = iEvent.get(edGetTokenStubs_);
     // produce TTTracks
     TrackFindingProcessor tfp(setup, dataFormats);
-    tfp.produce(tracksKF, tracksTQ, stubs, ttTracks, streamsTrack);
+    tfp.produce(tracks, stubs, ttTracks, streamsTrack);
     // put TTTRacks and produce TTTRackRefs
     const int nTrks = ttTracks.size();
     const edm::OrphanHandle<tt::TTTracks> oh = iEvent.emplace(edPutTokenTTTracks_, std::move(ttTracks));

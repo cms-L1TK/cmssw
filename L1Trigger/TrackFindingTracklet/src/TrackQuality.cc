@@ -8,6 +8,7 @@ namespace trklet {
 
   // read in and organize input tracks and stubs
   void TrackQuality::consume(const tt::StreamsTrack& tracks, const tt::StreamsStub& stubs) {
+    streams_ = tracks;
     auto validT = [](int sum, const tt::FrameTrack& f) { return sum + (f.first.isNull() ? 0 : 1); };
     auto validS = [](int sum, const tt::FrameStub& f) { return sum + (f.first.isNull() ? 0 : 1); };
     const int offset = region_ * setup_->numLayers();
@@ -43,7 +44,10 @@ namespace trklet {
   }
 
   // fills output products
-  void TrackQuality::produce(tt::StreamTrack& output) const {
+  void TrackQuality::produce(tt::StreamsTrack& outputs) const {
+    const int offset = setup_->tqNumChannel() * region_;
+    outputs[offset + 0] = streams_[region_];
+    tt::StreamTrack& output = outputs[offset + 1];
     const DataFormat& dfChi20 = dataFormats_->format(Variable::chi20, Process::tq);
     const DataFormat& dfChi21 = dataFormats_->format(Variable::chi21, Process::tq);
     output.reserve(input_.size());
@@ -52,10 +56,10 @@ namespace trklet {
         output.emplace_back(tt::FrameTrack());
         continue;
       }
-      // analyze stubs
-      TTBV hitPattern(0, setup_->numLayers() + 1);
+      // analyze track and stubs
       double chi20(0.);
       double chi21(0.);
+      TTBV hitPattern(0, setup_->numLayers());
       for (int layer = 0; layer < setup_->numLayers(); layer++) {
         StubKF* stub = frame.stubs_[layer];
         if (!stub)
@@ -65,15 +69,14 @@ namespace trklet {
         const double m12 = internalFormats_->m12_.digi(std::pow(stub->z(), 2));
         const double invV0 = internalFormats_->invV0_.digi(1. / std::pow(2. * stub->dPhi(), 2));
         const double invV1 = internalFormats_->invV1_.digi(1. / std::pow(2. * stub->dZ(), 2));
-        chi20 += dfChi20.digi(m02 * invV0);
-        chi21 += dfChi21.digi(m12 * invV1);
+        chi20 += dfChi20.limit(dfChi20.digi(m02 * invV0));
+        chi21 += dfChi21.limit(dfChi21.digi(m12 * invV1));
       }
+      int mva(0);
       chi20 = dfChi20.limit(chi20);
       chi21 = dfChi21.limit(chi21);
-      // emulate bdt
-      //// to be done ////
       // build output Track
-      TrackTQ trackTQ(*frame.track_, chi20, chi21, 0, hitPattern);
+      TrackTQ trackTQ(*frame.track_, chi20, chi21, mva, hitPattern);
       // store result
       output.push_back(trackTQ.frame());
     }

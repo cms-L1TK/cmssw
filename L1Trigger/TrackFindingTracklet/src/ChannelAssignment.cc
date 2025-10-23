@@ -22,6 +22,7 @@ namespace trklet {
         tmWidthCot_(iConfig.tmWidthCot_),
         numComparisonModules_(iConfig.numComparisonModules_),
         minIdenticalStubs_(iConfig.minIdenticalStubs_),
+        tqNumLinks_(iConfig.tqNumLinks_),
         tqWidthChi20_(iConfig.tqWidthChi20_),
         tqWidthChi21_(iConfig.tqWidthChi21_),
         tqBaseShiftChi20_(iConfig.tqBaseShiftChi20_),

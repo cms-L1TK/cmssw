@@ -30,6 +30,10 @@ namespace tt {
   typedef TTStubAlgorithm_official<Ref_Phase2TrackerDigi_> StubAlgorithmOfficial;
   // handles 2 pi overflow
   inline double deltaPhi(double lhs, double rhs = 0.) { return reco::deltaPhi(lhs, rhs); }
+  // floating point save floor
+  inline double floor(double d) { return std::floor(d + 1.e-11); }
+  // floating point save ceil
+  inline double ceil(double d) { return std::ceil(d - 1.e-11); }
 
   /*! \class  tt::Setup
    *  \brief  Class to process and provide run-time constants used by Track Trigger emulators
@@ -67,7 +71,8 @@ namespace tt {
       std::vector<edm::ParameterSet> hybridDisk2SRsSet_;
       double hybridRangePhi_;
       double hybridOffsetRDiskPS_;
-      double tbBarrelHalfLength_;
+      double tbMinZ_;
+      double tbMaxR_;
       double tbInnerRadius_;
       std::vector<int> tbWidthsR_;
       int enableTruncation_;
@@ -176,7 +181,6 @@ namespace tt {
       int kfMaxGaps_;
       int kfMaxSeedingLayer_;
       int kfNumSeedStubs_;
-      double kfMinSeedDeltaR_;
       double kfRangeFactor_;
       int kfShiftInitialC00_;
       int kfShiftInitialC11_;
@@ -420,8 +424,10 @@ namespace tt {
     double hybridRangeR() const { return hybridRangesR_[SensorModule::DiskPS]; }
     // radial offset in cm applied to dsik PS stubs
     double hybridOffsetRDiskPS() const { return hybridOffsetRDiskPS_; }
-    // biggest barrel stub z position after TrackBuilder in cm
-    double tbBarrelHalfLength() const { return tbBarrelHalfLength_; }
+    // smallest disk stub z position after TrackBuilder in cm
+    double tbMinZ() const { return tbMinZ_; }
+    // biggest disk stub r position after TrackBuilder in cm
+    double tbMaxR() const { return tbMaxR_; }
     // smallest stub radius after TrackBuilder in cm
     double tbInnerRadius() const { return tbInnerRadius_; }
     // center radius of outer tracker endcap 2S diks strips
@@ -612,8 +618,6 @@ namespace tt {
     int kfMaxSeedingLayer() const { return kfMaxSeedingLayer_; }
     //
     int kfNumSeedStubs() const { return kfNumSeedStubs_; }
-    //
-    double kfMinSeedDeltaR() const { return kfMinSeedDeltaR_; }
     // search window of each track parameter in initial uncertainties
     double kfRangeFactor() const { return kfRangeFactor_; }
     // initial C00 is given by inv2R uncertainty squared times this power of 2
@@ -735,8 +739,10 @@ namespace tt {
     double hybridRangePhi_;
     // radial offset in cm applied to dsik PS stubs
     double hybridOffsetRDiskPS_;
-    // biggest barrel stub z position after TrackBuilder in cm
-    double tbBarrelHalfLength_;
+    // smallest disk stub z position after TrackBuilder in cm
+    double tbMinZ_;
+    // biggest disk stub r position after TrackBuilder in cm
+    double tbMaxR_;
     // smallest stub radius after TrackBuilder in cm
     double tbInnerRadius_;
     // number of bits used for stub r w.r.t layer/disk centre for module types (barrelPS, barrel2S, diskPS, disk2S) after TrackBuilder
@@ -962,8 +968,6 @@ namespace tt {
     int kfMaxSeedingLayer_;
     //
     int kfNumSeedStubs_;
-    //
-    double kfMinSeedDeltaR_;
     // search window of each track parameter in initial uncertainties
     double kfRangeFactor_;
     // initial C00 is given by inv2R uncertainty squared times this power of 2

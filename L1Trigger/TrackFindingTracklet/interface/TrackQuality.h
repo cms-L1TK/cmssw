@@ -24,8 +24,6 @@ namespace trklet {
       DataFormat invV1_;
       DataFormat chi20_;
       DataFormat chi21_;
-      DataFormat chi20BDT_;
-      DataFormat chi21BDT_;
     };
     TrackQuality(const tt::Setup* setup, const DataFormats* df, const InternalFormats& internal, int region)
         : setup_(setup), dataFormats_(df), internalFormats_(&internal), region_(region) {}
@@ -33,7 +31,7 @@ namespace trklet {
     // read in and organize input tracks and stubs
     void consume(const tt::StreamsTrack&, const tt::StreamsStub&);
     // fills output products
-    void produce(tt::StreamTrack&) const;
+    void produce(tt::StreamsTrack&) const;
 
   private:
     // representation of an input Frame
@@ -57,6 +55,8 @@ namespace trklet {
     std::vector<StubKF> stubs_;
     // input data
     std::vector<Frame> input_;
+    // copy of input track streams
+    tt::StreamsTrack streams_;
   };
 
 }  // namespace trklet
