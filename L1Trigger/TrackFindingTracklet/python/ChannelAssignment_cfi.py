@@ -22,6 +22,7 @@ ChannelAssignment_params = cms.PSet (
 
   # TQ parameter
   TQ = cms.PSet (
+    NumLinks          = cms.int32(   2 ),
     WidthChi21        = cms.int32(  20 ), # Number of bits used to represent chi2rphi
     WidthChi20        = cms.int32(  20 ), # Number of bits used to represent chi2rz
     BaseShiftChi21    = cms.int32( -10 ), # Base of chi2rphi gets shifted by that power of 2 w.r.t 1

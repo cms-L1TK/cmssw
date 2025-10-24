@@ -227,7 +227,7 @@ namespace trklet {
     const int width = ca->tqWidthChi20();
     const double base = std::pow(2., shift);
     const double range = base * std::pow(2, width);
-    return DataFormat(true, base, range);
+    return DataFormat(false, base, range);
   }
   template <>
   DataFormat makeDataFormat<Variable::chi21, Process::tq>(const ChannelAssignment* ca) {
@@ -235,7 +235,7 @@ namespace trklet {
     const int width = ca->tqWidthChi21();
     const double base = std::pow(2., shift);
     const double range = base * std::pow(2, width);
-    return DataFormat(true, base, range);
+    return DataFormat(false, base, range);
   }
   template <>
   DataFormat makeDataFormat<Variable::mva, Process::tq>(const ChannelAssignment* ca) {
@@ -244,7 +244,7 @@ namespace trklet {
   }
   template <>
   DataFormat makeDataFormat<Variable::hitPattern, Process::tq>(const ChannelAssignment* ca) {
-    const int width = ca->setup()->numLayers() + 1;
+    const int width = ca->setup()->numLayers();
     return DataFormat(false, width);
   }
 

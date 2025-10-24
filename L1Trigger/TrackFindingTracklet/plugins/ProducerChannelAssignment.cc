@@ -40,6 +40,7 @@ namespace trklet {
     iConfig_.numComparisonModules_ = pSetDR.getParameter<int>("NumComparisonModules");
     iConfig_.minIdenticalStubs_ = pSetDR.getParameter<int>("MinIdenticalStubs");
     const edm::ParameterSet& pSetTQ = iConfig.getParameter<edm::ParameterSet>("TQ");
+    iConfig_.tqNumLinks_ = pSetTQ.getParameter<int>("NumLinks");
     iConfig_.tqWidthChi20_ = pSetTQ.getParameter<int>("WidthChi20");
     iConfig_.tqWidthChi21_ = pSetTQ.getParameter<int>("WidthChi21");
     iConfig_.tqBaseShiftChi20_ = pSetTQ.getParameter<int>("BaseShiftChi20");

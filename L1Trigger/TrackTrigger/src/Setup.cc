@@ -51,7 +51,8 @@ namespace tt {
         hybridDiskZs_(iConfig.hybridDiskZs_),
         hybridDisk2SRsSet_(iConfig.hybridDisk2SRsSet_),
         hybridOffsetRDiskPS_(iConfig.hybridOffsetRDiskPS_),
-        tbBarrelHalfLength_(iConfig.tbBarrelHalfLength_),
+        tbMinZ_(iConfig.tbMinZ_),
+        tbMaxR_(iConfig.tbMaxR_),
         tbInnerRadius_(iConfig.tbInnerRadius_),
         tbWidthsR_(iConfig.tbWidthsR_),
         // Fimrware specific Parameter
@@ -160,7 +161,6 @@ namespace tt {
         kfMaxGaps_(iConfig.kfMaxGaps_),
         kfMaxSeedingLayer_(iConfig.kfMaxSeedingLayer_),
         kfNumSeedStubs_(iConfig.kfNumSeedStubs_),
-        kfMinSeedDeltaR_(iConfig.kfMinSeedDeltaR_),
         kfRangeFactor_(iConfig.kfRangeFactor_),
         kfShiftInitialC00_(iConfig.kfShiftInitialC00_),
         kfShiftInitialC11_(iConfig.kfShiftInitialC11_),

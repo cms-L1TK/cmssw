@@ -8,6 +8,9 @@ def fwConfig(process):
   process.l1tTTTracksFromTrackletEmulation.RemovalType = ""
   process.l1tTTTracksFromTrackletEmulation.DoMultipleMatches = False
   process.l1tTTTracksFromTrackletEmulation.StoreTrackBuilderOutput = True
+  process.TrackTriggerSetup.KalmanFilter.UseTTStubResiduals = False
+  process.TrackTriggerSetup.KalmanFilter.UseTTStubParameters = False
+  process.TrackTriggerSetup.KalmanFilter.ApplyNonLinearCorrection = False
 
 # configures track finding s/w to behave as a subchain of processing steps
 def reducedConfig(process):

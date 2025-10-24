@@ -123,6 +123,8 @@ namespace trklet {
     iConfig_.baseShiftC22_ = iConfig.getParameter<int>("BaseShiftC22");
     iConfig_.baseShiftC23_ = iConfig.getParameter<int>("BaseShiftC23");
     iConfig_.baseShiftC33_ = iConfig.getParameter<int>("BaseShiftC33");
+    iConfig_.baseShiftInvDH_ = iConfig.getParameter<int>("BaseShiftInvDH");
+    iConfig_.baseShiftInvDH2_ = iConfig.getParameter<int>("BaseShiftInvDH2");
     iConfig_.baseShiftHv0_ = iConfig.getParameter<int>("BaseShiftHv0");
     iConfig_.baseShiftHv1_ = iConfig.getParameter<int>("BaseShiftHv1");
     iConfig_.baseShiftH2v0_ = iConfig.getParameter<int>("BaseShiftH2v0");

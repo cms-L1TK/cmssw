@@ -31,6 +31,8 @@ namespace trklet {
     void produce(edm::Event&, const edm::EventSetup&) override;
 
   private:
+    //
+    std::string file_;
     // ED input token of kf stubs
     edm::EDGetTokenT<tt::StreamsStub> edGetTokenStubs_;
     // ED input token of kf tracks
@@ -39,12 +41,14 @@ namespace trklet {
     edm::EDPutTokenT<tt::StreamsTrack> edPutToken_;
     // Setup token
     edm::ESGetToken<tt::Setup, tt::SetupRcd> esGetTokenSetup_;
-    // ChannelAssignment token
-    edm::ESGetToken<ChannelAssignment, ChannelAssignmentRcd> esGetTokenChannelAssignment_;
+    // channelAssignment_ token
+    edm::ESGetToken<ChannelAssignment, ChannelAssignmentRcd> esGetTokenchannelAssignment_;
     // DataFormats token
     edm::ESGetToken<DataFormats, ChannelAssignmentRcd> esGetTokenDataFormats_;
     // helper class to extract structured data from tt::Frames
     const DataFormats* dataFormats_ = nullptr;
+    //
+    const ChannelAssignment* channelAssignment_ = nullptr;
     // Internal data formats
     TrackQuality::InternalFormats internalFormats_;
 
@@ -63,14 +67,14 @@ namespace trklet {
     edPutToken_ = produces(branchTracks);
     // book ES products
     esGetTokenSetup_ = esConsumes();
-    esGetTokenChannelAssignment_ = esConsumes<edm::Transition::BeginRun>();
+    esGetTokenchannelAssignment_ = esConsumes<edm::Transition::BeginRun>();
     esGetTokenDataFormats_ = esConsumes<edm::Transition::BeginRun>();
   }
 
   void ProducerTQ::beginRun(const edm::Run& iRun, const edm::EventSetup& iSetup) {
     // helper class to extract structured data from tt::Frames
     dataFormats_ = &iSetup.getData(esGetTokenDataFormats_);
-    const ChannelAssignment* channelAssignment = &iSetup.getData(esGetTokenChannelAssignment_);
+    channelAssignment_ = &iSetup.getData(esGetTokenchannelAssignment_);
     int width;
     int shift;
     double base;
@@ -89,7 +93,7 @@ namespace trklet {
     internalFormats_.m12_ = DataFormat(false, width, base, range);
     // invV0
     const DataFormat& dPhi = dataFormats_->format(Variable::dPhi, Process::kf);
-    width = channelAssignment->tqWidthInvV0();
+    width = channelAssignment_->tqWidthInvV0();
     base = std::pow(dPhi.base(), -2);
     range = base * std::pow(2, width) / (std::pow(2, width) - 1);
     shift = std::ceil(std::log2(range / base)) - width;
@@ -97,24 +101,24 @@ namespace trklet {
     internalFormats_.invV0_ = DataFormat(false, width, base, range);
     // invV1
     const DataFormat& dZ = dataFormats_->format(Variable::dZ, Process::kf);
-    width = channelAssignment->tqWidthInvV1();
+    width = channelAssignment_->tqWidthInvV1();
     base = std::pow(dZ.base(), -2);
     range = base * std::pow(2, width) / (std::pow(2, width) - 1);
     shift = std::ceil(std::log2(range / base)) - width;
     base *= std::pow(2, shift);
     internalFormats_.invV1_ = DataFormat(false, width, base, range);
-    // chi20BDT
-    shift = channelAssignment->tqBaseShiftBDTchi20();
-    width = channelAssignment->tqWidthBDTchi20();
+    // chi20
+    shift = channelAssignment_->tqBaseShiftBDTchi20();
+    width = channelAssignment_->tqWidthBDTchi20();
     base = std::pow(2., shift);
     range = base * std::pow(2, width);
-    internalFormats_.chi20BDT_ = DataFormat(false, width, base, range);
-    // chi21BDT
-    shift = channelAssignment->tqBaseShiftBDTchi21();
-    width = channelAssignment->tqWidthBDTchi21();
+    internalFormats_.chi20_ = DataFormat(false, width, base, range);
+    // chi21
+    shift = channelAssignment_->tqBaseShiftBDTchi21();
+    width = channelAssignment_->tqWidthBDTchi21();
     base = std::pow(2., shift);
     range = base * std::pow(2, width);
-    internalFormats_.chi21BDT_ = DataFormat(false, width, base, range);
+    internalFormats_.chi21_ = DataFormat(false, width, base, range);
   }
 
   void ProducerTQ::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
@@ -124,7 +128,7 @@ namespace trklet {
     const tt::StreamsTrack& streamsTracks = iEvent.get(edGetTokenTracks_);
     const tt::StreamsStub& streamsStubs = iEvent.get(edGetTokenStubs_);
     // empty TQ product
-    tt::StreamsTrack output(setup->numRegions());
+    tt::StreamsTrack output(setup->numRegions() * channelAssignment_->tqNumLinks());
     //produce TQ product
     for (int region = 0; region < setup->numRegions(); region++) {
       // object emulating tq algorithm
@@ -132,7 +136,7 @@ namespace trklet {
       // read in and organize input tracks and stubs
       tq.consume(streamsTracks, streamsStubs);
       // fills output products
-      tq.produce(output[region]);
+      tq.produce(output);
     }
     // store TQ product
     iEvent.emplace(edPutToken_, std::move(output));

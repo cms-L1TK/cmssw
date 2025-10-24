@@ -36,20 +36,20 @@ namespace trklet {
     baseLz_ = dataFormats->base(Variable::z, Process::tm);
     baseLcot_ = baseLz_ / baseLr_;
     // Finer granularity (by powers of 2) than the TMTT one. Used to transform from Tracklet to TMTT base.
-    baseHinv2R_ = baseLinv2R_ * pow(2, floor(log2(baseUinv2R_ / baseLinv2R_)));
-    baseHphiT_ = baseLphiT_ * pow(2, floor(log2(baseUphiT_ / baseLphiT_)));
-    baseHzT_ = baseLzT_ * pow(2, floor(log2(baseUzT_ / baseLzT_)));
-    baseHr_ = baseLr_ * pow(2, floor(log2(baseUr_ / baseLr_)));
-    baseHphi_ = baseLphi_ * pow(2, floor(log2(baseUphi_ / baseLphi_)));
-    baseHz_ = baseLz_ * pow(2, floor(log2(baseUz_ / baseLz_)));
-    baseHcot_ = baseLcot_ * pow(2, floor(log2(baseUcot_ / baseLcot_)));
+    baseHinv2R_ = baseLinv2R_ * std::pow(2, std::floor(std::log2(baseUinv2R_ / baseLinv2R_)));
+    baseHphiT_ = baseLphiT_ * std::pow(2, std::floor(std::log2(baseUphiT_ / baseLphiT_)));
+    baseHzT_ = baseLzT_ * std::pow(2, std::floor(std::log2(baseUzT_ / baseLzT_)));
+    baseHr_ = baseLr_ * std::pow(2, std::floor(std::log2(baseUr_ / baseLr_)));
+    baseHphi_ = baseLphi_ * std::pow(2, std::floor(std::log2(baseUphi_ / baseLphi_)));
+    baseHz_ = baseLz_ * std::pow(2, std::floor(std::log2(baseUz_ / baseLz_)));
+    baseHcot_ = baseLcot_ * std::pow(2, std::floor(std::log2(baseUcot_ / baseLcot_)));
     // calculate digitisation granularity used for inverted cot(theta)
-    const int baseShiftInvCot = ceil(log2(setup_->outerRadius() / setup_->hybridRangeR())) - setup_->widthDSPbu();
-    baseInvCot_ = pow(2, baseShiftInvCot);
+    const int baseShiftInvCot = ceil(std::log2(setup_->tbMaxR() / setup_->tbMinZ())) - setup_->widthDSPbu();
+    baseInvCot_ = std::pow(2, baseShiftInvCot);
     const int unusedMSBScot =
-        floor(log2(baseUcot_ * pow(2.0, channelAssignment_->tmWidthCot()) / 2. / setup_->maxCot()));
+        std::floor(std::log2(baseUcot_ * std::pow(2.0, channelAssignment_->tmWidthCot()) / 2. / setup_->maxCot()));
     const int baseShiftScot = channelAssignment_->tmWidthCot() - unusedMSBScot - 1 - setup_->widthAddrBRAM18();
-    baseScot_ = baseUcot_ * pow(2.0, baseShiftScot);
+    baseScot_ = baseUcot_ * std::pow(2.0, baseShiftScot);
   }
 
   // read in and organize input tracks and stubs
@@ -190,7 +190,7 @@ namespace trklet {
             const int index = layerId - setup_->offsetLayerId();
             const double layer = digi(setup_->hybridLayerR(index), baseUr_);
             const double z = digi(z0 + layer * cot, baseUz_);
-            if (std::abs(z) < digi(setup_->tbBarrelHalfLength(), baseUz_) || index > 0)
+            if (std::abs(z) < digi(setup_->tbMinZ(), baseUz_) || index > 0)
               r = digi(setup_->hybridLayerR(index) - setup_->chosenRofPhi(), baseUr_);
             else {
               r = digi(setup_->innerRadius() - setup_->chosenRofPhi(), baseUr_);
@@ -235,38 +235,8 @@ namespace trklet {
             stub->z_ -= dPhi / inv2R * cot;
           }
         }
-        // check track validity
-        bool valid = true;
-        // kill truncated rtacks
-        if (setup_->enableTruncation() && frame >= setup_->numFramesHigh())
-          valid = false;
-        // kill tracks outside of fiducial range
-        if (!dataFormats_->format(Variable::phiT, Process::tm).isCovered(phiT))
-          valid = false;
-        if (!dataFormats_->format(Variable::zT, Process::tm).isCovered(zT))
-          valid = false;
-        // stub range checks
-        for (Stub* stub : stubs) {
-          if (!dataFormats_->format(Variable::phi, Process::tm).isCovered(stub->phi_))
-            stub->valid_ = false;
-          if (!dataFormats_->format(Variable::z, Process::tm).isCovered(stub->z_))
-            stub->valid_ = false;
-        }
-        // layer check
-        std::set<int> layers, layersPS;
-        for (Stub* stub : stubs) {
-          if (!stub->valid_)
-            continue;
-          const int layerId = setup_->layerId(stub->ttStubRef_);
-          layers.insert(layerId);
-          if (setup_->psModule(stub->ttStubRef_))
-            layersPS.insert(layerId);
-        }
-        if (static_cast<int>(layers.size()) < setup_->kfMinLayers() ||
-            static_cast<int>(layersPS.size()) < setup_->kfMinLayersPS())
-          valid = false;
         // create track
-        tracks_.emplace_back(ttTrackRef, valid, channel, inv2R, phiT, cot, zT, stubs);
+        tracks_.emplace_back(ttTrackRef, channel, inv2R, phiT, cot, zT, stubs);
         input.push_back(&tracks_.back());
       }
     }
@@ -340,9 +310,8 @@ namespace trklet {
     std::deque<Track*> accepted;
     std::vector<std::deque<Track*>> stacks(channelAssignment_->numChannelsTrack());
     // clock accurate firmware emulation, each while trip describes one clock tick, one stub in and one stub out per tick
-    while (!std::all_of(streams.begin(), streams.end(), [](const std::deque<Track*>& tracks) {
-      return tracks.empty();
-    }) || !std::all_of(stacks.begin(), stacks.end(), [](const std::deque<Track*>& tracks) { return tracks.empty(); })) {
+    auto empty = [](const std::deque<Track*>& tracks) { return tracks.empty(); };
+    while (!std::all_of(streams.begin(), streams.end(), empty) || !std::all_of(stacks.begin(), stacks.end(), empty)) {
       // fill input fifos
       for (int channel = 0; channel < channelAssignment_->numChannelsTrack(); channel++) {
         Track* track = pop_front(streams[channel]);
@@ -411,7 +380,7 @@ namespace trklet {
   double TrackMultiplexer::redigi(double val, double baseLow, double baseHigh, int widthMultiplier) const {
     const double base = std::pow(2, 1 - widthMultiplier);
     const double transform = digi(baseLow / baseHigh, base);
-    return (std::floor(val * transform / baseLow) + .5) * baseHigh;
+    return (tt::floor(val * transform / baseLow) + .5) * baseHigh;
   }
 
 }  // namespace trklet

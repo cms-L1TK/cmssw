@@ -6,6 +6,8 @@ from L1Trigger.TrackFindingTracklet.Analyzer_cfi import TrackFindingTrackletAnal
 from L1Trigger.TrackFindingTracklet.Producer_cfi import TrackFindingTrackletProducer_params
 from L1Trigger.TrackFindingTracklet.ChannelAssignment_cfi import ChannelAssignment_params
 
+AnalyzerTQ = cms.EDAnalyzer( 'trklet::AnalyzerTQ', TrackFindingTrackletAnalyzer_params, TrackFindingTrackletProducer_params )
+
 AnalyzerStream  = cms.EDAnalyzer( 'tt::AnalyzerStreamTrack',  TrackFindingTrackletAnalyzer_params, TrackFindingTrackletProducer_params )
 AnalyzerTTTrack = cms.EDAnalyzer( 'tt::AnalyzerTTTrack',      TrackFindingTrackletAnalyzer_params, TrackFindingTrackletProducer_params )
 

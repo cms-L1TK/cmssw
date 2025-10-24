@@ -66,8 +66,10 @@ namespace trklet {
             layer + setup_->offsetLayerId() +
             (layer < setup_->numBarrelLayer() ? 0 : setup_->offsetLayerDisks() - setup_->numBarrelLayer());
         const auto it = std::find(layerEncoding.begin(), layerEncoding.end(), decodedLayerId);
-        const int encodedLayerId =
-            std::min(static_cast<int>(std::distance(layerEncoding.begin(), it)), setup_->numLayers() - 1);
+        const int encodedLayerId = static_cast<int>(std::distance(layerEncoding.begin(), it));
+        // kill stub if not encodable
+        if (encodedLayerId == setup_->numLayers())
+          continue;
         // kill stub on already occupied layer
         if (hitPattern.test(encodedLayerId))
           continue;

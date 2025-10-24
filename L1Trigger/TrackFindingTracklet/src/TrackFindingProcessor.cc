@@ -31,81 +31,83 @@ namespace trklet {
     const double baseCot = rangeCot / std::pow(2., TTTrack_TrackWord::TrackBitWidths::kTanlSize);
     const double baseZ0 = rangeZ0 / std::pow(2., TTTrack_TrackWord::TrackBitWidths::kZ0Size);
     const double baseD0 = rangeD0 / std::pow(2., TTTrack_TrackWord::TrackBitWidths::kD0Size);
-    const int nLayers = TTTrack_TrackWord::TrackBitWidths::kHitPatternSize;
-    const TTBV other_MVAs = TTBV(0, 2 * TTTrack_TrackWord::TrackBitWidths::kMVAQualitySize);
-    const TTBV chi2bend = TTBV(0, TTTrack_TrackWord::TrackBitWidths::kBendChi2Size);
-    const TTBV valid = TTBV(1, TTTrack_TrackWord::TrackBitWidths::kValidSize);
     // convert bits into nice formats
     const tt::Setup* setup = df->setup();
     const TrackKF trackKF(frameTrackKF, df);
-    inv2R_ = trackKF.inv2R();
-    phiT_ = trackKF.phiT();
+    invR_ = -2. * trackKF.inv2R();
     cot_ = trackKF.cot();
-    zT_ = trackKF.zT();
-    const double d0 = std::max(std::min(ttTrackRef_->d0(), -TTTrack_TrackWord::minD0), TTTrack_TrackWord::minD0);
+    d0_ = -std::max(std::min(ttTrackRef_->d0(), -TTTrack_TrackWord::minD0), TTTrack_TrackWord::minD0);
     const TrackTQ trackTQ(frameTrackTQ, df);
-    chi2rphi_ = trackTQ.chi20();
-    chi2rz_ = trackTQ.chi21();
     mva_ = trackTQ.mva();
-    hitPattern_ = TTBV(trackTQ.hitPattern(), setup->numLayers());
     channel_ = cot_ < 0. ? 0 : 1;
-    // convert nice formats into bits
-    const double z0 = zT_ - cot_ * setup->chosenRofZ();
-    const double phi0 = phiT_ - inv2R_ * setup->chosenRofPhi();
-    double invR = -2. * inv2R_;
-    if (invR < TTTrack_TrackWord::minRinv)
-      invR = TTTrack_TrackWord::minRinv + df->format(Variable::inv2R, Process::dr).base();
-    else if (invR > -TTTrack_TrackWord::minRinv)
-      invR = -TTTrack_TrackWord::minRinv - df->format(Variable::inv2R, Process::dr).base();
-    const double chi2rphi = chi2rphi_ / (hitPattern_.count() - 2);
-    const double chi2rz = chi2rz_ / (hitPattern_.count() - 2);
-    int chi2rphiBin(-1);
+    z0_ = df->format(Variable::zT, Process::kf)
+              .digi(trackKF.zT() - cot_ * df->format(Variable::r, Process::kf).digi(setup->chosenRofZ()));
+    phi0_ =
+        df->format(Variable::phiT, Process::kf)
+            .digi(trackKF.phiT() - trackKF.inv2R() * df->format(Variable::r, Process::kf).digi(setup->chosenRofPhi()));
+    // base transforms
+    invR_ = redigi(invR_, 2. * df->format(Variable::inv2R, Process::kf).base(), baseInvR, setup->widthDSPbu());
+    phi0_ = redigi(phi0_, df->format(Variable::phiT, Process::kf).base(), basePhi0, setup->widthDSPbu());
+    cot_ = redigi(cot_, df->format(Variable::cot, Process::kf).base(), baseCot, setup->widthDSPbu());
+    z0_ = redigi(z0_, df->format(Variable::zT, Process::kf).base(), baseZ0, setup->widthDSPbu());
+    // bin chi2s
+    const int dof = (trackTQ.hitPattern().count() - 2);
+    chi20_ = -1;
     for (double d : TTTrack_TrackWord::chi2RPhiBins)
-      if (chi2rphi >= d)
-        chi2rphiBin++;
+      if (trackTQ.chi20() >= d * dof)
+        chi20_++;
       else
         break;
-    int chi2rzBin(-1);
+    chi21_ = -1;
     for (double d : TTTrack_TrackWord::chi2RZBins)
-      if (chi2rz >= d)
-        chi2rzBin++;
+      if (trackTQ.chi21() >= d * dof)
+        chi21_++;
       else
         break;
-    if (std::abs(invR) > rangeInvR / 2.)
+    // check ranges
+    if (std::abs(invR_) > rangeInvR / 2.)
       valid_ = false;
-    if (std::abs(phi0) > rangePhi0 / 2.)
+    if (std::abs(phi0_) > rangePhi0 / 2.)
       valid_ = false;
     if (std::abs(cot_) > rangeCot / 2.)
       valid_ = false;
-    if (std::abs(z0) > rangeZ0 / 2.)
+    if (std::abs(z0_) > rangeZ0 / 2.)
       valid_ = false;
-    if (std::abs(d0) > rangeD0 / 2.)
+    if (std::abs(d0_) > rangeD0 / 2.)
       valid_ = false;
     if (!valid_)
       return;
-    const TTBV MVA_quality(mva_, TTTrack_TrackWord::TrackBitWidths::kMVAQualitySize);
-    const TTBV hit_pattern(hitPattern_.resize(nLayers).val(), nLayers);
-    const TTBV D0(d0, baseD0, TTTrack_TrackWord::TrackBitWidths::kD0Size, true);
-    const TTBV Chi2rz(chi2rzBin, TTTrack_TrackWord::TrackBitWidths::kChi2RZSize);
-    const TTBV Z0(z0, baseZ0, TTTrack_TrackWord::TrackBitWidths::kZ0Size, true);
+    // create bit vectors
+    const int nLayers = TTTrack_TrackWord::TrackBitWidths::kHitPatternSize;
+    hitPattern_ = trackTQ.hitPattern();
+    std::string s = hitPattern_.resize(nLayers).str();
+    std::reverse(s.begin(), s.end());
+    hitPattern_ = TTBV(s);
+    const TTBV other = TTBV(0, 2 * TTTrack_TrackWord::TrackBitWidths::kMVAQualitySize);
+    const TTBV chi2bend = TTBV(0, TTTrack_TrackWord::TrackBitWidths::kBendChi2Size);
+    const TTBV d0(0., baseD0, TTTrack_TrackWord::TrackBitWidths::kD0Size, true);
+    const TTBV valid = TTBV(1, TTTrack_TrackWord::TrackBitWidths::kValidSize);
+    const TTBV mva(mva_, TTTrack_TrackWord::TrackBitWidths::kMVAQualitySize);
+    const TTBV chi21(chi21_, TTTrack_TrackWord::TrackBitWidths::kChi2RZSize);
+    const TTBV z0(z0_, baseZ0, TTTrack_TrackWord::TrackBitWidths::kZ0Size, true);
     const TTBV tanL(cot_, baseCot, TTTrack_TrackWord::TrackBitWidths::kTanlSize, true);
-    const TTBV Chi2rphi(chi2rphiBin, TTTrack_TrackWord::TrackBitWidths::kChi2RPhiSize);
-    const TTBV Phi0(phi0, basePhi0, TTTrack_TrackWord::TrackBitWidths::kPhiSize, true);
-    const TTBV InvR(invR, baseInvR, TTTrack_TrackWord::TrackBitWidths::kRinvSize, true);
-    partials_.emplace_back((valid + InvR + Phi0 + Chi2rphi).str());
-    partials_.emplace_back((tanL + Z0 + Chi2rz).str());
-    partials_.emplace_back((D0 + chi2bend + hit_pattern + MVA_quality + other_MVAs).str());
+    const TTBV chi20(chi20_, TTTrack_TrackWord::TrackBitWidths::kChi2RPhiSize);
+    const TTBV phi0(phi0_, basePhi0, TTTrack_TrackWord::TrackBitWidths::kPhiSize, true);
+    const TTBV invR(invR_, baseInvR, TTTrack_TrackWord::TrackBitWidths::kRinvSize, true);
+    // create partial tt track words
+    partials_.emplace_back((valid + invR + phi0 + chi20).str());
+    partials_.emplace_back((tanL + z0 + chi21).str());
+    partials_.emplace_back((d0 + chi2bend + hitPattern_ + mva + other).str());
   }
 
   // fill output products
-  void TrackFindingProcessor::produce(const tt::StreamsTrack& inputsKF,
-                                      const tt::StreamsTrack& inputsTQ,
+  void TrackFindingProcessor::produce(const tt::StreamsTrack& tracks,
                                       const tt::StreamsStub& stubs,
                                       tt::TTTracks& ttTracks,
                                       tt::StreamsTrack& outputs) {
     // organize input tracks
     std::vector<std::deque<Track*>> streams(outputs.size());
-    consume(inputsKF, inputsTQ, stubs, streams);
+    consume(tracks, stubs, streams);
     // emualte data format f/w
     produce(streams, outputs);
     // produce TTTracks
@@ -113,25 +115,25 @@ namespace trklet {
   }
 
   //
-  void TrackFindingProcessor::consume(const tt::StreamsTrack& inputsKF,
-                                      const tt::StreamsTrack& inputsTQ,
+  void TrackFindingProcessor::consume(const tt::StreamsTrack& inputs,
                                       const tt::StreamsStub& stubs,
                                       std::vector<std::deque<Track*>>& outputs) {
     // count input objects
     int nTracks(0);
     auto valid = [](int sum, const tt::FrameTrack& frame) { return sum + (frame.first.isNonnull() ? 1 : 0); };
-    for (const tt::StreamTrack& tracks : inputsKF)
+    for (const tt::StreamTrack& tracks : inputs)
       nTracks += std::accumulate(tracks.begin(), tracks.end(), 0, valid);
-    tracks_.reserve(nTracks);
+    tracks_.reserve(nTracks / 2);
     // convert input data
     for (int region = 0; region < setup_->numRegions(); region++) {
+      const int offsetTQ = region * setup_->tqNumChannel();
       const int offsetTFP = region * setup_->tfpNumChannel();
       const int offsetStub = region * setup_->numLayers();
-      const tt::StreamTrack& streamKF = inputsKF[region];
-      const tt::StreamTrack& streamTQ = inputsTQ[region];
+      const tt::StreamTrack& streamKF = inputs[offsetTQ + 0];
+      const tt::StreamTrack& streamTQ = inputs[offsetTQ + 1];
       for (int channel = 0; channel < setup_->tfpNumChannel(); channel++)
         outputs[offsetTFP + channel] = std::deque<Track*>(streamKF.size(), nullptr);
-      for (int frame = 0; frame < (int)streamKF.size(); frame++) {
+      for (int frame = 0; frame < static_cast<int>(streamKF.size()); frame++) {
         const tt::FrameTrack& frameTrackKF = streamKF[frame];
         const tt::FrameTrack& frameTrackTQ = streamTQ[frame];
         if (frameTrackKF.first.isNull())
@@ -158,6 +160,7 @@ namespace trklet {
 
   // emualte data format f/w
   void TrackFindingProcessor::produce(std::vector<std::deque<Track*>>& inputs, tt::StreamsTrack& outputs) const {
+    // send 2 tracks overs 3 clock ticks
     for (int channel = 0; channel < static_cast<int>(inputs.size()); channel++) {
       std::deque<Track*>& input = inputs[channel];
       std::deque<PartialFrameTrack> stack;
@@ -183,7 +186,7 @@ namespace trklet {
         }
         frame.second = ttBV.bs();
       }
-      // perorm truncation
+      // perform truncation
       if (setup_->enableTruncation() && static_cast<int>(output.size()) > setup_->numFramesIOHigh())
         output.resize(setup_->numFramesIOHigh());
       outputs[channel] = tt::StreamTrack(output.begin(), output.end());
@@ -212,13 +215,13 @@ namespace trklet {
       const auto it = std::find_if(tracks_.begin(), tracks_.end(), match);
       // TTTrack conversion
       const int region = ttTrackRef->phiSector();
-      const double aRinv = -2. * it->inv2R_;
-      const double aphi = tt::deltaPhi(it->phiT_ - it->inv2R_ * setup_->chosenRofPhi() + region * setup_->baseRegion());
+      const double aRinv = it->invR_;
+      const double aphi = tt::deltaPhi(it->phi0_ + region * setup_->baseRegion());
       const double aTanLambda = it->cot_;
-      const double az0 = it->zT_ - it->cot_ * setup_->chosenRofZ();
-      const double ad0 = -ttTrackRef->d0();
-      const double aChi2xyfit = it->chi2rphi_;
-      const double aChi2zfit = it->chi2rz_;
+      const double az0 = it->z0_;
+      const double ad0 = it->d0_;
+      const double aChi2xyfit = it->chi20_;
+      const double aChi2zfit = it->chi21_;
       const double trkMVA1 = (TTTrack_TrackWord::tqMVABins[it->mva_]);
       static constexpr double trkMVA2 = 0.;
       static constexpr double trkMVA3 = 0.;
@@ -273,6 +276,13 @@ namespace trklet {
       ts.pop_front();
     }
     return t;
+  }
+
+  // basetransformation of val from baseHigh into baseLow using widthMultiplier bit multiplication
+  double TrackFindingProcessor::Track::redigi(double val, double baseHigh, double baseLow, int widthMultiplier) const {
+    const double base = std::pow(2, -widthMultiplier);
+    const double transform = (tt::floor(baseHigh / baseLow / base) + .5) * base;
+    return (tt::floor(val * transform / baseHigh) + .5) * baseLow;
   }
 
 }  // namespace trklet

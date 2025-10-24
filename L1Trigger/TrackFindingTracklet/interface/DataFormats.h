@@ -95,7 +95,7 @@ namespace trklet {
     // converts int to double
     double floating(int i) const { return (i + .5) * base_; }
     // converts double to int
-    int integer(double d) const { return std::floor(d / base_ + 1.e-12); }
+    int integer(double d) const { return tt::floor(d / base_); }
     // converts double to int and back to double
     double digi(double d) const { return floating(integer(d)); }
     // converts binary integer value to twos complement integer value

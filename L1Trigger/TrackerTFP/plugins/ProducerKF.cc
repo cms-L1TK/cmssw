@@ -119,6 +119,8 @@ namespace trackerTFP {
     iConfig_.baseShiftchi20_ = iConfig.getParameter<int>("BaseShiftchi20");
     iConfig_.baseShiftchi21_ = iConfig.getParameter<int>("BaseShiftchi21");
     iConfig_.baseShiftchi2_ = iConfig.getParameter<int>("BaseShiftchi2");
+    iConfig_.baseShiftInvDH_ = iConfig.getParameter<int>("BaseShiftInvDH");
+    iConfig_.baseShiftInvDH2_ = iConfig.getParameter<int>("BaseShiftInvDH2");
     iConfig_.baseShiftHv0_ = iConfig.getParameter<int>("BaseShiftHv0");
     iConfig_.baseShiftHv1_ = iConfig.getParameter<int>("BaseShiftHv1");
     iConfig_.baseShiftH2v0_ = iConfig.getParameter<int>("BaseShiftH2v0");

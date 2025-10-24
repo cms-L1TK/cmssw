@@ -441,6 +441,8 @@ namespace trklet {
       // create updated state
       states_.emplace_back(State(s1, {x0, x1, x2, x3, 0., C00, C11, C22, C33, C01, C23, 0., 0., 0.}));
       state = &states_.back();
+      updateRangeActual(VariableKF::invdH, invdH);
+      updateRangeActual(VariableKF::invdH2, invdH2);
       updateRangeActual(VariableKF::Hv0, H1v0);
       updateRangeActual(VariableKF::Hv0, H0v1);
       updateRangeActual(VariableKF::Hv1, H3v2);

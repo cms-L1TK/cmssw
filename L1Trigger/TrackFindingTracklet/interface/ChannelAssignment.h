@@ -26,6 +26,7 @@ namespace trklet {
       int tmWidthCot_;
       int numComparisonModules_;
       int minIdenticalStubs_;
+      int tqNumLinks_;
       int tqWidthChi20_;
       int tqWidthChi21_;
       int tqBaseShiftChi20_;
@@ -70,6 +71,8 @@ namespace trklet {
     int numComparisonModules() const { return numComparisonModules_; }
     // min number of shared stubs to identify duplicates
     int minIdenticalStubs() const { return minIdenticalStubs_; }
+    //
+    int tqNumLinks() const { return tqNumLinks_; }
     // number of bits used to represent track quality output chi2 in r-phi plane
     int tqWidthChi20() const { return tqWidthChi20_; }
     // number of bits used to represent track quality output chi2 in r-z plane
@@ -130,6 +133,8 @@ namespace trklet {
     int numComparisonModules_;
     // min number of shared stubs to identify duplicates [default: 3]
     int minIdenticalStubs_;
+    //
+    int tqNumLinks_;
     // number of bits used to represent track quality output chi2 in r-phi plane
     int tqWidthChi20_;
     // number of bits used to represent track quality output chi2 in r-z plane

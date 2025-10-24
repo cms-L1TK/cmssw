@@ -28,8 +28,6 @@ namespace trklet {
       DataFormat invV1_;
       DataFormat chi20_;
       DataFormat chi21_;
-      DataFormat chi20BDT_;
-      DataFormat chi21BDT_;
     };
     TrackQuality(const tt::Setup* setup, const DataFormats* df, const InternalFormats& internal, int region, 
                  conifer::BDT<ap_fixed<20, 10>, ap_fixed<20, 10>>* bdt)
@@ -38,7 +36,7 @@ namespace trklet {
     // read in and organize input tracks and stubs
     void consume(const tt::StreamsTrack&, const tt::StreamsStub&);
     // fills output products
-    void produce(tt::StreamTrack&) const;
+    void produce(tt::StreamsTrack&) const;
 
   private:
 
@@ -88,6 +86,8 @@ namespace trklet {
     std::vector<Frame> input_;
     // bdt model
     conifer::BDT<AP_FIXED_BDT, AP_FIXED_BDT>* bdt_;
+    // copy of input track streams
+    tt::StreamsTrack streams_;
   };
 
 }  // namespace trklet
