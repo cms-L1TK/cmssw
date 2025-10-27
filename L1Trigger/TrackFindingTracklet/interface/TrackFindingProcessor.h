@@ -54,8 +54,10 @@ namespace trklet {
       double cot_;
       double z0_;
       double d0_;
-      int chi20_;
-      int chi21_;
+      double chi20_;
+      double chi21_;
+      int chi20bin_;
+      int chi21bin_;
     };
     // remove and return first element of deque, returns nullptr if empty
     template <class T>

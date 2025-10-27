@@ -168,7 +168,9 @@ namespace trklet {
       const double allTPs = prof_[mva]->GetBinContent(1);
       const double fracFake = (allTracks - allMatched) / allTracks;
       const double effPerfect = numPerfect / allTPs;
-      log_ << "mva " << mva << " (effi: " << effPerfect << ", fake rate: " << fracFake << ") numMatched " << std::setw(3) << (int)std::round(allMatched) << " numFake " << std::setw(3) << (int)std::round(allTracks - allMatched) << std::endl;
+      log_ << "mva " << mva << " (effi: " << effPerfect << ", fake rate: " << fracFake << ") numMatched "
+           << std::setw(3) << (int)std::round(allMatched) << " numFake " << std::setw(3)
+           << (int)std::round(allTracks - allMatched) << std::endl;
     }
     log_ << "=============================================================";
     edm::LogPrint(moduleDescription().moduleName()) << log_.str();
