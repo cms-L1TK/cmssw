@@ -999,74 +999,74 @@ void TrackletConfigBuilder::writeASMemories(std::ostream& os, std::ostream& memo
   //Now handle the AS memories used by the TrackletProcessors. Original code tried to implement
   //this algorithmically, but logic got super confusing so now rewritten using a 'table' of the TPs
 
-  std::vector<std::pair<std::string,std::pair<std::string, std::vector<std::string> > > > TPs =
-    { {"L1L2A", {"L2PHIA", {"L1PHIA_BB", "L1PHIB_BA"} } },
-      {"L1L2B", {"L2PHIA", {"L1PHIB_BB", "L1PHIC_BA"} } },
-      {"L1L2C", {"L2PHIB", {"L1PHIB_BD", "L1PHIC_BC"} } },
-      {"L1L2D", {"L2PHIB", {"L1PHIC_BB"} } },
-      {"L1L2E", {"L2PHIB", {"L1PHID_BA"} } },
-      {"L1L2F", {"L2PHIB", {"L1PHID_BB", "L1PHIE_BA"} } },
-      {"L1L2G", {"L2PHIC", {"L1PHID_BD", "L1PHIE_BC"} } },
-      {"L1L2H", {"L2PHIC", {"L1PHIE_BB"} } },
-      {"L1L2I", {"L2PHIC", {"L1PHIF_BA"} } },
-      {"L1L2J", {"L2PHIC", {"L1PHIF_BB", "L1PHIG_BA"} } },
-      {"L1L2K", {"L2PHID", {"L1PHIF_BD", "L1PHIG_BC"} } },
-      {"L1L2L", {"L2PHID", {"L1PHIG_BB", "L1PHIH_BA"} } },
+  std::vector<std::pair<std::string, std::pair<std::string, std::vector<std::string> > > > TPs = {
+      {"L1L2A", {"L2PHIA", {"L1PHIA_BB", "L1PHIB_BA"}}},
+      {"L1L2B", {"L2PHIA", {"L1PHIB_BB", "L1PHIC_BA"}}},
+      {"L1L2C", {"L2PHIB", {"L1PHIB_BD", "L1PHIC_BC"}}},
+      {"L1L2D", {"L2PHIB", {"L1PHIC_BB"}}},
+      {"L1L2E", {"L2PHIB", {"L1PHID_BA"}}},
+      {"L1L2F", {"L2PHIB", {"L1PHID_BB", "L1PHIE_BA"}}},
+      {"L1L2G", {"L2PHIC", {"L1PHID_BD", "L1PHIE_BC"}}},
+      {"L1L2H", {"L2PHIC", {"L1PHIE_BB"}}},
+      {"L1L2I", {"L2PHIC", {"L1PHIF_BA"}}},
+      {"L1L2J", {"L2PHIC", {"L1PHIF_BB", "L1PHIG_BA"}}},
+      {"L1L2K", {"L2PHID", {"L1PHIF_BD", "L1PHIG_BC"}}},
+      {"L1L2L", {"L2PHID", {"L1PHIG_BB", "L1PHIH_BA"}}},
 
-      {"L2L3A", {"L3PHIA", {"L2PHIA_BM", "L2PHIB_BL"} } },
-      {"L2L3B", {"L3PHIB", {"L2PHIA_BR", "L2PHIB_BM", "L2PHIC_BL"} } },
-      {"L2L3C", {"L3PHIC", {"L2PHIB_BR", "L2PHIC_BM", "L2PHID_BL"} } },
-      {"L2L3D", {"L3PHID", {"L2PHIC_BR", "L2PHID_BM"} } },
+      {"L2L3A", {"L3PHIA", {"L2PHIA_BM", "L2PHIB_BL"}}},
+      {"L2L3B", {"L3PHIB", {"L2PHIA_BR", "L2PHIB_BM", "L2PHIC_BL"}}},
+      {"L2L3C", {"L3PHIC", {"L2PHIB_BR", "L2PHIC_BM", "L2PHID_BL"}}},
+      {"L2L3D", {"L3PHID", {"L2PHIC_BR", "L2PHID_BM"}}},
 
-      {"L3L4A", {"L4PHIA", {"L3PHIA_BM", "L3PHIB_BL"} } },
-      {"L3L4B", {"L4PHIB", {"L3PHIA_BR", "L3PHIB_BM", "L3PHIC_BL"} } },
-      {"L3L4C", {"L4PHIC", {"L3PHIB_BR", "L3PHIC_BM", "L3PHID_BL"} } },
-      {"L3L4D", {"L4PHID", {"L3PHIC_BR", "L3PHID_BM"} } },
+      {"L3L4A", {"L4PHIA", {"L3PHIA_BM", "L3PHIB_BL"}}},
+      {"L3L4B", {"L4PHIB", {"L3PHIA_BR", "L3PHIB_BM", "L3PHIC_BL"}}},
+      {"L3L4C", {"L4PHIC", {"L3PHIB_BR", "L3PHIC_BM", "L3PHID_BL"}}},
+      {"L3L4D", {"L4PHID", {"L3PHIC_BR", "L3PHID_BM"}}},
 
-      {"L5L6A", {"L6PHIA", {"L5PHIA_BM", "L5PHIB_BL"} } },
-      {"L5L6B", {"L6PHIB", {"L5PHIA_BR", "L5PHIB_BM", "L5PHIC_BL"} } },
-      {"L5L6C", {"L6PHIC", {"L5PHIB_BR", "L5PHIC_BM", "L5PHID_BL"} } },
-      {"L5L6D", {"L6PHID", {"L5PHIC_BR", "L5PHID_BM"} } },
+      {"L5L6A", {"L6PHIA", {"L5PHIA_BM", "L5PHIB_BL"}}},
+      {"L5L6B", {"L6PHIB", {"L5PHIA_BR", "L5PHIB_BM", "L5PHIC_BL"}}},
+      {"L5L6C", {"L6PHIC", {"L5PHIB_BR", "L5PHIC_BM", "L5PHID_BL"}}},
+      {"L5L6D", {"L6PHID", {"L5PHIC_BR", "L5PHID_BM"}}},
 
-      {"D1D2A", {"D2PHIA", {"D1PHIA_DM", "D1PHIB_DL"} } },
-      {"D1D2B", {"D2PHIB", {"D1PHIA_DR", "D1PHIB_DM", "D1PHIC_DL"} } },
-      {"D1D2C", {"D2PHIC", {"D1PHIB_DR", "D1PHIC_DM", "D1PHID_DL"} } },
-      {"D1D2D", {"D2PHID", {"D1PHIC_DR", "D1PHID_DM"} } },
+      {"D1D2A", {"D2PHIA", {"D1PHIA_DM", "D1PHIB_DL"}}},
+      {"D1D2B", {"D2PHIB", {"D1PHIA_DR", "D1PHIB_DM", "D1PHIC_DL"}}},
+      {"D1D2C", {"D2PHIC", {"D1PHIB_DR", "D1PHIC_DM", "D1PHID_DL"}}},
+      {"D1D2D", {"D2PHID", {"D1PHIC_DR", "D1PHID_DM"}}},
 
-      {"D3D4A", {"D4PHIA", {"D3PHIA_DM", "D3PHIB_DL"} } },
-      {"D3D4B", {"D4PHIB", {"D3PHIA_DR", "D3PHIB_DM", "D3PHIC_DL"} } },
-      {"D3D4C", {"D4PHIC", {"D3PHIB_DR", "D3PHIC_DM", "D3PHID_DL"} } },
-      {"D3D4D", {"D4PHID", {"D3PHIC_DR", "D3PHID_DM"} } },
+      {"D3D4A", {"D4PHIA", {"D3PHIA_DM", "D3PHIB_DL"}}},
+      {"D3D4B", {"D4PHIB", {"D3PHIA_DR", "D3PHIB_DM", "D3PHIC_DL"}}},
+      {"D3D4C", {"D4PHIC", {"D3PHIB_DR", "D3PHIC_DM", "D3PHID_DL"}}},
+      {"D3D4D", {"D4PHID", {"D3PHIC_DR", "D3PHID_DM"}}},
 
-      {"L1D1A", {"D1PHIA", {"L1PHIA_OM", "L1PHIB_OL"} } },
-      {"L1D1B", {"D1PHIA", {"L1PHIA_OR", "L1PHIB_OM", "L1PHIC_OL"} } },
-      {"L1D1C", {"D1PHIB", {"L1PHIB_OR", "L1PHIC_OM", "L1PHID_OL"} } },
-      {"L1D1D", {"D1PHIB", {"L1PHIC_OR", "L1PHID_OM", "L1PHIE_OL"} } },
-      {"L1D1E", {"D1PHIC", {"L1PHID_OR", "L1PHIE_OM", "L1PHIF_OL"} } },
-      {"L1D1F", {"D1PHIC", {"L1PHIE_OR", "L1PHIF_OM", "L1PHIG_OL"} } },
-      {"L1D1G", {"D1PHID", {"L1PHIF_OR", "L1PHIG_OM", "L1PHIH_OL"} } },
-      {"L1D1H", {"D1PHID", {"L1PHIG_OR", "L1PHIH_OM"} } },
+      {"L1D1A", {"D1PHIA", {"L1PHIA_OM", "L1PHIB_OL"}}},
+      {"L1D1B", {"D1PHIA", {"L1PHIA_OR", "L1PHIB_OM", "L1PHIC_OL"}}},
+      {"L1D1C", {"D1PHIB", {"L1PHIB_OR", "L1PHIC_OM", "L1PHID_OL"}}},
+      {"L1D1D", {"D1PHIB", {"L1PHIC_OR", "L1PHID_OM", "L1PHIE_OL"}}},
+      {"L1D1E", {"D1PHIC", {"L1PHID_OR", "L1PHIE_OM", "L1PHIF_OL"}}},
+      {"L1D1F", {"D1PHIC", {"L1PHIE_OR", "L1PHIF_OM", "L1PHIG_OL"}}},
+      {"L1D1G", {"D1PHID", {"L1PHIF_OR", "L1PHIG_OM", "L1PHIH_OL"}}},
+      {"L1D1H", {"D1PHID", {"L1PHIG_OR", "L1PHIH_OM"}}},
 
-      {"L2D1A", {"D1PHIA", {"L2PHIA_OM", "L2PHIB_OL"} } },
-      {"L2D1B", {"D1PHIB", {"L2PHIA_OR", "L2PHIB_OM", "L2PHIC_OL"} } },
-      {"L2D1C", {"D1PHIC", {"L2PHIB_OR", "L2PHIC_OM", "L2PHID_OL"} } },
-      {"L2D1D", {"D1PHID", {"L2PHIC_OR", "L2PHID_OM"} } }
+      {"L2D1A", {"D1PHIA", {"L2PHIA_OM", "L2PHIB_OL"}}},
+      {"L2D1B", {"D1PHIB", {"L2PHIA_OR", "L2PHIB_OM", "L2PHIC_OL"}}},
+      {"L2D1C", {"D1PHIC", {"L2PHIB_OR", "L2PHIC_OM", "L2PHID_OL"}}},
+      {"L2D1D", {"D1PHID", {"L2PHIC_OR", "L2PHID_OM"}}}
 
-    };
+  };
 
-  for(unsigned int i = 0; i < TPs.size(); i++) {
+  for (unsigned int i = 0; i < TPs.size(); i++) {
     std::string TPName = TPs[i].first;
     std::string outerAS = TPs[i].second.first;
     //first write outer AS memories
     memories << "AllStubs: AS_" << outerAS << "_" << TPName << " [42]" << std::endl;
-    os << "AS_" << outerAS << "_" << TPName << " input=> VMR_" << outerAS
-       << ".allstubout output=> TP_" << TPName << ".outerallstubin" << std::endl;
+    os << "AS_" << outerAS << "_" << TPName << " input=> VMR_" << outerAS << ".allstubout output=> TP_" << TPName
+       << ".outerallstubin" << std::endl;
     //now write the inner AS memories
-    for(unsigned int j = 0; j < TPs[i].second.second.size(); j++) {
+    for (unsigned int j = 0; j < TPs[i].second.second.size(); j++) {
       std::string innerAS = TPs[i].second.second[j];
       memories << "AllInnerStubs: AS_" << innerAS << " [42]" << std::endl;
-      os << "AS_" << innerAS << " input=> VMR_" << innerAS.substr(0,6)
-	 << ".allinnerstubout output=> TP_" << TPName << ".innerallstubin" << std::endl;
+      os << "AS_" << innerAS << " input=> VMR_" << innerAS.substr(0, 6) << ".allinnerstubout output=> TP_" << TPName
+         << ".innerallstubin" << std::endl;
     }
   }
 }
@@ -1121,10 +1121,10 @@ void TrackletConfigBuilder::writeVMSMemories(std::ostream& os, std::ostream& mem
 
       //Hack for L1L2 seeding
       if (iSeed == Seed::L1L2) {
-	nTCReg = 2;
-	if (iReg == 1 || iReg == 2) {
-	  nTCReg = 4;
-	}
+        nTCReg = 2;
+        if (iReg == 1 || iReg == 2) {
+          nTCReg = 4;
+        }
       }
 
       for (unsigned iTC = 0; iTC < nTCReg; iTC++) {
@@ -1134,7 +1134,7 @@ void TrackletConfigBuilder::writeVMSMemories(std::ostream& os, std::ostream& mem
         os << "VMSTE_" << LayerName(ilayer) << "PHI" << iRegStr(iReg, iSeed) << "n" << nmem << " input=> VMR_"
            << LayerName(ilayer) << "PHI" << iTCStr(iReg) << ".vmstubout_seed_" << iSeed << " output=> TP_"
            << LayerName(l1) << LayerName(l2) << iTCStr(jTC) << ".outervmstubin" << std::endl;
-	jTC++;
+        jTC++;
       }
     }
   }
