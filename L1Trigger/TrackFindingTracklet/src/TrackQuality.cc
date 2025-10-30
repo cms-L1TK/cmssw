@@ -87,8 +87,8 @@ namespace trklet {
       const AP_FIXED_BDT f_nstub    = (AP_FIXED_BDT)nstub;
       const AP_FIXED_BDT f_zT       = transform_zT(zT);
       const AP_FIXED_BDT f_cot      = transform_cot(cot);
-      const AP_FIXED_BDT f_chi20    = (AP_FIXED_BDT)chi20;
-      const AP_FIXED_BDT f_chi21    = (AP_FIXED_BDT)chi21;
+      const AP_FIXED_BDT f_chi20    = transform_chi(chi20);
+      const AP_FIXED_BDT f_chi21    = transform_chi(chi21);
       const AP_FIXED_BDT f_n_miss   = (AP_FIXED_BDT)n_missint;
       const std::vector<AP_FIXED_BDT> features = 
       {
@@ -129,6 +129,14 @@ namespace trklet {
     const AP_INT_BDT cot_int(cot_vivado_view_int);
     cot_fixed.range(19, 0) = cot_int.range(19, 0);
     return cot_fixed;
+  }
+
+  const TrackQuality::AP_FIXED_BDT TrackQuality::transform_chi(const float& chi) const {
+    int chi_vivado_view_int = std::floor(8.0000 * chi);
+    AP_FIXED_BDT chi_fixed;
+    const AP_INT_BDT chi_int(chi_vivado_view_int);
+    chi_fixed.range(19, 0) = chi_int.range(19, 0);
+    return chi_fixed;
   }
 
   const int TrackQuality::get_ninterior(const TTBV& hitPattern) const {

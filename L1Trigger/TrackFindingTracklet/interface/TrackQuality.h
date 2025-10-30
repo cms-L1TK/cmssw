@@ -69,6 +69,7 @@ namespace trklet {
     const int packMVA(const AP_INT_BDT& mva) const;
     const AP_FIXED_BDT transform_zT (const float& zT) const;
     const AP_FIXED_BDT transform_cot (const float& cot) const;
+    const AP_FIXED_BDT transform_chi (const float& chi) const;
 
     // helper class to store configurations
     const tt::Setup* setup_;
