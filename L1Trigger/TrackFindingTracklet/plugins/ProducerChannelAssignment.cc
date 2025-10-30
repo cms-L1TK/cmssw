@@ -42,7 +42,8 @@ namespace trklet {
     iConfig_.tmMuxOrderInt_.reserve(iConfig_.tmMuxOrder_.size());
     for (const std::string& s : iConfig_.tmMuxOrder_)
       iConfig_.tmMuxOrderInt_.push_back(std::distance(
-          iConfig_.tmMuxOrder_.begin(), find(iConfig_.tmMuxOrder_.begin(), iConfig_.tmMuxOrder_.end(), s)));
+          iConfig_.seedTypeNames_.begin(),
+find(iConfig_.seedTypeNames_.begin(), iConfig_.seedTypeNames_.end(), s)));
     const edm::ParameterSet& pSetSeedTypesSeedLayers = iConfig.getParameter<edm::ParameterSet>("SeedTypesSeedLayers");
     const edm::ParameterSet& pSetSeedTypesProjectionLayers =
         iConfig.getParameter<edm::ParameterSet>("SeedTypesProjectionLayers");
