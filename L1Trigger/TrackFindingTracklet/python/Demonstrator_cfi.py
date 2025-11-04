@@ -9,7 +9,7 @@ TrackTriggerDemonstrator_params = cms.PSet (
 
   LabelIn  = TrackFindingTrackletProducer_params.InputLabelKF,  #
   LabelOut = TrackFindingTrackletAnalyzer_params.OutputLabelKF, #
-  DirIPBB  = cms.string( "/home/hep/am2023/CMSSW_15_1_0_pre4/src/L1Trigger/TrackFindingTracklet/data/" ), # path to ipbb proj area
+  DirIPBB  = cms.string( "/home/hep/am2023/check_again/CMSSW_15_1_0_pre4/src/L1Trigger/TrackFindingTracklet/data/" ), # path to ipbb proj area
   RunTime  = cms.double( 7.5 ),                                   # runtime in us
 
   LinkMappingIn  = cms.vint32(  ),

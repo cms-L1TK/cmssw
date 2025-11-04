@@ -83,6 +83,7 @@ namespace trklet {
       double cot = (*frame.track_).cot();
       int nstub = hitPattern.count();
       int n_missint = get_ninterior(hitPattern);
+      // std::cout << nstub * 1024 << ", " << n_missint * 1024 << std::endl;
       // BDT Inference //
       const AP_FIXED_BDT f_nstub    = (AP_FIXED_BDT)nstub;
       const AP_FIXED_BDT f_zT       = transform_zT(zT);
@@ -97,6 +98,7 @@ namespace trklet {
       const AP_FIXED_BDT& mva_raw = bdt_->decision_function(features).at(0);
       const AP_INT_BDT& mva_ = mva_raw.range(mva_raw.width - 1, 0);
       const int mva = packMVA(mva_);
+      // std::cout << mva << std::endl;
       // build output Track
       TrackTQ trackTQ(*frame.track_, chi20, chi21, mva, hitPattern);
       // store result
@@ -119,6 +121,7 @@ namespace trklet {
       int zT_vivado_view_int = std::floor(187.5351440760983 * zT);
       AP_FIXED_BDT zT_fixed; 
       const AP_INT_BDT zT_int (zT_vivado_view_int);
+      // std::cout << "zT_int" << zT_int << std::endl;
       zT_fixed.range(19, 0) = zT_int.range(19, 0);
       return zT_fixed;
   }
@@ -127,6 +130,7 @@ namespace trklet {
     int cot_vivado_view_int = std::floor(4869.970502268804 * cot);
     AP_FIXED_BDT cot_fixed;
     const AP_INT_BDT cot_int(cot_vivado_view_int);
+    // std::cout << "cot_int" << cot_int << std::endl;
     cot_fixed.range(19, 0) = cot_int.range(19, 0);
     return cot_fixed;
   }
@@ -135,25 +139,42 @@ namespace trklet {
     int chi_vivado_view_int = std::floor(8.0000 * chi);
     AP_FIXED_BDT chi_fixed;
     const AP_INT_BDT chi_int(chi_vivado_view_int);
+    // std::cout << "chi_int" << chi_int << std::endl;
     chi_fixed.range(19, 0) = chi_int.range(19, 0);
     return chi_fixed;
   }
 
   const int TrackQuality::get_ninterior(const TTBV& hitPattern) const {
     std::string s = hitPattern.str();
-    std::reverse(s.begin(), s.end());
-    if (!s.empty())
-      s.pop_back();
-    const size_t first_one = s.find('1');
-    const size_t last_one  = s.rfind('1');
-    if (first_one == std::string::npos || first_one == last_one)
-      return 0;
-    int count = 0;
-    for (size_t i = first_one + 1; i < last_one; ++i) {
-      if (s[i] == '0')
-        ++count;
+    int first_one_pos = -1;
+    int last_one_pos  = -1;
+    int count         = 0;
+
+    for (int i = 0; i < static_cast<int>(s.size()); ++i) {
+      if (s[i] == '1') {
+        first_one_pos = i;
+        break;
+      }
     }
-  return count;
-  }
+
+    for (int i = static_cast<int>(s.size()) - 1; i >= 0; --i) {
+      if (s[i] == '1') {
+        last_one_pos = i;
+        break;
+      }
+    }
+
+    if (first_one_pos == -1 || last_one_pos == first_one_pos)
+      return 0;
+
+    for (int i = 0; i < static_cast<int>(s.size()); ++i) {
+      if (i > first_one_pos && i < last_one_pos) {
+        if (s[i] == '0')
+          ++count;
+      }
+    }
+
+    return count;
+    }
 
 }  // namespace trklet
