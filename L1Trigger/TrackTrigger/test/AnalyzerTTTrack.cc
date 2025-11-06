@@ -80,6 +80,7 @@ namespace tt {
     std::vector<TH1F*> hisEffPassed_;
     std::vector<TH1F*> hisEffTotal_;
     std::vector<TEfficiency*> eff_;
+    std::vector<TH1F*> hisChi2s_;
     // printout
     std::stringstream log_;
   };
@@ -92,7 +93,8 @@ namespace tt {
         profRes_(resolutions_.size()),
         hisEffPassed_(efficiencies_.size()),
         hisEffTotal_(efficiencies_.size()),
-        eff_(efficiencies_.size()) {
+        eff_(efficiencies_.size()),
+        hisChi2s_(2) {
     usesResource("TFileService");
     // book in- and output ED products
     edGetTokenTracks_ = consumes(inputTag_);
@@ -130,6 +132,9 @@ namespace tt {
     prof_->GetXaxis()->SetBinLabel(10, "All TPs");
     hisLayer_ = dir.make<TH1F>("Layer Occupancy", ";", 8, -0.5, 7.5);
     hisStubs_ = dir.make<TH1F>("Stubs per Track", ";", 8, .5, 8.5);
+    // chi2s
+    hisChi2s_[0] = dir.make<TH1F>("His Chi20", ";", 16, -.5, 15.5);
+    hisChi2s_[1] = dir.make<TH1F>("His Chi21", ";", 16, -.5, 15.5);
     // resoultions
     dir = fs->mkdir(name_ + "/Res");
     for (int i = 0; i < static_cast<int>(resolutions_.size()); i++) {
@@ -186,6 +191,8 @@ namespace tt {
       for (int layer : hitPattern.ids())
         hisLayer_->Fill(layer);
       hisStubs_->Fill(hitPattern.count());
+      hisChi2s_[0]->Fill(ttTrack.getChi2RPhiBits());
+      hisChi2s_[1]->Fill(ttTrack.getChi2RZBits());
       const std::vector<TPPtr> any = forFake.associate(ttStubRefs);
       if (any.empty())
         continue;

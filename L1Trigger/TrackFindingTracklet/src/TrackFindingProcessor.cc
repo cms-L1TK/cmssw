@@ -50,18 +50,20 @@ namespace trklet {
     phi0_ = redigi(phi0_, df->format(Variable::phiT, Process::kf).base(), basePhi0, setup->widthDSPbu());
     cot_ = redigi(cot_, df->format(Variable::cot, Process::kf).base(), baseCot, setup->widthDSPbu());
     z0_ = redigi(z0_, df->format(Variable::zT, Process::kf).base(), baseZ0, setup->widthDSPbu());
+    chi20_ = trackTQ.chi20();
+    chi21_ = trackTQ.chi21();
     // bin chi2s
     const int dof = (trackTQ.hitPattern().count() - 2);
-    chi20_ = -1;
+    chi20bin_ = -1;
     for (double d : TTTrack_TrackWord::chi2RPhiBins)
-      if (trackTQ.chi20() >= d * dof)
-        chi20_++;
+      if (chi20_ >= d * dof)
+        chi20bin_++;
       else
         break;
-    chi21_ = -1;
+    chi21bin_ = -1;
     for (double d : TTTrack_TrackWord::chi2RZBins)
-      if (trackTQ.chi21() >= d * dof)
-        chi21_++;
+      if (chi21_ >= d * dof)
+        chi21bin_++;
       else
         break;
     // check ranges
@@ -88,10 +90,10 @@ namespace trklet {
     const TTBV d0(0., baseD0, TTTrack_TrackWord::TrackBitWidths::kD0Size, true);
     const TTBV valid = TTBV(1, TTTrack_TrackWord::TrackBitWidths::kValidSize);
     const TTBV mva(mva_, TTTrack_TrackWord::TrackBitWidths::kMVAQualitySize);
-    const TTBV chi21(chi21_, TTTrack_TrackWord::TrackBitWidths::kChi2RZSize);
+    const TTBV chi21(chi21bin_, TTTrack_TrackWord::TrackBitWidths::kChi2RZSize);
     const TTBV z0(z0_, baseZ0, TTTrack_TrackWord::TrackBitWidths::kZ0Size, true);
     const TTBV tanL(cot_, baseCot, TTTrack_TrackWord::TrackBitWidths::kTanlSize, true);
-    const TTBV chi20(chi20_, TTTrack_TrackWord::TrackBitWidths::kChi2RPhiSize);
+    const TTBV chi20(chi20bin_, TTTrack_TrackWord::TrackBitWidths::kChi2RPhiSize);
     const TTBV phi0(phi0_, basePhi0, TTTrack_TrackWord::TrackBitWidths::kPhiSize, true);
     const TTBV invR(invR_, baseInvR, TTTrack_TrackWord::TrackBitWidths::kRinvSize, true);
     // create partial tt track words
@@ -247,6 +249,7 @@ namespace trklet {
       ttTrack.setStubRefs(it->ttStubRefs_);
       ttTrack.setStubPtConsistency(StubPtConsistency::getConsistency(
           ttTrack, setup_->trackerGeometry(), setup_->trackerTopology(), bfield_, nPar));
+      ttTrack.setTrackWordBits();
     }
   }
 
