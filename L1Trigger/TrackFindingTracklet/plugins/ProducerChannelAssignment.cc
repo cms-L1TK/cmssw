@@ -47,11 +47,8 @@ namespace trklet {
     iConfig_.tqBaseShiftChi21_ = pSetTQ.getParameter<int>("BaseShiftChi21");
     iConfig_.tqWidthInvV0_ = pSetTQ.getParameter<int>("WidthInvV0"),
     iConfig_.tqWidthInvV1_ = pSetTQ.getParameter<int>("WidthInvV1"),
-    iConfig_.tqWidthBDTchi20_ = pSetTQ.getParameter<int>("WidthBDTchi20"),
-    iConfig_.tqWidthBDTchi21_ = pSetTQ.getParameter<int>("WidthBDTchi21"),
-    iConfig_.tqBaseShiftBDTchi20_ = pSetTQ.getParameter<int>("BaseShiftBDTchi20"),
-    iConfig_.tqBaseShiftBDTchi21_ = pSetTQ.getParameter<int>("BaseShiftBDTchi21"),
     iConfig_.tqWidthMVA_ = pSetTQ.getParameter<int>("WidthMVA"),
+    iConfig_.tqBinEdges_ = pSetTQ.getParameter<std::vector<int>>("BinEdges"),
     iConfig_.tmMuxOrderInt_.reserve(iConfig_.tmMuxOrder_.size());
     for (const std::string& s : iConfig_.tmMuxOrder_)
       iConfig_.tmMuxOrderInt_.push_back(std::distance(

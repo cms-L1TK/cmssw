@@ -30,14 +30,10 @@ namespace trackerTFP {
       iConfig_.dphiTruncation_ = iConfig.getParameter<int>("DphiTruncation");
       iConfig_.widthInvV0_ = iConfig.getParameter<int>("WidthInvV0");
       iConfig_.widthInvV1_ = iConfig.getParameter<int>("WidthInvV1");
-      iConfig_.widthchi2rphi_ = iConfig.getParameter<int>("Widthchi2rphi");
-      iConfig_.widthchi2rz_ = iConfig.getParameter<int>("Widthchi2rz");
-      iConfig_.baseShiftchi2rphi_ = iConfig.getParameter<int>("BaseShiftchi2rphi");
-      iConfig_.baseShiftchi2rz_ = iConfig.getParameter<int>("BaseShiftchi2rz");
-      iConfig_.widthBDTchi20_ = iConfig.getParameter<int>("WidthBDTchi20");
-      iConfig_.widthBDTchi21_ = iConfig.getParameter<int>("WidthBDTchi21");
-      iConfig_.baseShiftBDTchi20_ = iConfig.getParameter<int>("BaseShiftBDTchi20");
-      iConfig_.baseShiftBDTchi21_ = iConfig.getParameter<int>("BaseShiftBDTchi21");
+      iConfig_.widthChi20_ = iConfig.getParameter<int>("WidthChi20");
+      iConfig_.widthChi21_ = iConfig.getParameter<int>("WidthChi21");
+      iConfig_.baseShiftChi20_ = iConfig.getParameter<int>("BaseShiftChi20");
+      iConfig_.baseShiftChi21_ = iConfig.getParameter<int>("BaseShiftChi21");
     }
     ~ProducerTrackQuality() override = default;
     std::unique_ptr<TrackQuality> produce(const DataFormatsRcd& rcd) {

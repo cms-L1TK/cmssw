@@ -32,7 +32,7 @@ namespace trackerTFP {
   static constexpr int numBinschi2rz_ = 1 << TTTrack_TrackWord::TrackBitWidths::kChi2RZSize;
 
   // track quality variables
-  enum class VariableTQ { begin, m20 = begin, m21, invV0, invV1, chi2rphi, chi2rz, BDTchi20, BDTchi21, end, x };
+  enum class VariableTQ { begin, m20 = begin, m21, invV0, invV1, chi20, chi21, end, x };
   // conversion: Variable to int
   inline constexpr int operator+(VariableTQ v) { return static_cast<int>(v); }
   // increment of Variable
@@ -51,14 +51,10 @@ namespace trackerTFP {
     int dphiTruncation_;
     int widthInvV0_;
     int widthInvV1_;
-    int widthchi2rphi_;
-    int widthchi2rz_;
-    int baseShiftchi2rphi_;
-    int baseShiftchi2rz_;
-    int widthBDTchi20_;
-    int widthBDTchi21_;
-    int baseShiftBDTchi20_;
-    int baseShiftBDTchi21_;
+    int widthChi20_;
+    int widthChi21_;
+    int baseShiftChi20_;
+    int baseShiftChi21_;
   };
 
   // function template for DataFormat generation
@@ -76,13 +72,9 @@ namespace trackerTFP {
   template <>
   DataFormat makeDataFormat<VariableTQ::invV1>(const DataFormats* dataFormats, const ConfigTQ& iConfig);
   template <>
-  DataFormat makeDataFormat<VariableTQ::chi2rphi>(const DataFormats* dataFormats, const ConfigTQ& iConfig);
+  DataFormat makeDataFormat<VariableTQ::chi20>(const DataFormats* dataFormats, const ConfigTQ& iConfig);
   template <>
-  DataFormat makeDataFormat<VariableTQ::chi2rz>(const DataFormats* dataFormats, const ConfigTQ& iConfig);
-  template <>
-  DataFormat makeDataFormat<VariableTQ::BDTchi20>(const DataFormats* dataFormats, const ConfigTQ& iConfig);
-  template <>
-  DataFormat makeDataFormat<VariableTQ::BDTchi21>(const DataFormats* dataFormats, const ConfigTQ& iConfig);
+  DataFormat makeDataFormat<VariableTQ::chi21>(const DataFormats* dataFormats, const ConfigTQ& iConfig);
 
   /*! \class  trackerTFP::TrackQuality
    *  \brief  Bit accurate emulation of the track quality BDT including calculation of chi2s.

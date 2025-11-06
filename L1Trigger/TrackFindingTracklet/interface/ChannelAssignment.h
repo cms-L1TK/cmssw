@@ -33,11 +33,8 @@ namespace trklet {
       int tqBaseShiftChi21_;
       int tqWidthInvV0_;
       int tqWidthInvV1_;
-      int tqWidthBDTchi20_;
-      int tqWidthBDTchi21_;
-      int tqBaseShiftBDTchi20_;
-      int tqBaseShiftBDTchi21_;
       int tqWidthMVA_;
+      std::vector<int> tqBinEdges_;
       std::vector<std::string> seedTypeNames_;
       int numChannelsStub_;
       std::vector<std::vector<int>> seedTypesSeedLayers_;
@@ -85,16 +82,10 @@ namespace trklet {
     int tqWidthInvV0() const { return tqWidthInvV0_; }
     // Number of bits used for looked up inverse z uncertainty squared
     int tqWidthInvV1() const { return tqWidthInvV1_; }
-    // Number of bits used to represent chi2rphi used by BDT
-    int tqWidthBDTchi20() const { return tqWidthBDTchi20_; }
-    // Number of bits used to represent chi2rz used by BDT
-    int tqWidthBDTchi21() const { return tqWidthBDTchi21_; }
-    // Base of chi2rphi gets shifted by that power of 2 w.r.t 1 used by BDT
-    int tqBaseShiftBDTchi20() const { return tqBaseShiftBDTchi20_; }
-    // Base of chi2rz gets shifted by that power of 2 w.r.t 1 used by BDT
-    int tqBaseShiftBDTchi21() const { return tqBaseShiftBDTchi21_; }
     // number of bits used for mva
     int tqWidthMVA() const { return tqWidthMVA_; }
+    // f/w bin edge integer values to bin mva
+    const std::vector<int>& tqBinEdges() const { return tqBinEdges_; }
     // number of used seed types in tracklet algorithm
     int numSeedTypes() const { return numSeedTypes_; }
     // sets layerId (0-7 in sequence the seed type projects to) of given TTStubRef and seedType, returns false if seeed stub
@@ -147,16 +138,10 @@ namespace trklet {
     int tqWidthInvV0_;
     // Number of bits used for looked up inverse z uncertainty squared
     int tqWidthInvV1_;
-    // Number of bits used to represent chi2rphi used by BDT
-    int tqWidthBDTchi20_;
-    // Number of bits used to represent chi2rz used by BDT
-    int tqWidthBDTchi21_;
-    // Base of chi2rphi gets shifted by that power of 2 w.r.t 1 used by BDT
-    int tqBaseShiftBDTchi20_;
-    // Base of chi2rz gets shifted by that power of 2 w.r.t 1 used by BDT
-    int tqBaseShiftBDTchi21_;
     // number of bits used for mva
     int tqWidthMVA_;
+    // f/w bin edge integer values to bin mva
+    std::vector<int> tqBinEdges_;
     // seed type names
     std::vector<std::string> seedTypeNames_;
     // number of used seed types in tracklet algorithm

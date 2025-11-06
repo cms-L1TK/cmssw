@@ -104,15 +104,15 @@ namespace trackerTFP {
       const double m21 = tq->format(VariableTQ::m21).digi(std::pow(stub.z(), 2));
       const double invV0 = tq->format(VariableTQ::invV0).digi(1. / std::pow(2. * stub.dPhi(), 2));
       const double invV1 = tq->format(VariableTQ::invV1).digi(1. / std::pow(2. * stub.dZ(), 2));
-      const double stubchi2rphi = tq->format(VariableTQ::chi2rphi).digi(m20 * invV0);
-      const double stubchi2rz = tq->format(VariableTQ::chi2rz).digi(m21 * invV1);
+      const double stubchi2rphi = tq->format(VariableTQ::chi20).digi(m20 * invV0);
+      const double stubchi2rz = tq->format(VariableTQ::chi21).digi(m21 * invV1);
       trackchi2rphi += stubchi2rphi;
       trackchi2rz += stubchi2rz;
     }
-    if (trackchi2rphi > tq->range(VariableTQ::chi2rphi))
-      trackchi2rphi = tq->range(VariableTQ::chi2rphi) - tq->base(VariableTQ::chi2rphi) / 2.;
-    if (trackchi2rz > tq->range(VariableTQ::chi2rz))
-      trackchi2rz = tq->range(VariableTQ::chi2rz) - tq->base(VariableTQ::chi2rz) / 2.;
+    if (trackchi2rphi > tq->range(VariableTQ::chi20))
+      trackchi2rphi = tq->range(VariableTQ::chi20) - tq->base(VariableTQ::chi20) / 2.;
+    if (trackchi2rz > tq->range(VariableTQ::chi21))
+      trackchi2rz = tq->range(VariableTQ::chi21) - tq->base(VariableTQ::chi21) / 2.;
     // calc bdt inputs
     const double cot = tq->scaleCot(df->format(Variable::cot, Process::dr).integer(track.cot()));
     const double z0 =
@@ -155,8 +155,8 @@ namespace trackerTFP {
     std::reverse(hits.begin(), hits.end());
     TTBV ttBV(hits);
     ttBV += TTBV(tq->toBinMVA(mva), widthMVA_);
-    tq->format(VariableTQ::chi2rphi).attach(trackchi2rphi, ttBV);
-    tq->format(VariableTQ::chi2rz).attach(trackchi2rz, ttBV);
+    tq->format(VariableTQ::chi20).attach(trackchi2rphi, ttBV);
+    tq->format(VariableTQ::chi21).attach(trackchi2rz, ttBV);
     frame_ = ttBV.bs();
   }
 
@@ -197,33 +197,17 @@ namespace trackerTFP {
     return DataFormat(false, width, base, range);
   }
   template <>
-  DataFormat makeDataFormat<VariableTQ::chi2rphi>(const DataFormats* dataFormats, const ConfigTQ& iConfig) {
-    const int shift = iConfig.baseShiftchi2rphi_;
-    const int width = iConfig.widthchi2rphi_;
+  DataFormat makeDataFormat<VariableTQ::chi20>(const DataFormats* dataFormats, const ConfigTQ& iConfig) {
+    const int shift = iConfig.baseShiftChi20_;
+    const int width = iConfig.widthChi20_;
     const double base = std::pow(2., shift);
     const double range = base * std::pow(2, width);
     return DataFormat(false, width, base, range);
   }
   template <>
-  DataFormat makeDataFormat<VariableTQ::chi2rz>(const DataFormats* dataFormats, const ConfigTQ& iConfig) {
-    const int shift = iConfig.baseShiftchi2rz_;
-    const int width = iConfig.widthchi2rz_;
-    const double base = std::pow(2., shift);
-    const double range = base * std::pow(2, width);
-    return DataFormat(false, width, base, range);
-  }
-  template <>
-  DataFormat makeDataFormat<VariableTQ::BDTchi20>(const DataFormats* dataFormats, const ConfigTQ& iConfig) {
-    const int shift = iConfig.baseShiftBDTchi20_;
-    const int width = iConfig.widthBDTchi20_;
-    const double base = std::pow(2., shift);
-    const double range = base * std::pow(2, width);
-    return DataFormat(false, width, base, range);
-  }
-  template <>
-  DataFormat makeDataFormat<VariableTQ::BDTchi21>(const DataFormats* dataFormats, const ConfigTQ& iConfig) {
-    const int shift = iConfig.baseShiftBDTchi21_;
-    const int width = iConfig.widthBDTchi21_;
+  DataFormat makeDataFormat<VariableTQ::chi21>(const DataFormats* dataFormats, const ConfigTQ& iConfig) {
+    const int shift = iConfig.baseShiftChi21_;
+    const int width = iConfig.widthChi21_;
     const double base = std::pow(2., shift);
     const double range = base * std::pow(2, width);
     return DataFormat(false, width, base, range);

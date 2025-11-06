@@ -8,6 +8,7 @@
 #include "FWCore/Utilities/interface/ESGetToken.h"
 #include "FWCore/Utilities/interface/InputTag.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
+#include "FWCore/ParameterSet/interface/FileInPath.h"
 
 #include "L1Trigger/TrackTrigger/interface/Setup.h"
 #include "L1Trigger/TrackFindingTracklet/interface/ChannelAssignment.h"
@@ -31,8 +32,6 @@ namespace trklet {
     void produce(edm::Event&, const edm::EventSetup&) override;
 
   private:
-    //
-    std::string file_;
     // ED input token of kf stubs
     edm::EDGetTokenT<tt::StreamsStub> edGetTokenStubs_;
     // ED input token of kf tracks
@@ -47,20 +46,18 @@ namespace trklet {
     edm::ESGetToken<DataFormats, ChannelAssignmentRcd> esGetTokenDataFormats_;
     // helper class to extract structured data from tt::Frames
     const DataFormats* dataFormats_ = nullptr;
-    //
+    // config parameter
     const ChannelAssignment* channelAssignment_ = nullptr;
     // Internal data formats
     TrackQuality::InternalFormats internalFormats_;
-
-    conifer::BDT<ap_fixed<20, 10>, ap_fixed<20, 10>>* bdt_;
+    // BDT modell
+    const EmulatorBDT bdt_;
   };
 
-  ProducerTQ::ProducerTQ(const edm::ParameterSet& iConfig) {
+  ProducerTQ::ProducerTQ(const edm::ParameterSet& iConfig) : bdt_(iConfig.getParameter<edm::FileInPath>("BDT").fullPath()) {
     const std::string& label = iConfig.getParameter<std::string>("InputLabelTQ");
     const std::string& branchStubs = iConfig.getParameter<std::string>("BranchStubs");
     const std::string& branchTracks = iConfig.getParameter<std::string>("BranchTracks");
-    const std::string& tqModelAbsPath = iConfig.getParameter<std::string>("TQModelAbsPath");
-    bdt_ = new conifer::BDT<ap_fixed<20, 10>, ap_fixed<20, 10>>(tqModelAbsPath);
     // book in- and output ED products
     edGetTokenStubs_ = consumes(edm::InputTag(label, branchStubs));
     edGetTokenTracks_ = consumes(edm::InputTag(label, branchTracks));
@@ -107,18 +104,6 @@ namespace trklet {
     shift = std::ceil(std::log2(range / base)) - width;
     base *= std::pow(2, shift);
     internalFormats_.invV1_ = DataFormat(false, width, base, range);
-    // chi20
-    shift = channelAssignment_->tqBaseShiftBDTchi20();
-    width = channelAssignment_->tqWidthBDTchi20();
-    base = std::pow(2., shift);
-    range = base * std::pow(2, width);
-    internalFormats_.chi20_ = DataFormat(false, width, base, range);
-    // chi21
-    shift = channelAssignment_->tqBaseShiftBDTchi21();
-    width = channelAssignment_->tqWidthBDTchi21();
-    base = std::pow(2., shift);
-    range = base * std::pow(2, width);
-    internalFormats_.chi21_ = DataFormat(false, width, base, range);
   }
 
   void ProducerTQ::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
@@ -132,7 +117,7 @@ namespace trklet {
     //produce TQ product
     for (int region = 0; region < setup->numRegions(); region++) {
       // object emulating tq algorithm
-      TrackQuality tq(setup, dataFormats_, internalFormats_, region, bdt_);
+      TrackQuality tq(dataFormats_, internalFormats_, region, &bdt_);
       // read in and organize input tracks and stubs
       tq.consume(streamsTracks, streamsStubs);
       // fills output products

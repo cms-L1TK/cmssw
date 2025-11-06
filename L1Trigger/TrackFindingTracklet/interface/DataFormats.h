@@ -224,14 +224,14 @@ namespace trklet {
         //  Process::tm Process::dr Process::kf Process::tq Process::tfp
         {{Process::tm, Process::x, Process::x, Process::x, Process::x}},      // Variable::stubId
         {{Process::tm, Process::tm, Process::tm, Process::x, Process::x}},    // Variable::r
-        {{Process::tm, Process::tm, Process::tm, Process::x, Process::x}},    // Variable::phi
-        {{Process::tm, Process::tm, Process::tm, Process::x, Process::x}},    // Variable::z
-        {{Process::tm, Process::tm, Process::tm, Process::x, Process::x}},    // Variable::dPhi
-        {{Process::tm, Process::tm, Process::tm, Process::x, Process::x}},    // Variable::dZ
-        {{Process::tm, Process::tm, Process::kf, Process::x, Process::tfp}},  // Variable::inv2R
-        {{Process::tm, Process::tm, Process::kf, Process::x, Process::tfp}},  // Variable::phiT
-        {{Process::tm, Process::tm, Process::kf, Process::x, Process::tfp}},  // Variable::cot
-        {{Process::tm, Process::tm, Process::kf, Process::x, Process::tfp}},  // Variable::zT
+        {{Process::tm, Process::tm, Process::tm, Process::tm, Process::x}},    // Variable::phi
+        {{Process::tm, Process::tm, Process::tm, Process::tm, Process::x}},    // Variable::z
+        {{Process::tm, Process::tm, Process::tm, Process::tm, Process::x}},    // Variable::dPhi
+        {{Process::tm, Process::tm, Process::tm, Process::tm, Process::x}},    // Variable::dZ
+        {{Process::tm, Process::tm, Process::kf, Process::kf, Process::tfp}},  // Variable::inv2R
+        {{Process::tm, Process::tm, Process::kf, Process::kf, Process::tfp}},  // Variable::phiT
+        {{Process::tm, Process::tm, Process::kf, Process::kf, Process::tfp}},  // Variable::cot
+        {{Process::tm, Process::tm, Process::kf, Process::kf, Process::tfp}},  // Variable::zT
         {{Process::x, Process::x, Process::x, Process::tq, Process::x}},      // Variable::chi20
         {{Process::x, Process::x, Process::x, Process::tq, Process::x}},      // Variable::chi21
         {{Process::x, Process::x, Process::x, Process::tq, Process::x}},      // Variable::mva
@@ -286,6 +286,8 @@ namespace trklet {
     }
     // access to run-time constants
     const tt::Setup* setup() const { return channelAssignment_->setup(); }
+    // access to run-time constants
+    const ChannelAssignment* channelAssignment() const { return channelAssignment_; }
     // number of bits being used for specific variable flavour
     int width(Variable v, Process p) const { return formats_[+v][+p]->width(); }
     // precision being used for specific variable flavour
