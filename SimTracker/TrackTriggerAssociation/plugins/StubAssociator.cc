@@ -12,7 +12,6 @@
 
 #include "DataFormats/L1TrackTrigger/interface/TTTypes.h"
 #include "SimDataFormats/Associations/interface/TTTypes.h"
-#include "L1Trigger/TrackTrigger/interface/Setup.h"
 #include "L1Trigger/TrackTrigger/interface/Associator.h"
 #include "SimDataFormats/Associations/interface/StubAssociation.h"
 
@@ -42,8 +41,6 @@ namespace tt {
   private:
     void beginRun(const edm::Run&, const edm::EventSetup&) override;
     void produce(edm::Event&, const edm::EventSetup&) override;
-    // helper class to store configurations
-    const Setup* setup_;
     // ED input token of TTStubs
     edm::EDGetTokenT<TTStubDetSetVec> getTokenTTStubDetSetVec_;
     // ED input token of TTClusterAssociation
@@ -60,8 +57,6 @@ namespace tt {
     edm::ESGetToken<Associator, SetupRcd> esGetTokenAssociator_;
     // pt cut in GeV
     double minPt_;
-    // max eta for TP
-    double maxEta_;
     // half lumi region size in cm
     double maxZ0_;
     // cut on impact parameter in cm
@@ -70,27 +65,14 @@ namespace tt {
     double maxVertR_;
     // cut on vertex pos z in cm
     double maxVertZ_;
-<<<<<<< HEAD
-=======
-    // cut on TP zT
-    double maxZT_;
     //
     bool looseMatching_;
->>>>>>> 50b1e51668e (squash before rebase)
     // selector to partly select TPs for efficiency measurements
     TrackingParticleSelector tpSelector_;
   };
 
   StubAssociator::StubAssociator(const edm::ParameterSet& iConfig)
-<<<<<<< HEAD
-      : minLayers_(iConfig.getParameter<int>("MinLayers")),
-        minLayersPS_(iConfig.getParameter<int>("MinLayersPS")),
-        minPt_(iConfig.getParameter<double>("MinPt")),
-        maxEta_(iConfig.getParameter<double>("MaxEta")),
-=======
       : minPt_(iConfig.getParameter<double>("MinPt")),
-        maxEta0_(iConfig.getParameter<double>("MaxEta0")),
->>>>>>> 50b1e51668e (squash before rebase)
         maxZ0_(iConfig.getParameter<double>("MaxZ0")),
         maxD0_(iConfig.getParameter<double>("MaxD0")),
         maxVertR_(iConfig.getParameter<double>("MaxVertR")),
@@ -108,14 +90,13 @@ namespace tt {
     putTokenDup_ = produces(branchDup);
     putTokenEff_ = produces(branchEff);
     // book ES product
-    esGetTokenSetup_ = esConsumes<edm::Transition::BeginRun>();
     esGetTokenAssociator_ = esConsumes();
   }
 
   void StubAssociator::beginRun(const edm::Run& iRun, const edm::EventSetup& iSetup) {
-    setup_ = &iSetup.getData(esGetTokenSetup_);
     // configure TrackingParticleSelector
     constexpr double ptMax = 9.e9;
+    constexpr double maxEta_ = 9.e9;
     constexpr int minHit = 0;
     constexpr bool signalOnly = true;
     constexpr bool intimeOnly = true;
@@ -179,8 +160,7 @@ namespace tt {
       if (!tpSelector_(*p.first))
         continue;
       // require additional parameter space
-      const double zT = p.first->z0() + p.first->tanl() * setup_->chosenRofZ();
-      if ((std::abs(p.first->d0()) > maxD0_) || (std::abs(p.first->z0()) > maxZ0_) || (std::abs(zT) > maxZT_))
+      if ((std::abs(p.first->d0()) > maxD0_) || (std::abs(p.first->z0()) > maxZ0_))
         continue;
       // fill selected TP
       forEff.insert(p.first, ttStubRefs);

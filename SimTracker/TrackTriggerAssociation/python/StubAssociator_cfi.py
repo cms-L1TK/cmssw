@@ -13,11 +13,10 @@ StubAssociator_params = cms.PSet (
   #LooseMatching = cms.bool( False ),
   LooseMatching = cms.bool( True ),
 
-  MinPt           = cms.double(  2.   ), # pt cut in GeV
-  MaxEta          = cms.double(  2.5  ), # max eta for TP
-  MaxZ0           = cms.double( 15.   ), # half lumi region size in cm
-  MaxD0           = cms.double(  1.   ), # cut on impact parameter in cm
-  MaxVertR        = cms.double(  1.   ), # cut on vertex pos r in cm
-  MaxVertZ        = cms.double( 30.   ), # cut on vertex pos z in cm
+  MinPt    = cms.double(  2.   ), # pt cut in GeV
+  MaxZ0    = cms.double( 15.   ), # half lumi region size in cm
+  MaxD0    = cms.double(  1.   ), # cut on impact parameter in cm
+  MaxVertR = cms.double(  1.   ), # cut on vertex pos r in cm
+  MaxVertZ = cms.double( 30.   ), # cut on vertex pos z in cm
 
 )
