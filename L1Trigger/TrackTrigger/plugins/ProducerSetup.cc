@@ -63,7 +63,8 @@ namespace tt {
     iConfig_.hybridDiskZs_ = pSetHybrid.getParameter<std::vector<double>>("DiskZs");
     iConfig_.hybridDisk2SRsSet_ = pSetHybrid.getParameter<std::vector<edm::ParameterSet>>("Disk2SRsSet");
     iConfig_.hybridOffsetRDiskPS_ = pSetHybrid.getParameter<double>("OffsetRDiskPS");
-    iConfig_.tbBarrelHalfLength_ = pSetHybrid.getParameter<double>("BarrelHalfLength");
+    iConfig_.tbMinZ_ = pSetHybrid.getParameter<double>("MinZ");
+    iConfig_.tbMaxR_ = pSetHybrid.getParameter<double>("MaxR");
     iConfig_.tbInnerRadius_ = pSetHybrid.getParameter<double>("InnerRadius");
     iConfig_.tbWidthsR_ = pSetHybrid.getParameter<std::vector<int>>("WidthsRTB");
     const edm::ParameterSet& pSetFW = iConfig.getParameter<edm::ParameterSet>("Firmware");
@@ -172,7 +173,6 @@ namespace tt {
     iConfig_.kfMaxGaps_ = pSetKF.getParameter<int>("MaxGaps");
     iConfig_.kfMaxSeedingLayer_ = pSetKF.getParameter<int>("MaxSeedingLayer");
     iConfig_.kfNumSeedStubs_ = pSetKF.getParameter<int>("NumSeedStubs");
-    iConfig_.kfMinSeedDeltaR_ = pSetKF.getParameter<double>("MinSeedDeltaR");
     iConfig_.kfRangeFactor_ = pSetKF.getParameter<double>("RangeFactor");
     iConfig_.kfShiftInitialC00_ = pSetKF.getParameter<int>("ShiftInitialC00");
     iConfig_.kfShiftInitialC11_ = pSetKF.getParameter<int>("ShiftInitialC11");

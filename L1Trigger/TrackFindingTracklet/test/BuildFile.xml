@@ -1,7 +1,7 @@
 <library   file="*.cc" name="TrackFindingTrackletTests">
   <flags   EDM_PLUGIN="1"/>
   <flags   SKIP_FILES="fpga.cc"/>
-  <flags   CXXFLAGS="-DUSEHYBRID"/>
+  <flags   CXXFLAGS="-DUSEHYBRID -lTMVA"/>
   <use name="heppdt"/>
   <use name="CommonTools/UtilAlgos"/>
   <use name="CondFormats/Alignment"/>

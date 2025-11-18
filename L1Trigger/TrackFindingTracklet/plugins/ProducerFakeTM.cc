@@ -27,7 +27,7 @@
 namespace trklet {
 
   /*! \class  trklet::ProducerFakeTM
-   *  \brief  tranforms tracklet TTTracks into KF emulator input format
+   *  \brief  tranforms tracklet TTTracks into DR emulator input format
    *  \author Thomas Schuh
    *  \date   2025, July
    */
@@ -58,9 +58,9 @@ namespace trklet {
     const std::string& branchStubs = iConfig.getParameter<std::string>("BranchStubs");
     const std::string& branchTracks = iConfig.getParameter<std::string>("BranchTracks");
     // book in- and output ED products
-    edGetTokenTracks_ = consumes<tt::TTTracks>(inputTag);
-    edPutTokenStubs_ = produces<tt::StreamsStub>(branchStubs);
-    edPutTokenTracks_ = produces<tt::StreamsTrack>(branchTracks);
+    edGetTokenTracks_ = consumes(inputTag);
+    edPutTokenStubs_ = produces(branchStubs);
+    edPutTokenTracks_ = produces(branchTracks);
     // book ES products
     esGetTokenSetup_ = esConsumes();
     esGetTokenDataFormats_ = esConsumes();

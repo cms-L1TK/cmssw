@@ -42,21 +42,18 @@ namespace trklet {
   class KalmanFilter {
   public:
     typedef State::Stub Stub;
-    KalmanFilter(const tt::Setup* setup,
-                 const DataFormats* dataFormats,
-                 KalmanFilterFormats* kalmanFilterFormats,
-                 tmtt::Settings* settings,
-                 tmtt::KFParamsComb* tmtt,
-                 int region,
-                 tt::TTTracks& ttTracks);
+    KalmanFilter(const tt::Setup*,
+                 const DataFormats*,
+                 KalmanFilterFormats*,
+                 tmtt::Settings*,
+                 tmtt::KFParamsComb*,
+                 int,
+                 tt::TTTracks&);
     ~KalmanFilter() = default;
     // read in and organize input tracks and stubs
-    void consume(const tt::StreamsTrack& streamsTrack, const tt::StreamsStub& streamsStub);
+    void consume(const tt::StreamsTrack&, const tt::StreamsStub&);
     // fill output products
-    void produce(tt::StreamsStub& streamsStub,
-                 tt::StreamsTrack& streamsTrack,
-                 int& numAcceptedStates,
-                 int& numLostStates);
+    void produce(tt::StreamsStub&, tt::StreamsTrack&);
 
   private:
     //
