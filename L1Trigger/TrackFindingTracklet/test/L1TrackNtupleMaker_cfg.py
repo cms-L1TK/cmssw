@@ -142,9 +142,6 @@ process.load('L1Trigger.TrackTrigger.TrackTrigger_cff')
 #process.TTClusterStub = cms.Path(process.TrackTriggerClustersStubs)
 #process.TTClusterStubTruth = cms.Path(process.TrackTriggerAssociatorClustersStubs)
 
-
-# load code that provides cleaned cluster to TP association
-process.load( 'SimTracker.TrackTriggerAssociation.Cleaner_cff' )
 # load code that associates stubs with mctruth
 process.load( 'SimTracker.TrackTriggerAssociation.StubAssociator_cff' )
 # load code that analyzes mc truth

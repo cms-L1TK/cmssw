@@ -65,8 +65,8 @@ namespace tt {
     const std::string& label = iConfig.getParameter<std::string>("StubAssociation");
     const std::string& branchFake = iConfig.getParameter<std::string>("BranchFake");
     const std::string& branchEff = iConfig.getParameter<std::string>("BranchEff");
-    const edm::InputTag& inputTagTTStubs = iConfig.getParameter<edm::InputTag>("InputTagTTStubs");
-    const edm::InputTag& inputTagMC = iConfig.getParameter<edm::InputTag>("InputTagMC");
+    const edm::InputTag& inputTagTTStubs = iConfig.getParameter<edm::InputTag>("InputTagTTStubDetSetVec");
+    const edm::InputTag& inputTagMC = iConfig.getParameter<edm::InputTag>("InputTagTTClusterAssMap");
     edGetTokenTTStubs_ = consumes(inputTagTTStubs);
     edGetTokenTTClusterAssMap_ = consumes(inputTagMC);
     edGetTokenFake_ = consumes(edm::InputTag(label, branchFake));

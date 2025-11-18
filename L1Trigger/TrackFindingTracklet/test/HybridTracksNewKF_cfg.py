@@ -21,8 +21,6 @@ process.load( 'L1Trigger.TrackTrigger.TrackTrigger_cff' )
 from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:phase2_realistic', '')
 
-# load code that provides cleaned cluster to TP association
-process.load( 'SimTracker.TrackTriggerAssociation.Cleaner_cff' )
 # load code that associates stubs with mctruth
 process.load( 'SimTracker.TrackTriggerAssociation.StubAssociator_cff' )
 # load code that analyzes mc truth
@@ -47,15 +45,15 @@ process.TrackTriggerSetup.KalmanFilter.UseTTStubParameters      = False
 process.TrackTriggerSetup.KalmanFilter.ApplyNonLinearCorrection = False
 
 # build schedule
-process.mc       = cms.Sequence( process.AnalyzerMC )
+process.mc       = cms.Sequence( process.StubAssociator  + process.AnalyzerMC       )
 process.dtc      = cms.Sequence( process.ProducerDTC     + process.AnalyzerDTC      )
-process.tracklet = cms.Sequence( process.L1THybridTracks + process.AnalyzerTB  + process.AnalyzerTracklet )
+process.tracklet = cms.Sequence( process.L1THybridTracks + process.AnalyzerTracklet )
 process.tm       = cms.Sequence( process.ProducerTM      + process.AnalyzerTM       )
 process.dr       = cms.Sequence( process.ProducerDR      + process.AnalyzerDR       )
 process.kf       = cms.Sequence( process.ProducerKF      + process.AnalyzerKF       )
 process.tq       = cms.Sequence( process.ProducerTQ      + process.AnalyzerTQ       )
 process.tfp      = cms.Sequence( process.ProducerTFP     + process.AnalyzerTFP      )
-process.tt       = cms.Path( process.mc + process.dtc + process.tracklet + process.tm + process.dr + process.kf + process.tq + process.tfp )
+process.tt       = cms.Path( process.mc + process.dtc + process.tracklet + process.AnalyzerTB + process.tm + process.dr + process.kf + process.tq + process.tfp )
 process.schedule = cms.Schedule( process.tt )
 
 # create options
