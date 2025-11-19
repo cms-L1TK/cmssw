@@ -26,6 +26,11 @@
 
 namespace tt {
 
+  /*! \class  tt::AnalyzerMC
+   *  \brief  Class to analyze Tracking Particles, TTStubs and their association
+   *  \author Thomas Schuh
+   *  \date   2025, Aug
+   */
   class AnalyzerMC : public edm::one::EDAnalyzer<edm::one::WatchRuns, edm::one::SharedResources> {
   public:
     // Constructor

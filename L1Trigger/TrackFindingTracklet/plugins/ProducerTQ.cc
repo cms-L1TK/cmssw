@@ -77,19 +77,19 @@ namespace trklet {
     int shift;
     double base;
     double range;
-    // m02
+    // m02 (phi residual squared)
     const DataFormat& phi = dataFormats_->format(Variable::phi, Process::kf);
     width = 2 * phi.width();
     base = std::pow(phi.base(), 2);
     range = std::pow(phi.range(), 2) / 4.;
     internalFormats_.m02_ = DataFormat(false, width, base, range);
-    // m12
+    // m12 (z residual squared)
     const DataFormat& z = dataFormats_->format(Variable::z, Process::kf);
     width = 2 * z.width();
     base = std::pow(z.base(), 2);
     range = std::pow(z.range(), 2) / 4.;
     internalFormats_.m12_ = DataFormat(false, width, base, range);
-    // invV0
+    // invV0 (inverse phi uncertainty squared)
     const DataFormat& dPhi = dataFormats_->format(Variable::dPhi, Process::kf);
     width = channelAssignment_->tqWidthInvV0();
     base = std::pow(dPhi.base(), -2);
@@ -97,7 +97,7 @@ namespace trklet {
     shift = std::ceil(std::log2(range / base)) - width;
     base *= std::pow(2, shift);
     internalFormats_.invV0_ = DataFormat(false, width, base, range);
-    // invV1
+    // invV1 (inverse z uncertainty squared)
     const DataFormat& dZ = dataFormats_->format(Variable::dZ, Process::kf);
     width = channelAssignment_->tqWidthInvV1();
     base = std::pow(dZ.base(), -2);

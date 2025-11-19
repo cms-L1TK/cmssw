@@ -212,29 +212,29 @@ namespace trklet {
   void KalmanFilter::produce(tt::StreamsStub& streamsStub, tt::StreamsTrack& streamsTrack) {
     if (setup_->kfUseSimmulation())
       return simulate(streamsStub, streamsTrack);
+    // eleminate tracks with insufficient stubs
+    int trackId(0);
+    for (State*& state : stream_) {
+      if (!state)
+        continue;
+      const TTBV& hitPattern = state->trackPattern();
+      const bool validSeed = hitPattern.count(0, setup_->kfMaxSeedingLayer()) >= setup_->kfNumSeedStubs();
+      const bool validtrack = hitPattern.count() >= setup_->kfMinLayers();
+      const bool validTrunc = trackId < setup_->kfMaxTracks() || !setup_->enableTruncation();
+      if (validSeed && validtrack && validTrunc)
+        state->setTrackId(trackId++);
+      else
+        state = nullptr;
+    }
+    // remove all gaps between end and last track
+    for (auto it = stream_.end(); it != stream_.begin();)
+      it = (*--it) ? stream_.begin() : stream_.erase(it);
     // 5 parameter fit simulation
     if (setup_->kfUse5ParameterFit()) {
       // Propagate state to each layer in turn, updating it with all viable stub combinations there, using KF maths
       for (layer_ = 0; layer_ < setup_->numLayers(); layer_++)
         addLayer();
     } else {  // 4 parameter fit emulation
-      // eleminate tracks with insufficient stubs
-      int trackId(0);
-      for (State*& state : stream_) {
-        if (!state)
-          continue;
-        const TTBV& hitPattern = state->trackPattern();
-        const bool validSeed = hitPattern.count(0, setup_->kfMaxSeedingLayer()) >= setup_->kfNumSeedStubs();
-        const bool validtrack = hitPattern.count() >= setup_->kfMinLayers();
-        const bool validTrunc = trackId < setup_->kfMaxTracks() || !setup_->enableTruncation();
-        if (validSeed && validtrack && validTrunc)
-          state->setTrackId(trackId++);
-        else
-          state = nullptr;
-      }
-      // remove all gaps between end and last track
-      for (auto it = stream_.end(); it != stream_.begin();)
-        it = (*--it) ? stream_.begin() : stream_.erase(it);
       // seed building
       for (layer_ = 0; layer_ < setup_->kfMaxSeedingLayer(); layer_++)
         addLayer(true);

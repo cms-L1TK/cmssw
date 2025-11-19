@@ -483,7 +483,6 @@ void L1TrackNtupleMaker::beginJob() {
   m_trk_tanL = new std::vector<float>;
   m_trk_zT = new std::vector<float>;
   m_trk_d0 = new std::vector<float>;
-  m_trk_z0 = new std::vector<float>;
   m_trk_chi2 = new std::vector<float>;
   m_trk_chi2_dof = new std::vector<float>;
   m_trk_chi2rphi = new std::vector<float>;

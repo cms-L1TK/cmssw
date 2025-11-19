@@ -1,3 +1,5 @@
+# config parameter used by StubAssociator
+
 import FWCore.ParameterSet.Config as cms
 
 StubAssociator_params = cms.PSet (
