@@ -249,16 +249,16 @@ void TrackletCalculatorBase::calcPars(unsigned int idr,
   int it1 = (ir1 * ideltaz) >> (n_Deltar_ - n_deltaz_ - 3);
 
   //std::cout << "ifact it1 ix6: " << ifact << " " << it1 << " " << ix6 << std::endl;
-  
+
   irinv_new = ((-idelta0 * ia) >> (n_phi_ + n_a_ - n_rinv_ + n_Deltar_ - n_delta0_ - n_r_ - 1));
 
   iphi0_new = (iphi1 >> (n_phi_ - n_phi0_)) +
               ((idelta1 * ix6) >> (n_Deltar_ + n_x6_ + n_phi_ - n_delta0_ - n_delta1_ - n_phi0_));
 
   int shift_tmp = n_Deltar_ + n_a_ + n_z_ - n_t_ - n_deltaz_ - n_r_;
-  it_new = (((ideltaz * ia) >> (shift_tmp-1))+1) >> 1;
+  it_new = (((ideltaz * ia) >> (shift_tmp - 1)) + 1) >> 1;
 
-  iz0_new = iz1 +  ( ( ( (it1 * ix6) >> (n_x6_ + 3 -1 ) ) + 1 ) >> 1 ) ;
+  iz0_new = iz1 + ((((it1 * ix6) >> (n_x6_ + 3 - 1)) + 1) >> 1);
 }
 
 bool TrackletCalculatorBase::goodTrackPars(bool goodrinv, bool goodz0) {

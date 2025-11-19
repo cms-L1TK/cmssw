@@ -67,6 +67,8 @@ namespace tt {
     // number of stub channel per track
     int numLayers_;
     //
+    bool looseMatching_;
+    //
     int nEvents_ = 0;
     // Histograms
     TProfile* prof_;
@@ -82,7 +84,8 @@ namespace tt {
         name_(iConfig.getParameter<std::string>("Process")),
         numRegions_(iConfig.getParameter<int>("NumRegions")),
         numChannel_(iConfig.getParameter<int>("NumChannel")),
-        numLayers_(iConfig.getParameter<int>("NumLayers")) {
+        numLayers_(iConfig.getParameter<int>("NumLayers")),
+        looseMatching_(iConfig.getParameter<bool>("LooseMatching")) {
     usesResource("TFileService");
     // book in- and output ED products
     const std::string& labelReco = iConfig.getParameter<std::string>("OutputLabel" + name_);
@@ -170,16 +173,19 @@ namespace tt {
               ttStubRefs.push_back(ttStubRef);
           }
           regionStubs += ttStubRefs.size();
-          const std::vector<TPPtr> any = forFake.associate(ttStubRefs);
+          const std::vector<TPPtr>& any =
+              looseMatching_ ? forFake.associate(ttStubRefs) : forFake.associateFinal(ttStubRefs);
           if (any.empty())
             continue;
           allMatched++;
-          const std::vector<TPPtr> dup = forDup.associate(ttStubRefs);
+          const std::vector<TPPtr>& dup =
+              looseMatching_ ? forDup.associate(ttStubRefs) : forDup.associateFinal(ttStubRefs);
           if (dup.empty())
             continue;
           allDuplicates++;
           tpPtrsDup.insert(dup.begin(), dup.end());
-          const std::vector<TPPtr> select = forEff.associate(ttStubRefs);
+          const std::vector<TPPtr>& select =
+              looseMatching_ ? forEff.associate(ttStubRefs) : forEff.associateFinal(ttStubRefs);
           const std::vector<TPPtr> perfect = forEff.associateFinal(ttStubRefs);
           tpPtrsSelection.insert(select.begin(), select.end());
           tpPtrsPerfect.insert(perfect.begin(), perfect.end());

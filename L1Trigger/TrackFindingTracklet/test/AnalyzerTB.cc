@@ -47,14 +47,21 @@ namespace trklet {
 
   private:
     struct Stub {
-      Stub(const TTStubRef& ttStubRef, double r, double z, double inv2R, bool seed = false) : ttStubRef_(ttStubRef), seed_(seed), r_(r), z_(z) {}
+      Stub(const TTStubRef& ttStubRef, double r, double z, double inv2R, bool seed = false)
+          : ttStubRef_(ttStubRef), seed_(seed), r_(r), z_(z) {}
       TTStubRef ttStubRef_;
       bool seed_;
       double r_;
       double z_;
     };
     struct Track {
-      Track(const TTTrackRef& ttTrackRef, int seedType, double inv2R, double cot, double z0, const std::deque<Stub*>& stubs) : ttTrackRef_(ttTrackRef), seedType_(seedType), inv2R_(inv2R), cot_(cot), z0_(z0), stubs_(stubs) {}
+      Track(const TTTrackRef& ttTrackRef,
+            int seedType,
+            double inv2R,
+            double cot,
+            double z0,
+            const std::deque<Stub*>& stubs)
+          : ttTrackRef_(ttTrackRef), seedType_(seedType), inv2R_(inv2R), cot_(cot), z0_(z0), stubs_(stubs) {}
       TTTrackRef ttTrackRef_;
       int seedType_;
       double inv2R_;
@@ -162,7 +169,8 @@ namespace trklet {
     prof_ = dir.make<TProfile2D>("prof z residual", ";", 512, -300, 300., 128, 0., 120.);
     profST_ = std::vector<TProfile2D*>(8);
     for (int st = 0; st < 8; st++)
-      profST_[st] = dir.make<TProfile2D>(("prof z residual Seed Type " + std::to_string(st)).c_str(), ";", 512, -300, 300., 128, 0., 120.);
+      profST_[st] = dir.make<TProfile2D>(
+          ("prof z residual Seed Type " + std::to_string(st)).c_str(), ";", 512, -300, 300., 128, 0., 120.);
     // stub z postion from tracklet residuals plus recalculated seed parameter vs stub z psotion from TTStubs projected to stub radius from tracklet using recalculated seed parameter
     dir = fs->mkdir("TTStub track parameter");
     hisTT_ = dir.make<TH1F>("His z residual", ";", 128, -2., 2.);
@@ -172,8 +180,9 @@ namespace trklet {
     profTT_ = dir.make<TProfile2D>("prof z residual", ";", 512, -300, 300., 128, 0., 120.);
     profTTST_ = std::vector<TProfile2D*>(8);
     for (int st = 0; st < 8; st++)
-      profTTST_[st] = dir.make<TProfile2D>(("prof z residual Seed Type " + std::to_string(st)).c_str(), ";", 512, -300, 300., 128, 0., 120.);
-    // Helix parameters from tracklet vs helix parameter calculated from seed TTSTubs 
+      profTTST_[st] = dir.make<TProfile2D>(
+          ("prof z residual Seed Type " + std::to_string(st)).c_str(), ";", 512, -300, 300., 128, 0., 120.);
+    // Helix parameters from tracklet vs helix parameter calculated from seed TTSTubs
     dir = fs->mkdir("TB vs TTStub track parameter");
     hisCot_ = dir.make<TH1F>("His cot residual", ";", 128, -.2, .2);
     hisZ0_ = dir.make<TH1F>("His z0 residual", ";", 128, -2., 2.);
@@ -246,7 +255,10 @@ namespace trklet {
   }
 
   // read in tracks and stubs
-  void AnalyzerTB::consume(const tt::StreamsTrack& streamsTrack, const tt::StreamsStub& streamsStub, std::deque<Track>& tracks, std::deque<Stub>& stubs) const {
+  void AnalyzerTB::consume(const tt::StreamsTrack& streamsTrack,
+                           const tt::StreamsStub& streamsStub,
+                           std::deque<Track>& tracks,
+                           std::deque<Stub>& stubs) const {
     for (int region = 0; region < setup_->numRegions(); region++) {
       const int offsetTrack = region * channelAssignment_->numChannelsTrack();
       for (int channel = 0; channel < channelAssignment_->numChannelsTrack(); channel++) {

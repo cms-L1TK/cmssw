@@ -14,9 +14,6 @@ TrackFindingTrackletAnalyzer_params = cms.PSet (
   NumLayers  = TrackTrigger_params.TrackFinding.NumLayers,
 
   LabelMC    = cms.string( "StubAssociator" ),
-  BranchFake = cms.string( "UseForFake"     ),
-  BranchDup  = cms.string( "UseForDup"      ),
-  BranchEff  = cms.string( "UseForEff"      ),
 
   OutputLabelTM  = cms.string( "ProducerTM"  ), #
   OutputLabelDR  = cms.string( "ProducerDR"  ), #

@@ -70,6 +70,8 @@ namespace tt {
     // process name to be analyzed
     std::string name_;
     //
+    bool looseMatching_;
+    //
     int nEvents_ = 0;
     // Histograms
     TProfile* prof_;
@@ -89,6 +91,7 @@ namespace tt {
       : useMCTruth_(iConfig.getParameter<bool>("UseMCTruth")),
         inputTag_(iConfig.getParameter<edm::InputTag>("InputTag")),
         name_(iConfig.getParameter<std::string>("Process")),
+        looseMatching_(iConfig.getParameter<bool>("LooseMatching")),
         hisRes_(resolutions_.size()),
         profRes_(resolutions_.size()),
         hisEffPassed_(efficiencies_.size()),
@@ -193,16 +196,18 @@ namespace tt {
       hisStubs_->Fill(hitPattern.count());
       hisChi2s_[0]->Fill(ttTrack.getChi2RPhiBits());
       hisChi2s_[1]->Fill(ttTrack.getChi2RZBits());
-      const std::vector<TPPtr>& any = forFake.associate(ttStubRefs);
+      const std::vector<TPPtr>& any =
+          looseMatching_ ? forFake.associate(ttStubRefs) : forFake.associateFinal(ttStubRefs);
       if (any.empty())
         continue;
       allMatched++;
-      const std::vector<TPPtr>& dup = forDup.associate(ttStubRefs);
+      const std::vector<TPPtr>& dup = looseMatching_ ? forDup.associate(ttStubRefs) : forDup.associateFinal(ttStubRefs);
       if (dup.empty())
         continue;
       allDuplicates++;
       tpPtrsDup.insert(dup.begin(), dup.end());
-      const std::vector<TPPtr>& select = forEff.associate(ttStubRefs);
+      const std::vector<TPPtr>& select =
+          looseMatching_ ? forEff.associate(ttStubRefs) : forEff.associateFinal(ttStubRefs);
       const std::vector<TPPtr>& perfect = forEff.associateFinal(ttStubRefs);
       tpPtrsSelection.insert(select.begin(), select.end());
       tpPtrsPerfect.insert(perfect.begin(), perfect.end());
@@ -227,8 +232,8 @@ namespace tt {
         const double tp_d0 = tpPtr->d0();
         const double inv2R = tp_inv2R - tt_inv2R;
         const double pt = tp_pt - tt_pt;
-        const double phi0 =  tt::deltaPhi(tp_phi0 - tt_phi0);
-        const double phiT =  tt::deltaPhi(tp_phiT - tt_phiT);
+        const double phi0 = tt::deltaPhi(tp_phi0 - tt_phi0);
+        const double phiT = tt::deltaPhi(tp_phiT - tt_phiT);
         const double cot = tp_cot - tt_cot;
         const double z0 = tp_z0 - tt_z0;
         const double zT = tp_zT - tt_zT;

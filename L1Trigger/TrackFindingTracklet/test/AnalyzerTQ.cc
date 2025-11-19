@@ -64,6 +64,8 @@ namespace trklet {
     //
     int numMVA_ = 8;
     //
+    bool looseMatching_;
+    //
     int nEvents_ = 0;
     // Histograms
     std::vector<TProfile*> prof_;
@@ -71,7 +73,8 @@ namespace trklet {
     std::stringstream log_;
   };
 
-  AnalyzerTQ::AnalyzerTQ(const edm::ParameterSet& iConfig) {
+  AnalyzerTQ::AnalyzerTQ(const edm::ParameterSet& iConfig)
+      : looseMatching_(iConfig.getParameter<bool>("LooseMatching")) {
     usesResource("TFileService");
     // book in- and output ED products
     const std::string& labelKF = iConfig.getParameter<std::string>("OutputLabelKF");
@@ -143,7 +146,8 @@ namespace trklet {
             if (ttStubRef.isNonnull())
               ttStubRefs.push_back(ttStubRef);
           }
-          const std::vector<TPPtr> any = forFake.associate(ttStubRefs);
+          const std::vector<TPPtr>& any =
+              looseMatching_ ? forFake.associate(ttStubRefs) : forFake.associateFinal(ttStubRefs);
           if (any.empty())
             continue;
           nMatched++;
