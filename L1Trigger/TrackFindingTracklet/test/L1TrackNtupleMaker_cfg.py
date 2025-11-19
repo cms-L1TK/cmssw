@@ -207,7 +207,7 @@ elif (L1TRKALGO == 'HYBRID_NEWKF' or L1TRKALGO == 'HYBRID_REDUCED'):
     # Needed by L1TrackNtupleMaker
     process.HitPatternHelperSetup.useNewKF = True
 
-# HYBRID: extended tracking followd by 5 param fit sim
+# HYBRID: extended tracking followed by 5 param fit sim
 elif (L1TRKALGO == 'HYBRID_DISPLACED_NEWKF_KILL' or L1TRKALGO == 'HYBRID_DISPLACED_NEWKF_MERGE'):
     process.load( 'L1Trigger.TrackFindingTracklet.Producer_cff' )
     process.load( 'L1Trigger.TrackFindingTracklet.Analyzer_cff' )
@@ -216,21 +216,51 @@ elif (L1TRKALGO == 'HYBRID_DISPLACED_NEWKF_KILL' or L1TRKALGO == 'HYBRID_DISPLAC
     NHELIXPAR = 5
     TRACKLET_NAME  = "l1tTTTracksFromExtendedTrackletEmulation"
     TRACKLET_LABEL = "Level1TTTracks"
-    L1TRK_NAME  = process.TrackFindingTrackletAnalyzer_params.OutputLabelTFP.value()
-    L1TRK_LABEL = process.TrackFindingTrackletProducer_params.BranchTTTracks.value()
+    # Update L1TRK variables to point to ProducerKF instead of the removed ProducerTFP
+    L1TRK_NAME  = "ProducerKF"
+    # ProducerKF uses "BranchTracks" ("TrackAccepted") for its TTTracks output, not "BranchTTTracks"
+    L1TRK_LABEL = process.TrackFindingTrackletProducer_params.BranchTracks.value()
     L1TRUTH_NAME = "TTTrackAssociatorFromPixelDigisExtended"
     process.TTTrackAssociatorFromPixelDigisExtended.TTTracks = cms.VInputTag( cms.InputTag(L1TRK_NAME, L1TRK_LABEL) )
     process.AnalyzerTracklet.InputTag = cms.InputTag(TRACKLET_NAME, TRACKLET_LABEL)
     if (L1TRKALGO == 'HYBRID_DISPLACED_NEWKF_MERGE'):
-        displacedNewKFMergeConfig( process )
-        process.HybridNewKF = cms.Sequence(process.L1TExtendedHybridTracks + process.ProducerFakeDR + process.ProducerKF + process.ProducerTQ + process.ProducerTFP)
-        process.TTTracksEmulationWithTruth = cms.Path(process.HybridNewKF + process.L1TExtendedHybridTracksWithAssociators + process.StubAssociator +  process.AnalyzerTracklet + process.AnalyzerDR + process.AnalyzerKF + process.AnalyzerTQ + process.AnalyzerTFP)
+      displacedNewKFMergeConfig( process )
+      # Removed ProducerTQ and ProducerTFP. The chain ends at ProducerKF.
+      process.HybridNewKF = cms.Sequence(
+        process.L1TExtendedHybridTracks + 
+        process.ProducerFakeDR + 
+        process.ProducerKF
+      )
+      # Removed AnalyzerTQ and AnalyzerTFP.
+      process.TTTracksEmulationWithTruth = cms.Path(
+        process.HybridNewKF + 
+        process.L1TExtendedHybridTracksWithAssociators + 
+        process.StubAssociator +  
+        process.AnalyzerTracklet + 
+        process.AnalyzerDR + 
+        process.AnalyzerKF
+      )
     elif(L1TRKALGO == 'HYBRID_DISPLACED_NEWKF_KILL'):
-        displacedNewKFKillConfig( process )
-        process.HybridNewKF = cms.Sequence(process.L1TExtendedHybridTracks + process.ProducerFakeTM + process.ProducerDR + process.ProducerKF + process.ProducerTQ + process.ProducerTFP)
-        process.TTTracksEmulationWithTruth = cms.Path(process.HybridNewKF + process.L1TExtendedHybridTracksWithAssociators + process.StubAssociator +  process.AnalyzerTracklet + process.AnalyzerTM + process.AnalyzerDR + process.AnalyzerKF + process.AnalyzerTQ + process.AnalyzerTFP)
+      displacedNewKFKillConfig( process )
+      # Removed ProducerTQ and ProducerTFP. The chain ends at ProducerKF.
+      process.HybridNewKF = cms.Sequence(
+        process.L1TExtendedHybridTracks + 
+        process.ProducerFakeTM + 
+        process.ProducerDR + 
+        process.ProducerKF
+      )
+      # Removed AnalyzerTQ and AnalyzerTFP.
+      process.TTTracksEmulationWithTruth = cms.Path(
+        process.HybridNewKF + 
+        process.L1TExtendedHybridTracksWithAssociators + 
+        process.StubAssociator +  
+        process.AnalyzerTracklet + 
+        process.AnalyzerTM + 
+        process.AnalyzerDR + 
+        process.AnalyzerKF
+      )
     process.TTTracksEmulation = cms.Path(process.HybridNewKF)
-
+    
 # LEGACY ALGORITHM (EXPERTS ONLY): TRACKLET
 elif (L1TRKALGO == 'TRACKLET'):
     print("\n WARNING: This is not the baseline algorithm! Prefer HYBRID or HYBRID_DISPLACED!")
