@@ -136,7 +136,7 @@ namespace trklet {
         const bool pst = (sm->barrel() && sm->tilt()) || (!sm->barrel() && sm->psModule());
         const double r = gp.perp() - setup->chosenRofPhi();
         const double rZ = gp.perp() - setup->chosenRofZ();
-        double phi = tt::deltaPhi(gp.phi() - iRegion * setup->baseRegion() - phiT - r * inv2R);
+        double phi = tt::deltaPhi(gp.phi() - iRegion * setup->baseRegion() - phiT - r * inv2R + ttTrackRef->d0() / gp.perp());
         double z = gp.z() - zT - rZ * cot;
         // linear correction
         const double d = inv2R * gp.perp();
