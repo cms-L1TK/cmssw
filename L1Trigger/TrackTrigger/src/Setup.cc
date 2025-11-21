@@ -152,7 +152,6 @@ namespace tt {
         kfUseSimmulation_(iConfig.kfUseSimmulation_),
         kfUseTTStubResiduals_(iConfig.kfUseTTStubResiduals_),
         kfUseTTStubParameters_(iConfig.kfUseTTStubParameters_),
-        kfApplyNonLinearCorrection_(iConfig.kfApplyNonLinearCorrection_),
         kfNumWorker_(iConfig.kfNumWorker_),
         kfMaxTracks_(iConfig.kfMaxTracks_),
         kfMinLayers_(iConfig.kfMinLayers_),

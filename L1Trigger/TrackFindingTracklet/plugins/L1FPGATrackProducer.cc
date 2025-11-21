@@ -868,7 +868,7 @@ std::vector<float> L1FPGATrackProducer::featureTransform(TTTrack<Ref_Phase2Track
   int tmp_trk_chi2rphi_bin = aTrack.getChi2RPhiBits();
   int tmp_trk_chi2rz_bin = aTrack.getChi2RZBits();
   // get the nstub
-  std::vector<TTStubRef> stubRefs = aTrack.getStubRefs();
+  const std::vector<TTStubRef>& stubRefs = aTrack.getStubRefs();
   int tmp_trk_nstub = stubRefs.size();
   // get other variables directly from TTTrack
   float tmp_trk_z0 = aTrack.z0();

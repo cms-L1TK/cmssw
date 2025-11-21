@@ -181,7 +181,6 @@ TrackTrigger_params = cms.PSet (
     UseSimmulation           = cms.bool  ( False ), # simulate KF instead of emulate
     UseTTStubResiduals       = cms.bool  ( True  ), # stub residuals and radius are recalculated from seed parameter and TTStub position
     UseTTStubParameters      = cms.bool  ( True  ), # track parameter are recalculated from seed TTStub positions
-    ApplyNonLinearCorrection = cms.bool  ( True  ), # aplly correction to stub position making trajectory appear linear
     NumWorker                = cms.int32 (   1   ), # number of kf worker
     MaxTracks                = cms.int32 (  63   ), # max number of tracks a kf worker can process
     RangeFactor              = cms.double(   3.0 ), # search window of each track parameter in initial uncertainties

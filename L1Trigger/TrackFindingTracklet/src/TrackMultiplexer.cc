@@ -219,17 +219,9 @@ namespace trklet {
             const GlobalPoint gp = setup_->stubPos(stub->ttStubRef_);
             stub->r_ = gp.perp() - setup_->chosenRofPhi();
             stub->phi_ = tt::deltaPhi(gp.phi() - offset);
-            stub->phi_ -= phiT + stub->r_ * inv2R;
-            stub->z_ = gp.z() - (z0 + gp.perp() * cot);
-          }
-        }
-        // non linear corrections
-        if (setup_->kfApplyNonLinearCorrection()) {
-          for (Stub* stub : stubs) {
-            const double d = inv2R * (stub->r_ + setup_->chosenRofPhi());
-            const double dPhi = std::asin(d) - d;
-            stub->phi_ -= dPhi;
-            stub->z_ -= dPhi / inv2R * cot;
+            stub->z_ = gp.z();
+            stub->phi_ -= phiT + std::asin(stub->r_ * inv2R);
+            stub->z_ -= z0 + std::asin(gp.perp() * inv2R) / inv2R * cot;
           }
         }
         // create track

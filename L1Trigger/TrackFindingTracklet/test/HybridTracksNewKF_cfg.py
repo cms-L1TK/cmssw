@@ -40,10 +40,6 @@ fwConfig( process )
 oldKFConfig( process )
 process.l1tTTTracksFromTrackletEmulation.readMoreMcTruth = False
 
-process.TrackTriggerSetup.KalmanFilter.UseTTStubResiduals       = False
-process.TrackTriggerSetup.KalmanFilter.UseTTStubParameters      = False
-process.TrackTriggerSetup.KalmanFilter.ApplyNonLinearCorrection = False
-
 # build schedule
 process.mc       = cms.Sequence( process.StubAssociator  + process.AnalyzerMC       )
 process.dtc      = cms.Sequence( process.ProducerDTC     + process.AnalyzerDTC      )

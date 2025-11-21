@@ -172,7 +172,6 @@ namespace tt {
       bool kfUseSimmulation_;
       bool kfUseTTStubResiduals_;
       bool kfUseTTStubParameters_;
-      bool kfApplyNonLinearCorrection_;
       int kfNumWorker_;
       int kfMaxTracks_;
       int kfMinLayers_;
@@ -600,8 +599,6 @@ namespace tt {
     bool kfUseTTStubResiduals() const { return kfUseTTStubResiduals_; }
     // track parameter are recalculated from seed TTStub positions
     bool kfUseTTStubParameters() const { return kfUseTTStubParameters_; }
-    //
-    bool kfApplyNonLinearCorrection() const { return kfApplyNonLinearCorrection_; }
     // number of kf worker
     int kfNumWorker() const { return kfNumWorker_; }
     // max number of tracks a kf worker can process
@@ -950,8 +947,6 @@ namespace tt {
     bool kfUseTTStubResiduals_;
     // track parameter are recalculated from seed TTStub positions
     bool kfUseTTStubParameters_;
-    //
-    bool kfApplyNonLinearCorrection_;
     // number of kf worker
     int kfNumWorker_;
     // max number of tracks a kf worker can process

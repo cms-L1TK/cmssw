@@ -202,6 +202,9 @@ elif (L1TRKALGO == 'HYBRID_NEWKF' or L1TRKALGO == 'HYBRID_REDUCED'):
     from L1Trigger.TrackFindingTracklet.Customize_cff import *
     if (L1TRKALGO == 'HYBRID_NEWKF'):
         fwConfig( process )
+        # cheats to get good performance
+        process.TrackTriggerSetup.KalmanFilter.UseTTStubResiduals = True
+        process.TrackTriggerSetup.KalmanFilter.UseTTStubParameters = True
     if (L1TRKALGO == 'HYBRID_REDUCED'):
         reducedConfig( process )
     # Needed by L1TrackNtupleMaker

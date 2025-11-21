@@ -27,7 +27,7 @@ HybridKalmanFilterFormats_params = cms.PSet (
   BaseShiftr0           = cms.int32(  -8 ), # precision difference in powers of 2 between phi residual and phiT
   BaseShiftr1           = cms.int32(   0 ), # precision difference in powers of 2 between z residual and zT
 
-  BaseShiftS00          = cms.int32(  -4 ), # precision difference in powers of 2 between S00 and inv2R x phiT
+  BaseShiftS00          = cms.int32(  -3 ), # precision difference in powers of 2 between S00 and inv2R x phiT
   BaseShiftS01          = cms.int32( -12 ), # precision difference in powers of 2 between S01 and phiT x phiT
   BaseShiftS12          = cms.int32(   0 ), # precision difference in powers of 2 between S12 and cotTheta x zT
   BaseShiftS13          = cms.int32(  -1 ), # precision difference in powers of 2 between S13 and zT x zT

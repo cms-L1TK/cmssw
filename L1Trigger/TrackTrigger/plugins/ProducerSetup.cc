@@ -164,7 +164,6 @@ namespace tt {
     iConfig_.kfUseSimmulation_ = pSetKF.getParameter<bool>("UseSimmulation");
     iConfig_.kfUseTTStubResiduals_ = pSetKF.getParameter<bool>("UseTTStubResiduals");
     iConfig_.kfUseTTStubParameters_ = pSetKF.getParameter<bool>("UseTTStubParameters");
-    iConfig_.kfApplyNonLinearCorrection_ = pSetKF.getParameter<bool>("ApplyNonLinearCorrection");
     iConfig_.kfNumWorker_ = pSetKF.getParameter<int>("NumWorker");
     iConfig_.kfMaxTracks_ = pSetKF.getParameter<int>("MaxTracks");
     iConfig_.kfMinLayers_ = pSetKF.getParameter<int>("MinLayers");
