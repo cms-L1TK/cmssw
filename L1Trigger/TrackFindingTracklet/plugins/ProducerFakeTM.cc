@@ -102,12 +102,15 @@ namespace trklet {
     for (int iTrack = 0; iTrack < static_cast<int>(handle->size()); iTrack++) {
       const TTTrackRef ttTrackRef(handle, iTrack);
       const int iRegion = ttTrackRef->phiSector();
+      const double phiR = iRegion  * setup->baseRegion();
       // track parameter
       const double inv2R = -.5 * ttTrackRef->rInv();
-      const double phiT =
-          tt::deltaPhi(ttTrackRef->phi() + inv2R * setup->chosenRofPhi() - iRegion * setup->baseRegion());
+      const double phi0 = ttTrackRef->phi();
       const double cot = ttTrackRef->tanL();
-      const double zT = ttTrackRef->z0() + cot * setup->chosenRofZ();
+      const double z0 = ttTrackRef->z0();
+      const double d0 = -ttTrackRef->d0();
+      const double phiT = tt::deltaPhi(phi0 - phiR + std::asin(setup->chosenRofPhi() * inv2R) + d0 / setup->chosenRofPhi());
+      const double zT = z0 + std::asin(setup->chosenRofZ() * inv2R) / inv2R * cot;
       // range checks
       const bool validInv2R = dataFormats->format(Variable::inv2R, Process::tm).inRange(inv2R);
       const bool validPhiT = dataFormats->format(Variable::phiT, Process::tm).inRange(phiT);
@@ -134,18 +137,15 @@ namespace trklet {
         const GlobalPoint gp = setup->stubPos(ttStubRef);
         const int stubId = std::distance(stubIds.begin(), stubIds.find(ttStubRef));
         const bool pst = (sm->barrel() && sm->tilt()) || (!sm->barrel() && sm->psModule());
-        const double r = gp.perp() - setup->chosenRofPhi();
+        const double r = gp.perp();
+        const double rPhi = gp.perp() - setup->chosenRofPhi();
         const double rZ = gp.perp() - setup->chosenRofZ();
-        double phi =
-            tt::deltaPhi(gp.phi() - iRegion * setup->baseRegion() - phiT - r * inv2R + ttTrackRef->d0() / gp.perp());
-        double z = gp.z() - zT - rZ * cot;
-        // linear correction
-        const double d = inv2R * gp.perp();
-        const double cor = std::asin(d) - d;
-        phi -= cor;
-        z -= cor / inv2R * cot;
+        const double trackPhi = phi0 + std::asin(r * inv2R) + d0 / r;
+        const double trackZ = z0 + std::asin(r * inv2R) / inv2R * cot;
+        double phi = tt::deltaPhi(gp.phi() - trackPhi);
+        double z = gp.z() - trackZ;
         // shift stubs accoring to track shifts
-        phi += dphiT + r * dinv2R;
+        phi += dphiT + rPhi * dinv2R;
         z += dzT + rZ * dcot;
         // range checks
         const bool validR = dataFormats->format(Variable::r, Process::tm).inRange(r);
@@ -155,7 +155,7 @@ namespace trklet {
           continue;
         // store stub
         hitPattern.set(iLayer);
-        stubsTM.emplace_back(ttStubRef, dataFormats, 2 * stubId + (pst ? 1 : 0), r, phi, z);
+        stubsTM.emplace_back(ttStubRef, dataFormats, 2 * stubId + (pst ? 1 : 0), rPhi, phi, z);
         stubs[iLayer] = &stubsTM.back();
       }
       // check enough stubs

@@ -224,6 +224,10 @@ elif (L1TRKALGO == 'HYBRID_DISPLACED_NEWKF_KILL' or L1TRKALGO == 'HYBRID_DISPLAC
     L1TRUTH_NAME = "TTTrackAssociatorFromPixelDigisExtended"
     process.TTTrackAssociatorFromPixelDigisExtended.TTTracks = cms.VInputTag( cms.InputTag(L1TRK_NAME, L1TRK_LABEL) )
     process.AnalyzerTracklet.InputTag = cms.InputTag(TRACKLET_NAME, TRACKLET_LABEL)
+    process.StubAssociator.MaxZ0 = 30.
+    process.StubAssociator.MaxD0 = 10.
+    process.StubAssociator.MaxVertR = 10.
+    process.StubAssociator.MaxVertZ = 60.
     if (L1TRKALGO == 'HYBRID_DISPLACED_NEWKF_MERGE'):
         displacedNewKFMergeConfig( process )
         process.HybridNewKF = cms.Sequence(process.L1TExtendedHybridTracks + process.ProducerFakeDR + process.ProducerKF + process.ProducerTQ + process.ProducerTFP)
