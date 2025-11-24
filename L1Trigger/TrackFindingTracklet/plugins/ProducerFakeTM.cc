@@ -102,14 +102,15 @@ namespace trklet {
     for (int iTrack = 0; iTrack < static_cast<int>(handle->size()); iTrack++) {
       const TTTrackRef ttTrackRef(handle, iTrack);
       const int iRegion = ttTrackRef->phiSector();
-      const double phiR = iRegion  * setup->baseRegion();
+      const double phiR = iRegion * setup->baseRegion();
       // track parameter
       const double inv2R = -.5 * ttTrackRef->rInv();
       const double phi0 = ttTrackRef->phi();
       const double cot = ttTrackRef->tanL();
       const double z0 = ttTrackRef->z0();
       const double d0 = -ttTrackRef->d0();
-      const double phiT = tt::deltaPhi(phi0 - phiR + std::asin(setup->chosenRofPhi() * inv2R) + d0 / setup->chosenRofPhi());
+      const double phiT =
+          tt::deltaPhi(phi0 - phiR + std::asin(setup->chosenRofPhi() * inv2R) + d0 / setup->chosenRofPhi());
       const double zT = z0 + std::asin(setup->chosenRofZ() * inv2R) / inv2R * cot;
       // range checks
       const bool validInv2R = dataFormats->format(Variable::inv2R, Process::tm).inRange(inv2R);
