@@ -46,33 +46,33 @@ namespace trklet {
     void endJob() override {}
 
   private:
-    struct Stub {
-      Stub(const TTStubRef& ttStubRef, double r, double z, double inv2R, bool seed = false)
+    struct StubTB {
+      StubTB(const TTStubRef& ttStubRef, double r, double z, double inv2R, bool seed = false)
           : ttStubRef_(ttStubRef), seed_(seed), r_(r), z_(z) {}
       TTStubRef ttStubRef_;
       bool seed_;
       double r_;
       double z_;
     };
-    struct Track {
-      Track(const TTTrackRef& ttTrackRef,
+    struct TrackTB {
+      TrackTB(const TTTrackRef& ttTrackRef,
             int seedType,
             double inv2R,
             double cot,
             double z0,
-            const std::deque<Stub*>& stubs)
+            const std::deque<StubTB*>& stubs)
           : ttTrackRef_(ttTrackRef), seedType_(seedType), inv2R_(inv2R), cot_(cot), z0_(z0), stubs_(stubs) {}
       TTTrackRef ttTrackRef_;
       int seedType_;
       double inv2R_;
       double cot_;
       double z0_;
-      std::deque<Stub*> stubs_;
+      std::deque<StubTB*> stubs_;
     };
     // truncates double precision of val into base precision
     double digi(double val, double base) const { return (tt::floor(val / base) + .5) * base; }
     // read in tracks and stubs
-    void consume(const tt::StreamsTrack&, const tt::StreamsStub&, std::deque<Track>&, std::deque<Stub>&) const;
+    void consume(const tt::StreamsTrack&, const tt::StreamsStub&, std::deque<TrackTB>&, std::deque<StubTB>&) const;
     // ED input token of Tracks
     edm::EDGetTokenT<tt::StreamsTrack> edGetTokenTracks_;
     // ED input token of Stubs
@@ -201,30 +201,30 @@ namespace trklet {
     const tt::StreamsStub& streamsStub = iEvent.get(edGetTokenStubs_);
     const tt::StreamsTrack& streamsTrack = iEvent.get(edGetTokenTracks_);
     // storage for tracks and stubs
-    std::deque<Stub> stubs;
-    std::deque<Track> tracks;
+    std::deque<StubTB> tbStubs;
+    std::deque<TrackTB> tbTracks;
     // read in tracks and stubs
-    consume(streamsTrack, streamsStub, tracks, stubs);
+    consume(streamsTrack, streamsStub, tbTracks, tbStubs);
     // analyze in tracks and stubs
-    for (const Track& track : tracks) {
-      std::vector<TTStubRef> stubs;
-      stubs.reserve(track.stubs_.size());
-      for (Stub* stub : track.stubs_) {
-        stubs.push_back(stub->ttStubRef_);
-        const double z = track.z0_ + track.cot_ / track.inv2R_ * std::asin(stub->r_ * track.inv2R_) + stub->z_;
-        const GlobalPoint gp = setup_->stubPos(stub->ttStubRef_);
-        const double delta = gp.z() - z - track.cot_ / track.inv2R_ * std::asin((gp.perp() - stub->r_) * track.inv2R_);
+    for (const TrackTB& trackTB : tbTracks) {
+      std::vector<TTStubRef> ttStubRefs;
+      ttStubRefs.reserve(trackTB.stubs_.size());
+      for (StubTB* stubTB : trackTB.stubs_) {
+        ttStubRefs.push_back(stubTB->ttStubRef_);
+        const double z = trackTB.z0_ + trackTB.cot_ / trackTB.inv2R_ * std::asin(stubTB->r_ * trackTB.inv2R_) + stubTB->z_;
+        const GlobalPoint gp = setup_->stubPos(stubTB->ttStubRef_);
+        const double delta = gp.z() - z - trackTB.cot_ / trackTB.inv2R_ * std::asin((gp.perp() - stubTB->r_) * trackTB.inv2R_);
         his_->Fill(delta);
-        hisST_[track.seedType_]->Fill(delta);
+        hisST_[trackTB.seedType_]->Fill(delta);
         prof_->Fill(gp.z(), gp.perp(), std::abs(delta));
-        profST_[track.seedType_]->Fill(gp.z(), gp.perp(), std::abs(delta));
+        profST_[trackTB.seedType_]->Fill(gp.z(), gp.perp(), std::abs(delta));
       }
-      const std::vector<TPPtr>& tpPtrs = associator.associateFinal(stubs);
+      const std::vector<TPPtr>& tpPtrs = associator.associateFinal(ttStubRefs);
       std::vector<double> r, z;
-      for (Stub* stub : track.stubs_) {
-        if (!stub->seed_)
+      for (StubTB* stubTB : trackTB.stubs_) {
+        if (!stubTB->seed_)
           continue;
-        const GlobalPoint gp = setup_->stubPos(stub->ttStubRef_);
+        const GlobalPoint gp = setup_->stubPos(stubTB->ttStubRef_);
         r.push_back(gp.perp());
         z.push_back(gp.z());
       }
@@ -235,30 +235,30 @@ namespace trklet {
       const double invDR = 1. / (r[1] - r[0]);
       const double cot = (z[1] - z[0]) * invDR;
       const double z0 = (r[1] * z[0] - r[0] * z[1]) * invDR;
-      for (Stub* stub : track.stubs_) {
-        double z = stub->z_;
-        if (!stub->seed_)
-          z += (track.cot_ - cot) / track.inv2R_ * std::asin(stub->r_ * track.inv2R_) + (track.z0_ - z0);
-        z += z0 + cot / track.inv2R_ * std::asin(stub->r_ * track.inv2R_);
-        const GlobalPoint gp = setup_->stubPos(stub->ttStubRef_);
-        const double delta = gp.z() - z - cot / track.inv2R_ * std::asin((gp.perp() - stub->r_) * track.inv2R_);
+      for (StubTB* stubTB : trackTB.stubs_) {
+        double z = stubTB->z_;
+        if (!stubTB->seed_)
+          z += (trackTB.cot_ - cot) / trackTB.inv2R_ * std::asin(stubTB->r_ * trackTB.inv2R_) + (trackTB.z0_ - z0);
+        z += z0 + cot / trackTB.inv2R_ * std::asin(stubTB->r_ * trackTB.inv2R_);
+        const GlobalPoint gp = setup_->stubPos(stubTB->ttStubRef_);
+        const double delta = gp.z() - z - cot / trackTB.inv2R_ * std::asin((gp.perp() - stubTB->r_) * trackTB.inv2R_);
         hisTT_->Fill(delta);
-        hisTTST_[track.seedType_]->Fill(delta);
+        hisTTST_[trackTB.seedType_]->Fill(delta);
         profTT_->Fill(gp.z(), gp.perp(), std::abs(delta));
-        profTTST_[track.seedType_]->Fill(gp.z(), gp.perp(), std::abs(delta));
+        profTTST_[trackTB.seedType_]->Fill(gp.z(), gp.perp(), std::abs(delta));
       }
-      hisCot_->Fill(track.cot_ - cot);
-      hisZ0_->Fill(track.z0_ - z0);
-      hisCotST_[track.seedType_]->Fill(track.cot_ - cot);
-      hisZ0ST_[track.seedType_]->Fill(track.z0_ - z0);
+      hisCot_->Fill(trackTB.cot_ - cot);
+      hisZ0_->Fill(trackTB.z0_ - z0);
+      hisCotST_[trackTB.seedType_]->Fill(trackTB.cot_ - cot);
+      hisZ0ST_[trackTB.seedType_]->Fill(trackTB.z0_ - z0);
     }
   }
 
   // read in tracks and stubs
   void AnalyzerTB::consume(const tt::StreamsTrack& streamsTrack,
                            const tt::StreamsStub& streamsStub,
-                           std::deque<Track>& tracks,
-                           std::deque<Stub>& stubs) const {
+                           std::deque<TrackTB>& tbTracks,
+                           std::deque<StubTB>& tbStubs) const {
     for (int region = 0; region < setup_->numRegions(); region++) {
       const int offsetTrack = region * channelAssignment_->numChannelsTrack();
       for (int channel = 0; channel < channelAssignment_->numChannelsTrack(); channel++) {
@@ -275,7 +275,7 @@ namespace trklet {
           double cot = digi(ttTrackRef->tanL(), baseUcot_);
           double z0 = digi(ttTrackRef->z0(), baseUzT_);
           // convert stubs
-          std::deque<Stub*> tStubs;
+          std::deque<StubTB*> trackStubs;
           for (int layer = 0; layer < numP; layer++) {
             const tt::FrameStub& frameStub = streamsStub[offsetStub + layer][frame];
             const TTStubRef& ttStubRef = frameStub.first;
@@ -300,8 +300,8 @@ namespace trklet {
               r = setup_->disk2SR(indexLayerId, r);
             r = digi(r, baseUr_);
             double z = digi(hwRZ.val(baseRZ) * (barrel ? 1. : -cot), baseUz_);
-            stubs.emplace_back(ttStubRef, r, z, inv2R);
-            tStubs.push_back(&stubs.back());
+            tbStubs.emplace_back(ttStubRef, r, z, inv2R);
+            trackStubs.push_back(&tbStubs.back());
           }
           // create fake seed stubs, since TrackBuilder doesn't output these stubs, required by the KF.
           for (int seedingLayer = 0; seedingLayer < channelAssignment_->numSeedingLayers(); seedingLayer++) {
@@ -326,11 +326,11 @@ namespace trklet {
               const double invCot = digi(1. / digi(std::abs(cot), baseScot_), baseInvCot_);
               r = digi((disk - side * z0) * invCot, baseUr_);
             }
-            stubs.emplace_back(ttStubRef, r, 0., inv2R, true);
-            tStubs.push_back(&stubs.back());
+            tbStubs.emplace_back(ttStubRef, r, 0., inv2R, true);
+            trackStubs.push_back(&tbStubs.back());
           }
           // create track
-          tracks.emplace_back(ttTrackRef, channel, inv2R, cot, z0, tStubs);
+          tbTracks.emplace_back(ttTrackRef, channel, inv2R, cot, z0, trackStubs);
         }
       }
     }
