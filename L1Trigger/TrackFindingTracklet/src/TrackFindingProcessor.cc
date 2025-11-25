@@ -108,6 +108,9 @@ namespace trklet {
     // organize input tracks
     std::vector<std::deque<Track*>> streams(outputs.size());
     consume(tracks, stubs, streams);
+    // cycle event, remove all gaps
+    for (std::deque<Track*>& stream : streams)
+      stream.erase(std::remove(stream.begin(), stream.end(), nullptr), stream.end());
     // emualte data format f/w
     produce(streams, outputs);
     // produce TTTracks
