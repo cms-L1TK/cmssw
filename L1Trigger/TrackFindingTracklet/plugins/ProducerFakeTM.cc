@@ -149,7 +149,7 @@ namespace trklet {
         phi += dphiT + rPhi * dinv2R;
         z += dzT + rZ * dcot;
         // range checks
-        const bool validR = dataFormats->format(Variable::r, Process::tm).inRange(r);
+        const bool validR = dataFormats->format(Variable::r, Process::tm).inRange(rPhi);
         const bool validPhi = dataFormats->format(Variable::phi, Process::tm).inRange(phi);
         const bool validZ = dataFormats->format(Variable::z, Process::tm).inRange(z);
         if (!validR || !validPhi || !validZ)
