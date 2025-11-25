@@ -56,11 +56,11 @@ namespace trklet {
     };
     struct TrackTB {
       TrackTB(const TTTrackRef& ttTrackRef,
-            int seedType,
-            double inv2R,
-            double cot,
-            double z0,
-            const std::deque<StubTB*>& stubs)
+              int seedType,
+              double inv2R,
+              double cot,
+              double z0,
+              const std::deque<StubTB*>& stubs)
           : ttTrackRef_(ttTrackRef), seedType_(seedType), inv2R_(inv2R), cot_(cot), z0_(z0), stubs_(stubs) {}
       TTTrackRef ttTrackRef_;
       int seedType_;
@@ -211,9 +211,11 @@ namespace trklet {
       ttStubRefs.reserve(trackTB.stubs_.size());
       for (StubTB* stubTB : trackTB.stubs_) {
         ttStubRefs.push_back(stubTB->ttStubRef_);
-        const double z = trackTB.z0_ + trackTB.cot_ / trackTB.inv2R_ * std::asin(stubTB->r_ * trackTB.inv2R_) + stubTB->z_;
+        const double z =
+            trackTB.z0_ + trackTB.cot_ / trackTB.inv2R_ * std::asin(stubTB->r_ * trackTB.inv2R_) + stubTB->z_;
         const GlobalPoint gp = setup_->stubPos(stubTB->ttStubRef_);
-        const double delta = gp.z() - z - trackTB.cot_ / trackTB.inv2R_ * std::asin((gp.perp() - stubTB->r_) * trackTB.inv2R_);
+        const double delta =
+            gp.z() - z - trackTB.cot_ / trackTB.inv2R_ * std::asin((gp.perp() - stubTB->r_) * trackTB.inv2R_);
         his_->Fill(delta);
         hisST_[trackTB.seedType_]->Fill(delta);
         prof_->Fill(gp.z(), gp.perp(), std::abs(delta));
