@@ -261,8 +261,7 @@ void MatchProcessor::execute(unsigned int iSector, double phimin) {
   if (print) {
     for (const auto* proj : inputprojs_) {
       for (unsigned int p = 0; p < proj->nPage(); p++) {
-        edm::LogVerbatim("Tracklet") << "ProjOcc: " << proj->getName() << " " << p << " "
-                                     << proj->nTracklets(p);
+        edm::LogVerbatim("Tracklet") << "ProjOcc: " << proj->getName() << " " << p << " " << proj->nTracklets(p);
       }
     }
   }
