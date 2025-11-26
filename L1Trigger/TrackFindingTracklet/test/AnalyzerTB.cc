@@ -207,21 +207,30 @@ namespace trklet {
     consume(streamsTrack, streamsStub, tbTracks, tbStubs);
     // analyze in tracks and stubs
     for (const TrackTB& trackTB : tbTracks) {
+      // Do reco-truth matching.
       std::vector<TTStubRef> ttStubRefs;
       ttStubRefs.reserve(trackTB.stubs_.size());
-      for (StubTB* stubTB : trackTB.stubs_) {
+      for (StubTB* stubTB : trackTB.stubs_)
         ttStubRefs.push_back(stubTB->ttStubRef_);
+      const std::vector<TPPtr>& tpPtrs = associator.associateFinal(ttStubRefs);
+      // analyze stub z residuals
+      for (StubTB* stubTB : trackTB.stubs_) {
+        // calculate TBStub z position
         const double z =
             trackTB.z0_ + trackTB.cot_ / trackTB.inv2R_ * std::asin(stubTB->r_ * trackTB.inv2R_) + stubTB->z_;
         const GlobalPoint gp = setup_->stubPos(stubTB->ttStubRef_);
-        const double delta =
-            gp.z() - z - trackTB.cot_ / trackTB.inv2R_ * std::asin((gp.perp() - stubTB->r_) * trackTB.inv2R_);
+        // calculate TTStub z position at TBStub radius
+        const double ttZ =
+            gp.z() - trackTB.cot_ / trackTB.inv2R_ * std::asin((gp.perp() - stubTB->r_) * trackTB.inv2R_);
+        // caluclate error
+        const double delta = ttZ - z;
+        // fill stub z error
         his_->Fill(delta);
         hisST_[trackTB.seedType_]->Fill(delta);
         prof_->Fill(gp.z(), gp.perp(), std::abs(delta));
         profST_[trackTB.seedType_]->Fill(gp.z(), gp.perp(), std::abs(delta));
       }
-      const std::vector<TPPtr>& tpPtrs = associator.associateFinal(ttStubRefs);
+      // recalcualte seed track parameter
       std::vector<double> r, z;
       for (StubTB* stubTB : trackTB.stubs_) {
         if (!stubTB->seed_)
@@ -237,22 +246,31 @@ namespace trklet {
       const double invDR = 1. / (r[1] - r[0]);
       const double cot = (z[1] - z[0]) * invDR;
       const double z0 = (r[1] * z[0] - r[0] * z[1]) * invDR;
+      // fill seed track parameter error
+      hisCot_->Fill(trackTB.cot_ - cot);
+      hisZ0_->Fill(trackTB.z0_ - z0);
+      hisCotST_[trackTB.seedType_]->Fill(trackTB.cot_ - cot);
+      hisZ0ST_[trackTB.seedType_]->Fill(trackTB.z0_ - z0);
+      // repeat stub z error study using recalculated seed track parameter
       for (StubTB* stubTB : trackTB.stubs_) {
+        // origianl TBStub z residual
         double z = stubTB->z_;
+        // shift z residual corresponding to parameter shift
         if (!stubTB->seed_)
           z += (trackTB.cot_ - cot) / trackTB.inv2R_ * std::asin(stubTB->r_ * trackTB.inv2R_) + (trackTB.z0_ - z0);
+        // calculate z position
         z += z0 + cot / trackTB.inv2R_ * std::asin(stubTB->r_ * trackTB.inv2R_);
         const GlobalPoint gp = setup_->stubPos(stubTB->ttStubRef_);
-        const double delta = gp.z() - z - cot / trackTB.inv2R_ * std::asin((gp.perp() - stubTB->r_) * trackTB.inv2R_);
+        // calculate TTStub z position at TBStub radius
+        const double ttZ = gp.z() - cot / trackTB.inv2R_ * std::asin((gp.perp() - stubTB->r_) * trackTB.inv2R_);
+        // caluclate error
+        const double delta = ttZ - z;
+        // fill stub z error
         hisTT_->Fill(delta);
         hisTTST_[trackTB.seedType_]->Fill(delta);
         profTT_->Fill(gp.z(), gp.perp(), std::abs(delta));
         profTTST_[trackTB.seedType_]->Fill(gp.z(), gp.perp(), std::abs(delta));
       }
-      hisCot_->Fill(trackTB.cot_ - cot);
-      hisZ0_->Fill(trackTB.z0_ - z0);
-      hisCotST_[trackTB.seedType_]->Fill(trackTB.cot_ - cot);
-      hisZ0ST_[trackTB.seedType_]->Fill(trackTB.z0_ - z0);
     }
   }
 
