@@ -36,7 +36,7 @@ namespace trklet {
     const TrackKF trackKF(frameTrackKF, df);
     invR_ = -2. * trackKF.inv2R();
     cot_ = trackKF.cot();
-    d0_ = -std::max(std::min(ttTrackRef_->d0(), -TTTrack_TrackWord::minD0), TTTrack_TrackWord::minD0);
+    d0_ = ttTrackRef_->d0();
     const TrackTQ trackTQ(frameTrackTQ, df);
     mva_ = trackTQ.mva();
     channel_ = cot_ < 0. ? 1 : 0;

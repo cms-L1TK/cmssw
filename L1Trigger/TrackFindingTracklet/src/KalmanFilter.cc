@@ -299,7 +299,7 @@ namespace trklet {
       const double phiT = state->x1() + state->track()->phiT();
       const double cot = state->x2() + cotTrack;
       const double zT = state->x3() + state->track()->zT();
-      const double d0 = state->track()->frame().first->d0() + state->x4();
+      const double d0 = state->track()->frame().first->d0() - state->x4();
       // pt cut
       const bool validX0 = dataFormats_->format(Variable::inv2R, Process::kf).isCovered(inv2R);
       // cut on phi sector boundaries

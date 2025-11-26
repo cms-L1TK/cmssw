@@ -49,8 +49,8 @@ namespace tt {
     // plot helper
     std::vector<std::string> resolutions_ = {"Inv2R", "PT", "PhiT", "Phi0", "Cot", "ZT", "Z0", "D0"};
     std::vector<std::string> efficiencies_ = {"Inv2R", "PT", "Eta", "Z0", "D0"};
-    std::vector<double> limitsR_ = {.002, 100., 0.01, .01, .5, 30., 10., 0.01};
-    std::vector<double> limitsE_ = {1., 100., 2.4, 15., 10.};
+    std::vector<double> limitsR_ = {.001, 100., .01, .01, .2, 5., 5., 2.};
+    std::vector<double> limitsE_ = {.001, 100., 2.4, 15., 10.};
     // ED input token of tracks
     edm::EDGetTokenT<std::vector<L1Track>> edGetTokenTracks_;
     // ED output token for stub association for fake rate

@@ -17,6 +17,7 @@
 #include "L1Trigger/TrackTrigger/interface/Setup.h"
 
 #include <TProfile.h>
+#include <TH1F.h>
 
 #include <sstream>
 #include <vector>
@@ -63,9 +64,12 @@ namespace tt {
     TProfile* prof_;
     // printout
     std::stringstream log_;
+    //
+    std::vector<TH1F*> hisZ_;
+    std::vector<TH1F*> hisPhi_;
   };
 
-  AnalyzerMC::AnalyzerMC(edm::ParameterSet const& iConfig) {
+  AnalyzerMC::AnalyzerMC(edm::ParameterSet const& iConfig) : hisZ_(5), hisPhi_(5) {
     usesResource("TFileService");
     const std::string& label = iConfig.getParameter<std::string>("StubAssociation");
     const std::string& branchFake = iConfig.getParameter<std::string>("BranchFake");
@@ -95,6 +99,16 @@ namespace tt {
     prof_->GetXaxis()->SetBinLabel(4, "any TPs");
     prof_->GetXaxis()->SetBinLabel(5, "reco TPs");
     prof_->GetXaxis()->SetBinLabel(6, "eff TPs");
+    //
+    dir = fs->mkdir("Stub uncertainties");
+    const std::vector<std::string> names = {
+        "pos charge pos d0", "pos charge neg d0", "neg charge pos d0", "neg charge neg d0", "all"};
+    const double rPhi = 0.02;
+    const double rZ = 2.;
+    for (int i = 0; i < static_cast<int>(names.size()); i++) {
+      hisZ_[i] = dir.make<TH1F>(("His stub z residual " + names[i]).c_str(), ";", 1024, -rZ / 2., rZ / 2.);
+      hisPhi_[i] = dir.make<TH1F>(("His stub phi residual " + names[i]).c_str(), ";", 1024, -rPhi / 2., rPhi / 2.);
+    }
   }
 
   void AnalyzerMC::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
@@ -121,6 +135,32 @@ namespace tt {
     const StubAssociation& forFake = iEvent.get(edGetTokenFake_);
     const StubAssociation& forEff = iEvent.get(edGetTokenEff_);
     const double numRegions = setup->numRegions();
+    // stub uncertainties
+    for (const auto& p : forEff.getTrackingParticleToTTStubsMap()) {
+      const TPPtr& tpPtr = p.first;
+      const double inv2R = -tpPtr->charge() / tpPtr->pt() * setup->invPtToDphi();
+      const double phi0 = tpPtr->phi();
+      const double cot = tpPtr->tanl();
+      const double z0 = tpPtr->z0();
+      const double d0 = -tpPtr->d0();
+      const double R = .5 / inv2R;
+      const double R0 = R + d0;
+      int index = tpPtr->charge() < 0 ? 2 : 0;
+      if (d0 < 0)
+        index++;
+      for (const TTStubRef& ttStubRef : p.second) {
+        const GlobalPoint gp = setup->stubPos(ttStubRef);
+        const double r = gp.perp();
+        const double phi = phi0 + std::asin((r * r + R0 * R0 - R * R) / 2. / r / R0);
+        const double z = z0 + std::abs(R) * cot * std::acos((R * R + R0 * R0 - r * r) / 2. / R / R0);
+        const double dPhi = tt::deltaPhi(gp.phi() - phi);
+        const double dZ = gp.z() - z;
+        hisZ_[4]->Fill(dZ);
+        hisPhi_[4]->Fill(dPhi);
+        hisZ_[index]->Fill(dZ);
+        hisPhi_[index]->Fill(dPhi);
+      }
+    }
     // store
     prof_->Fill(1, nStubs / numRegions);
     prof_->Fill(2, nMatched / numRegions);

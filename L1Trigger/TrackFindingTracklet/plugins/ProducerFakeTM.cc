@@ -104,14 +104,17 @@ namespace trklet {
       const int iRegion = ttTrackRef->phiSector();
       const double phiR = iRegion * setup->baseRegion();
       // track parameter
-      const double inv2R = -.5 * ttTrackRef->rInv();
-      const double phi0 = ttTrackRef->phi();
-      const double cot = ttTrackRef->tanL();
-      const double z0 = ttTrackRef->z0();
       const double d0 = -ttTrackRef->d0();
-      const double phiT =
-          tt::deltaPhi(phi0 - phiR + std::asin(setup->chosenRofPhi() * inv2R) + d0 / setup->chosenRofPhi());
-      const double zT = z0 + std::asin(setup->chosenRofZ() * inv2R) / inv2R * cot;
+      double inv2R = -.5 * ttTrackRef->rInv();
+      double phi0 = tt::deltaPhi(ttTrackRef->phi() - phiR);
+      double cot = ttTrackRef->tanL();
+      double z0 = ttTrackRef->z0();
+      double R = .5 / inv2R;
+      double R0 = R + d0;
+      double phiT = phi0 + std::asin((setup->chosenRofPhi() * setup->chosenRofPhi() + R0 * R0 - R * R) / 2. /
+                                     setup->chosenRofPhi() / R0);
+      double zT = z0 + std::abs(R) * cot *
+                           std::acos((R * R + R0 * R0 - setup->chosenRofZ() * setup->chosenRofZ()) / 2. / R / R0);
       // range checks
       const bool validInv2R = dataFormats->format(Variable::inv2R, Process::tm).inRange(inv2R);
       const bool validPhiT = dataFormats->format(Variable::phiT, Process::tm).inRange(phiT);
@@ -120,11 +123,17 @@ namespace trklet {
         continue;
       const TrackTM trackTM(ttTrackRef, dataFormats, inv2R, phiT, zT);
       std::vector<StubTM*> stubs(channelAssignment->tmNumLayers(), nullptr);
-      // track parameter shifts to adjust stubs
-      const double dinv2R = inv2R - dataFormats->format(Variable::inv2R, Process::tm).digi(inv2R);
-      const double dphiT = phiT - dataFormats->format(Variable::phiT, Process::tm).digi(phiT);
-      const double dcot = cot - dataFormats->format(Variable::zT, Process::tm).digi(zT) / setup->chosenRofZ();
-      const double dzT = zT - dataFormats->format(Variable::zT, Process::tm).digi(zT);
+      // digitised track parameter
+      inv2R = dataFormats->format(Variable::inv2R, Process::tm).digi(inv2R);
+      phiT = dataFormats->format(Variable::phiT, Process::tm).digi(phiT);
+      cot = dataFormats->format(Variable::zT, Process::tm).digi(zT) / setup->chosenRofZ();
+      zT = dataFormats->format(Variable::zT, Process::tm).digi(zT);
+      R = .5 / inv2R;
+      R0 = R + d0;
+      phi0 = phiT - std::asin((setup->chosenRofPhi() * setup->chosenRofPhi() + R0 * R0 - R * R) / 2. /
+                              setup->chosenRofPhi() / R0);
+      z0 = zT -
+           std::abs(R) * cot * std::acos((R * R + R0 * R0 - setup->chosenRofZ() * setup->chosenRofZ()) / 2. / R / R0);
       // process stubs
       const int offset = iRegion * channelAssignment->tmNumLayers();
       TTBV hitPattern(0, channelAssignment->tmNumLayers());
@@ -140,14 +149,10 @@ namespace trklet {
         const bool pst = (sm->barrel() && sm->tilt()) || (!sm->barrel() && sm->psModule());
         const double r = gp.perp();
         const double rPhi = gp.perp() - setup->chosenRofPhi();
-        const double rZ = gp.perp() - setup->chosenRofZ();
-        const double trackPhi = phi0 + std::asin(r * inv2R) + d0 / r;
-        const double trackZ = z0 + std::asin(r * inv2R) / inv2R * cot;
-        double phi = tt::deltaPhi(gp.phi() - trackPhi);
+        const double trackPhi = phi0 + std::asin((r * r + R0 * R0 - R * R) / 2. / r / R0);
+        const double trackZ = z0 + std::abs(R) * cot * std::acos((R * R + R0 * R0 - r * r) / 2. / R / R0);
+        double phi = tt::deltaPhi(gp.phi() - phiR - trackPhi);
         double z = gp.z() - trackZ;
-        // shift stubs accoring to track shifts
-        phi += dphiT + rPhi * dinv2R;
-        z += dzT + rZ * dcot;
         // range checks
         const bool validR = dataFormats->format(Variable::r, Process::tm).inRange(rPhi);
         const bool validPhi = dataFormats->format(Variable::phi, Process::tm).inRange(phi);
