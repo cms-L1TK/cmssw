@@ -1096,7 +1096,7 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
       float tmp_trk_phi = iterL1Track->momentum().phi();
       float tmp_trk_z0 = iterL1Track->z0();  //cm
       float tmp_trk_tanL = iterL1Track->tanL();
-      float tmp_trk_zT = iterL1Track->z0() + setup->chosenRofZ() * iterL1Track->tanL();      
+      float tmp_trk_zT = iterL1Track->z0() + setup->chosenRofZ() * iterL1Track->tanL();
       int tmp_trk_charge = (int)TMath::Sign(1, iterL1Track->rInv());
 
       int tmp_trk_hitpattern = 0;
@@ -1157,7 +1157,7 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
       layers.reserve(hitPattern.size());
       for (int layer : hitPattern.ids())
         layers.push_back(le[layer]);
-      m_trk_layers->push_back(layers);      
+      m_trk_layers->push_back(layers);
 
       // ----------------------------------------------------------------------------------------
       // loop over stubs on tracks
@@ -1232,7 +1232,7 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
       m_trk_z0->push_back(tmp_trk_z0);
       m_trk_d0->push_back(tmp_trk_d0);
       m_trk_tanL->push_back(tmp_trk_tanL);
-      m_trk_zT->push_back(tmp_trk_zT);      
+      m_trk_zT->push_back(tmp_trk_zT);
       m_trk_chi2->push_back(tmp_trk_chi2);
       m_trk_chi2_dof->push_back(tmp_trk_chi2_dof);
       m_trk_chi2rphi->push_back(tmp_trk_chi2rphi);
@@ -1372,7 +1372,7 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
         m_trk_injet_vhighpt->push_back(InJetVeryHighpt);
 
       }  //end tracking in jets
-      
+
     }  //end track loop
 
   }  //end if SaveAllTracks
