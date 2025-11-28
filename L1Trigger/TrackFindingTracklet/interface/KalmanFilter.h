@@ -36,6 +36,11 @@ namespace trklet {
    *          r = m - H*x
    *          x' = x + K*r
    *          C' = C - K*H*C (KF paper) = C - K*S (used here as simpler)
+   *          can run 4 parameter emulation with seeding stage or 5 parameter simulation
+   *          without seeding stage or old KF. To run 5 parameter simulation set
+   *          TrackTriggerSetup.KalmanFilter.Use5ParameterFit = True
+   *          to run olfKF set
+   *          TrackTriggerSetup.KalmanFilter.UseSimmulation = True
    *  \author Thomas Schuh
    *  \date   2024, Sep
    */
