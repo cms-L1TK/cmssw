@@ -189,6 +189,20 @@ namespace trklet {
         }
         frame.second = ttBV.bs();
       }
+      // scramble data according to specification
+      const int size = std::ceil(output.size() / 3.) * 3;
+      output.resize(size);
+      for (int i = 0; i < size / 3; i++) {
+        const TTBV A1(output[i * 3 + 0].second, TTBV::S_, TTBV::S_ / 2);
+        const TTBV A2(output[i * 3 + 0].second, TTBV::S_ / 2, 0);
+        const TTBV A3(output[i * 3 + 1].second, TTBV::S_, TTBV::S_ / 2);
+        const TTBV B1(output[i * 3 + 1].second, TTBV::S_ / 2, 0);
+        const TTBV B2(output[i * 3 + 2].second, TTBV::S_, TTBV::S_ / 2);
+        const TTBV B3(output[i * 3 + 2].second, TTBV::S_ / 2, 0);
+        output[i * 3 + 0].second = (A2 + A3).bs();
+        output[i * 3 + 1].second = (B3 + A1).bs();
+        output[i * 3 + 2].second = (B1 + B2).bs();
+      }
       // perform truncation
       if (setup_->enableTruncation() && static_cast<int>(output.size()) > setup_->numFramesIOHigh())
         output.resize(setup_->numFramesIOHigh());
