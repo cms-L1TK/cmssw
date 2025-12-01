@@ -1,3 +1,4 @@
+# config parameter used by Associator
 import FWCore.ParameterSet.Config as cms
 
 Associator_params = cms.PSet (
