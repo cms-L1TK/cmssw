@@ -38,7 +38,7 @@ namespace trklet {
     std::string fnameWithSuffix(const std::string& fname);
     std::string eventHeader();
 
-    void openFile(bool first, std::string dirName, std::string filebase);
+    void openFile(const bool first, const std::string& dirName, const std::string& filebase);
 
     static size_t find_nth(const std::string& haystack, size_t pos, const std::string& needle, size_t nth);
 

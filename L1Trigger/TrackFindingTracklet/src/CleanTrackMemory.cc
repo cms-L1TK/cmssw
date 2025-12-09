@@ -15,15 +15,9 @@ CleanTrackMemory::CleanTrackMemory(string name, Settings const& settings, double
 
 void CleanTrackMemory::writeCT(bool first, unsigned int iSector) {
   iSector_ = iSector;
+
   const string dirCT = settings_.memPath() + "CleanTrack/";
-
-  std::ostringstream oss;
-  oss << dirCT << "CleanTrack_" << getName() << "_" << std::setfill('0') << std::setw(2) << (iSector_ + 1) << ".dat";
-  auto const& fname = oss.str();
-
-  openfile(out_, first, dirCT, fname, __FILE__, __LINE__);
-
-  out_ << "BX = " << (bitset<3>)bx_ << " Event : " << event_ << endl;
+  openFile(first, dirCT, "CleanTrack_");
 
   for (unsigned int j = 0; j < tracks_.size(); j++) {
     out_ << hexstr(j) << " " << tracks_[j]->trackfitstr() << " " << trklet::hexFormat(tracks_[j]->trackfitstr());

@@ -93,7 +93,7 @@ std::string MemoryBase::eventHeader() {
   return ss.str();
 }
 
-void MemoryBase::openFile(bool first, std::string dirName, std::string filebase) {
+void MemoryBase::openFile(const bool first, const std::string& dirName, const std::string& filebase) {
   std::string fname = filebase + getName();
 
   findAndReplaceAll(fname, "PHIa", "PHIaa");

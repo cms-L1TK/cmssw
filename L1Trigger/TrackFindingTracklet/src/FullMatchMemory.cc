@@ -41,15 +41,9 @@ void FullMatchMemory::addMatch(Tracklet* tracklet, const Stub* stub) {
 
 void FullMatchMemory::writeMC(bool first, unsigned int iSector) {
   iSector_ = iSector;
+
   const string dirM = settings_.memPath() + "Matches/";
-
-  std::ostringstream oss;
-  oss << dirM << "FullMatches_" << getName() << "_" << std::setfill('0') << std::setw(2) << (iSector_ + 1) << ".dat";
-  auto const& fname = oss.str();
-
-  openfile(out_, first, dirM, fname, __FILE__, __LINE__);
-
-  out_ << "BX = " << (bitset<3>)bx_ << " Event : " << event_ << endl;
+  openFile(first, dirM, "FullMatches_");
 
   for (unsigned int j = 0; j < matches_.size(); j++) {
     string match = (layer_ > 0) ? matches_[j].first->fullmatchstr(layer_) : matches_[j].first->fullmatchdiskstr(disk_);
