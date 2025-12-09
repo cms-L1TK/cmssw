@@ -36,22 +36,22 @@ void CleanTrackMemory::writeCT(bool first, unsigned int iSector) {
   if (settings_.writeMonitorData("CT")) {
     std::string fnameAll = "CleanTracksAll.dat";
     if (first && getName() == "CT_L1L2" && iSector_ == 0)
-      out_.open(fnameAll);
+      outCT_.open(fnameAll);
     else
-      out_.open(fnameAll, std::ofstream::app);
+      outCT_.open(fnameAll, std::ofstream::app);
 
     if (!tracks_.empty())
-      out_ << "BX= " << (bitset<3>)bx_ << " event= " << event_ << " seed= " << getName()
-           << " phisector= " << iSector_ + 1 << endl;
+      outCT_ << "BX= " << (bitset<3>)bx_ << " event= " << event_ << " seed= " << getName()
+             << " phisector= " << iSector_ + 1 << endl;
 
     for (unsigned int j = 0; j < tracks_.size(); j++) {
       if (j < 16)
-        out_ << "0";
-      out_ << hex << j << dec << " ";
-      out_ << tracks_[j]->trackfitstr();
-      out_ << "\n";
+        outCT_ << "0";
+      outCT_ << hex << j << dec << " ";
+      outCT_ << tracks_[j]->trackfitstr();
+      outCT_ << "\n";
     }
-    out_.close();
+    outCT_.close();
   }
   // --------------------------------------------------------------
 
