@@ -372,11 +372,32 @@ bool TrackletCalculatorBase::barrelSeeding(const Stub* innerFPGAStub,
 
   iphi1 <<= (settings_.nphibitsstub(5) - settings_.nphibitsstub(layerdisk1_));
   iphi2 <<= (settings_.nphibitsstub(5) - settings_.nphibitsstub(layerdisk2_));
+
+  // IRT - try to fix flooring bias for 2S barrel layers
+  if (8 - settings_.nrbitsstub(layerdisk1_) > 0) {
+    ir1 = (2 * ir1 + 1);
+    ir1 <<= (8 - settings_.nrbitsstub(layerdisk1_) - 1);
+  }
+  if (8 - settings_.nrbitsstub(layerdisk2_) > 0) {
+    ir2 = (2 * ir2 + 1);
+    ir2 <<= (8 - settings_.nrbitsstub(layerdisk2_) - 1);
+  }
+  if (settings_.nzbitsstub(0) - settings_.nzbitsstub(layerdisk1_) > 0) {
+    iz1 = (2 * iz1 + 1);
+    iz1 <<= (settings_.nzbitsstub(0) - settings_.nzbitsstub(layerdisk1_) - 1);
+  }
+  if (settings_.nzbitsstub(0) - settings_.nzbitsstub(layerdisk2_) > 0) {
+    iz2 = (2 * iz2 + 1);
+    iz2 <<= (settings_.nzbitsstub(0) - settings_.nzbitsstub(layerdisk2_) - 1);
+  }
+
+  /*
   ir1 <<= (8 - settings_.nrbitsstub(layerdisk1_));
   ir2 <<= (8 - settings_.nrbitsstub(layerdisk2_));
 
   iz1 <<= (settings_.nzbitsstub(0) - settings_.nzbitsstub(layerdisk1_));
   iz2 <<= (settings_.nzbitsstub(0) - settings_.nzbitsstub(layerdisk2_));
+  */
 
   //Each of ir1 and ir2 are signed 8 bit integers. idr is signed 9 bit integer
   int idr = ir2 - ir1;

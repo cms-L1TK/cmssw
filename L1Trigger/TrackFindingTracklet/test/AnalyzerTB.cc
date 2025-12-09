@@ -70,7 +70,10 @@ namespace trklet {
       std::deque<StubTB*> stubs_;
     };
     // truncates double precision of val into base precision
-    double digi(double val, double base) const { return (tt::floor(val / base) + .5) * base; }
+    // IRT - try disabling Thomas's digitisation, in case it explains resolution loss
+    //double digi(double val, double base) const { return (tt::floor(val / base) + .5) * base; }
+    double digi(double val, double base) const { return val; }
+
     // read in tracks and stubs
     void consume(const tt::StreamsTrack&, const tt::StreamsStub&, std::deque<TrackTB>&, std::deque<StubTB>&) const;
     // ED input token of Tracks
@@ -210,11 +213,47 @@ namespace trklet {
       // Do reco-truth matching.
       std::vector<TTStubRef> ttStubRefs;
       ttStubRefs.reserve(trackTB.stubs_.size());
-      for (StubTB* stubTB : trackTB.stubs_)
+      int nTiltedSeedStubs = 0;
+      for (StubTB* stubTB : trackTB.stubs_) {
         ttStubRefs.push_back(stubTB->ttStubRef_);
+        // IRT - Optionally examine seed stubs.
+        if (stubTB->seed_) {
+          tt::SensorModule* sensorModule = setup_->sensorModule(stubTB->ttStubRef_);
+          if (sensorModule->tilted() || not sensorModule->barrel())
+            nTiltedSeedStubs++; // Check if track has seed stubs in tilted or disk modules.
+        }
+      }
+
+      // Do reco-truth matching.
       const std::vector<TPPtr>& tpPtrs = associator.associateFinal(ttStubRefs);
+
+      // IRT -- Optionally do some preselection on the tracks, to debug specific ones.
+      bool matchTruth = (tpPtrs.size() == 1);
+      if (not matchTruth || tpPtrs[0]->pt() < 10) // Reject fake or low Pt tracks
+        continue;
+      if (nTiltedSeedStubs > 0) // Reject tracks with complicated seeding
+        continue;
+
+      if (trackTB.seedType_ == 0 && nTiltedSeedStubs == 0) {
+        std::cout << "TP SIZE " << tpPtrs.size() << std::endl;
+        if (tpPtrs.size() != 1)
+          continue;
+        std::cout << "PT TRACKLET vs TRUTH : " << fabs(setup_->invPtToDphi() / trackTB.inv2R_) << " " << tpPtrs[0]->pt()
+                  << std::endl;
+        std::cout << "Z0 TRACKLET vs TRUTH : " << trackTB.z0_ << " " << tpPtrs[0]->z0() << std::endl;
+        std::cout << "TANL TRACKLET vs TRUTH : " << trackTB.cot_ << " " << tpPtrs[0]->tanl() << std::endl;
+      }      
+
       // analyze stub z residuals
       for (StubTB* stubTB : trackTB.stubs_) {
+
+        // IRT -- Optionally plot only specific stubs. (Here only plot seed stubs in 2S barrel)
+        tt::SensorModule* sensorModule = setup_->sensorModule(stubTB->ttStubRef_);
+        if (not stubTB->seed_) 
+          continue;
+        if (sensorModule->tilted() || not sensorModule->barrel() || sensorModule->psModule())
+          continue;
+
         // calculate TBStub z position
         const double z =
             trackTB.z0_ + trackTB.cot_ / trackTB.inv2R_ * std::asin(stubTB->r_ * trackTB.inv2R_) + stubTB->z_;
