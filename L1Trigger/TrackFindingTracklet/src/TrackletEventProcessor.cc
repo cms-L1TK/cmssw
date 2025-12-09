@@ -325,6 +325,9 @@ void TrackletEventProcessor::event(SLHCEvent& ev,
     }
     PDTimer_.stop();
   }
+
+  if (settings_->writeMem())
+    sector_->incrBXEvent();
 }
 
 void TrackletEventProcessor::printSummary() {

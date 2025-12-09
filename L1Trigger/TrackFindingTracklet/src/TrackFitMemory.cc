@@ -24,9 +24,4 @@ void TrackFitMemory::writeTF(bool first, unsigned int iSector) {
     out_ << "\n";
   }
   out_.close();
-
-  bx_++;
-  event_++;
-  if (bx_ > 7)
-    bx_ = 0;
 }

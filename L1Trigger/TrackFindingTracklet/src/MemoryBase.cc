@@ -93,6 +93,13 @@ std::string MemoryBase::eventHeader() {
   return ss.str();
 }
 
+void MemoryBase::incrBXEvent() {
+  bx_++;
+  event_++;
+  if (bx_ > 7)
+    bx_ = 0;
+}
+
 void MemoryBase::openFile(const bool first, const std::string& dirName, const std::string& filebase) {
   std::string fname = filebase + getName();
 
@@ -111,11 +118,6 @@ void MemoryBase::openFile(const bool first, const std::string& dirName, const st
   openfile(out_, first, dirName, dirName + fname, __FILE__, __LINE__);
 
   out_ << eventHeader() << endl;
-
-  bx_++;
-  event_++;
-  if (bx_ > 7)
-    bx_ = 0;
 }
 
 size_t MemoryBase::find_nth(const string& haystack, size_t pos, const string& needle, size_t nth) {

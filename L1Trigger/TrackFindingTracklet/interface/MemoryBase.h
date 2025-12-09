@@ -37,6 +37,7 @@ namespace trklet {
 
     std::string fnameWithSuffix(const std::string& fname);
     std::string eventHeader();
+    void incrBXEvent();
 
     void openFile(const bool first, const std::string& dirName, const std::string& filebase);
 

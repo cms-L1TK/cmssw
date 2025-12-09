@@ -48,9 +48,4 @@ void CleanTrackMemory::writeCT(bool first, unsigned int iSector) {
     outCT_.close();
   }
   // --------------------------------------------------------------
-
-  bx_++;
-  event_++;
-  if (bx_ > 7)
-    bx_ = 0;
 }

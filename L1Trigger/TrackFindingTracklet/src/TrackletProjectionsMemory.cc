@@ -89,9 +89,4 @@ void TrackletProjectionsMemory::writeTPROJ(bool first, unsigned int iSector) {
     outTPROJ_[j].close();
   }
   out_.close();
-
-  bx_++;
-  event_++;
-  if (bx_ > 7)
-    bx_ = 0;
 }
