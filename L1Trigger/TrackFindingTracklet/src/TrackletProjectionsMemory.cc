@@ -82,11 +82,10 @@ void TrackletProjectionsMemory::writeTPROJ(bool first, unsigned int iSector) {
     std::ostringstream oss;
     char postfix = getName()[10];
     postfix += j;
-    oss << dirTP << "TrackletProjections_" << moduleName << postfix << "_" << getName().substr(getName().size() - 6, 6)
-         << "_" << std::setfill('0') << std::setw(2) << (iSector_ + 1) << ".dat";
-    std::string fnameTPROJ = oss.str();
-    openfile(outTPROJ_[j], first, dirTP, fnameTPROJ, __FILE__, __LINE__);
-    outTPROJ_[j] << "BX = " << (bitset<3>)bx_ << " Event : " << event_ << endl;
+    oss << "TrackletProjections_" << moduleName << postfix << "_" << getName().substr(getName().size() - 6, 6);
+    const std::string fnameTPROJ = fnameWithSuffix(oss.str());
+    openfile(outTPROJ_[j], first, dirTP, dirTP + fnameTPROJ, __FILE__, __LINE__);
+    outTPROJ_[j] << eventHeader() << endl;
     for (unsigned int i = 0; i < tracklets_[j].size(); i++) {
       string proj = (layer_ > 0 && tracklets_[j][i]->validProj(layer_ - 1))
                         ? tracklets_[j][i]->trackletprojstrlayer(layer_)
