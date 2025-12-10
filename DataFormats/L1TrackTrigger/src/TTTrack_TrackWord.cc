@@ -36,9 +36,11 @@ TTTrack_TrackWord::TTTrack_TrackWord(unsigned int valid,
                                      double bendChi2,
                                      unsigned int hitPattern,
                                      double mvaQuality,
-                                     double mvaOther,
+                                     double mvaQualityE,
+                                     double mvaQualityD,
                                      unsigned int sector) {
-  setTrackWord(valid, momentum, POCA, rInv, chi2RPhi, chi2RZ, bendChi2, hitPattern, mvaQuality, mvaOther, sector);
+  setTrackWord(
+      valid, momentum, POCA, rInv, chi2RPhi, chi2RZ, bendChi2, hitPattern, mvaQuality, mvaQualityE, mvaQualityD, sector);
 }
 
 TTTrack_TrackWord::TTTrack_TrackWord(unsigned int valid,
@@ -52,8 +54,10 @@ TTTrack_TrackWord::TTTrack_TrackWord(unsigned int valid,
                                      unsigned int bendChi2,
                                      unsigned int hitPattern,
                                      unsigned int mvaQuality,
-                                     unsigned int mvaOther) {
-  setTrackWord(valid, rInv, phi0, tanl, z0, d0, chi2RPhi, chi2RZ, bendChi2, hitPattern, mvaQuality, mvaOther);
+                                     unsigned int mvaQualityE,
+                                     unsigned int mvaQualityD) {
+  setTrackWord(
+      valid, rInv, phi0, tanl, z0, d0, chi2RPhi, chi2RZ, bendChi2, hitPattern, mvaQuality, mvaQualityE, mvaQualityD);
 }
 
 // A setter for the floating point values
@@ -66,7 +70,8 @@ void TTTrack_TrackWord::setTrackWord(unsigned int valid,
                                      double bendChi2,
                                      unsigned int hitPattern,
                                      double mvaQuality,
-                                     double mvaOther,
+                                     double mvaQualityE,
+                                     double mvaQualityD,
                                      unsigned int sector) {
   // first, derive quantities to be packed
   float rPhi = localPhi(momentum.phi(), sector);  // this needs to be phi relative to the center of the sector
@@ -86,12 +91,23 @@ void TTTrack_TrackWord::setTrackWord(unsigned int valid,
   bendChi2_t bendChi2_ = getBin(bendChi2, bendChi2Bins);
   hit_t hitPattern_ = hitPattern;
   qualityMVA_t mvaQuality_ = getBin(mvaQuality, tqMVABins);
-  otherMVA_t mvaOther_ = mvaOther;
+  qualityMVAE_t mvaQualityE_ = getBin(mvaQualityE, tqMVAEBins);
+  qualityMVAD_t mvaQualityD_ = getBin(mvaQualityD, tqMVADBins);
 
   // pack the track word
-  //trackWord = ( mvaOther_, mvaQuality_, hitPattern_, bendChi2_, chi2RZ_, chi2RPhi_, d0_, z0_, tanl_, phi0_, rInv_, valid_ );
-  setTrackWord(
-      valid_, rInv_, phi0_, tanl_, z0_, d0_, chi2RPhi_, chi2RZ_, bendChi2_, hitPattern_, mvaQuality_, mvaOther_);
+  setTrackWord(valid_,
+               rInv_,
+               phi0_,
+               tanl_,
+               z0_,
+               d0_,
+               chi2RPhi_,
+               chi2RZ_,
+               bendChi2_,
+               hitPattern_,
+               mvaQuality_,
+               mvaQualityE_,
+               mvaQualityD_);
 }
 
 // A setter for already-digitized values
@@ -106,7 +122,8 @@ void TTTrack_TrackWord::setTrackWord(unsigned int valid,
                                      unsigned int bendChi2,
                                      unsigned int hitPattern,
                                      unsigned int mvaQuality,
-                                     unsigned int mvaOther) {
+                                     unsigned int mvaQualityE,
+                                     unsigned int mvaQualityD) {
   // bin and convert to integers
   valid_t valid_ = valid;
   rinv_t rInv_ = rInv;
@@ -119,14 +136,23 @@ void TTTrack_TrackWord::setTrackWord(unsigned int valid,
   bendChi2_t bendChi2_ = bendChi2;
   hit_t hitPattern_ = hitPattern;
   qualityMVA_t mvaQuality_ = mvaQuality;
-  otherMVA_t mvaOther_ = mvaOther;
+  qualityMVAE_t mvaQualityE_ = mvaQualityE;
+  qualityMVAD_t mvaQualityD_ = mvaQualityD;
 
   // pack the track word
-  //trackWord = ( otherMVA_t(mvaOther), qualityMVA_t(mvaQuality), hit_t(hitPattern),
-  //              bendChi2_t(bendChi2), chi2rz_t(chi2RZ), chi2rphi_t(chi2RPhi),
-  //              d0_t(d0), z0_t(z0), tanl_t(tanl), phi_t(phi0), rinv_t(rInv), valid_t(valid) );
-  setTrackWord(
-      valid_, rInv_, phi0_, tanl_, z0_, d0_, chi2RPhi_, chi2RZ_, bendChi2_, hitPattern_, mvaQuality_, mvaOther_);
+  setTrackWord(valid_,
+               rInv_,
+               phi0_,
+               tanl_,
+               z0_,
+               d0_,
+               chi2RPhi_,
+               chi2RZ_,
+               bendChi2_,
+               hitPattern_,
+               mvaQuality_,
+               mvaQualityE_,
+               mvaQualityD_);
 }
 
 void TTTrack_TrackWord::setTrackWord(
@@ -141,13 +167,18 @@ void TTTrack_TrackWord::setTrackWord(
     ap_uint<TrackBitWidths::kBendChi2Size> bendChi2,
     ap_uint<TrackBitWidths::kHitPatternSize> hitPattern,
     ap_uint<TrackBitWidths::kMVAQualitySize> mvaQuality,
-    ap_uint<TrackBitWidths::kMVAOtherSize> mvaOther) {
+    ap_uint<TrackBitWidths::kMVAQualityESize> mvaQualityE,
+    ap_uint<TrackBitWidths::kMVAQualityDSize> mvaQualityD) {
   // pack the track word
   unsigned int offset = 0;
-  for (unsigned int b = offset; b < (offset + TrackBitWidths::kMVAOtherSize); b++) {
-    trackWord_.set(b, mvaOther[b - offset]);
+  for (unsigned int b = offset; b < (offset + TrackBitWidths::kMVAQualityDSize); b++) {
+    trackWord_.set(b, mvaQualityD[b - offset]);
   }
-  offset += TrackBitWidths::kMVAOtherSize;
+  offset += TrackBitWidths::kMVAQualityDSize;
+  for (unsigned int b = offset; b < (offset + TrackBitWidths::kMVAQualityESize); b++) {
+    trackWord_.set(b, mvaQualityE[b - offset]);
+  }
+  offset += TrackBitWidths::kMVAQualityESize;
   for (unsigned int b = offset; b < (offset + TrackBitWidths::kMVAQualitySize); b++) {
     trackWord_.set(b, mvaQuality[b - offset]);
   }
