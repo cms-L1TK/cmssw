@@ -246,6 +246,7 @@ namespace trklet {
       static constexpr double trkMVA3 = 0.;
       const unsigned int aHitpattern = it->hitPattern_.val();
       const unsigned int nPar = ttTrackRef->nFitPars();
+      const float dummy = -99.;
       outputs.emplace_back(aRinv,
                            aphi,
                            aTanLambda,
@@ -258,13 +259,14 @@ namespace trklet {
                            trkMVA3,
                            aHitpattern,
                            nPar,
-                           bfield_);
+                           bfield_,
+                           region,
+                           ttTrackRef->etaSector(),
+                           dummy,
+                           ttTrackRef->trackSeedType());
       TTTrack<Ref_Phase2TrackerDigi_>& ttTrack = outputs.back();
-      ttTrack.setPhiSector(region);
-      ttTrack.setEtaSector(ttTrackRef->etaSector());
-      ttTrack.setTrackSeedType(ttTrackRef->trackSeedType());
       ttTrack.setStubRefs(it->ttStubRefs_);
-      ttTrack.setStubPtConsistency(StubPtConsistency::getConsistency(
+      ttTrack.setChi2BendRed(StubPtConsistency::getConsistency(
           ttTrack, setup_->trackerGeometry(), setup_->trackerTopology(), bfield_, nPar));
       ttTrack.setTrackWordBits();
     }
