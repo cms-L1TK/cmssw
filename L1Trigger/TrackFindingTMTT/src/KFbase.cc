@@ -89,6 +89,7 @@ namespace tmtt {
                            trackPars[PHI0],
                            trackPars[Z0],
                            trackPars[T],
+                           cand->matrixC(),
                            cand->chi2rphi(),
                            cand->chi2rz(),
                            nHelixPar_);
