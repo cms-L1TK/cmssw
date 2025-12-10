@@ -584,6 +584,7 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
         }
 
         double stubbend = stubRef->bendFE();  //stubRef->rawBend()
+        // Bend has opposite sign in -ve endcap?
         if (ttPos.z() < -120) {
           stubbend = -stubbend;
         }
@@ -681,6 +682,10 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
     double tmp_chi2rphi = track.chisqrphi();
     double tmp_chi2rz = track.chisqrz();
     unsigned int tmp_hit = track.hitpattern();
+    unsigned int trksector = track.sector();
+    unsigned int trkseed = (unsigned int)abs(track.seed());
+    constexpr unsigned int dummy = 99;
+    constexpr double dummyf = -99.;
 
     TTTrack<Ref_Phase2TrackerDigi_> aTrack(tmp_rinv,
                                            tmp_phi,
@@ -694,13 +699,11 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
                                            0,
                                            tmp_hit,
                                            settings_.nHelixPar(),
-                                           settings_.bfield());
-
-    unsigned int trksector = track.sector();
-    unsigned int trkseed = (unsigned int)abs(track.seed());
-
-    aTrack.setPhiSector(trksector);
-    aTrack.setTrackSeedType(trkseed);
+                                           settings_.bfield(),
+                                           trksector,
+                                           dummy,
+                                           dummyf,
+                                           trkseed);
 
     const std::vector<trklet::L1TStub>& stubptrs = track.stubs();
     std::vector<trklet::L1TStub> stubs;
@@ -710,24 +713,24 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
       stubs.push_back(stubptr);
     }
 
-    int countStubs = 0;
     stubMapType::const_iterator it;
     stubIndexMapType::const_iterator itIndex;
     for (const auto& itstubs : stubs) {
       itIndex = stubIndexMap.find(itstubs.uniqueIndex());
       if (itIndex != stubIndexMap.end()) {
         aTrack.addStubRef(itIndex->second);
-        countStubs = countStubs + 1;
       } else {
-        // could not find stub in stub map
+        // can this ever happen?
+        throw cms::Exception("LogicError") << __FILE__ << "Stub disappeared";
       }
     }
 
-    // pt consistency
-    aTrack.setStubPtConsistency(
-        StubPtConsistency::getConsistency(aTrack, theTrackerGeom, tTopo, settings_.bfield(), settings_.nHelixPar()));
+    // stub bend pt consistency chi2/ndf
+    float chi2BendRed =
+        StubPtConsistency::getConsistency(aTrack, theTrackerGeom, tTopo, settings_.bfield(), settings_.nHelixPar());
+    aTrack.setChi2BendRed(chi2BendRed);
 
-    // set track word before TQ MVA calculated which uses track word variables
+    // set track word before TQ MVA calculated, since TQ MVA uses track word variables
     aTrack.setTrackWordBits();
 
     // tq
@@ -742,11 +745,6 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
     //    if (trackQuality_) {
     //      trackQualityModel_->setBonusFeatures(hph.bonusFeatures());
     //    }
-
-    // set track word again to set MVA variable from TTTrack into track word
-    aTrack.setTrackWordBits();
-    // test track word
-    //aTrack.testTrackWordBits();
 
     // set track word again to set MVA variable from TTTrack into track word
     aTrack.setTrackWordBits();
