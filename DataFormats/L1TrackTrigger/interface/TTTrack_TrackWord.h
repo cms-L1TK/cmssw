@@ -172,11 +172,11 @@ public:
   TTTrack_TrackWord(const tkword_bs_t& trackWord) : trackWord_(trackWord) {}
 
   // ----------copy constructor ----------------------
-  TTTrack_TrackWord(const TTTrack_TrackWord& word) { trackWord_ = word.trackWord_; }
+  TTTrack_TrackWord(const TTTrack_TrackWord& word) { trackWord_ = word.getTrackWordBS(); }
 
   // ----------operators -----------------------------
   TTTrack_TrackWord& operator=(const TTTrack_TrackWord& word) {
-    trackWord_ = word.trackWord_;
+    trackWord_ = word.getTrackWordBS();
     return *this;
   }
 
@@ -210,7 +210,10 @@ public:
   qualityMVAD_t getMVAQualityDWord() const {
     return getTrackWord()(TrackBitLocations::kMVAQualityDMSB, TrackBitLocations::kMVAQualityDLSB);
   }
+  
+  // Get entire data word
   tkword_t getTrackWord() const { return tkword_t(trackWord_.to_string().c_str(), 2); }
+  tkword_bs_t getTrackWordBS() const { return trackWord_; }
 
   // These functions return the packed bits in unsigned integer format for each quantity
   // Signed quantities have the sign enconded in the left-most bit of the pattern using
