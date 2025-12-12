@@ -210,7 +210,7 @@ public:
   qualityMVAD_t getMVAQualityDWord() const {
     return getTrackWord()(TrackBitLocations::kMVAQualityDMSB, TrackBitLocations::kMVAQualityDLSB);
   }
-  
+
   // Get entire data word
   tkword_t getTrackWord() const { return tkword_t(trackWord_.to_string().c_str(), 2); }
   tkword_bs_t getTrackWordBS() const { return trackWord_; }
