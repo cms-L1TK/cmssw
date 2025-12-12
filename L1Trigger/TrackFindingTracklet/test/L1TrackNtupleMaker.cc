@@ -173,6 +173,11 @@ private:
   std::vector<float>* m_trk_chi2rz;
   std::vector<float>* m_trk_chi2rz_dof;
   std::vector<float>* m_trk_bendchi2;
+  std::vector<float>* m_trk_sigma_qOverPt;  // Uncertainties from fitted helix covariance matrix
+  std::vector<float>* m_trk_sigma_phi;
+  std::vector<float>* m_trk_sigma_d0;
+  std::vector<float>* m_trk_sigma_z0;
+  std::vector<float>* m_trk_sigma_tanL;
   std::vector<int>* m_trk_nstub;
   std::vector<int>* m_trk_lhits;
   std::vector<int>* m_trk_dhits;
@@ -202,6 +207,7 @@ private:
   std::vector<int>*
       m_trk_matchtp_eventtype;  //event type: 0 = fake track (not genuine), 1 = TP from signal pp event, 2 = TP from pileup
   std::vector<int>* m_trk_matchtp_pdgid;
+  // kinematics of matching truth particle
   std::vector<float>* m_trk_matchtp_pt;
   std::vector<float>* m_trk_matchtp_eta;
   std::vector<float>* m_trk_matchtp_phi;
@@ -364,6 +370,11 @@ void L1TrackNtupleMaker::endJob() {
   delete m_trk_chi2rz;
   delete m_trk_chi2rz_dof;
   delete m_trk_bendchi2;
+  delete m_trk_sigma_qOverPt;
+  delete m_trk_sigma_phi;
+  delete m_trk_sigma_d0;
+  delete m_trk_sigma_z0;
+  delete m_trk_sigma_tanL;
   delete m_trk_nstub;
   delete m_trk_lhits;
   delete m_trk_dhits;
@@ -491,6 +502,11 @@ void L1TrackNtupleMaker::beginJob() {
   m_trk_chi2rz = new std::vector<float>;
   m_trk_chi2rz_dof = new std::vector<float>;
   m_trk_bendchi2 = new std::vector<float>;
+  m_trk_sigma_qOverPt = new std::vector<float>;
+  m_trk_sigma_phi = new std::vector<float>;
+  m_trk_sigma_d0 = new std::vector<float>;
+  m_trk_sigma_z0 = new std::vector<float>;
+  m_trk_sigma_tanL = new std::vector<float>;
   m_trk_nstub = new std::vector<int>;
   m_trk_lhits = new std::vector<int>;
   m_trk_dhits = new std::vector<int>;
@@ -610,6 +626,11 @@ void L1TrackNtupleMaker::beginJob() {
     eventTree->Branch("trk_chi2rz", &m_trk_chi2rz);
     eventTree->Branch("trk_chi2rz_dof", &m_trk_chi2rz_dof);
     eventTree->Branch("trk_bendchi2", &m_trk_bendchi2);
+    eventTree->Branch("trk_sigma_qOverPt", &m_trk_sigma_qOverPt);
+    eventTree->Branch("trk_sigma_phi", &m_trk_sigma_phi);
+    eventTree->Branch("trk_sigma_d0", &m_trk_sigma_d0);
+    eventTree->Branch("trk_sigma_z0", &m_trk_sigma_z0);
+    eventTree->Branch("trk_sigma_tanL", &m_trk_sigma_tanL);
     eventTree->Branch("trk_nstub", &m_trk_nstub);
     eventTree->Branch("trk_lhits", &m_trk_lhits);
     eventTree->Branch("trk_dhits", &m_trk_dhits);
@@ -758,6 +779,11 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
     m_trk_chi2rz->clear();
     m_trk_chi2rz_dof->clear();
     m_trk_bendchi2->clear();
+    m_trk_sigma_qOverPt->clear();
+    m_trk_sigma_phi->clear();
+    m_trk_sigma_d0->clear();
+    m_trk_sigma_z0->clear();
+    m_trk_sigma_tanL->clear();
     m_trk_nstub->clear();
     m_trk_lhits->clear();
     m_trk_dhits->clear();
@@ -907,6 +933,11 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
   const hph::Setup* hphSetup = hphHandle.product();
   const tt::Setup* setup = handleSetup.product();
   const trackerTFP::LayerEncoding* layerEncoding = handleLayerEncoding.product();
+
+  // Conversion factor curvature radius to Pt.
+  const float b_field = bFieldHandle.product()->inTesla(GlobalPoint(0, 0, 0)).z();
+  const float cLight = CLHEP::c_light / 1.0E5;
+  const float convertRToPt = cLight * b_field;
 
   // ----------------------------------------------------------------------------------------------
   // loop over L1 stubs
@@ -1100,6 +1131,15 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
       float tmp_trk_zT = iterL1Track->z0() + setup->chosenRofZ() * iterL1Track->tanL();
       int tmp_trk_charge = (int)TMath::Sign(1, iterL1Track->rInv());
 
+      const auto& helixCovMat = iterL1Track->helixCovMat();
+      // Protect against wierd covariance matrices with negatives.
+      auto safeSqrt = [](float q) { return q >= 0 ? sqrt(q) : -sqrt(-q); };
+      float tmp_trk_sigma_qOverPt = 2 * safeSqrt(helixCovMat[0][0]) / convertRToPt;
+      float tmp_trk_sigma_phi = safeSqrt(helixCovMat[1][1]);
+      float tmp_trk_sigma_tanL = safeSqrt(helixCovMat[2][2]);
+      float tmp_trk_sigma_z0 = safeSqrt(helixCovMat[3][3]);
+      float tmp_trk_sigma_d0 = safeSqrt(helixCovMat[4][4]);
+
       int tmp_trk_hitpattern = 0;
       tmp_trk_hitpattern = (int)iterL1Track->hitPattern();
       // TO FIX -- The HitPatternHelper code contains several bugs & design flaws.
@@ -1276,6 +1316,11 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
       m_trk_chi2rz->push_back(tmp_trk_chi2rz);
       m_trk_chi2rz_dof->push_back(tmp_trk_chi2rz_dof);
       m_trk_bendchi2->push_back(tmp_trk_bendchi2);
+      m_trk_sigma_qOverPt->push_back(tmp_trk_sigma_qOverPt);
+      m_trk_sigma_phi->push_back(tmp_trk_sigma_phi);
+      m_trk_sigma_z0->push_back(tmp_trk_sigma_z0);
+      m_trk_sigma_d0->push_back(tmp_trk_sigma_d0);
+      m_trk_sigma_tanL->push_back(tmp_trk_sigma_tanL);
       m_trk_MVA1->push_back(tmp_trk_MVA1);
       m_trk_nstub->push_back(tmp_trk_nstub);
       m_trk_dhits->push_back(tmp_trk_dhits);
@@ -1344,9 +1389,7 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
         float delx = -tmp_matchtp_vx;
         float dely = -tmp_matchtp_vy;
 
-        float b_field = bFieldHandle.product()->inTesla(GlobalPoint(0, 0, 0)).z();
-        float c_converted = CLHEP::c_light / 1.0E5;
-        float r2_inv = my_tp->charge() * c_converted * b_field / tmp_matchtp_pt / 2.0;
+        float r2_inv = my_tp->charge() * convertRToPt / tmp_matchtp_pt / 2.0;
 
         float tmp_matchtp_x0p = delx - (1. / (2. * r2_inv) * sin(tmp_matchtp_phi));
         float tmp_matchtp_y0p = dely + (1. / (2. * r2_inv) * cos(tmp_matchtp_phi));
@@ -1454,9 +1497,7 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
     float delx = -tmp_tp_vx;
     float dely = -tmp_tp_vy;
 
-    float b_field = bFieldHandle.product()->inTesla(GlobalPoint(0, 0, 0)).z();
-    float c_converted = CLHEP::c_light / 1.0E5;
-    float r2_inv = tmp_tp_charge * c_converted * b_field / tmp_tp_pt / 2.0;
+    float r2_inv = tmp_tp_charge * convertRToPt / tmp_tp_pt / 2.0;
 
     float tmp_tp_x0p = delx - (1. / (2. * r2_inv) * sin(tmp_tp_phi));  // centre of track circle (except sign ...)
     float tmp_tp_y0p = dely + (1. / (2. * r2_inv) * cos(tmp_tp_phi));

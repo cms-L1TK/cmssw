@@ -181,6 +181,7 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
   vector<float>* trk_pt;
   vector<float>* trk_eta;
   vector<float>* trk_phi;
+  vector<float>* trk_z0;
   vector<float>* trk_chi2;
   vector<float>* trk_chi2_dof;
   vector<float>* trk_chi2rphi;
@@ -192,10 +193,13 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
   vector<int>* trk_dhits;
   vector<int>* trk_seed;
   vector<int>* trk_hitpattern;
+  vector<int>* trk_nPS_hitpattern;
+  vector<float>* trk_sigma_z0;
   vector<unsigned int>* trk_phiSector;
   vector<int>* trk_genuine;
   vector<int>* trk_loose;
   vector<int>* trk_matchtp_eventtype;
+  vector<float>* trk_matchtp_z0;
   vector<int>* trk_injet;
   vector<int>* trk_injet_highpt;
   vector<int>* trk_injet_vhighpt;
@@ -238,6 +242,7 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
   TBranch* b_trk_pt;
   TBranch* b_trk_eta;
   TBranch* b_trk_phi;
+  TBranch* b_trk_z0;
   TBranch* b_trk_chi2;
   TBranch* b_trk_chi2_dof;
   TBranch* b_trk_chi2rphi;
@@ -249,10 +254,13 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
   TBranch* b_trk_dhits;
   TBranch* b_trk_seed;
   TBranch* b_trk_hitpattern;
+  TBranch* b_trk_nPS_hitpattern;
+  TBranch* b_trk_sigma_z0;
   TBranch* b_trk_phiSector;
   TBranch* b_trk_genuine;
   TBranch* b_trk_loose;
   TBranch* b_trk_matchtp_eventtype;
+  TBranch* b_trk_matchtp_z0;
   TBranch* b_trk_injet;
   TBranch* b_trk_injet_highpt;
   TBranch* b_trk_injet_vhighpt;
@@ -295,6 +303,7 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
   trk_pt = 0;
   trk_eta = 0;
   trk_phi = 0;
+  trk_z0 = 0;
   trk_chi2 = 0;
   trk_chi2_dof = 0;
   trk_chi2rphi = 0;
@@ -306,10 +315,13 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
   trk_dhits = 0;
   trk_seed = 0;
   trk_hitpattern = 0;
+  trk_nPS_hitpattern = 0;
+  trk_sigma_z0 = 0;
   trk_phiSector = 0;
   trk_genuine = 0;
   trk_loose = 0;
   trk_matchtp_eventtype = 0;
+  trk_matchtp_z0 = 0;
   trk_injet = 0;
   trk_injet_highpt = 0;
   trk_injet_vhighpt = 0;
@@ -356,6 +368,7 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
   tree->SetBranchAddress("trk_pt", &trk_pt, &b_trk_pt);
   tree->SetBranchAddress("trk_eta", &trk_eta, &b_trk_eta);
   tree->SetBranchAddress("trk_phi", &trk_phi, &b_trk_phi);
+  tree->SetBranchAddress("trk_z0", &trk_z0, &b_trk_z0);
   tree->SetBranchAddress("trk_chi2", &trk_chi2, &b_trk_chi2);
   tree->SetBranchAddress("trk_chi2_dof", &trk_chi2_dof, &b_trk_chi2_dof);
   tree->SetBranchAddress("trk_chi2rphi", &trk_chi2rphi, &b_trk_chi2rphi);
@@ -367,10 +380,13 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
   tree->SetBranchAddress("trk_dhits", &trk_dhits, &b_trk_dhits);
   tree->SetBranchAddress("trk_seed", &trk_seed, &b_trk_seed);
   tree->SetBranchAddress("trk_hitpattern", &trk_hitpattern, &b_trk_hitpattern);
+  tree->SetBranchAddress("trk_nPSstub_hitpattern", &trk_nPS_hitpattern, &b_trk_nPS_hitpattern);
+  tree->SetBranchAddress("trk_sigma_z0", &trk_sigma_z0, &b_trk_sigma_z0);
   tree->SetBranchAddress("trk_phiSector", &trk_phiSector, &b_trk_phiSector);
   tree->SetBranchAddress("trk_genuine", &trk_genuine, &b_trk_genuine);
   tree->SetBranchAddress("trk_loose", &trk_loose, &b_trk_loose);
   tree->SetBranchAddress("trk_matchtp_eventtype", &trk_matchtp_eventtype, &b_trk_matchtp_eventtype);
+  tree->SetBranchAddress("trk_matchtp_z0", &trk_matchtp_z0, &b_trk_matchtp_z0);
   if (TP_select_injet > 0) {
     tree->SetBranchAddress("trk_injet", &trk_injet, &b_trk_injet);
     tree->SetBranchAddress("trk_injet_highpt", &trk_injet_highpt, &b_trk_injet_highpt);
@@ -942,6 +958,11 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
   }
   // ----------------------------------------------------------------------------------------------------------------
 
+  // more resolution relative to uncertainty estimated from helix covariance matrix
+  TProfile* p_resOverSigmaVsEta_z0 =
+      new TProfile("resOverSigmaVsEta_z0", ";#eta; abs(z_{0} residual)/#sigma", 12, 0.0, 2.4, 0.0, 10.);
+  TProfile* p_resOverSigmaVsNumPS_z0 = new TProfile(
+      "resOverSigmaVsNumPS_z0", ";Number PS stub layers; abs(z_{0} residual)/#sigma", 10, -0.5, 9.5, 0.0, 10.);
   // ----------------------------------------------------------------------------------------------------------------
   // additional ones for sum pt in jets
   /*
@@ -1160,6 +1181,14 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
         ntrkevt_pt10++;
         if (trk_genuine->at(it) == 1)
           ntrkevt_genuine_pt10++;
+      }
+
+      if (trk_genuine->at(it) && trk_matchtp_eventtype->at(it) == 1) {
+        std::vector<float>* m_trk_matchtp_z0;
+        p_resOverSigmaVsEta_z0->Fill(fabs(trk_eta->at(it)),
+                                     fabs(trk_z0->at(it) - trk_matchtp_z0->at(it)) / trk_sigma_z0->at(it));
+        p_resOverSigmaVsNumPS_z0->Fill(trk_nPS_hitpattern->at(it),
+                                       fabs(trk_z0->at(it) - trk_matchtp_z0->at(it)) / trk_sigma_z0->at(it));
       }
 
       // ----------------------------------------------------------------------------------------------------------------
@@ -2826,7 +2855,12 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
     c.SaveAs(DIR + type + "_resVsPhi_ptRel_90.pdf");
   }
 
-  // ----------------------------------------------------------------------------------------------------------------
+  // resolution in z0 relative to sigma(z0)
+  p_resOverSigmaVsEta_z0->Draw();
+  c.SaveAs(DIR + type + "_resOverSigmaVsEta_z0.pdf");
+  p_resOverSigmaVsNumPS_z0->Draw();
+  c.SaveAs(DIR + type + "_resOverSigmaVsNumPS_z0.pdf");
+  //----------------------------------------------------------------------------------------------------------------
   // track quality plots
   // ----------------------------------------------------------------------------------------------------------------
 

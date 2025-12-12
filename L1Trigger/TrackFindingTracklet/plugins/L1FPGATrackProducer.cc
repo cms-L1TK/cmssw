@@ -686,6 +686,7 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
     unsigned int trkseed = (unsigned int)abs(track.seed());
     constexpr unsigned int dummy = 99;
     constexpr double dummyf = -99.;
+    const trklet::Track::CovMat& covMat = track.helixCovMat();
 
     TTTrack<Ref_Phase2TrackerDigi_> aTrack(tmp_rinv,
                                            tmp_phi,
@@ -703,7 +704,8 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
                                            trksector,
                                            dummy,
                                            dummyf,
-                                           trkseed);
+                                           trkseed,
+                                           covMat);
 
     const std::vector<trklet::L1TStub>& stubptrs = track.stubs();
     std::vector<trklet::L1TStub> stubs;
