@@ -169,6 +169,8 @@ public:
                     unsigned int trkQualMVAE,
                     unsigned int trkQualMVAD);
 
+  TTTrack_TrackWord(const tkword_bs_t& trackWord) : trackWord_(trackWord) {}
+
   // ----------copy constructor ----------------------
   TTTrack_TrackWord(const TTTrack_TrackWord& word) { trackWord_ = word.trackWord_; }
 
@@ -241,8 +243,8 @@ public:
   unsigned int getHitPattern() const { return getHitPatternBits(); }
   unsigned int getNStubs() const { return countSetBits(getHitPatternBits()); }
   double getMVAQuality() const { return tqMVABins[getMVAQualityBits()]; }
-  double getMVAEQuality() const { return tqMVABins[getMVAQualityEBits()]; }
-  double getMVADQuality() const { return tqMVABins[getMVAQualityDBits()]; }
+  double getMVAEQuality() const { return tqMVAEBins[getMVAQualityEBits()]; }
+  double getMVADQuality() const { return tqMVADBins[getMVAQualityDBits()]; }
 
   // ----------member functions (setters) ------------
   void setTrackWord(unsigned int valid,
