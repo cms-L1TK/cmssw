@@ -167,7 +167,7 @@ public:
   std::string print() const;
 
 private:
-  // 1/rinv measured in cm.
+  // Converter - 1/rinv measured in cm.
   double rinvToPt(double rinv) const { return (cLight_ / 1.0e11) * std::abs(theBField_ / rinv); }
 
 };  /// Close class
