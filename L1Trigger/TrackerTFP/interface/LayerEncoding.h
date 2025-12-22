@@ -33,9 +33,16 @@ namespace trackerTFP {
     // encoded layer id which may be PS or 2S for given zT in cm
     int maybePS(double zT) const;
     // sector in r-z plane
-    int rzSector(double zT) const {return zT_->integer(zT);}
+    int rzSector(double zT) const { return zT_->integer(zT); }
     // fills r-z sector, numPS, num2S, numMissingPS and numMissingPS for given hitPattern and trajectory
-    void analyze(int hitpattern, double cot, double z0, int& rzSect, int& numPS, int& num2S, int& numMissingPS, int& numMissing2S) const;
+    void analyze(int hitpattern,
+                 double cot,
+                 double z0,
+                 int& rzSect,
+                 int& numPS,
+                 int& num2S,
+                 int& numMissingPS,
+                 int& numMissing2S) const;
 
   private:
     // helper class providing run-time constants

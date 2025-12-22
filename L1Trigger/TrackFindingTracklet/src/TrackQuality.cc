@@ -89,10 +89,10 @@ namespace trklet {
       // transform double to AP_FIXED_BDT
       static const double d = std::pow(2., 10);
       const std::vector<AP_FIXED_BDT> features({nStubs, zT / d, cot / d, chi20 / d, chi21 / d, nGaps});
-      
+
       // Run the Track Quality BDT calculation
       const AP_FIXED_BDT mvaFixed = bdt_->decision_function(features).at(0);
-      
+
       const AP_INT_BDT mvaInt = mvaFixed.range(mvaFixed.width - 1, 0);
       // bin mva
       const std::vector<int>& binEdges = channelAssignment_->tqBinEdges();

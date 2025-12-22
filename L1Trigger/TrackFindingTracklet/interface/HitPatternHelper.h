@@ -69,7 +69,14 @@ namespace hph {
     int etaRegion(double z0, double cot, bool useNewKF) const;
     const std::vector<int>& layerEncoding(double zT) const { return layerEncoding_->layerEncoding(zT); }
     // LayerEncoding call filling numPS, num2S, numMissingPS and numMissingPS for given hitPattern and trajectory
-    void analyze(int hitpattern, double cot, double z0, int& rzSect, int& numPS, int& num2S, int& numMissingPS, int& numMissing2S) const {
+    void analyze(int hitpattern,
+                 double cot,
+                 double z0,
+                 int& rzSect,
+                 int& numPS,
+                 int& num2S,
+                 int& numMissingPS,
+                 int& numMissing2S) const {
       layerEncoding_->analyze(hitpattern, cot, z0, rzSect, numPS, num2S, numMissingPS, numMissing2S);
     }
 
@@ -119,7 +126,7 @@ namespace hph {
     int reducedId(
         int layerId);  //Converts layer ID (1~6->L1~L6;11~15->D1~D5) to reduced layer ID (0~5->L1~L6;6~10->D1~D5)
     int findLayer(int layerId);  //Search for a layer ID from sensor modules
-    bool newKF() const {return useNewKF_;} 
+    bool newKF() const { return useNewKF_; }
 
   private:
     const Setup* setup_;

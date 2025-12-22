@@ -1185,7 +1185,7 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
           double z = posStub.z();
 
           int layer = -999999;
-          bool barrel = (detIdStub.subdetId() == StripSubdetector::TOB); 
+          bool barrel = (detIdStub.subdetId() == StripSubdetector::TOB);
           if (barrel) {
             layer = static_cast<int>(tTopo->layer(detIdStub));
             if (DebugMode)
@@ -1201,7 +1201,7 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
           }
 
           bool psMod = (theTrackerGeom->getDetectorType(detIdStub) == TrackerGeometry::ModuleType::Ph2PSP);
-          int layerdisk = barrel ? layer : 10 + layer; 
+          int layerdisk = barrel ? layer : 10 + layer;
           if (psMod) {
             hitLayPS.insert(layerdisk);
           } else {
@@ -1218,18 +1218,20 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
           // due to r-boundary of PS-2S not being well defined, and due to truncation of hit pattern
           // from 8 to 7 bits.
           std::stringstream ss;
-          ss <<"Number of layers with stubs estimated from hit pattern is inaccurate: (PS,2S) = ("
-             <<hph.numPS()<<","<<hph.num2S()<<") vs ("<<hitLayPS.size()<<","<<hitLay2S.size()
-             <<"), eta sect = "<<hph.etaSector()<<", hitpattern = "<<std::bitset<8>(tmp_trk_hitpattern)
-             <<", hit layers = PS(";
-          for (const auto& lay : hitLayPS) ss<<" "<<lay;
-          ss <<") + 2S(";
-          for (const auto& lay : hitLay2S) ss<<" "<<lay;
-          ss <<")";
-          edm::LogWarning("Tracklet")<<ss.str();
+          ss << "Number of layers with stubs estimated from hit pattern is inaccurate: (PS,2S) = (" << hph.numPS()
+             << "," << hph.num2S() << ") vs (" << hitLayPS.size() << "," << hitLay2S.size()
+             << "), eta sect = " << hph.etaSector() << ", hitpattern = " << std::bitset<8>(tmp_trk_hitpattern)
+             << ", hit layers = PS(";
+          for (const auto& lay : hitLayPS)
+            ss << " " << lay;
+          ss << ") + 2S(";
+          for (const auto& lay : hitLay2S)
+            ss << " " << lay;
+          ss << ")";
+          edm::LogWarning("Tracklet") << ss.str();
         }
       }
-      
+
       // ----------------------------------------------------------------------------------------------
 
       int tmp_trk_genuine = 0;

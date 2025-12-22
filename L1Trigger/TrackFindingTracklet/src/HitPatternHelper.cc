@@ -27,7 +27,7 @@ namespace hph {
         nKalmanLayers_(tmtt::KFbase::nKFlayer_) {
     if (useNewKF_) {
       chosenRofZ_ = chosenRofZNewKF_;
-      etaRegions_ = etaRegionsNewKF_; // TO FIX: Not defined
+      etaRegions_ = etaRegionsNewKF_;  // TO FIX: Not defined
     } else {
       chosenRofZ_ = iConfig.chosenRofZ_;
       etaRegions_ = iConfig.etaRegions_;
@@ -60,7 +60,7 @@ namespace hph {
         layerEncoding_(setup->layerEncoding(zT_)),
         numExpLayer_(layerEncoding_.size()),
         hitpattern_(hitpattern),
-        etaSector_(setup_->etaRegion(z0, cot, useNewKF_)), // Only works for old KF
+        etaSector_(setup_->etaRegion(z0, cot, useNewKF_)),  // Only works for old KF
         numMissingLayer_(0),
         numMissingPS_(0),
         numMissing2S_(0),
@@ -73,7 +73,8 @@ namespace hph {
     // FIX: Function analyze is only designed to work correctly for NEWKF.
     int rzSect = 0;
     setup->analyze(hitpattern, cot, z0, rzSect, numPS_, num2S_, numMissingPS_, numMissing2S_);
-    if (useNewKF_) etaSector_ = rzSect;
+    if (useNewKF_)
+      etaSector_ = rzSect;
     int kf_eta_reg = etaSector_;
     if (kf_eta_reg < ((int)etaRegions_.size() - 1) / 2) {
       kf_eta_reg = ((int)etaRegions_.size() - 1) / 2 - 1 - kf_eta_reg;
@@ -112,8 +113,8 @@ namespace hph {
         edm::LogVerbatim("Tracklet") << "Running with Old KF";
       }
       edm::LogVerbatim("Tracklet") << "======================================================";
-      edm::LogVerbatim("Tracklet")
-          << "Looking at hitpattern " << std::bitset<7>(hitpattern_) << "; Looping over KF layers:";
+      edm::LogVerbatim("Tracklet") << "Looking at hitpattern " << std::bitset<7>(hitpattern_)
+                                   << "; Looping over KF layers:";
     }
 
     if (useNewKF_) {
@@ -204,7 +205,7 @@ namespace hph {
     if (hphDebug_) {
       edm::LogVerbatim("Tracklet") << "------------------------------";
       edm::LogVerbatim("Tracklet") << "numPS = " << numPS_ << ", num2S = " << num2S_
-                                          << ", missingPS = " << numMissingPS_ << ", missing2S = " << numMissing2S_;
+                                   << ", missingPS = " << numMissingPS_ << ", missing2S = " << numMissing2S_;
       edm::LogVerbatim("Tracklet") << "======================================================";
     }
   }
