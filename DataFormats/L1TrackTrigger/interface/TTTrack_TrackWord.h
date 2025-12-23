@@ -250,6 +250,8 @@ public:
   double getMVADQuality() const { return tqMVADBins[getMVAQualityDBits()]; }
 
   // ----------member functions (setters) ------------
+  void setTrackWord(const tkword_bs_t& trackWord) {trackWord_ = trackWord;}
+
   void setTrackWord(unsigned int valid,
                     const GlobalVector& momentum,
                     const GlobalPoint& POCA,
