@@ -1,12 +1,10 @@
 /*! \class   TTTrack
  *  \brief   Class to store the L1 Tracks.
- *  \details After moving from SimDataFormats to DataFormats,
- *           the template structure of the class was maintained
+ *  \details The template structure of the class was maintained
  *           in order to accomodate any types other than PixelDigis
  *           in case there is such a need in the future.
  *
  *  \author Nicola Pozzobon (+ update Ian Tomalin)
- *
  */
 
 #ifndef L1_TRACK_TRIGGER_TRACK_FORMAT_H
@@ -57,11 +55,11 @@ public:
   /// Constructors
   TTTrack();
 
-  TTTrack(double aRinv,
-          double aphi,
+  TTTrack(double Rinv,
+          double phi0,
           double tanL,
-          double az0,
-          double ad0,
+          double z0,
+          double d0,
           double aChi2xyfit,
           double aChi2zfit,
           double trkMVA1,
@@ -87,7 +85,7 @@ public:
   /// Track curvature
   double rInv() const { return theRInv_; }
 
-  /// Track phi
+  /// Track phi0
   double phi() const { return thePhi_; }
 
   // Track phi with respect to centre line of phi nonant, which for sector 0 is parallel to x-axis.
@@ -204,11 +202,11 @@ TTTrack<T>::TTTrack()
 
 /// Default constructor
 template <typename T>
-TTTrack<T>::TTTrack(double aRinv,
-                    double aphi0,
+TTTrack<T>::TTTrack(double Rinv,
+                    double phi0,
                     double tanL,
-                    double az0,
-                    double ad0,
+                    double z0,
+                    double d0,
                     double aChi2XY,
                     double aChi2Z,
                     double trkMVA1,
@@ -222,13 +220,12 @@ TTTrack<T>::TTTrack(double aRinv,
                     double chi2BendRed,
                     unsigned int seedType,
                     const CovMat& helixCovMat)
-    : theMomentum_(GlobalVector::Cylindrical(rinvToPt(aRinv), aphi0, rinvToPt(aRinv) * tanL)),
-      thePOCA_(ad0 * sin(aphi0), -ad0 * cos(aphi0), az0),
-      theRInv_(aRinv),
-      thePhi_(aphi0),
+    : thePOCA_(d0 * sin(phi0), -d0 * cos(phi0), z0),
+      theRInv_(Rinv),
+      thePhi_(phi0),
       theTanL_(tanL),
-      theD0_(ad0),
-      theZ0_(az0),
+      theD0_(d0),
+      theZ0_(z0),
       thePhiSector_(phiSector),
       theEtaSector_(etaSector),
       theStubPtConsistency_(chi2BendRed),
@@ -242,7 +239,10 @@ TTTrack<T>::TTTrack(double aRinv,
       theTrkMVA3_(trkMVA3),
       theTrackSeedType_(seedType),
       theBField_(Bfield),
-      theHelixCovMat_(helixCovMat) {}
+      theHelixCovMat_(helixCovMat) {
+  double pT = rinvToPt(Rinv);
+  theMomentum_ = GlobalVector(GlobalVector::Cylindrical(pT, phi0, pT * tanL));
+}
 
 template <typename T>
 double TTTrack<T>::localPhi() const {
@@ -281,11 +281,12 @@ void TTTrack<T>::setBField(double aBField) {
 template <typename T>
 void TTTrack<T>::setTrackWordBits() {
   constexpr unsigned int valid = true;
+  constexpr double mvaOther = 0.;
 
   // missing conversion of global phi to difference from sector center phi
 
   setTrackWord(valid,
-               theMomentum_,
+               momentum(),
                POCA(),
                rInv(),
                chi2XYRed(),
@@ -293,9 +294,8 @@ void TTTrack<T>::setTrackWordBits() {
                chi2BendRed(),
                hitPattern(),
                trkMVA1(),
-               trkMVA2(),
-               trkMVA3(),
-               thePhiSector_);
+               mvaOther,
+               phiSector());
 
   return;
 }
@@ -304,11 +304,20 @@ template <typename T>
 std::string TTTrack<T>::print() const {
   const std::string padding("\t");
   std::stringstream output;
-  output << padding << "TTTrack:\n\n";
+  output << padding << "TTTrack:\n";
+  // Compare original helix params with undigi(digi()) ones.
+  output << "Comparing float vs undigi(digi(float))\n";
+  output << "Rinv      = " << rInv()     << " vs " << getRinv() << "\n";
+  output << "Local phi = " << localPhi() << " vs " << getPhi() << "\n";
+  output << "tanL      = " << tanL()     << " vs " << getTanl() << "\n";
+  output << "z0        = " << z0()       << " vs " << getZ0() << "\n";
+  output << "chi2XYRed = " << chi2XYRed()<< " vs " << getChi2RPhi() << "\n";
+  output << "trkMVA1   = " << trkMVA1()  << " vs " << getMVAQuality() << "\n";
+  output <<"digi(L1 track) word = " << getTrackWord().to_string(16) << "\n";
 
   unsigned int iStub = 0;
   for (const auto& stubIter : theStubRefs) {
-    output << padding << "stub: " << iStub++ << ", DetId: " << ((*stubIter)->getDetId()).rawId() << '\n';
+    output << padding << "stub: " << iStub++ << ", DetId: " << (stubIter->getDetId()).rawId() << '\n';
   }
 
   return output.str();
