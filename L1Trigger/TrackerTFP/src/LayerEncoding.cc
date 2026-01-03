@@ -159,7 +159,7 @@ namespace trackerTFP {
     return maybePS(binZT);
   }
 
-    // fills binZT (unsigned), numPS, num2S, numMissingPS and numMissingPS for given hitPattern and trajectory
+  // fills binZT (unsigned), numPS, num2S, numMissingPS and numMissingPS for given hitPattern and trajectory
   void LayerEncoding::analyze(int hitpattern,
                               double cot,
                               double z0,
