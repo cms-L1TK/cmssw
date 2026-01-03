@@ -186,8 +186,8 @@ namespace trackerTFP {
         const int diskId = layerId - setup_->offsetLayerDisks() - setup_->offsetLayerId();
         // avergae disk z position
         const double z = setup_->hybridDiskZ(diskId) * (cot < 0. ? -1. : 1.);
-        // innermost edge of 2S modules
-        double rLimit = setup_->disk2SR(diskId, 0) - setup_->pitchCol2S();
+        // smallest stub radii from 2S disks
+        double rLimit = setup_->disk2SR(diskId, 0) - .5 * setup_->pitchCol2S();
         // trajectory radius at average disk z position
         const double r = (z - z0) / cot;
         // compare with innermost edge of 2S modules to identify PS
