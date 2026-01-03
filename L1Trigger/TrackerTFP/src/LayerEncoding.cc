@@ -159,18 +159,18 @@ namespace trackerTFP {
     return maybePS(binZT);
   }
 
-  // fills numPS, num2S, numMissingPS and numMissingPS for given hitPattern and trajectory
+    // fills binZT (unsigned), numPS, num2S, numMissingPS and numMissingPS for given hitPattern and trajectory
   void LayerEncoding::analyze(int hitpattern,
                               double cot,
                               double z0,
-                              int& rzSect,
+                              int& binZT,
                               int& numPS,
                               int& num2S,
                               int& numMissingPS,
                               int& numMissing2S) const {
     // look up layer encoding nad maybe pattern
     const double zT = z0 + setup_->chosenRofZ() * cot;
-    rzSect = this->rzSector(zT);
+    binZT = zT_->toUnsigned(zT_->integer(zT));
     const std::vector<int>& le = this->layerEncoding(zT);
     const TTBV& mp = this->maybePattern(zT);
     const TTBV hp(hitpattern, setup_->numLayers());
@@ -187,7 +187,7 @@ namespace trackerTFP {
         // avergae disk z position
         const double z = setup_->hybridDiskZ(diskId) * (cot < 0. ? -1. : 1.);
         // innermost edge of 2S modules
-        double rLimit = setup_->disk2SR(diskId, 0) - 0.5 * setup_->pitchCol2S();
+        double rLimit = setup_->disk2SR(diskId, 0) - setup_->pitchCol2S();
         // trajectory radius at average disk z position
         const double r = (z - z0) / cot;
         // compare with innermost edge of 2S modules to identify PS

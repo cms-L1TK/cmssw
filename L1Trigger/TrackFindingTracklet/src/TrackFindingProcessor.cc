@@ -80,9 +80,8 @@ namespace trklet {
     if (!valid_)
       return;
     // create bit vectors
-
-    // hitpattern() returns a TTBV object, with bitset data member. str() does not flip this.
     std::string s = trackTQ.hitPattern().str();
+    std::reverse(s.begin(), s.end());
     // Drop outermost (8th) track layer, as data format foresees only 7 bits.
     s.erase(0, 1);
     hitPattern_ = TTBV(s);
