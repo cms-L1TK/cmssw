@@ -43,7 +43,6 @@ namespace trklet {
   class VMRouterCM;
   class TrackletProcessor;
   class TrackletProcessorDisplaced;
-  class TrackletCalculatorDisplaced;
   class ProjectionCalculator;
   class VMStubMERouter;
   class MatchProcessor;
@@ -96,7 +95,6 @@ namespace trklet {
     void executeTRE();
     void executeTP();
     void executeTPD();
-    void executeTCD();
     void executePC();
     void executeVMSMER();
     void executeMP();
@@ -152,7 +150,6 @@ namespace trklet {
     std::vector<std::unique_ptr<VMRouterCM>> VMRCM_;
     std::vector<std::unique_ptr<TrackletProcessor>> TP_;
     std::vector<std::unique_ptr<TrackletProcessorDisplaced>> TPD_;
-    std::vector<std::unique_ptr<TrackletCalculatorDisplaced>> TCD_;
     std::vector<std::unique_ptr<ProjectionCalculator>> PC_;
     std::vector<std::unique_ptr<VMStubMERouter>> VMSMER_;
     std::vector<std::unique_ptr<MatchProcessor>> MP_;

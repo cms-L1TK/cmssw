@@ -20,7 +20,6 @@
 #include "L1Trigger/TrackFindingTracklet/interface/VMRouterCM.h"
 #include "L1Trigger/TrackFindingTracklet/interface/TrackletProcessor.h"
 #include "L1Trigger/TrackFindingTracklet/interface/TrackletProcessorDisplaced.h"
-#include "L1Trigger/TrackFindingTracklet/interface/TrackletCalculatorDisplaced.h"
 #include "L1Trigger/TrackFindingTracklet/interface/ProjectionCalculator.h"
 #include "L1Trigger/TrackFindingTracklet/interface/VMStubMERouter.h"
 #include "L1Trigger/TrackFindingTracklet/interface/MatchProcessor.h"
@@ -134,8 +133,6 @@ void Sector::addProc(const string& procType, const string& procName) {
     addProcToVec(TP_, procName, settings_, globals_);
   } else if (procType == "TrackletProcessorDisplaced:") {
     addProcToVec(TPD_, procName, settings_, globals_);
-  } else if (procType == "TrackletCalculatorDisplaced:") {
-    addProcToVec(TCD_, procName, settings_, globals_);
   } else if (procType == "ProjectionCalculator:") {
     addProcToVec(PC_, procName, settings_, globals_);
   } else if (procType == "VMStubMERouter:") {
@@ -300,12 +297,6 @@ void Sector::executeTP() {
 
 void Sector::executeTPD() {
   for (auto& i : TPD_) {
-    i->execute(isector_, phimin_, phimax_);
-  }
-}
-
-void Sector::executeTCD() {
-  for (auto& i : TCD_) {
     i->execute(isector_, phimin_, phimax_);
   }
 }
