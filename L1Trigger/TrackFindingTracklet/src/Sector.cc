@@ -9,7 +9,6 @@
 #include "L1Trigger/TrackFindingTracklet/interface/AllInnerStubsMemory.h"
 #include "L1Trigger/TrackFindingTracklet/interface/VMStubsTEMemory.h"
 #include "L1Trigger/TrackFindingTracklet/interface/VMStubsMEMemory.h"
-#include "L1Trigger/TrackFindingTracklet/interface/StubTripletsMemory.h"
 #include "L1Trigger/TrackFindingTracklet/interface/TrackletParametersMemory.h"
 #include "L1Trigger/TrackFindingTracklet/interface/TrackletProjectionsMemory.h"
 #include "L1Trigger/TrackFindingTracklet/interface/FullMatchMemory.h"
@@ -106,8 +105,6 @@ void Sector::addMem(const string& memType, const string& memName) {
     addMemToVec(VMSTE_, memName, settings_);
   } else if (memType == "VMStubsME:") {
     addMemToVec(VMSME_, memName, settings_);
-  } else if (memType == "StubTriplets:") {
-    addMemToVec(ST_, memName, settings_);
   } else if (memType == "TrackletParameters:") {
     addMemToVec(TPAR_, memName, settings_);
   } else if (memType == "TrackletProjections:") {
@@ -226,12 +223,6 @@ void Sector::writeAS(bool first) {
 void Sector::writeAIS(bool first) {
   for (auto& i : AIS_) {
     i->writeStubs(first, isector_);
-  }
-}
-
-void Sector::writeST(bool first) {
-  for (auto& i : ST_) {
-    i->writeST(first, isector_);
   }
 }
 

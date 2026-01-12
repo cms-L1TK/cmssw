@@ -31,7 +31,6 @@ namespace trklet {
   class AllInnerStubsMemory;
   class VMStubsTEMemory;
   class VMStubsMEMemory;
-  class StubTripletsMemory;
   class TrackletParametersMemory;
   class TrackletProjectionsMemory;
   class FullMatchMemory;
@@ -79,7 +78,6 @@ namespace trklet {
     void writeVMSME(bool first);
     void writeAS(bool first);
     void writeAIS(bool first);
-    void writeST(bool first);
     void writeTPAR(bool first);
     void writeTPROJ(bool first);
     void writeMC(bool first);
@@ -138,7 +136,6 @@ namespace trklet {
     std::vector<std::unique_ptr<AllInnerStubsMemory>> AIS_;
     std::vector<std::unique_ptr<VMStubsTEMemory>> VMSTE_;
     std::vector<std::unique_ptr<VMStubsMEMemory>> VMSME_;
-    std::vector<std::unique_ptr<StubTripletsMemory>> ST_;
     std::vector<std::unique_ptr<TrackletParametersMemory>> TPAR_;
     std::vector<std::unique_ptr<TrackletProjectionsMemory>> TPROJ_;
     std::vector<std::unique_ptr<FullMatchMemory>> FM_;
