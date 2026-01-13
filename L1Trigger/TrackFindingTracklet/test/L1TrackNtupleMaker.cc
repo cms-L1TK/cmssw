@@ -1123,6 +1123,11 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
       edm::Ptr<TTTrack<Ref_Phase2TrackerDigi_>> l1track_ptr(TTTrackHandle, this_l1track);
       this_l1track++;
 
+      if (DebugMode) {
+        // Print L1 track helix params etc.
+        edm::LogVerbatim("Tracklet") << *iterL1Track;
+      }
+
       float tmp_trk_pt = iterL1Track->momentum().perp();
       float tmp_trk_eta = iterL1Track->momentum().eta();
       float tmp_trk_phi = iterL1Track->momentum().phi();
@@ -1131,6 +1136,7 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
       float tmp_trk_zT = iterL1Track->z0() + setup->chosenRofZ() * iterL1Track->tanL();
       int tmp_trk_charge = (int)TMath::Sign(1, iterL1Track->rInv());
 
+      int nHelixPars = iterL1Track->nFitPars();
       const auto& helixCovMat = iterL1Track->helixCovMat();
       // Protect against wierd covariance matrices with negatives.
       auto safeSqrt = [](float q) { return q >= 0 ? sqrt(q) : -sqrt(-q); };
@@ -1138,7 +1144,7 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
       float tmp_trk_sigma_phi = safeSqrt(helixCovMat[1][1]);
       float tmp_trk_sigma_tanL = safeSqrt(helixCovMat[2][2]);
       float tmp_trk_sigma_z0 = safeSqrt(helixCovMat[3][3]);
-      float tmp_trk_sigma_d0 = safeSqrt(helixCovMat[4][4]);
+      float tmp_trk_sigma_d0 = (nHelixPars == 5) ? safeSqrt(helixCovMat[4][4]) : 0.;
 
       int tmp_trk_hitpattern = 0;
       tmp_trk_hitpattern = (int)iterL1Track->hitPattern();
