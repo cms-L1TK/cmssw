@@ -44,5 +44,8 @@
   <class name="edm::Wrapper<tt::TTTrackRefMap>"/>
   <class name="TTDTC"/>
   <class name="edm::Wrapper<TTDTC>"/>
+  <class name="std::vector<ROOT::Math::SMatrix<float,5,5,ROOT::Math::MatRepSym<float,5> > >"/>
+  <class name="std::vector<ROOT::Math::SMatrix<float,5u,5u,ROOT::Math::MatRepSym<float,5u> > >"/>
+  <class name="TMatrixTSym<float>"/>
 </lcgdict>
 

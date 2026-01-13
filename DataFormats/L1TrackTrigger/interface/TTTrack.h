@@ -50,6 +50,7 @@ private:
   int theTrackSeedType_;
   double theBField_;  // needed for unpacking
   CovMat theHelixCovMat_;
+
   static constexpr double cLight_ = CLHEP::c_light * (CLHEP::second / CLHEP::meter);
 
 public:
@@ -324,7 +325,7 @@ template <typename T>
 std::string TTTrack<T>::print() const {
   const std::string padding("\t");
   std::stringstream output;
-  output << padding << "TTTrack:\n";
+  output << padding << " -- TTTrack --\n";
   // Compare original helix params with undigi(digi()) ones.
   output << "Comparing float vs undigi(digi(float))\n";
   output << "Rinv      = " << rInv() << " vs " << getRinv() << "\n";
@@ -336,7 +337,8 @@ std::string TTTrack<T>::print() const {
   output << "trkMVA1   = " << trkMVA1() << " vs " << getMVAQuality() << "\n";
   auto safeSqrt = [](float q) { return q >= 0 ? sqrt(q) : -sqrt(-q); };
   output << "sigma(z0) = " << safeSqrt(theHelixCovMat_[3][3]) << "\n";
-  output << "sigma(d0) = " << safeSqrt(theHelixCovMat_[4][4]) << "\n";
+  if (theNumFitPars_ == 5)
+    output << "sigma(d0) = " << safeSqrt(theHelixCovMat_[4][4]) << "\n";
   output << "sigma(phi0) = " << safeSqrt(theHelixCovMat_[1][1]) << "\n";
 
   output << "digi(L1 track) word = " << getTrackWord().to_string(16) << "\n";
