@@ -25,12 +25,13 @@ TTTrack_TrackWord::TTTrack_TrackWord(unsigned int valid,
                                      double mvaQuality,
                                      double mvaOther,
                                      unsigned int sector) {
-  setTrackWord(valid, momentum, POCA, rInv, chi2RPhiRed, chi2RZRed, bendChi2Red, hitPattern, mvaQuality, mvaOther, sector);
+  setTrackWord(
+      valid, momentum, POCA, rInv, chi2RPhiRed, chi2RZRed, bendChi2Red, hitPattern, mvaQuality, mvaOther, sector);
 }
 
 TTTrack_TrackWord::TTTrack_TrackWord(unsigned int valid,
                                      unsigned int rInv,
-                                     unsigned int localPhi, // relative to centre of phi nonant
+                                     unsigned int localPhi,  // relative to centre of phi nonant
                                      unsigned int tanl,
                                      unsigned int z0,
                                      unsigned int d0,
@@ -40,7 +41,8 @@ TTTrack_TrackWord::TTTrack_TrackWord(unsigned int valid,
                                      unsigned int hitPattern,
                                      unsigned int mvaQuality,
                                      unsigned int mvaOther) {
-  setTrackWord(valid, rInv, localPhi, tanl, z0, d0, chi2RPhiRed, chi2RZRed, bendChi2Red, hitPattern, mvaQuality, mvaOther);
+  setTrackWord(
+      valid, rInv, localPhi, tanl, z0, d0, chi2RPhiRed, chi2RZRed, bendChi2Red, hitPattern, mvaQuality, mvaOther);
 }
 
 // A setter for the floating point values
@@ -76,18 +78,28 @@ void TTTrack_TrackWord::setTrackWord(unsigned int valid,
   otherMVA_t mvaOther_HLS = (unsigned int)(mvaOther);
 
   // pack the track word
-  setTrackWord(
-      valid_HLS, rInv_HLS, phi0_HLS, tanl_HLS, z0_HLS, d0_HLS, chi2RPhiRed_HLS, chi2RZRed_HLS, bendChi2Red_HLS, hitPattern_HLS, mvaQuality_HLS, mvaOther_HLS);
+  setTrackWord(valid_HLS,
+               rInv_HLS,
+               phi0_HLS,
+               tanl_HLS,
+               z0_HLS,
+               d0_HLS,
+               chi2RPhiRed_HLS,
+               chi2RZRed_HLS,
+               bendChi2Red_HLS,
+               hitPattern_HLS,
+               mvaQuality_HLS,
+               mvaOther_HLS);
 }
 
 // A setter for already-digitized values
 void TTTrack_TrackWord::setTrackWord(unsigned int valid,
                                      unsigned int rInv,
-                                     unsigned int localPhi, // relative to centre of phi nonant
+                                     unsigned int localPhi,  // relative to centre of phi nonant
                                      unsigned int tanl,
                                      unsigned int z0,
                                      unsigned int d0,
-                                     unsigned int chi2RPhiRed, // normalized to dof
+                                     unsigned int chi2RPhiRed,  // normalized to dof
                                      unsigned int chi2RZRed,
                                      unsigned int bendChi2Red,
                                      unsigned int hitPattern,
@@ -108,8 +120,18 @@ void TTTrack_TrackWord::setTrackWord(unsigned int valid,
   otherMVA_t mvaOther_HLS = mvaOther;
 
   // pack the track word
-  setTrackWord(
-      valid_HLS, rInv_HLS, localPhi_HLS, tanl_HLS, z0_HLS, d0_HLS, chi2RPhiRed_HLS, chi2RZRed_HLS, bendChi2Red_HLS, hitPattern_HLS, mvaQuality_HLS, mvaOther_HLS);
+  setTrackWord(valid_HLS,
+               rInv_HLS,
+               localPhi_HLS,
+               tanl_HLS,
+               z0_HLS,
+               d0_HLS,
+               chi2RPhiRed_HLS,
+               chi2RZRed_HLS,
+               bendChi2Red_HLS,
+               hitPattern_HLS,
+               mvaQuality_HLS,
+               mvaOther_HLS);
 }
 
 // A setting for already-digitized values in HLS format
@@ -165,11 +187,11 @@ void TTTrack_TrackWord::setTrackWord(ap_uint<TrackBitWidths::kValidSize> valid,
 }
 
 void TTTrack_TrackWord::printTestDigitizationScheme(const unsigned int nBits,
-                                                   const double lsb,
-                                                   const double floatingPointValue,
-                                                   const unsigned int digitizedSignedValue,
-                                                   const double undigitizedSignedValue,
-                                                   const unsigned int redigitizedSignedValue) const {
+                                                    const double lsb,
+                                                    const double floatingPointValue,
+                                                    const unsigned int digitizedSignedValue,
+                                                    const double undigitizedSignedValue,
+                                                    const unsigned int redigitizedSignedValue) const {
   edm::LogInfo("TTTrack_TrackWord") << "testDigitizationScheme: (nBits, lsb) = (" << nBits << ", " << lsb << ")\n"
                                     << "Floating point value = " << floatingPointValue
                                     << "\tDigitized value = " << digitizedSignedValue
@@ -183,7 +205,8 @@ bool TTTrack_TrackWord::singleDigitizationSchemeTest(const double floatingPointV
   unsigned int digitizedSignedValue = digitizeSignedValue(floatingPointValue, nBits, lsb);
   double undigitizedSignedValue = undigitizeSignedValue(digitizedSignedValue, nBits, lsb);
   unsigned int redigitizedSignedValue = digitizeSignedValue(undigitizedSignedValue, nBits, lsb);
-  this->printTestDigitizationScheme(nBits, lsb, floatingPointValue, digitizedSignedValue, undigitizedSignedValue, redigitizedSignedValue);
+  this->printTestDigitizationScheme(
+      nBits, lsb, floatingPointValue, digitizedSignedValue, undigitizedSignedValue, redigitizedSignedValue);
   return (std::abs(floatingPointValue - undigitizedSignedValue) <= (lsb / 2.0)) &&
          (digitizedSignedValue == redigitizedSignedValue);
 }

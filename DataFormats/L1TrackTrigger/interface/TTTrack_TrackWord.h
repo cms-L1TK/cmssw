@@ -93,15 +93,15 @@ public:
 
   // Bin edges for chi2/dof (intentionally dropping last element)
   static constexpr std::array<double, 1 << TrackBitWidths::kChi2RPhiSize> chi2RPhiBins = {
-    {0.0, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 5.0, 6.0, 10.0, 15.0, 20.0, 35.0, 60.0, 200.0}};
+      {0.0, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 5.0, 6.0, 10.0, 15.0, 20.0, 35.0, 60.0, 200.0}};
   static constexpr std::array<double, 1 << TrackBitWidths::kChi2RZSize> chi2RZBins = {
-    {0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 6.0, 8.0, 10.0, 20.0, 50.0}};
+      {0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 6.0, 8.0, 10.0, 20.0, 50.0}};
   static constexpr std::array<double, 1 << TrackBitWidths::kBendChi2Size> bendChi2Bins = {
-    {0.0, 0.75, 1.0, 1.5, 2.25, 3.5, 5.0, 20.0}};
+      {0.0, 0.75, 1.0, 1.5, 2.25, 3.5, 5.0, 20.0}};
 
   // Bin edges for TQ MVA
   static constexpr std::array<double, 1 << TrackBitWidths::kMVAQualitySize> tqMVABins = {
-    {0.0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.750, 0.875}};
+      {0.0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.750, 0.875}};
 
   // Sector constants
   static constexpr unsigned int nSectors = 9;
@@ -136,7 +136,7 @@ public:
                     const GlobalVector& momentum,
                     const GlobalPoint& POCA,
                     double rInv,
-                    double chi2RPhiRed, // normalized to dof
+                    double chi2RPhiRed,  // normalized to dof
                     double chi2RZRed,
                     double bendChi2Red,
                     unsigned int hitPattern,
@@ -146,11 +146,11 @@ public:
 
   TTTrack_TrackWord(unsigned int valid,
                     unsigned int rInv,
-                    unsigned int localPhi, // phi relative to centre of phi nonant 
+                    unsigned int localPhi,  // phi relative to centre of phi nonant
                     unsigned int tanl,
                     unsigned int z0,
                     unsigned int d0,
-                    unsigned int chi2RPhiRed, // normalized to dof
+                    unsigned int chi2RPhiRed,  // normalized to dof
                     unsigned int chi2RZRed,
                     unsigned int bendChi2Red,
                     unsigned int hitPattern,
@@ -173,7 +173,9 @@ public:
   // Signed quantities have the sign enconded in the left-most bit.
   valid_t getValidWord() const { return getTrackWord()(TrackBitLocations::kValidMSB, TrackBitLocations::kValidLSB); }
   rinv_t getRinvWord() const { return getTrackWord()(TrackBitLocations::kRinvMSB, TrackBitLocations::kRinvLSB); }
-  phi_t getPhiWord() const { return getTrackWord()(TrackBitLocations::kPhiMSB, TrackBitLocations::kPhiLSB); } // relative to centre of phi nonant
+  phi_t getPhiWord() const {
+    return getTrackWord()(TrackBitLocations::kPhiMSB, TrackBitLocations::kPhiLSB);
+  }  // relative to centre of phi nonant
   tanl_t getTanlWord() const { return getTrackWord()(TrackBitLocations::kTanlMSB, TrackBitLocations::kTanlLSB); }
   z0_t getZ0Word() const { return getTrackWord()(TrackBitLocations::kZ0MSB, TrackBitLocations::kZ0LSB); }
   d0_t getD0Word() const { return getTrackWord()(TrackBitLocations::kD0MSB, TrackBitLocations::kD0LSB); }
@@ -206,7 +208,7 @@ public:
   //   a two's complement representation
   unsigned int getValidBits() const { return getValidWord().to_uint(); }
   unsigned int getRinvBits() const { return getRinvWord().to_uint(); }
-  unsigned int getPhiBits() const { return getPhiWord().to_uint(); } // phi relative to centre of phi nonant
+  unsigned int getPhiBits() const { return getPhiWord().to_uint(); }  // phi relative to centre of phi nonant
   unsigned int getTanlBits() const { return getTanlWord().to_uint(); }
   unsigned int getZ0Bits() const { return getZ0Word().to_uint(); }
   unsigned int getD0Bits() const { return getD0Word().to_uint(); }
@@ -222,7 +224,9 @@ public:
   // These functions return real numbers converted from the digitized quantities by unpacking the 96-bit track word
   bool getValid() const { return getValidWord().to_bool(); }
   double getRinv() const { return undigitizeSignedValue(getRinvBits(), TrackBitWidths::kRinvSize, stepRinv); }
-  double getPhi() const { return undigitizeSignedValue(getPhiBits(), TrackBitWidths::kPhiSize, stepPhi0); } // phi relative to centre of phi nonant
+  double getPhi() const {
+    return undigitizeSignedValue(getPhiBits(), TrackBitWidths::kPhiSize, stepPhi0);
+  }  // phi relative to centre of phi nonant
   double getTanl() const { return undigitizeSignedValue(getTanlBits(), TrackBitWidths::kTanlSize, stepTanL); }
   double getZ0() const { return undigitizeSignedValue(getZ0Bits(), TrackBitWidths::kZ0Size, stepZ0); }
   double getD0() const { return undigitizeSignedValue(getD0Bits(), TrackBitWidths::kD0Size, stepD0); }
@@ -277,7 +281,8 @@ public:
                     ap_uint<TrackBitWidths::kMVAOtherSize> mvaOther);
 
   // ----------member functions (testers) ------------
-  void printTestDigitizationScheme(const unsigned int, const double, const double, const unsigned int, const double, const unsigned int) const;
+  void printTestDigitizationScheme(
+      const unsigned int, const double, const double, const unsigned int, const double, const unsigned int) const;
   bool singleDigitizationSchemeTest(const double floatingPointValue, const unsigned int nBits, const double lsb) const;
   void testDigitizationScheme() const;
 

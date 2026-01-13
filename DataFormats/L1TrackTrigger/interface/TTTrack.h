@@ -18,6 +18,7 @@
 #include "DataFormats/SiStripDetId/interface/StripSubdetector.h"
 #include "DataFormats/Phase2TrackerDigi/interface/Phase2TrackerDigi.h"
 #include "DataFormats/Math/interface/Error.h"
+#include "DataFormats/Math/interface/deltaPhi.h"
 
 template <typename T>
 class TTTrack : public TTTrack_TrackWord {
@@ -106,7 +107,7 @@ public:
   /// Track charge
   int charge() const { return (theRInv_ > 0) ? 1 : -1; }
 
-  // Helix covariance matrix (always 5x5) in (1/2R, phi0, tanL, z0, d0).
+  // Helix covariance matrix (always 5x5) in (1/R, phi0, tanL, z0, d0).
   // (Added to study if any elements worth adding to L1 track firmware output).
   const CovMat& helixCovMat() const { return theHelixCovMat_; }
 
@@ -156,6 +157,10 @@ public:
   /// Hit Pattern
   unsigned int hitPattern() const { return theHitPattern_; }
 
+  /// Get helix params & chi2XY after constraining track to x=y=0.
+  // (Added to study if worth adding to L1 track firmware output).
+  void beamConstaint(double& phiConstr, double& rInvConst, double& chi2XYConstr);
+
   /// set new Bfield
   void setBField(double aBField);
 
@@ -164,7 +169,6 @@ public:
 
   std::string print() const;
 
-private:
   // Converter - 1/rinv measured in cm.
   double rinvToPt(double rinv) const { return (cLight_ / 1.0e11) * std::abs(theBField_ / rinv); }
 
@@ -267,6 +271,22 @@ double TTTrack<T>::chi2ZRed() const {
   return theChi2_Z_ / (theStubRefs.size() - 2.);
 }
 
+/// Get helix params & chi2XY after constraining track to x=y=0.
+template <typename T>
+void TTTrack<T>::beamConstaint(double& phi_constr, double& rInv_constr, double& chi2XY_constr) {
+  phi_constr = thePhi_;
+  rInv_constr = theRInv_;
+  chi2XY_constr = theChi2_XY_;
+  if (theNumFitPars_ == 5) {
+    // Calculated with Lagrange multipliers in approx that d0 is small.
+    double lagrange = theD0_ / theHelixCovMat_[4][4];
+    chi2XY_constr += lagrange * theD0_;
+    rInv_constr -= lagrange * theHelixCovMat_[4][0];
+    phi_constr -= lagrange * theHelixCovMat_[4][1];
+    phi_constr = reco::deltaPhi(phi_constr, 0.);
+  }
+}
+
 /// set B field if need be
 template <typename T>
 void TTTrack<T>::setBField(double aBField) {
@@ -307,13 +327,19 @@ std::string TTTrack<T>::print() const {
   output << padding << "TTTrack:\n";
   // Compare original helix params with undigi(digi()) ones.
   output << "Comparing float vs undigi(digi(float))\n";
-  output << "Rinv      = " << rInv()     << " vs " << getRinv() << "\n";
+  output << "Rinv      = " << rInv() << " vs " << getRinv() << "\n";
   output << "Local phi = " << localPhi() << " vs " << getPhi() << "\n";
-  output << "tanL      = " << tanL()     << " vs " << getTanl() << "\n";
-  output << "z0        = " << z0()       << " vs " << getZ0() << "\n";
-  output << "chi2XYRed = " << chi2XYRed()<< " vs " << getChi2RPhi() << "\n";
-  output << "trkMVA1   = " << trkMVA1()  << " vs " << getMVAQuality() << "\n";
-  output <<"digi(L1 track) word = " << getTrackWord().to_string(16) << "\n";
+  output << "tanL      = " << tanL() << " vs " << getTanl() << "\n";
+  output << "z0        = " << z0() << " vs " << getZ0() << "\n";
+  output << "d0        = " << d0() << " vs " << getD0() << "\n";
+  output << "chi2XYRed = " << chi2XYRed() << " vs " << getChi2RPhi() << "\n";
+  output << "trkMVA1   = " << trkMVA1() << " vs " << getMVAQuality() << "\n";
+  auto safeSqrt = [](float q) { return q >= 0 ? sqrt(q) : -sqrt(-q); };
+  output << "sigma(z0) = " << safeSqrt(theHelixCovMat_[3][3]) << "\n";
+  output << "sigma(d0) = " << safeSqrt(theHelixCovMat_[4][4]) << "\n";
+  output << "sigma(phi0) = " << safeSqrt(theHelixCovMat_[1][1]) << "\n";
+
+  output << "digi(L1 track) word = " << getTrackWord().to_string(16) << "\n";
 
   unsigned int iStub = 0;
   for (const auto& stubIter : theStubRefs) {

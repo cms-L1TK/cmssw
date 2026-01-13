@@ -1,5 +1,6 @@
 #include "L1Trigger/TrackFindingTracklet/interface/TrackFindingProcessor.h"
 #include "L1Trigger/TrackTrigger/interface/StubPtConsistency.h"
+#include "FWCore/MessageLogger/interface/MessageLogger.h"
 
 #include <numeric>
 #include <algorithm>
@@ -269,6 +270,8 @@ namespace trklet {
       ttTrack.setChi2BendRed(StubPtConsistency::getConsistency(
           ttTrack, setup_->trackerGeometry(), setup_->trackerTopology(), bfield_, nPar));
       ttTrack.setTrackWordBits();
+
+      //edm::LogVerbatim("Tracklet") << ttTrack;  // Print track
     }
   }
 

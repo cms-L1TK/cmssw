@@ -1,5 +1,5 @@
 //////////////////////////
-//  Producer by Anders  //mo
+//  Producer by Anders  //
 //     and Emmanuele    //
 //    july 2012 @ CU    //
 //////////////////////////
@@ -750,6 +750,11 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
 
     // set track word again to set MVA variable from TTTrack into track word
     aTrack.setTrackWordBits();
+
+    if (!settings_.fakefit()) {
+      if (settings_.debugTracklet())
+        edm::LogVerbatim("Tracklet") << aTrack;  // Print track
+    }
 
     L1TkTracksForOutput->push_back(aTrack);
   }
