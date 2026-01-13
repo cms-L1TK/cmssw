@@ -30,7 +30,7 @@ namespace trackerTFP {
   ProducerDemonstrator::ProducerDemonstrator(const edm::ParameterSet& iConfig) {
     auto cc = setWhatProduced(this);
     esGetToken_ = cc.consumes();
-    iConfig_.dirIPBB_ = iConfig.getParameter<std::string>("DirIPBB");
+    iConfig_.dirIPBB_ = iConfig.getParameter<std::string>("DirIPBB") + "/";
     iConfig_.runTime_ = iConfig.getParameter<double>("RunTime");
     iConfig_.linkMappingIn_ = iConfig.getParameter<std::vector<int>>("LinkMappingIn");
     iConfig_.linkMappingOut_ = iConfig.getParameter<std::vector<int>>("LinkMappingOut");

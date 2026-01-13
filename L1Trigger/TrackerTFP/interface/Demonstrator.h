@@ -30,12 +30,16 @@ namespace trackerTFP {
     // plays input through modelsim and compares result with output
     bool analyze(const std::vector<std::vector<tt::Frame>>& input,
                  const std::vector<std::vector<tt::Frame>>& output) const;
-
+    // create testvector compatible with L1T from the TFP output - each tracker region gets its own set of links
+    void l1tInput(const std::vector<std::vector<tt::Frame>>& output, const int nL1TEvent) const;
+    // test on hardware
+    int hw(std::string dirTGZ, std::string boardAdress, std::string boardType, std::string fpgaName, std::string dockerImage, int bufferOffset, int nEvents, bool saveAllFiles = false) const;
   private:
     // converts streams of bv into stringstream
     void convert(const std::vector<std::vector<tt::Frame>>& bits,
                  std::stringstream& ss,
-                 const std::vector<int>& mapping) const;
+                 const std::vector<int>& mapping,
+                 const int nL1TEvent = -1) const;
     // plays stringstream through modelsim
     void sim(const std::stringstream& ss) const;
     // compares stringstream with modelsim output
@@ -53,9 +57,9 @@ namespace trackerTFP {
     std::string dirIPBB_;
     // runtime in ms
     double runTime_;
-    //
+    // which input links/channels to use
     std::vector<int> linkMappingIn_;
-    //
+    // which ouput links/channels to use
     std::vector<int> linkMappingOut_;
     // path to input text file
     std::string dirIn_;
@@ -65,12 +69,14 @@ namespace trackerTFP {
     std::string dirPre_;
     // path to diff text file
     std::string dirDiff_;
-    // number of frames per event (161)
+    // number of frames per event (161-6)
     int numFrames_;
     // number of emp reset frames per event (6)
     int numFramesInfra_;
     // number of TFPs per time node (9)
     int numRegions_;
+    // number of L1T testvectors
+    mutable int nL1TFiles_ = 0;
   };
 
 }  // namespace trackerTFP

@@ -46,13 +46,15 @@ namespace trackerTFP {
     linkMapping(linkMappingOut_, map, output);
     convert(output, ss, map);
     // compares output with modelsim output
-    return compare(ss);
+    auto result = compare(ss);
+    return result;
   }
 
   // converts streams of bv into stringstream
   void Demonstrator::convert(const std::vector<std::vector<tt::Frame>>& bits,
                              std::stringstream& ss,
-                             const std::vector<int>& mapping) const {
+                             const std::vector<int>& mapping,
+                             const int nL1TEvent) const {
     // reset ss
     ss.str("");
     ss.clear();
@@ -69,11 +71,13 @@ namespace trackerTFP {
         links.push_back(offset + c);
     }
     // start with header
-    ss << header(links);
-    int nFrame(0);
+    if (nL1TEvent < 1)
+      ss << header(links);
+    int nFrame = nL1TEvent < 0 ? 0 :  (numFrames_ + numFramesInfra_) * nL1TEvent;
     // create one packet per region
-    bool first = true;
-    for (int region = 0; region < numRegions_; region++) {
+    bool first = nL1TEvent > 0 ? false : true;
+    const int numRegions = nL1TEvent < 0 ? numRegions_ : 1; // Each region is a separate event for TF test vectors
+    for (int region = 0; region < numRegions; region++) {
       const int offset = region * mapping.size();
       // start with emp 6 frame gap
       ss << infraGap(nFrame, links.size());
@@ -118,10 +122,10 @@ namespace trackerTFP {
     fs.close();
     // use linux diff on disk
     const std::string c = "diff " + dirPre_ + " " + dirOut_ + " &> " + dirDiff_;
+    // read diff output
     std::system(c.c_str());
     ss.str("");
     ss.clear();
-    // read diff output
     fs.open(dirDiff_.c_str(), std::fstream::in);
     ss << fs.rdbuf();
     fs.close();
@@ -172,6 +176,117 @@ namespace trackerTFP {
     std::stringstream ss;
     ss << (first ? "  1001 " : "  0001 ") << std::setfill('0') << std::setw(TTBV::S_ / 4) << std::hex << bv.to_ullong();
     return ss.str();
+  }
+
+  // create testvector compatible with L1T from the TFP output - each tracker region gets its own set of links
+  void Demonstrator::l1tInput(const std::vector<std::vector<tt::Frame>>& output, const int nL1TEvent) const {
+    // default link mapping
+    auto linkMapping =
+        [this](const std::vector<int>& mapC, std::vector<int>& map, const std::vector<std::vector<tt::Frame>>& data) {
+          if (mapC.empty()) {
+            map.resize(data.size());
+            std::iota(map.begin(), map.end(), 0);
+          } else
+            map = mapC;
+        };
+    // converts output into stringstream
+    std::stringstream ss;
+    std::vector<int> map;
+    linkMapping(linkMappingOut_, map, output);
+    convert(output, ss, map, nL1TEvent);
+    // write ss to disk
+    std::fstream fs;
+    if (nL1TEvent == 0) { // new file
+      const std::string dirL1T = dirIPBB_ + "l1t_" + std::to_string(nL1TFiles_++) + ".txt";
+      fs.open(dirL1T.c_str(), std::fstream::out);
+    } else { // append to existing file
+      const std::string dirL1T = dirIPBB_ + "l1t_" + std::to_string(nL1TFiles_ - 1) + ".txt";
+      fs.open(dirL1T.c_str(), std::fstream::app);
+    }
+    fs << ss.rdbuf();
+    fs.close();
+  }
+
+  // plays input files through hardware and compares with simulation output
+  int Demonstrator::hw(std::string dirTGZ, std::string boardAdress, std::string boardType, std::string nameFPGA, std::string dockerImage, int bufferOffset, int nEvents, bool saveAllFiles) const {
+    const std::string dirHWOut = dirIPBB_ + "/hw_out.txt";
+    const std::string dirYAML = dirIPBB_ + "/default_" + boardType + ".yml";
+    // make yaml file
+    if (!nEvents) {
+      std::stringstream ss;
+      ss << R"(contexts:
+  )" << boardType << R"(.processors:
+    parameters:
+      program:package:
+        replace_with: firmware_package
+      reset:source: internal
+      powerUp:wait (s): "5"
+      configureRxBuffers:startOffset: [0]
+      configureTxBuffers:startOffset: [)" << std::to_string(bufferOffset) << R"(]
+      §configureRxBuffers:
+        mode: [PlayOnce]
+        ids: [replace_with: input_channels]
+        dataURI: ['file']
+        dataFile: [replace_with: input_data_file]
+      §configureTxBuffers:
+        mode: [Capture]
+        ids: [replace_with: output_channels]
+        dataURI: ['']
+        dataFile: [type: file]
+      saveRxBuffers:ids:
+        replace_with: input_channels
+      saveTxBuffers:ids:
+        replace_with: output_channels)";
+      std::ofstream ofs;
+      ofs.open(dirYAML.c_str(), std::fstream::out);
+      ofs << ss.rdbuf();
+      ofs.close();
+    }
+    // format link mapping
+    auto getLinkMap = [](std::string& links, std::string fileName){
+      std::ifstream ifs;
+      ifs.open(fileName.c_str());
+      std::string line;
+      while (std::getline(in, line)) {
+        if (line.find("Link") == 0) {
+          // TODO FIX ME
+          break;
+        }
+      }
+      ifs.close();
+      links = line;
+    }
+    std::string inputLinks; // = "0-67";
+    std::string outputLinks; // = "0-3";
+    getLinkMap(inputLinks, dirIn_);
+    getLinkMap(outputLinks, dirOut_);
+    // run singularity
+    std::stringstream cmd;
+    cmd << "singularity run " << dockerImage << " " << boardAdress << " " << nameFPGA << " " << dirYAML << " " << dirTGZ << " " << dirIn_ << " " << dirHWOut << " --input-channels=" << inputLinks << " --output-channels=" << outputLinks << " --expected-output " << dirPre_ << " --max-frames 971";
+    if (nEvents)
+      cmd << " --continue";
+    int result = std::system(cmd.str().c_str());
+    // save input/output files
+    if (saveAllFiles) {
+      const std::string suffix = "_" + std::to_string(nEvents);
+      // copy file function
+      auto copyFile = [suffix](const std::string dir){
+        std::string dirCopy = dir;
+        dirCopy.insert(dirCopy.find_last_of('.'), suffix);
+        dirCopy.insert(dirCopy.find_last_of('/'), "/hwtest"); // TODO: CREATE THIS DIRECTORY
+        std::ifstream ifs(dir.c_str());
+        std::ofstream ofs(dirCopy.c_str());
+        ofs << ifs.rdbuf();
+        ifs.close();
+        ofs.close();
+      };
+      copyFile(dirIn_);
+      copyFile(dirOut_);
+      copyFile(dirPre_);
+      copyFile(dirDiff_);
+      copyFile(dirHWOut);
+    }
+    return result;
   }
 
 }  // namespace trackerTFP

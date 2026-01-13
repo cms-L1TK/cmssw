@@ -67,6 +67,16 @@ namespace trklet {
     //
     bool TBin_;
     bool TBout_;
+    // For L1T test vectors
+    int maxEventsPerL1TFile_ = 0;
+    // For HW tests
+    std::string dirTGZ_;
+    std::string dockerImage_;
+    std::string boardAdress_;
+    std::string boardType_;
+    std::string nameFPGA_;
+    int bufferOffset_;
+    bool saveAllFiles_;
   };
 
   Demonstrator::Demonstrator(const edm::ParameterSet& iConfig) {
@@ -90,6 +100,20 @@ namespace trklet {
     //
     TBin_ = labelIn == "l1tTTTracksFromTrackletEmulation";
     TBout_ = labelOut == "l1tTTTracksFromTrackletEmulation";
+    // write L1T test vectors
+    if (iConfig.getParameter<int>("MaxEventsPerL1TFile") && labelOut == "ProducerTFP") {
+      maxEventsPerL1TFile_ = iConfig.getParameter<int>("MaxEventsPerL1TFile");
+    }
+    // test on hardware
+    dirTGZ_ = iConfig.getParameter<std::string>("DirTGZ");
+    if (dirTGZ_ != "") {
+      dockerImage_ = iConfig.getParameter<std::string>("DockerImage");
+      boardAdress_ = iConfig.getParameter<std::string>("BoardAddress");
+      boardType_ = iConfig.getParameter<std::string>("BoardType");
+      nameFPGA_ = iConfig.getParameter<std::string>("NameFPGA");
+      bufferOffset_ = iConfig.getParameter<int>("BufferOffset");
+      saveAllFiles_ = iConfig.getParameter<bool>("SaveAllFiles");
+    }
   }
 
   void Demonstrator::beginRun(const edm::Run& iEvent, const edm::EventSetup& iSetup) {
@@ -109,7 +133,15 @@ namespace trklet {
     convert(iEvent, edGetTokenTracksOut_, edGetTokenStubsOut_, output, TBout_);
     if (!demonstrator_->analyze(input, output))
       throw cms::Exception("BitError.");
-  }
+    // create testvector compatible with L1T from the TFP output - each tracker region gets its own set of links in the same file
+    if (maxEventsPerL1TFile_)
+      demonstrator_->l1tInput(output, (nEvents_ - 1) % maxEventsPerL1TFile_); // if second argument is 0, l1tInput function will create a new output file
+    // test on hw
+    if (dirTGZ_ != "") {
+      if (demonstrator_->hw(dirTGZ_, boardAdress_, boardType_, nameFPGA_, dockerImage_, bufferOffset_, nEvents_-1, saveAllFiles_))
+        throw cms::Exception("HWError.");
+    }
+    }
 
   //
   void Demonstrator::convert(const edm::Event& iEvent,
