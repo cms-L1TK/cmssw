@@ -89,8 +89,6 @@ namespace trklet {
     // execute the different tracklet processing modules
     void executeIR();
     void executeVMR();
-    void executeTED();
-    void executeTRE();
     void executeTP();
     void executeTPD();
     void executePC();
