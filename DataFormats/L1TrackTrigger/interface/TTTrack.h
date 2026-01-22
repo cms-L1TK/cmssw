@@ -83,6 +83,7 @@ public:
 
   /// Track momentum
   const GlobalVector& momentum() const { return theMomentum_; }
+  double pt() const { return theMomentum_.perp(); }
 
   /// Track curvature
   double rInv() const { return theRInv_; }
@@ -160,7 +161,7 @@ public:
 
   /// Get helix params & chi2XY after constraining track to x=y=0.
   // (Added to study if worth adding to L1 track firmware output).
-  void beamConstaint(double& phiConstr, double& rInvConst, double& chi2XYConstr);
+  void beamConstraint(float& phi_con, float& rInv_con, float& pt_con, float& chi2XY_con, float& chi2XY_dof_con) const;
 
   /// set new Bfield
   void setBField(double aBField);
@@ -274,17 +275,25 @@ double TTTrack<T>::chi2ZRed() const {
 
 /// Get helix params & chi2XY after constraining track to x=y=0.
 template <typename T>
-void TTTrack<T>::beamConstaint(double& phi_constr, double& rInv_constr, double& chi2XY_constr) {
-  phi_constr = thePhi_;
-  rInv_constr = theRInv_;
-  chi2XY_constr = theChi2_XY_;
+void TTTrack<T>::beamConstraint(
+    float& phi_con, float& rInv_con, float& pt_con, float& chi2XY_con, float& chi2XY_dof_con) const {
+  phi_con = this->phi();
+  rInv_con = this->rInv();
+  pt_con = this->pt();
+  chi2XY_con = this->chi2XY();
+  chi2XY_dof_con = this->chi2XYRed();
+
   if (theNumFitPars_ == 5) {
     // Calculated with Lagrange multipliers in approx that d0 is small.
     double lagrange = theD0_ / theHelixCovMat_[4][4];
-    chi2XY_constr += lagrange * theD0_;
-    rInv_constr -= lagrange * theHelixCovMat_[4][0];
-    phi_constr -= lagrange * theHelixCovMat_[4][1];
-    phi_constr = reco::deltaPhi(phi_constr, 0.);
+    chi2XY_con += lagrange * theD0_;
+    rInv_con -= lagrange * theHelixCovMat_[4][0];
+    phi_con -= lagrange * theHelixCovMat_[4][1];
+    phi_con = reco::deltaPhi(phi_con, 0.);
+    pt_con = this->rinvToPt(rInv_con);
+    int nHelPar = 4;
+    int dof = theStubRefs.size() - (nHelPar - 2);
+    chi2XY_dof_con = chi2XY_con / dof;
   }
 }
 
