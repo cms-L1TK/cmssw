@@ -180,6 +180,7 @@ private:
   std::vector<float>* m_trk_sigma_tanL;
   std::vector<float>* m_trk_pt_beamCon;  // Helix params constrained to x=y=0.
   std::vector<float>* m_trk_phi_beamCon;
+  std::vector<float>* m_trk_chi2rphi_beamCon;
   std::vector<float>* m_trk_chi2rphi_dof_beamCon;
   std::vector<int>* m_trk_nstub;
   std::vector<int>* m_trk_lhits;
@@ -257,6 +258,7 @@ private:
   std::vector<float>* m_matchtrk_MVA1;
   std::vector<float>* m_matchtrk_pt_beamCon;  // Helix params constrained to x=y=0.
   std::vector<float>* m_matchtrk_phi_beamCon;
+  std::vector<float>* m_matchtrk_chi2rphi_beamCon;
   std::vector<float>* m_matchtrk_chi2rphi_dof_beamCon;
   std::vector<int>* m_matchtrk_nstub;
   std::vector<int>* m_matchtrk_lhits;
@@ -383,6 +385,7 @@ void L1TrackNtupleMaker::endJob() {
   delete m_trk_sigma_tanL;
   delete m_trk_pt_beamCon;
   delete m_trk_phi_beamCon;
+  delete m_trk_chi2rphi_beamCon;
   delete m_trk_chi2rphi_dof_beamCon;
   delete m_trk_nstub;
   delete m_trk_lhits;
@@ -450,6 +453,7 @@ void L1TrackNtupleMaker::endJob() {
   delete m_matchtrk_MVA1;
   delete m_matchtrk_pt_beamCon;
   delete m_matchtrk_phi_beamCon;
+  delete m_matchtrk_chi2rphi_beamCon;
   delete m_matchtrk_chi2rphi_dof_beamCon;
   delete m_matchtrk_nstub;
   delete m_matchtrk_dhits;
@@ -521,6 +525,7 @@ void L1TrackNtupleMaker::beginJob() {
   m_trk_sigma_tanL = new std::vector<float>;
   m_trk_pt_beamCon = new std::vector<float>;
   m_trk_phi_beamCon = new std::vector<float>;
+  m_trk_chi2rphi_beamCon = new std::vector<float>;
   m_trk_chi2rphi_dof_beamCon = new std::vector<float>;
   m_trk_nstub = new std::vector<int>;
   m_trk_lhits = new std::vector<int>;
@@ -588,6 +593,7 @@ void L1TrackNtupleMaker::beginJob() {
   m_matchtrk_MVA1 = new std::vector<float>;
   m_matchtrk_pt_beamCon = new std::vector<float>;
   m_matchtrk_phi_beamCon = new std::vector<float>;
+  m_matchtrk_chi2rphi_beamCon = new std::vector<float>;
   m_matchtrk_chi2rphi_dof_beamCon = new std::vector<float>;
   m_matchtrk_nstub = new std::vector<int>;
   m_matchtrk_dhits = new std::vector<int>;
@@ -651,6 +657,7 @@ void L1TrackNtupleMaker::beginJob() {
     eventTree->Branch("trk_sigma_tanL", &m_trk_sigma_tanL);
     eventTree->Branch("trk_pt_beamCon", &m_trk_pt_beamCon);
     eventTree->Branch("trk_phi_beamCon", &m_trk_phi_beamCon);
+    eventTree->Branch("trk_chi2rphi_beamCon", &m_trk_chi2rphi_beamCon);
     eventTree->Branch("trk_chi2rphi_dof_beamCon", &m_trk_chi2rphi_dof_beamCon);
     eventTree->Branch("trk_nstub", &m_trk_nstub);
     eventTree->Branch("trk_lhits", &m_trk_lhits);
@@ -723,6 +730,7 @@ void L1TrackNtupleMaker::beginJob() {
   eventTree->Branch("matchtrk_MVA1", &m_matchtrk_MVA1);
   eventTree->Branch("matchtrk_pt_beamCon", &m_matchtrk_pt_beamCon);
   eventTree->Branch("matchtrk_phi_beamCon", &m_matchtrk_phi_beamCon);
+  eventTree->Branch("matchtrk_chi2rphi_beamCon", &m_matchtrk_chi2rphi_beamCon);
   eventTree->Branch("matchtrk_chi2rphi_dof_beamCon", &m_matchtrk_chi2rphi_dof_beamCon);
   eventTree->Branch("matchtrk_nstub", &m_matchtrk_nstub);
   eventTree->Branch("matchtrk_lhits", &m_matchtrk_lhits);
@@ -810,6 +818,7 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
     m_trk_sigma_tanL->clear();
     m_trk_pt_beamCon->clear();
     m_trk_phi_beamCon->clear();
+    m_trk_chi2rphi_beamCon->clear();
     m_trk_chi2rphi_dof_beamCon->clear();
     m_trk_nstub->clear();
     m_trk_lhits->clear();
@@ -878,6 +887,7 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
   m_matchtrk_MVA1->clear();
   m_matchtrk_pt_beamCon->clear();
   m_matchtrk_phi_beamCon->clear();
+  m_matchtrk_chi2rphi_beamCon->clear();
   m_matchtrk_chi2rphi_dof_beamCon->clear();
   m_matchtrk_nstub->clear();
   m_matchtrk_lhits->clear();
@@ -1366,6 +1376,7 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
       m_trk_MVA1->push_back(tmp_trk_MVA1);
       m_trk_pt_beamCon->push_back(tmp_trk_pt_beamCon);
       m_trk_phi_beamCon->push_back(tmp_trk_phi_beamCon);
+      m_trk_chi2rphi_beamCon->push_back(tmp_trk_chi2rphi_beamCon);
       m_trk_chi2rphi_dof_beamCon->push_back(tmp_trk_chi2rphi_dof_beamCon);
       m_trk_nstub->push_back(tmp_trk_nstub);
       m_trk_dhits->push_back(tmp_trk_dhits);
@@ -1863,6 +1874,7 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
     m_matchtrk_MVA1->push_back(tmp_matchtrk_MVA1);
     m_matchtrk_pt_beamCon->push_back(tmp_matchtrk_pt_beamCon);
     m_matchtrk_phi_beamCon->push_back(tmp_matchtrk_phi_beamCon);
+    m_matchtrk_chi2rphi_beamCon->push_back(tmp_matchtrk_chi2rphi_beamCon);
     m_matchtrk_chi2rphi_dof_beamCon->push_back(tmp_matchtrk_chi2rphi_dof_beamCon);
     m_matchtrk_nstub->push_back(tmp_matchtrk_nstub);
     m_matchtrk_dhits->push_back(tmp_matchtrk_dhits);
