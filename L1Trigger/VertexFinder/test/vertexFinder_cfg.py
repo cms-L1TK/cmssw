@@ -6,8 +6,6 @@ process = cms.Process("L1TrackNtuple")
 GEOMETRY = "D110"
 L1TRKALGO = 'HYBRID_DISPLACED_NEWKF_KILL'
 
-WRITE_DATA = False
-
 process.load('Configuration.StandardSequences.Services_cff')
 process.load('Configuration.EventContent.EventContent_cff')
 process.load('Configuration.StandardSequences.MagneticField_cff')
@@ -16,7 +14,6 @@ process.load('FWCore.MessageService.MessageLogger_cfi')
 process.MessageLogger.L1track = dict(limit = -1)
 process.MessageLogger.Tracklet = dict(limit = -1)
 process.MessageLogger.TrackTriggerHPH = dict(limit = -1)
-
 
 print("using geometry " + GEOMETRY + " (tilted)")
 process.load('Configuration.Geometry.GeometryExtendedRun4' + GEOMETRY + 'Reco_cff')
@@ -39,12 +36,17 @@ inputMC = ["/store/relval/CMSSW_15_1_0_pre5/RelValTTbar_14TeV_TuneCP5/GEN-SIM-DI
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring(*inputMC))
 process.Timing = cms.Service("Timing", summaryOnly = cms.untracked.bool(True))
 
-#--- Load config fragment that configures vertex producer
+process.TFileService = cms.Service("TFileService", fileName = cms.string('VertexNTupler.root'), closeFileFast = cms.untracked.bool(True))
+
+## L1 TRG Algorithms ##
 process.load('L1Trigger.L1TTrackMatch.l1tGTTInputProducer_cfi')
 process.load('L1Trigger.L1TTrackMatch.l1tTrackSelectionProducer_cfi')
 process.load('L1Trigger.VertexFinder.l1tVertexProducer_cfi')
+process.load('L1Trigger.VertexFinder.l1tVertexNTupler_cfi')
+process.load('L1Trigger.VertexFinder.l1tInputDataProducer_cfi')
+process.load('L1Trigger.VertexFinder.l1tTPStubValueMapProducer_cfi')
 
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(1))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 
 process.p = cms.Path(process.l1tGTTInputProducer + process.l1tTrackSelectionProducer + process.l1tVertexProducer)
 
