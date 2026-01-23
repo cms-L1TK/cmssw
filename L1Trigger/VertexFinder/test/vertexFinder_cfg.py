@@ -46,7 +46,9 @@ process.load('L1Trigger.VertexFinder.l1tVertexNTupler_cfi')
 process.load('L1Trigger.VertexFinder.l1tInputDataProducer_cfi')
 process.load('L1Trigger.VertexFinder.l1tTPStubValueMapProducer_cfi')
 
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(1))
 
-process.p = cms.Path(process.l1tGTTInputProducer + process.l1tTrackSelectionProducer + process.l1tVertexProducer)
+process.p = cms.Path(process.l1tGTTInputProducer + 
+                     process.l1tTrackSelectionProducer + 
+                     process.l1tVertexProducer)
 
