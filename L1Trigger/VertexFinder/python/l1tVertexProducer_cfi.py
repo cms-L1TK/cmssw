@@ -73,7 +73,7 @@ l1tVertexProducer = cms.EDProducer('VertexProducer',
         PatternRecGraph = cms.FileInPath("L1Trigger/VertexFinder/data/NNVtx_PatternModelGraph.pb"),
     ),
   # Debug printout
-  debug  = cms.uint32(0)
+  debug  = cms.uint32(1)
 )
 
 l1tVertexFinder = l1tVertexProducer.clone()

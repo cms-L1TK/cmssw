@@ -84,7 +84,7 @@ VertexProducer::VertexProducer(const edm::ParameterSet& iConfig)
 void VertexProducer::produce(edm::StreamID, edm::Event& iEvent, const edm::EventSetup& iSetup) const {
   edm::Handle<TTTrackRefCollectionType> l1TracksHandle;
   iEvent.getByToken(l1TracksToken_, l1TracksHandle);
-
+  std::cout << "VertexProducer::produce::Retrieved " << l1TracksHandle->size() << " tracks from event\n";
   std::vector<l1tVertexFinder::L1Track> l1Tracks;
   l1Tracks.reserve(l1TracksHandle->size());
   if (settings_.debug() > 1) {
