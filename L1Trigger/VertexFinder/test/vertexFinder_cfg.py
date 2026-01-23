@@ -3,28 +3,10 @@ import FWCore.Utilities.FileUtils as FileUtils
 import os
 process = cms.Process("L1TrackNtuple")
 
-############################################################
-# edit options here
-############################################################
-
-# D110 recommended (but D98 still works)
-#GEOMETRY = "D98"
 GEOMETRY = "D110"
-
-# Set L1 tracking algorithm:
-# 'HYBRID' (baseline, 4par fit) or 'HYBRID_DISPLACED' (extended, 5par fit).
-# 'HYBRID_NEWKF' (baseline, 4par fit, with bit-accurate KF emulation),
-# 'HYBRID_REDUCED' to use the "L5L6" seeding only reduced configuration.
-# 'HYBRID_DISPLACED_NEWKF_KILL' displaced tracklet followed by DR emulation and 5 param fit sim
-# 'HYBRID_DISPLACED_NEWKF_MERGE' displaced tracklet followed by DR simulation and 5 param fit sim
-# (Or legacy algos 'TMTT' or 'TRACKLET').
 L1TRKALGO = 'HYBRID_DISPLACED_NEWKF_KILL'
 
 WRITE_DATA = False
-
-############################################################
-# import standard configurations
-############################################################
 
 process.load('Configuration.StandardSequences.Services_cff')
 process.load('Configuration.EventContent.EventContent_cff')
