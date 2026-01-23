@@ -25,7 +25,7 @@ GEOMETRY = "D110"
 # 'HYBRID_DISPLACED_NEWKF_KILL' displaced tracklet followed by DR emulation and 5 param fit sim
 # 'HYBRID_DISPLACED_NEWKF_MERGE' displaced tracklet followed by DR simulation and 5 param fit sim
 # (Or legacy algos 'TMTT' or 'TRACKLET').
-L1TRKALGO = 'HYBRID_DISPLACED_NEWKF_KILL'
+L1TRKALGO = 'HYBRID_NEWKF'
 
 WRITE_DATA = False
 
@@ -192,6 +192,7 @@ elif (L1TRKALGO == 'HYBRID_NEWKF' or L1TRKALGO == 'HYBRID_REDUCED'):
     NHELIXPAR = 4
     L1TRK_NAME  = process.TrackFindingTrackletAnalyzer_params.OutputLabelTFP.value()
     L1TRK_LABEL = process.TrackFindingTrackletProducer_params.BranchTTTracks.value()
+    print(L1TRK_NAME, L1TRK_LABEL)
     L1TRUTH_NAME = "TTTrackAssociatorFromPixelDigis"
     process.TTTrackAssociatorFromPixelDigis.TTTracks = cms.VInputTag( cms.InputTag(L1TRK_NAME, L1TRK_LABEL) )
     process.HybridNewKF = cms.Sequence(process.L1THybridTracks + process.ProducerTM + process.ProducerDR + process.ProducerKF + process.ProducerTQ + process.ProducerTFP)
