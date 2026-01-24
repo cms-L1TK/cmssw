@@ -31,7 +31,7 @@ l1tTTTracksFromTrackletEmulation = cms.EDProducer("L1FPGATrackProducer",
                                                DoMultipleMatches = cms.bool(True), # Allow tracklet tracks multiple stubs per layer
                                                # TQ
                                                # It is compatible with the HYBRID simulation and will give equivilant performance with this workflow
-                                               Model = cms.FileInPath( "L1Trigger/TrackTrigger/data/L1_TrackQuality_GBDT_emulation_digitized.json" ),
+                                               Model = cms.FileInPath( "L1Trigger/TrackFindingTracklet/data/OldKF_CMSSW_15_1_0_pre5_RelValTTbar_14TeV_TuneCP5_GEN-SIM-DIGI-RAW_PU_150X_mcRun4_realistic_v1_RV269_Run4D110_PU-v2.json" ),
                                                #Vector of strings of training features, in the order that the model was trained with
                                                FeatureNames = cms.vstring( ["tanl",
                                                                            "z0_scaled",

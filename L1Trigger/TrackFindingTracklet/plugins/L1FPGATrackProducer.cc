@@ -266,6 +266,8 @@ L1FPGATrackProducer::L1FPGATrackProducer(edm::ParameterSet const& iConfig)
 
   failScenario_ = iConfig.getUntrackedParameter<int>("FailScenario", 0);
 
+  std::cout << "Track Quality Model: " << iConfig.getParameter<edm::FileInPath>("Model").fullPath() << std::endl;
+
   extended_ = iConfig.getParameter<bool>("Extended");
   reduced_ = iConfig.getParameter<bool>("Reduced");
   nHelixPar_ = iConfig.getParameter<unsigned int>("Hnpar");
