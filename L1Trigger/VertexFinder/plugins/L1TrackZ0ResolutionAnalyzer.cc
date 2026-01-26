@@ -55,6 +55,9 @@ public:
     h_dz_assoc_vs_eta_ = fs->make<TH2F>("dz_associated_vs_abseta",
                                        "Associated: #Delta z_{0} vs |#eta|;|#eta|;#Delta z_{0} [cm]",
                                        60, 0.0, 3.0, 400, -10.0, 10.0);
+    h_dz_assoc_vs_mva_ = fs->make<TH2F>("dz_associated_vs_trk_mva1",
+                                    "Associated: #Delta z_{0} vs MVA;MVA;#Delta z_{0} [cm]",
+                                    50, 0.0, 1.0, 400, -10.0, 10.0);
 
     h_dz_sel_vs_pt_ = fs->make<TH2F>("dz_selected_vs_pt",
                                     "Selected: #Delta z_{0} vs p_{T};p_{T} [GeV];#Delta z_{0} [cm]",
@@ -107,10 +110,13 @@ public:
     // Associated tracks residuals
     for (const auto& trkRef : assocTracks) {
       const auto& trk = *trkRef;
+      // apply mva cut
+      // if (trk.trkMVA1() < 0.5) continue;
       const float dz = trk.z0() - pvZ0;
       const float abseta = std::abs(trk.momentum().eta());
       const float pt = trk.momentum().perp();
 
+      h_dz_assoc_vs_mva_->Fill(trk.trkMVA1(), dz);
       h_dz_assoc_->Fill(dz);
       h_dz_assoc_vs_eta_->Fill(abseta, dz);
       h_dz_assoc_vs_pt_->Fill(pt, dz);
@@ -134,9 +140,11 @@ private:
     TH2F* h_dz_assoc_vs_eta_{nullptr};
     TH2F* h_dz_sel_vs_pt_{nullptr};
     TH2F* h_dz_assoc_vs_pt_{nullptr};
+    TH2F* h_dz_assoc_vs_mva_{nullptr};
     TH1F* h_nSel_{nullptr};
     TH1F* h_nAssoc_{nullptr};
     TH1F* h_nVertices_{nullptr};
+
 };
 
 DEFINE_FWK_MODULE(L1TrackZ0ResolutionAnalyzer);
