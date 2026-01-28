@@ -99,9 +99,9 @@ namespace trklet {
         if (mvaInt <= binEdges[mva + 1])
           break;
       // build output Track
-      std::string s = hitPattern.str();
-      std::reverse(s.begin(), s.end());
-      TrackTQ trackTQ(*frame.track_, s, mva, chi20F, chi21F);
+      std::string reversedHitPattern = hitPattern.str();
+      std::reverse(reversedHitPattern.begin(), reversedHitPattern.end());
+      TrackTQ trackTQ(*frame.track_, reversedHitPattern, mva, chi20F, chi21F);
       // store result
       output.push_back(trackTQ.frame());
     }

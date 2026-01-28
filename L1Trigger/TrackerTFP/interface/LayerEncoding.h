@@ -32,7 +32,7 @@ namespace trackerTFP {
     int maybePS(int zT) const;
     // encoded layer id which may be PS or 2S for given zT in cm
     int maybePS(double zT) const;
-    // fills binZT (unsigned), numPS, num2S, numMissingPS and numMissingPS for given hitPattern and trajectory
+    // fills binZT (unsigned), numPS, num2S, numMissingPS and numMissingPS for given TTTrack hitPattern and trajectory
     void analyze(int hitpattern,
                  double cot,
                  double z0,
