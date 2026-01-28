@@ -1213,10 +1213,11 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
       // Check accuracy of hit pattern info.
       if (DebugMode && hph.newKF()) {
         // Only bother for New KF, as HitPatternHelper buggy for Old KF.
+        // For New KF, hph gets these via function LayerEncoding::analyze().
         if (hph.numPS() != int(hitLayPS.size()) || hph.num2S() != int(hitLay2S.size())) {
           // Some inaccuracy expected, as estimating number of PS stubs from hit pattern is approximate,
-          // due to r-boundary of PS-2S not being well defined, and due to truncation of hit pattern
-          // from 8 to 7 bits.
+          // due to r-boundary of PS-2S not being well defined (analyze() assumes 2S if ambiguous),
+          // and due to truncation of hit pattern from 8 to 7 bits.
           std::stringstream ss;
           ss << "Number of layers with stubs estimated from hit pattern is inaccurate: (PS,2S) = (" << hph.numPS()
              << "," << hph.num2S() << ") vs (" << hitLayPS.size() << "," << hitLay2S.size()
