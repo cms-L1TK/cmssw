@@ -38,8 +38,7 @@ void mySmallText(Double_t x, Double_t y, Color_t color, char* text);
 double getIntervalContainingFractionOfEntries(TH1* histogram, double interval, int minEntries = 10);
 void makeResidualIntervalPlot(
     TString type, TString dir, TString variable, TH1F* h_68, TH1F* h_90, TH1F* h_99, double minY, double maxY);
-void makeAllAndTruePDF(TString type, TString dir, TString variable,
-                        TH1F* h_all, TH1F* h_match);
+void makeAllAndTruePDF(TString type, TString dir, TString variable, TH1F* h_all, TH1F* h_match);
 
 // ----------------------------------------------------------------------------------------------------------------
 // Main script
@@ -87,6 +86,9 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
 
   constexpr bool doGausFit = false;  //do gaussian fit for resolution vs eta/pt plots
 
+  constexpr float convertRtoPt =
+      0.0114257;  // R (cm) * convertRtoPt = Pt (GeV) * q : calculation in L1TrackNtupleMaker.cc
+
   gROOT->SetBatch();
   gErrorIgnoreLevel = kWarning;
 
@@ -132,8 +134,7 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
   tree->Add(inputDir + inputRootFile + ".root");
 
   if (tree->GetEntries() == 0) {
-    cerr << "Input file doesn't exist or is empty, returning..."
-         << endl;  
+    cerr << "Input file doesn't exist or is empty, returning..." << endl;
     return;
   }
 
@@ -193,7 +194,7 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
   vector<float>* trk_chi2rphi_dof;
   vector<float>* trk_chi2rz;
   vector<float>* trk_chi2rz_dof;
-  vector<float>* trk_chi2rphi_dof_beamCon;  
+  vector<float>* trk_chi2rphi_dof_beamCon;
   vector<int>* trk_nstub;
   vector<int>* trk_lhits;
   vector<int>* trk_dhits;
@@ -370,7 +371,8 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
   tree->SetBranchAddress("matchtrk_chi2rz_dof", &matchtrk_chi2rz_dof, &b_matchtrk_chi2rz_dof);
   tree->SetBranchAddress("matchtrk_pt_beamCon", &matchtrk_pt_beamCon, &b_matchtrk_pt_beamCon);
   tree->SetBranchAddress("matchtrk_phi_beamCon", &matchtrk_phi_beamCon, &b_matchtrk_phi_beamCon);
-  tree->SetBranchAddress("matchtrk_chi2rphi_dof_beamCon", &matchtrk_chi2rphi_dof_beamCon, &b_matchtrk_chi2rphi_dof_beamCon);
+  tree->SetBranchAddress(
+      "matchtrk_chi2rphi_dof_beamCon", &matchtrk_chi2rphi_dof_beamCon, &b_matchtrk_chi2rphi_dof_beamCon);
   tree->SetBranchAddress("matchtrk_nstub", &matchtrk_nstub, &b_matchtrk_nstub);
   tree->SetBranchAddress("matchtrk_lhits", &matchtrk_lhits, &b_matchtrk_lhits);
   tree->SetBranchAddress("matchtrk_dhits", &matchtrk_dhits, &b_matchtrk_dhits);
@@ -490,7 +492,7 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
   // resolution interval plots.
   // If ranges are too small, warnings will be printed to cerr.
   // (The plots booked here are not output, just used for these calculations).
-  
+
   unsigned int nBinsPtRes = 500;
   double maxPtRes = 30.;
 
@@ -545,36 +547,39 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
   TH1F* h_absResVsPt_d0_L[nRANGE_L];
 
   for (int i = 0; i < nRANGE; i++) {
-    h_absResVsPt_pt[i] = new TH1F(
-        "absResVsPt_pt_" + ptrange[i], ";p_{T} residual (L1 - sim) [GeV]; L1 tracks", nBinsPtRes, 0, maxPtRes);
+    h_absResVsPt_pt[i] =
+        new TH1F("absResVsPt_pt_" + ptrange[i], ";p_{T} residual (L1 - sim) [GeV]; L1 tracks", nBinsPtRes, 0, maxPtRes);
     h_absResVsPt_ptRel[i] = new TH1F("absResVsPt_ptRel_" + ptrange[i],
                                      ";p_{T} residual (L1 - sim) / p_{T}; L1 tracks",
                                      nBinsPtRelRes,
                                      0,
                                      maxPtRelRes);
-    h_absResVsPt_z0[i] = new TH1F(
-        "absResVsPt_z0_" + ptrange[i], ";z_{0} residual (L1 - sim) [cm]; L1 tracks", nBinsZ0Res, 0, maxZ0Res);
-    h_absResVsPt_phi[i] = new TH1F(
-        "absResVsPt_phi_" + ptrange[i], ";#phi residual (L1 - sim); L1 tracks", nBinsPhiRes, 0, maxPhiRes);
-    h_absResVsPt_eta[i] = new TH1F(
-        "absResVsPt_eta_" + ptrange[i], ";#eta residual (L1 - sim); L1 tracks", nBinsEtaRes, 0, maxEtaRes);
-    h_absResVsPt_d0[i] = new TH1F(
-      "absResVsPt_d0_" + ptrange[i], ";d_{0} residual (L1 - sim) [cm]; L1 tracks", nBinsD0Res, 0, maxD0Res);
+    h_absResVsPt_z0[i] =
+        new TH1F("absResVsPt_z0_" + ptrange[i], ";z_{0} residual (L1 - sim) [cm]; L1 tracks", nBinsZ0Res, 0, maxZ0Res);
+    h_absResVsPt_phi[i] =
+        new TH1F("absResVsPt_phi_" + ptrange[i], ";#phi residual (L1 - sim); L1 tracks", nBinsPhiRes, 0, maxPhiRes);
+    h_absResVsPt_eta[i] =
+        new TH1F("absResVsPt_eta_" + ptrange[i], ";#eta residual (L1 - sim); L1 tracks", nBinsEtaRes, 0, maxEtaRes);
+    h_absResVsPt_d0[i] =
+        new TH1F("absResVsPt_d0_" + ptrange[i], ";d_{0} residual (L1 - sim) [cm]; L1 tracks", nBinsD0Res, 0, maxD0Res);
   }
 
   for (int i = 0; i < nRANGE_L; i++) {
     h_absResVsPt_pt_L[i] = new TH1F(
         "absResVsPt_L_pt_" + ptrange_L[i], ";p_{T} residual (L1 - sim) [GeV]; L1 tracks", nBinsPtRes, 0, maxPtRes);
-    h_absResVsPt_ptRel_L[i] = new TH1F(
-        "absResVsPt_L_ptRel_" + ptrange_L[i], ";p_{T} residual (L1 - sim) / p_{T}; L1 tracks", nBinsPtRelRes, 0, maxPtRelRes);
+    h_absResVsPt_ptRel_L[i] = new TH1F("absResVsPt_L_ptRel_" + ptrange_L[i],
+                                       ";p_{T} residual (L1 - sim) / p_{T}; L1 tracks",
+                                       nBinsPtRelRes,
+                                       0,
+                                       maxPtRelRes);
     h_absResVsPt_z0_L[i] = new TH1F(
         "absResVsPt_L_z0_" + ptrange_L[i], ";z_{0} residual (L1 - sim) [cm]; L1 tracks", nBinsZ0Res, 0, maxZ0Res);
-    h_absResVsPt_phi_L[i] = new TH1F(
-        "absResVsPt_L_phi_" + ptrange_L[i], ";#phi residual (L1 - sim); L1 tracks", nBinsPhiRes, 0, maxPhiRes);
-    h_absResVsPt_eta_L[i] = new TH1F(
-        "absResVsPt_L_eta_" + ptrange_L[i], ";#eta residual (L1 - sim); L1 tracks", nBinsEtaRes, 0, maxEtaRes);
-    h_absResVsPt_d0_L[i] =
-        new TH1F("absResVsPt_L_d0_" + ptrange_L[i], ";d_{0} residual (L1 - sim) [cm]; L1 tracks", nBinsZ0Res, 0, maxD0Res);
+    h_absResVsPt_phi_L[i] =
+        new TH1F("absResVsPt_L_phi_" + ptrange_L[i], ";#phi residual (L1 - sim); L1 tracks", nBinsPhiRes, 0, maxPhiRes);
+    h_absResVsPt_eta_L[i] =
+        new TH1F("absResVsPt_L_eta_" + ptrange_L[i], ";#eta residual (L1 - sim); L1 tracks", nBinsEtaRes, 0, maxEtaRes);
+    h_absResVsPt_d0_L[i] = new TH1F(
+        "absResVsPt_L_d0_" + ptrange_L[i], ";d_{0} residual (L1 - sim) [cm]; L1 tracks", nBinsZ0Res, 0, maxD0Res);
   }
 
   // resolution vs. eta histograms
@@ -613,44 +618,56 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
   TH1F* h_absResVsEta_beamCon_ptRel[nETARANGE];
 
   for (int i = 0; i < nETARANGE; i++) {
-    h_absResVsEta_eta[i] = new TH1F(
-        "absResVsEta_eta_" + etarange[i], ";#eta residual (L1 - sim); L1 tracks", nBinsEtaRes, 0, maxEtaRes);
+    h_absResVsEta_eta[i] =
+        new TH1F("absResVsEta_eta_" + etarange[i], ";#eta residual (L1 - sim); L1 tracks", nBinsEtaRes, 0, maxEtaRes);
     h_absResVsEta_z0[i] = new TH1F(
         "absResVsEta_z0_" + etarange[i], ";z_{0} residual (L1 - sim)| [cm]; L1 tracks", nBinsZ0Res, 0, maxZ0Res);
-    h_absResVsEta_phi[i] = new TH1F(
-        "absResVsEta_phi_" + etarange[i], ";#phi residual (L1 - sim); L1 tracks", nBinsPhiRes, 0, maxPhiRes);
-    h_absResVsEta_ptRel[i] = new TH1F(
-        "absResVsEta_ptRel_" + etarange[i], ";p_{T} residual (L1 - sim) / p_{T}; L1 tracks", nBinsPtRelRes, 0, maxPtRelRes);
+    h_absResVsEta_phi[i] =
+        new TH1F("absResVsEta_phi_" + etarange[i], ";#phi residual (L1 - sim); L1 tracks", nBinsPhiRes, 0, maxPhiRes);
+    h_absResVsEta_ptRel[i] = new TH1F("absResVsEta_ptRel_" + etarange[i],
+                                      ";p_{T} residual (L1 - sim) / p_{T}; L1 tracks",
+                                      nBinsPtRelRes,
+                                      0,
+                                      maxPtRelRes);
     h_absResVsEta_d0[i] = new TH1F(
         "absResVsEta_d0_" + etarange[i], ";d_{0} residual (L1 - sim) [cm]; L1 tracks", nBinsD0Res, 0, maxD0Res);
 
-    h_absResVsEta_eta_L[i] = new TH1F(
-        "absResVsEta_eta_L_" + etarange[i], ";#eta residual (L1 - sim); L1 tracks", nBinsEtaRes, 0, maxEtaRes);
+    h_absResVsEta_eta_L[i] =
+        new TH1F("absResVsEta_eta_L_" + etarange[i], ";#eta residual (L1 - sim); L1 tracks", nBinsEtaRes, 0, maxEtaRes);
     h_absResVsEta_z0_L[i] = new TH1F(
         "absResVsEta_z0_L_" + etarange[i], ";z_{0} residual (L1 - sim)| [cm]; L1 tracks", nBinsZ0Res, 0, maxZ0Res);
-    h_absResVsEta_phi_L[i] = new TH1F(
-        "absResVsEta_phi_L_" + etarange[i], ";#phi residual (L1 - sim); L1 tracks", nBinsPhiRes, 0, maxPhiRes);
-    h_absResVsEta_ptRel_L[i] = new TH1F(
-        "absResVsEta_ptRel_L_" + etarange[i], ";p_{T} residual (L1 - sim) / p_{T}; L1 tracks", nBinsPtRelRes, 0, maxPtRelRes);
+    h_absResVsEta_phi_L[i] =
+        new TH1F("absResVsEta_phi_L_" + etarange[i], ";#phi residual (L1 - sim); L1 tracks", nBinsPhiRes, 0, maxPhiRes);
+    h_absResVsEta_ptRel_L[i] = new TH1F("absResVsEta_ptRel_L_" + etarange[i],
+                                        ";p_{T} residual (L1 - sim) / p_{T}; L1 tracks",
+                                        nBinsPtRelRes,
+                                        0,
+                                        maxPtRelRes);
     h_absResVsEta_d0_L[i] = new TH1F(
         "absResVsEta_d0_L_" + etarange[i], ";d_{0} residual (L1 - sim) [cm]; L1 tracks", nBinsD0Res, 0, maxD0Res);
 
-    h_absResVsEta_eta_H[i] = new TH1F(
-        "absResVsEta_eta_H_" + etarange[i], ";#eta residual (L1 - sim); L1 tracks", nBinsEtaRes, 0, maxEtaRes);
+    h_absResVsEta_eta_H[i] =
+        new TH1F("absResVsEta_eta_H_" + etarange[i], ";#eta residual (L1 - sim); L1 tracks", nBinsEtaRes, 0, maxEtaRes);
     h_absResVsEta_z0_H[i] = new TH1F(
         "absResVsEta_z0_H_" + etarange[i], ";z_{0} residual (L1 - sim)| [cm]; L1 tracks", nBinsZ0Res, 0, maxZ0Res);
-    h_absResVsEta_phi_H[i] = new TH1F(
-        "absResVsEta_phi_H_" + etarange[i], ";#phi residual (L1 - sim); L1 tracks", nBinsPhiRes, 0, maxPhiRes);
-    h_absResVsEta_ptRel_H[i] = new TH1F(
-        "absResVsEta_ptRel_H_" + etarange[i], ";p_{T} residual (L1 - sim) / p_{T}; L1 tracks", nBinsPtRelRes, 0, maxPtRelRes);
+    h_absResVsEta_phi_H[i] =
+        new TH1F("absResVsEta_phi_H_" + etarange[i], ";#phi residual (L1 - sim); L1 tracks", nBinsPhiRes, 0, maxPhiRes);
+    h_absResVsEta_ptRel_H[i] = new TH1F("absResVsEta_ptRel_H_" + etarange[i],
+                                        ";p_{T} residual (L1 - sim) / p_{T}; L1 tracks",
+                                        nBinsPtRelRes,
+                                        0,
+                                        maxPtRelRes);
     h_absResVsEta_d0_H[i] = new TH1F(
         "absResVsEta_d0_H_" + etarange[i], ";d_{0} residual (L1 - sim) [cm]; L1 tracks", nBinsD0Res, 0, maxD0Res);
 
     // Beam-spot constrained resolution
     h_absResVsEta_beamCon_phi[i] = new TH1F(
         "absResVsEta_beamCon_phi_" + etarange[i], ";#phi residual (L1 - sim); L1 tracks", nBinsPhiRes, 0, maxPhiRes);
-    h_absResVsEta_beamCon_ptRel[i] = new TH1F(
-        "absResVsEta_beamCon_ptRel_" + etarange[i], ";p_{T} residual (L1 - sim) / p_{T}; L1 tracks", nBinsPtRelRes, 0, maxPtRelRes);
+    h_absResVsEta_beamCon_ptRel[i] = new TH1F("absResVsEta_beamCon_ptRel_" + etarange[i],
+                                              ";p_{T} residual (L1 - sim) / p_{T}; L1 tracks",
+                                              nBinsPtRelRes,
+                                              0,
+                                              maxPtRelRes);
   }
 
   // resolution vs phi
@@ -666,8 +683,11 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
   for (int i = 0; i < nPHIRANGE; i++) {
     h_absResVsPhi_pt[i] = new TH1F(
         "absResVsPt_pt_" + phirange[i], ";p_{T} residual (L1 - sim) [GeV]; L1 tracks", nBinsPtRes, 0, maxPtRes);
-    h_absResVsPhi_ptRel[i] = new TH1F(
-        "absResVsPt_ptRel_" + phirange[i], ";p_{T} residual (L1 - sim) / p_{T}; L1 tracks", nBinsPtRelRes, 0, maxPtRelRes);
+    h_absResVsPhi_ptRel[i] = new TH1F("absResVsPt_ptRel_" + phirange[i],
+                                      ";p_{T} residual (L1 - sim) / p_{T}; L1 tracks",
+                                      nBinsPtRelRes,
+                                      0,
+                                      maxPtRelRes);
   }
 
   // ----------------------------------------------------------------------------------------------------------------
@@ -691,10 +711,11 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
       new TH1F("match_trk_chi2rz_dof", ";#chi^{2}_{r-z} / D.O.F.; L1 tracks / 0.2", 100, 0, 20);
 
   // Ditto with beam-spot constraint on helix params
-  TH1F* h_trk_chi2rphi_dof_beamCon = new TH1F("trk_chi2rphi_dof_beamCon", ";#chi^{2}_{r-#phi} / D.O.F.; L1 tracks / 0.2", 100, 0, 20);
+  TH1F* h_trk_chi2rphi_dof_beamCon =
+      new TH1F("trk_chi2rphi_dof_beamCon", ";#chi^{2}_{r-#phi} / D.O.F.; L1 tracks / 0.2", 100, 0, 20);
   TH1F* h_match_trk_chi2rphi_dof_beamCon =
       new TH1F("match_trk_chi2rphi_dof_beamCon", ";#chi^{2}_{r-#phi} / D.O.F.; L1 tracks / 0.2", 100, 0, 20);
-  
+
   // ----------------------------------------------------------------------------------------------------------------
   // total track rates
 
@@ -794,18 +815,12 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
   TH1F* h_res_z0_L = new TH1F("res_z0_L", ";z_{0} residual (L1 - sim) [cm]; L1 tracks / 0.02", 100, -1.0, 1.0);
   TH1F* h_res_z0_H = new TH1F("res_z0_H", ";z_{0} residual (L1 - sim) [cm]; L1 tracks / 0.02", 100, -1.0, 1.0);
 
-  TH1F* h_res_z0_C_L =
-      new TH1F("res_z0_C_L", ";z_{0} residual (L1 - sim) [cm]; L1 tracks / 0.02", 100, -1.0, 1.0);
-  TH1F* h_res_z0_I_L =
-      new TH1F("res_z0_I_L", ";z_{0} residual (L1 - sim) [cm]; L1 tracks / 0.02", 100, -1.0, 1.0);
-  TH1F* h_res_z0_F_L =
-      new TH1F("res_z0_F_L", ";z_{0} residual (L1 - sim) [cm]; L1 tracks / 0.02", 100, -1.0, 1.0);
-  TH1F* h_res_z0_C_H =
-      new TH1F("res_z0_C_H", ";z_{0} residual (L1 - sim) [cm]; L1 tracks / 0.02", 100, -1.0, 1.0);
-  TH1F* h_res_z0_I_H =
-      new TH1F("res_z0_I_H", ";z_{0} residual (L1 - sim) [cm]; L1 tracks / 0.02", 100, -1.0, 1.0);
-  TH1F* h_res_z0_F_H =
-      new TH1F("res_z0_F_H", ";z_{0} residual (L1 - sim) [cm]; L1 tracks / 0.02", 100, -1.0, 1.0);
+  TH1F* h_res_z0_C_L = new TH1F("res_z0_C_L", ";z_{0} residual (L1 - sim) [cm]; L1 tracks / 0.02", 100, -1.0, 1.0);
+  TH1F* h_res_z0_I_L = new TH1F("res_z0_I_L", ";z_{0} residual (L1 - sim) [cm]; L1 tracks / 0.02", 100, -1.0, 1.0);
+  TH1F* h_res_z0_F_L = new TH1F("res_z0_F_L", ";z_{0} residual (L1 - sim) [cm]; L1 tracks / 0.02", 100, -1.0, 1.0);
+  TH1F* h_res_z0_C_H = new TH1F("res_z0_C_H", ";z_{0} residual (L1 - sim) [cm]; L1 tracks / 0.02", 100, -1.0, 1.0);
+  TH1F* h_res_z0_I_H = new TH1F("res_z0_I_H", ";z_{0} residual (L1 - sim) [cm]; L1 tracks / 0.02", 100, -1.0, 1.0);
+  TH1F* h_res_z0_F_H = new TH1F("res_z0_F_H", ";z_{0} residual (L1 - sim) [cm]; L1 tracks / 0.02", 100, -1.0, 1.0);
 
   TH1F* h_res_d0 = new TH1F("res_d0", ";d_{0} residual (L1 - sim) [cm]; L1 tracks / 0.002", 200, -0.2, 0.2);
   TH1F* h_res_d0_C = new TH1F("res_d0_C", ";d_{0} residual (L1 - sim) [cm]; L1 tracks / 0.002", 200, -0.2, 0.2);
@@ -814,18 +829,12 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
   TH1F* h_res_d0_L = new TH1F("res_d0_L", ";d_{0} residual (L1 - sim) [cm]; L1 tracks / 0.002", 200, -0.2, 0.2);
   TH1F* h_res_d0_H = new TH1F("res_d0_H", ";d_{0} residual (L1 - sim) [cm]; L1 tracks / 0.002", 200, -0.2, 0.2);
 
-  TH1F* h_res_d0_C_L =
-      new TH1F("res_d0_C_L", ";d_{0} residual (L1 - sim) [cm]; L1 tracks / 0.002", 200, -0.2, 0.2);
-  TH1F* h_res_d0_I_L =
-      new TH1F("res_d0_I_L", ";d_{0} residual (L1 - sim) [cm]; L1 tracks / 0.002", 200, -0.2, 0.2);
-  TH1F* h_res_d0_F_L =
-      new TH1F("res_d0_F_L", ";d_{0} residual (L1 - sim) [cm]; L1 tracks / 0.002", 200, -0.2, 0.2);
-  TH1F* h_res_d0_C_H =
-      new TH1F("res_d0_C_H", ";d_{0} residual (L1 - sim) [cm]; L1 tracks / 0.002", 200, -0.2, 0.2);
-  TH1F* h_res_d0_I_H =
-      new TH1F("res_d0_I_H", ";d_{0} residual (L1 - sim) [cm]; L1 tracks / 0.002", 200, -0.2, 0.2);
-  TH1F* h_res_d0_F_H =
-      new TH1F("res_d0_F_H", ";d_{0} residual (L1 - sim) [cm]; L1 tracks / 0.002", 200, -0.2, 0.2);
+  TH1F* h_res_d0_C_L = new TH1F("res_d0_C_L", ";d_{0} residual (L1 - sim) [cm]; L1 tracks / 0.002", 200, -0.2, 0.2);
+  TH1F* h_res_d0_I_L = new TH1F("res_d0_I_L", ";d_{0} residual (L1 - sim) [cm]; L1 tracks / 0.002", 200, -0.2, 0.2);
+  TH1F* h_res_d0_F_L = new TH1F("res_d0_F_L", ";d_{0} residual (L1 - sim) [cm]; L1 tracks / 0.002", 200, -0.2, 0.2);
+  TH1F* h_res_d0_C_H = new TH1F("res_d0_C_H", ";d_{0} residual (L1 - sim) [cm]; L1 tracks / 0.002", 200, -0.2, 0.2);
+  TH1F* h_res_d0_I_H = new TH1F("res_d0_I_H", ";d_{0} residual (L1 - sim) [cm]; L1 tracks / 0.002", 200, -0.2, 0.2);
+  TH1F* h_res_d0_F_H = new TH1F("res_d0_F_H", ";d_{0} residual (L1 - sim) [cm]; L1 tracks / 0.002", 200, -0.2, 0.2);
 
   // ----------------------------------------------------------------------------------------------------------------
   // more resolution vs pt (FIX: Do we need these, given we have resolution interval plots?)
@@ -951,10 +960,10 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
 
     h_resVsEta_d0[i] =
         new TH1F("resVsEta2_d0_" + etarange[i], ";d_{0} residual (L1 - sim) [cm]; L1 tracks / 0.002", 100, -0.1, 0.1);
-    h_resVsEta_d0_L[i] = new TH1F(
-        "resVsEta2_d0_L_" + etarange[i], ";d_{0} residual (L1 - sim) [cm]; L1 tracks / 0.002", 100, -0.1, 0.1);
-    h_resVsEta_d0_H[i] = new TH1F(
-        "resVsEta2_d0_H_" + etarange[i], ";d_{0} residual (L1 - sim) [cm]; L1 tracks / 0.002", 100, -0.1, 0.1);
+    h_resVsEta_d0_L[i] =
+        new TH1F("resVsEta2_d0_L_" + etarange[i], ";d_{0} residual (L1 - sim) [cm]; L1 tracks / 0.002", 100, -0.1, 0.1);
+    h_resVsEta_d0_H[i] =
+        new TH1F("resVsEta2_d0_H_" + etarange[i], ";d_{0} residual (L1 - sim) [cm]; L1 tracks / 0.002", 100, -0.1, 0.1);
   }
   // ----------------------------------------------------------------------------------------------------------------
 
@@ -1190,9 +1199,9 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
       if (trk_genuine->at(it) && trk_matchtp_eventtype->at(it) == 1) {
         std::vector<float>* m_trk_matchtp_z0;
         p_resOverSigmaVsEta_z0->Fill(fabs(trk_eta->at(it)),
-            fabs(trk_z0->at(it) - trk_matchtp_z0->at(it)) / trk_sigma_z0->at(it));
+                                     fabs(trk_z0->at(it) - trk_matchtp_z0->at(it)) / trk_sigma_z0->at(it));
         p_resOverSigmaVsNumPS_z0->Fill(trk_nPS_hitpattern->at(it),
-            fabs(trk_z0->at(it) - trk_matchtp_z0->at(it)) / trk_sigma_z0->at(it));
+                                       fabs(trk_z0->at(it) - trk_matchtp_z0->at(it)) / trk_sigma_z0->at(it));
       }
 
       // ----------------------------------------------------------------------------------------------------------------
@@ -1548,7 +1557,7 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
       h_res_phi->Fill(matchtrk_phi->at(it) - tp_phi->at(it));
       h_res_z0->Fill(matchtrk_z0->at(it) - tp_z0->at(it));
       if (matchtrk_d0->at(it) < 999.)
-        h_res_d0->Fill(matchtrk_d0->at(it) - tp_d0->at(it));      
+        h_res_d0->Fill(matchtrk_d0->at(it) - tp_d0->at(it));
       if (std::abs(tp_eta->at(it)) < 0.8)
         h_res_z0_C->Fill(matchtrk_z0->at(it) - tp_z0->at(it));
       else if (std::abs(tp_eta->at(it)) < 1.6 && std::abs(tp_eta->at(it)) >= 0.8)
@@ -1658,7 +1667,8 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
           h_absResVsEta_phi[im]->Fill(std::abs(matchtrk_phi->at(it) - tp_phi->at(it)));
           h_absResVsEta_z0[im]->Fill(std::abs(matchtrk_z0->at(it) - tp_z0->at(it)));
 
-          h_absResVsEta_beamCon_ptRel[im]->Fill(std::abs((matchtrk_pt_beamCon->at(it) - tp_pt->at(it))) / tp_pt->at(it));
+          h_absResVsEta_beamCon_ptRel[im]->Fill(std::abs((matchtrk_pt_beamCon->at(it) - tp_pt->at(it))) /
+                                                tp_pt->at(it));
           h_absResVsEta_beamCon_phi[im]->Fill(std::abs(matchtrk_phi_beamCon->at(it) - tp_phi->at(it)));
 
           if (tp_pt->at(it) < 8.0) {
@@ -2028,19 +2038,19 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
   TH1F* h2_resVsEta_z0_99 =
       new TH1F("resVsEta_z0_99", ";Tracking particle |#eta|; z_{0} resolution [cm]", nETARANGE, 0, eta_resmax);
 
-  TH1F* h2_resVsEta_phi_68 = new TH1F(
-    "resVsEta_phi_68", ";Tracking particle |#eta|; #phi resolution [rad]", nETARANGE, 0, eta_resmax);
-  TH1F* h2_resVsEta_phi_90 = new TH1F(
-    "resVsEta_phi_90", ";Tracking particle |#eta|; #phi resolution [rad]", nETARANGE, 0, eta_resmax);
-  TH1F* h2_resVsEta_phi_99 = new TH1F(
-    "resVsEta_phi_99", ";Tracking particle |#eta|; #phi resolution [rad]", nETARANGE, 0, eta_resmax);
+  TH1F* h2_resVsEta_phi_68 =
+      new TH1F("resVsEta_phi_68", ";Tracking particle |#eta|; #phi resolution [rad]", nETARANGE, 0, eta_resmax);
+  TH1F* h2_resVsEta_phi_90 =
+      new TH1F("resVsEta_phi_90", ";Tracking particle |#eta|; #phi resolution [rad]", nETARANGE, 0, eta_resmax);
+  TH1F* h2_resVsEta_phi_99 =
+      new TH1F("resVsEta_phi_99", ";Tracking particle |#eta|; #phi resolution [rad]", nETARANGE, 0, eta_resmax);
 
-  TH1F* h2_resVsEta_ptRel_68 = new TH1F(
-    "resVsEta_ptRel_68", ";Tracking particle |#eta|; p_{T} resolution / p_{T}", nETARANGE, 0, eta_resmax);
-  TH1F* h2_resVsEta_ptRel_90 = new TH1F(
-    "resVsEta_ptRel_90", ";Tracking particle |#eta|; p_{T} resolution / p_{T}", nETARANGE, 0, eta_resmax);
-  TH1F* h2_resVsEta_ptRel_99 = new TH1F(
-    "resVsEta_ptRel_99", ";Tracking particle |#eta|; p_{T} resolution / p_{T}", nETARANGE, 0, eta_resmax);
+  TH1F* h2_resVsEta_ptRel_68 =
+      new TH1F("resVsEta_ptRel_68", ";Tracking particle |#eta|; p_{T} resolution / p_{T}", nETARANGE, 0, eta_resmax);
+  TH1F* h2_resVsEta_ptRel_90 =
+      new TH1F("resVsEta_ptRel_90", ";Tracking particle |#eta|; p_{T} resolution / p_{T}", nETARANGE, 0, eta_resmax);
+  TH1F* h2_resVsEta_ptRel_99 =
+      new TH1F("resVsEta_ptRel_99", ";Tracking particle |#eta|; p_{T} resolution / p_{T}", nETARANGE, 0, eta_resmax);
 
   TH1F* h2_resVsEta_d0_68 =
       new TH1F("resVsEta_d0_68", ";Tracking particle |#eta|; d_{0} resolution [cm]", nETARANGE, 0, eta_resmax);
@@ -2050,20 +2060,20 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
       new TH1F("resVsEta_d0_99", ";Tracking particle |#eta|; d_{0} resolution [cm]", nETARANGE, 0, eta_resmax);
 
   // Same,but for helix params with beam-spot constraint
-  TH1F* h2_resVsEta_phi_beamCon_68 = new TH1F(
-    "resVsEta_phi_beamCon_68", ";Tracking particle |#eta|; #phi resolution [rad]", nETARANGE, 0, eta_resmax);
-  TH1F* h2_resVsEta_phi_beamCon_90 = new TH1F(
-    "resVsEta_phi_beamCon_90", ";Tracking particle |#eta|; #phi resolution [rad]", nETARANGE, 0, eta_resmax);
-  TH1F* h2_resVsEta_phi_beamCon_99 = new TH1F(
-    "resVsEta_phi_beamCon_99", ";Tracking particle |#eta|; #phi resolution [rad]", nETARANGE, 0, eta_resmax);
+  TH1F* h2_resVsEta_phi_beamCon_68 =
+      new TH1F("resVsEta_phi_beamCon_68", ";Tracking particle |#eta|; #phi resolution [rad]", nETARANGE, 0, eta_resmax);
+  TH1F* h2_resVsEta_phi_beamCon_90 =
+      new TH1F("resVsEta_phi_beamCon_90", ";Tracking particle |#eta|; #phi resolution [rad]", nETARANGE, 0, eta_resmax);
+  TH1F* h2_resVsEta_phi_beamCon_99 =
+      new TH1F("resVsEta_phi_beamCon_99", ";Tracking particle |#eta|; #phi resolution [rad]", nETARANGE, 0, eta_resmax);
 
   TH1F* h2_resVsEta_ptRel_beamCon_68 = new TH1F(
-    "resVsEta_ptRel_beamCon_68", ";Tracking particle |#eta|; p_{T} resolution / p_{T}", nETARANGE, 0, eta_resmax);
+      "resVsEta_ptRel_beamCon_68", ";Tracking particle |#eta|; p_{T} resolution / p_{T}", nETARANGE, 0, eta_resmax);
   TH1F* h2_resVsEta_ptRel_beamCon_90 = new TH1F(
-    "resVsEta_ptRel_beamCon_90", ";Tracking particle |#eta|; p_{T} resolution / p_{T}", nETARANGE, 0, eta_resmax);
+      "resVsEta_ptRel_beamCon_90", ";Tracking particle |#eta|; p_{T} resolution / p_{T}", nETARANGE, 0, eta_resmax);
   TH1F* h2_resVsEta_ptRel_beamCon_99 = new TH1F(
-    "resVsEta_ptRel_beamCon_99", ";Tracking particle |#eta|; p_{T} resolution / p_{T}", nETARANGE, 0, eta_resmax);
-  
+      "resVsEta_ptRel_beamCon_99", ";Tracking particle |#eta|; p_{T} resolution / p_{T}", nETARANGE, 0, eta_resmax);
+
   // Same, but for low or high Pt ranges
   TH1F* h2_resVsEta_eta_L_68 =
       new TH1F("resVsEta_eta_L_68", ";Tracking particle |#eta|; #eta resolution", nETARANGE, 0, eta_resmax);
@@ -2215,13 +2225,19 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
     h2_resVsEta_d0_90->SetBinContent(i + 1, getIntervalContainingFractionOfEntries(h_absResVsEta_d0[i], 0.90));
     h2_resVsEta_d0_99->SetBinContent(i + 1, getIntervalContainingFractionOfEntries(h_absResVsEta_d0[i], 0.99));
 
-    h2_resVsEta_ptRel_beamCon_68->SetBinContent(i + 1, getIntervalContainingFractionOfEntries(h_absResVsEta_beamCon_ptRel[i], 0.68));
-    h2_resVsEta_ptRel_beamCon_90->SetBinContent(i + 1, getIntervalContainingFractionOfEntries(h_absResVsEta_beamCon_ptRel[i], 0.90));
-    h2_resVsEta_ptRel_beamCon_99->SetBinContent(i + 1, getIntervalContainingFractionOfEntries(h_absResVsEta_beamCon_ptRel[i], 0.99));
+    h2_resVsEta_ptRel_beamCon_68->SetBinContent(
+        i + 1, getIntervalContainingFractionOfEntries(h_absResVsEta_beamCon_ptRel[i], 0.68));
+    h2_resVsEta_ptRel_beamCon_90->SetBinContent(
+        i + 1, getIntervalContainingFractionOfEntries(h_absResVsEta_beamCon_ptRel[i], 0.90));
+    h2_resVsEta_ptRel_beamCon_99->SetBinContent(
+        i + 1, getIntervalContainingFractionOfEntries(h_absResVsEta_beamCon_ptRel[i], 0.99));
 
-    h2_resVsEta_phi_beamCon_68->SetBinContent(i + 1, getIntervalContainingFractionOfEntries(h_absResVsEta_beamCon_phi[i], 0.68));
-    h2_resVsEta_phi_beamCon_90->SetBinContent(i + 1, getIntervalContainingFractionOfEntries(h_absResVsEta_beamCon_phi[i], 0.90));
-    h2_resVsEta_phi_beamCon_99->SetBinContent(i + 1, getIntervalContainingFractionOfEntries(h_absResVsEta_beamCon_phi[i], 0.99));
+    h2_resVsEta_phi_beamCon_68->SetBinContent(
+        i + 1, getIntervalContainingFractionOfEntries(h_absResVsEta_beamCon_phi[i], 0.68));
+    h2_resVsEta_phi_beamCon_90->SetBinContent(
+        i + 1, getIntervalContainingFractionOfEntries(h_absResVsEta_beamCon_phi[i], 0.90));
+    h2_resVsEta_phi_beamCon_99->SetBinContent(
+        i + 1, getIntervalContainingFractionOfEntries(h_absResVsEta_beamCon_phi[i], 0.99));
 
     h2_resVsEta_eta_L_68->SetBinContent(i + 1, getIntervalContainingFractionOfEntries(h_absResVsEta_eta_L[i], 0.68));
     h2_resVsEta_z0_L_68->SetBinContent(i + 1, getIntervalContainingFractionOfEntries(h_absResVsEta_z0_L[i], 0.68));
@@ -2544,13 +2560,13 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
   // plots overlaying 68, 90, 99% confidence levels]
 
   // set plotting dislay limit on interval plot resolution
-  float max_eta_ptRel = 0.2; 
+  float max_eta_ptRel = 0.2;
   float max_pt_ptRel = 0.2;
   float max_pt_pt = 20;
   float max_z0 = 2.0;
   float max_phi = 0.01;
   float max_eta = 0.03;
-  float max_d0 = 0.008;
+  float max_d0 = 0.1;
 
   if (type.Contains("El")) {
     max_pt_ptRel = 1.0;
@@ -2561,19 +2577,22 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
   // makeResidualIntervalPlot will save the individual plots to the root file
   makeResidualIntervalPlot(
       type, DIR, "resVsPt_ptRel", h2_resVsPt_ptRel_68, h2_resVsPt_ptRel_90, h2_resVsPt_ptRel_99, 0, max_pt_ptRel);
-  makeResidualIntervalPlot(
-      type, DIR, "resVsPt_pt", h2_resVsPt_pt_68, h2_resVsPt_pt_90, h2_resVsPt_pt_99, 0, max_pt_pt);
-  makeResidualIntervalPlot(
-      type, DIR, "resVsPt_z0", h2_resVsPt_z0_68, h2_resVsPt_z0_90, h2_resVsPt_z0_99, 0, max_z0);
+  makeResidualIntervalPlot(type, DIR, "resVsPt_pt", h2_resVsPt_pt_68, h2_resVsPt_pt_90, h2_resVsPt_pt_99, 0, max_pt_pt);
+  makeResidualIntervalPlot(type, DIR, "resVsPt_z0", h2_resVsPt_z0_68, h2_resVsPt_z0_90, h2_resVsPt_z0_99, 0, max_z0);
   makeResidualIntervalPlot(
       type, DIR, "resVsPt_phi", h2_resVsPt_phi_68, h2_resVsPt_phi_90, h2_resVsPt_phi_99, 0, max_phi);
   makeResidualIntervalPlot(
       type, DIR, "resVsPt_eta", h2_resVsPt_eta_68, h2_resVsPt_eta_90, h2_resVsPt_eta_99, 0, max_eta);
-  makeResidualIntervalPlot(
-      type, DIR, "resVsPt_d0", h2_resVsPt_d0_68, h2_resVsPt_d0_90, h2_resVsPt_d0_99, 0, max_d0 );
-  
-  makeResidualIntervalPlot(
-      type, DIR, "resVsPt_L_ptRel", h2_resVsPt_ptRel_L_68, h2_resVsPt_ptRel_L_90, h2_resVsPt_ptRel_L_99, 0, max_pt_ptRel);
+  makeResidualIntervalPlot(type, DIR, "resVsPt_d0", h2_resVsPt_d0_68, h2_resVsPt_d0_90, h2_resVsPt_d0_99, 0, max_d0);
+
+  makeResidualIntervalPlot(type,
+                           DIR,
+                           "resVsPt_L_ptRel",
+                           h2_resVsPt_ptRel_L_68,
+                           h2_resVsPt_ptRel_L_90,
+                           h2_resVsPt_ptRel_L_99,
+                           0,
+                           max_pt_ptRel);
   makeResidualIntervalPlot(type, DIR, "resVsPt_L_pt", h2_resVsPt_pt_L_68, h2_resVsPt_pt_L_90, h2_resVsPt_pt_L_99, 0, 4);
   makeResidualIntervalPlot(
       type, DIR, "resVsPt_L_z0", h2_resVsPt_z0_L_68, h2_resVsPt_z0_L_90, h2_resVsPt_z0_L_99, 0, max_z0);
@@ -2582,7 +2601,7 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
   makeResidualIntervalPlot(
       type, DIR, "resVsPt_L_eta", h2_resVsPt_eta_L_68, h2_resVsPt_eta_L_90, h2_resVsPt_eta_L_99, 0, max_eta);
   makeResidualIntervalPlot(
-      type, DIR, "resVsPt_L_d0", h2_resVsPt_d0_L_68, h2_resVsPt_d0_L_90, h2_resVsPt_d0_L_99, 0, max_d0 );
+      type, DIR, "resVsPt_L_d0", h2_resVsPt_d0_L_68, h2_resVsPt_d0_L_90, h2_resVsPt_d0_L_99, 0, max_d0);
 
   makeResidualIntervalPlot(
       type, DIR, "resVsEta_eta", h2_resVsEta_eta_68, h2_resVsEta_eta_90, h2_resVsEta_eta_99, 0, max_eta);
@@ -2592,22 +2611,42 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
       type, DIR, "resVsEta_phi", h2_resVsEta_phi_68, h2_resVsEta_phi_90, h2_resVsEta_phi_99, 0, max_phi);
   makeResidualIntervalPlot(
       type, DIR, "resVsEta_ptRel", h2_resVsEta_ptRel_68, h2_resVsEta_ptRel_90, h2_resVsEta_ptRel_99, 0, max_eta_ptRel);
-  makeResidualIntervalPlot( type, DIR, "resVsEta_d0", h2_resVsEta_d0_68, h2_resVsEta_d0_90, h2_resVsEta_d0_99, 0, max_d0 );
+  makeResidualIntervalPlot(
+      type, DIR, "resVsEta_d0", h2_resVsEta_d0_68, h2_resVsEta_d0_90, h2_resVsEta_d0_99, 0, max_d0);
 
-  makeResidualIntervalPlot(
-      type, DIR, "resVsEta_ptRel_beamCon", h2_resVsEta_ptRel_beamCon_68, h2_resVsEta_ptRel_beamCon_90, h2_resVsEta_ptRel_beamCon_99, 0, max_pt_ptRel);
-  makeResidualIntervalPlot(
-      type, DIR, "resVsEta_phi_beamCon", h2_resVsEta_phi_beamCon_68, h2_resVsEta_phi_beamCon_90, h2_resVsEta_phi_beamCon_99, 0, max_phi);
-  
+  makeResidualIntervalPlot(type,
+                           DIR,
+                           "resVsEta_ptRel_beamCon",
+                           h2_resVsEta_ptRel_beamCon_68,
+                           h2_resVsEta_ptRel_beamCon_90,
+                           h2_resVsEta_ptRel_beamCon_99,
+                           0,
+                           max_pt_ptRel);
+  makeResidualIntervalPlot(type,
+                           DIR,
+                           "resVsEta_phi_beamCon",
+                           h2_resVsEta_phi_beamCon_68,
+                           h2_resVsEta_phi_beamCon_90,
+                           h2_resVsEta_phi_beamCon_99,
+                           0,
+                           max_phi);
+
   makeResidualIntervalPlot(
       type, DIR, "resVsEta_L_eta", h2_resVsEta_eta_L_68, h2_resVsEta_eta_L_90, h2_resVsEta_eta_L_99, 0, max_eta);
   makeResidualIntervalPlot(
       type, DIR, "resVsEta_L_z0", h2_resVsEta_z0_L_68, h2_resVsEta_z0_L_90, h2_resVsEta_z0_L_99, 0, max_z0);
   makeResidualIntervalPlot(
       type, DIR, "resVsEta_L_phi", h2_resVsEta_phi_L_68, h2_resVsEta_phi_L_90, h2_resVsEta_phi_L_99, 0, max_phi);
+  makeResidualIntervalPlot(type,
+                           DIR,
+                           "resVsEta_L_ptRel",
+                           h2_resVsEta_ptRel_L_68,
+                           h2_resVsEta_ptRel_L_90,
+                           h2_resVsEta_ptRel_L_99,
+                           0,
+                           max_eta_ptRel);
   makeResidualIntervalPlot(
-      type, DIR, "resVsEta_L_ptRel", h2_resVsEta_ptRel_L_68, h2_resVsEta_ptRel_L_90, h2_resVsEta_ptRel_L_99, 0, max_eta_ptRel);
-  makeResidualIntervalPlot( type, DIR, "resVsEta_L_d0", h2_resVsEta_d0_L_68, h2_resVsEta_d0_L_90, h2_resVsEta_d0_L_99, 0, max_d0 );
+      type, DIR, "resVsEta_L_d0", h2_resVsEta_d0_L_68, h2_resVsEta_d0_L_90, h2_resVsEta_d0_L_99, 0, max_d0);
 
   makeResidualIntervalPlot(
       type, DIR, "resVsEta_H_eta", h2_resVsEta_eta_H_68, h2_resVsEta_eta_H_90, h2_resVsEta_eta_H_99, 0, max_eta);
@@ -2615,9 +2654,16 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
       type, DIR, "resVsEta_H_z0", h2_resVsEta_z0_H_68, h2_resVsEta_z0_H_90, h2_resVsEta_z0_H_99, 0, max_z0);
   makeResidualIntervalPlot(
       type, DIR, "resVsEta_H_phi", h2_resVsEta_phi_H_68, h2_resVsEta_phi_H_90, h2_resVsEta_phi_H_99, 0, max_phi);
+  makeResidualIntervalPlot(type,
+                           DIR,
+                           "resVsEta_H_ptRel",
+                           h2_resVsEta_ptRel_H_68,
+                           h2_resVsEta_ptRel_H_90,
+                           h2_resVsEta_ptRel_H_99,
+                           0,
+                           max_eta_ptRel);
   makeResidualIntervalPlot(
-      type, DIR, "resVsEta_H_ptRel", h2_resVsEta_ptRel_H_68, h2_resVsEta_ptRel_H_90, h2_resVsEta_ptRel_H_99, 0, max_eta_ptRel);
-  makeResidualIntervalPlot( type, DIR, "resVsEta_H_d0", h2_resVsEta_d0_H_68, h2_resVsEta_d0_H_90, h2_resVsEta_d0_H_99, 0, max_d0 );
+      type, DIR, "resVsEta_H_d0", h2_resVsEta_d0_H_68, h2_resVsEta_d0_H_90, h2_resVsEta_d0_H_99, 0, max_d0);
 
   if (doDetailedPlots) {
     makeResidualIntervalPlot(
@@ -2898,14 +2944,15 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
     h_match_trk_nstub_I->Write();
     h_match_trk_nstub_F->Write();
   }
-  
+
   makeAllAndTruePDF(type, DIR, "trk_chi2", h_trk_chi2, h_match_trk_chi2);
   makeAllAndTruePDF(type, DIR, "trk_chi2_dof", h_trk_chi2_dof, h_match_trk_chi2_dof);
   makeAllAndTruePDF(type, DIR, "trk_chi2rphi", h_trk_chi2rphi, h_match_trk_chi2rphi);
   makeAllAndTruePDF(type, DIR, "trk_chi2rphi_dof", h_trk_chi2rphi_dof, h_match_trk_chi2rphi_dof);
   makeAllAndTruePDF(type, DIR, "trk_chi2rz", h_trk_chi2rz, h_match_trk_chi2rz);
   makeAllAndTruePDF(type, DIR, "trk_chi2rz_dof", h_trk_chi2rz_dof, h_match_trk_chi2rz_dof);
-  makeAllAndTruePDF(type, DIR, "trk_chi2rphi_dof_beamCon", h_trk_chi2rphi_dof_beamCon, h_match_trk_chi2rphi_dof_beamCon);
+  makeAllAndTruePDF(
+      type, DIR, "trk_chi2rphi_dof_beamCon", h_trk_chi2rphi_dof_beamCon, h_match_trk_chi2rphi_dof_beamCon);
 
   if (doDetailedPlots) {
     h_match_trk_chi2_C_L->Write();
@@ -3869,20 +3916,22 @@ double getIntervalContainingFractionOfEntries(TH1* absResidualHistogram, double 
   static unsigned int nErr = 0;
   constexpr unsigned int maxErr = 10;
   if (totalIntegral == 0 || numEntries < minEntries) {
-    if (quantileToCalculate < 0.70 && nErr < maxErr) { // Avoid repeat warning for all quantiles
+    if (quantileToCalculate < 0.70 && nErr < maxErr) {  // Avoid repeat warning for all quantiles
       nErr++;
-      cerr << "WARNING: Cannot compute " << quantileToCalculate << " quantile inverval, as too few stats (" << numEntries << ") in histo " << absResidualHistogram->GetName() << endl;
+      cerr << "WARNING: Cannot compute " << quantileToCalculate << " quantile inverval, as too few stats ("
+           << numEntries << ") in histo " << absResidualHistogram->GetName() << endl;
     }
     interval[0] = 999.;
   } else if (nEntriesInOverflow > maxAllowedEntriesInOverflow) {
     // Suppress warning for 99% interval.
     if (quantileToCalculate < 0.98 && nErr < maxErr) {
       nErr++;
-      cerr << "WARNING : Cannot compute " << quantileToCalculate << " quantile interval, as it is in the overflow bin of histo " << absResidualHistogram->GetName() <<" -- please increase its x-axis range. " << nEntriesInOverflow << "/" << numEntries << endl;
+      cerr << "WARNING : Cannot compute " << quantileToCalculate
+           << " quantile interval, as it is in the overflow bin of histo " << absResidualHistogram->GetName()
+           << " -- please increase its x-axis range. " << nEntriesInOverflow << "/" << numEntries << endl;
     }
     interval[0] = 999.;
   } else {
-    
     // Calculate quantile for given interval
     absResidualHistogram->GetQuantiles(1, interval, quantile);
   }
@@ -3928,8 +3977,7 @@ void makeResidualIntervalPlot(
   delete l;
 }
 
-void makeAllAndTruePDF(TString type, TString dir, TString variable,
-                       TH1F* h_all, TH1F* h_match) {
+void makeAllAndTruePDF(TString type, TString dir, TString variable, TH1F* h_all, TH1F* h_match) {
   // Create PDF in which equivalent histograms that show all tracks and only genuine (matched) tracks are superimposed.
   TCanvas c;
 

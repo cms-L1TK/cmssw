@@ -160,7 +160,9 @@ public:
   unsigned int hitPattern() const { return theHitPattern_; }
 
   /// Get helix params & chi2XY after constraining track to x=y=0.
-  // (Added to study if worth adding to L1 track firmware output).
+  //  N.B. Should really constrain to beam-line position!
+  // (Added to study if worth adding to L1 track firmware output.
+  // Outputting constraint chi2 easier than constrained helix params.).
   void beamConstraint(float& phi_con, float& rInv_con, float& pt_con, float& chi2XY_con, float& chi2XY_dof_con) const;
 
   /// set new Bfield
@@ -285,8 +287,12 @@ void TTTrack<T>::beamConstraint(
 
   if (theNumFitPars_ == 5) {
     // Calculated with Lagrange multipliers in approx that d0 is small.
-    double lagrange = theD0_ / theHelixCovMat_[4][4];
-    chi2XY_con += lagrange * theD0_;
+    double d0 = this->d0();
+    // To constrain to beam-spot (XB,YB) rather than (0,0), would need this,
+    // in approx that XB,YB,D0 all small.
+    // double d0 = this->d0() - (XB*sin(phi_con) - YB cos(phi_con));
+    double lagrange = d0 / theHelixCovMat_[4][4];
+    chi2XY_con += lagrange * d0;
     rInv_con -= lagrange * theHelixCovMat_[4][0];
     phi_con -= lagrange * theHelixCovMat_[4][1];
     phi_con = reco::deltaPhi(phi_con, 0.);

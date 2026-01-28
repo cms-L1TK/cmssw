@@ -977,7 +977,7 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
   // Conversion factor curvature radius to Pt.
   const float b_field = bFieldHandle.product()->inTesla(GlobalPoint(0, 0, 0)).z();
   const float cLight = CLHEP::c_light / 1.0E5;
-  const float convertRToPt = cLight * b_field;
+  const float convertRtoPt = cLight * b_field;
 
   // ----------------------------------------------------------------------------------------------
   // loop over L1 stubs
@@ -1180,7 +1180,7 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
       const auto& helixCovMat = iterL1Track->helixCovMat();
       // Protect against wierd covariance matrices with negatives.
       auto safeSqrt = [](float q) { return q >= 0 ? sqrt(q) : -sqrt(-q); };
-      float tmp_trk_sigma_qOverPt = 2 * safeSqrt(helixCovMat[0][0]) / convertRToPt;
+      float tmp_trk_sigma_qOverPt = 2 * safeSqrt(helixCovMat[0][0]) / convertRtoPt;
       float tmp_trk_sigma_phi = safeSqrt(helixCovMat[1][1]);
       float tmp_trk_sigma_tanL = safeSqrt(helixCovMat[2][2]);
       float tmp_trk_sigma_z0 = safeSqrt(helixCovMat[3][3]);
@@ -1445,7 +1445,7 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
         float delx = -tmp_matchtp_vx;
         float dely = -tmp_matchtp_vy;
 
-        float r2_inv = my_tp->charge() * convertRToPt / tmp_matchtp_pt / 2.0;
+        float r2_inv = my_tp->charge() * convertRtoPt / tmp_matchtp_pt / 2.0;
 
         float tmp_matchtp_x0p = delx - (1. / (2. * r2_inv) * sin(tmp_matchtp_phi));
         float tmp_matchtp_y0p = dely + (1. / (2. * r2_inv) * cos(tmp_matchtp_phi));
@@ -1553,7 +1553,7 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
     float delx = -tmp_tp_vx;
     float dely = -tmp_tp_vy;
 
-    float r2_inv = tmp_tp_charge * convertRToPt / tmp_tp_pt / 2.0;
+    float r2_inv = tmp_tp_charge * convertRtoPt / tmp_tp_pt / 2.0;
 
     float tmp_tp_x0p = delx - (1. / (2. * r2_inv) * sin(tmp_tp_phi));  // centre of track circle (except sign ...)
     float tmp_tp_y0p = dely + (1. / (2. * r2_inv) * cos(tmp_tp_phi));
