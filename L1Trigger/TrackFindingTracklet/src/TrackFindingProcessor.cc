@@ -81,7 +81,7 @@ namespace trklet {
       return;
     // create bit vectors
     std::string s = trackTQ.hitPattern().str();
-    s.resize(TTTrack_TrackWord::TrackBitWidths::kHitPatternSize);
+    s.resize(8);
     hitPattern_ = TTBV(s);
     const TTBV other = TTBV(0, 2 * TTTrack_TrackWord::TrackBitWidths::kMVAQualitySize);
     const TTBV chi2bend = TTBV(0, TTTrack_TrackWord::TrackBitWidths::kBendChi2Size);

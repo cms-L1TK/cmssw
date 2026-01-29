@@ -141,7 +141,8 @@ print("Product:", tag.getProductInstanceLabel())
 process.load('L1Trigger.L1TTrackMatch.l1tTrackSelectionProducer_cfi')
 process.load('L1Trigger.VertexFinder.l1tVertexProducer_cfi')
 process.load('L1Trigger.L1TTrackMatch.l1tTrackVertexAssociationProducer_cfi')
-process.load('L1Trigger.VertexFinder.l1TrackZ0ResolutionAnalyzer_cfi')
+#process.load('L1Trigger.VertexFinder.l1TrackZ0ResolutionAnalyzer_cfi')
+process.load('L1Trigger.VertexFinder.l1TrackZ0ResolutionProducer_cfi')
 
 # Ignore 
 # process.load('L1Trigger.VertexFinder.l1tVertexNTupler_cfi')
@@ -157,5 +158,5 @@ process.p = cms.Path(process.l1tGTTInputProducer +
                      process.l1tTrackVertexAssociationProducer +
                      process.l1tVertexProducer + 
                      process.l1VertexAnalyzer + 
-                     process.l1TrackZ0ResolutionAnalyzer)
+                     process.l1TrackZ0NtupleProducer)
 

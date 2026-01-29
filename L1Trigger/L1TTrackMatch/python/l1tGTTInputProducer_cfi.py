@@ -1,7 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 
 l1tGTTInputProducer = cms.EDProducer('L1GTTInputProducer',
-  l1TracksInputTag = cms.InputTag("l1tTTTracksFromTrackletEmulation", "Level1TTTracks"),
+  l1TracksInputTag = cms.InputTag("ProducerTFP", "TTTrackAccepted"),
   outputCollectionName = cms.string("Level1TTTracksConverted"),
   setTrackWordBits = cms.bool(True),
   debug = cms.int32(0) # Verbosity levels: 0, 1, 2, 3

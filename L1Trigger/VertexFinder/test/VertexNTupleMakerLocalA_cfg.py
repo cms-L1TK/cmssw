@@ -113,10 +113,17 @@ print(f"\033[1;32mSelected L1 Track Trigger Algorithm -> {L1TRKALGO}\033[0m")
 print("\033[1;32m=== TTracks Constructed By Kalman Filter ===\033[0m")
 print("Module :", tag.getModuleLabel())
 print("Product:", tag.getProductInstanceLabel())
+
 process.load('L1Trigger.L1TTrackMatch.l1tTrackSelectionProducer_cfi')
 process.load('L1Trigger.VertexFinder.l1tVertexProducer_cfi')
 process.load('L1Trigger.L1TTrackMatch.l1tTrackVertexAssociationProducer_cfi')
-process.load('L1Trigger.VertexFinder.l1TrackZ0ResolutionProducer_cfi')
+process.load('L1Trigger.DemonstratorTools.l1tGTTFileWriter_cfi')
+
+tag_ = process.l1tGTTFileWriter.tracks
+print(f"\033[1;32mSelected L1 Track Trigger Algorithm -> {L1TRKALGO}\033[0m")
+print("\033[1;32m=== TTracks Constructed By Kalman Filter ===\033[0m")
+print("Module :", tag_.getModuleLabel())
+print("Product:", tag_.getProductInstanceLabel())
 
 # Ignore 
 # process.load('L1Trigger.VertexFinder.l1tVertexNTupler_cfi')
@@ -125,11 +132,12 @@ process.load('L1Trigger.VertexFinder.l1TrackZ0ResolutionProducer_cfi')
 
 process.load('L1Trigger.VertexFinder.l1VertexAnalyzer_cfi')
 
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
+process.l1tGTTFileWriter.vertexAssociatedTracks = cms.untracked.InputTag("l1tTrackVertexAssociationProducer", "Level1TTTracksSelectedAssociatedEmulation")
+
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(1))
 
 process.p = cms.Path(process.l1tGTTInputProducer + 
                      process.l1tTrackSelectionProducer + 
+                     process.l1tVertexFinderEmulator +
                      process.l1tTrackVertexAssociationProducer +
-                     process.l1tVertexProducer + 
-                     process.l1VertexAnalyzer + 
-                     process.l1TrackZ0NtupleProducer)
+                     process.l1tGTTFileWriter)

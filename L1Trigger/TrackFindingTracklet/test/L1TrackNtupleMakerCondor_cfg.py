@@ -42,7 +42,7 @@ options.parseArguments()
 print(f'~ Cluster ID: {options.cluster}')
 print(f'~ Process ID: {options.process}')
 
-DatasetDatabase = "/home/hep/am2023/ian_fixes_for_14/CMSSW_15_1_0_pre4/src/RelValTTbar_14TeV_CMSSW_15_1_0_pre5_GEN-SIM-DIGI-RAW_files.txt"
+DatasetDatabase = "/home/hep/am2023/ian_fixes_for_14/CMSSW_15_1_0_pre4/src/RelValTTbar_14TeV_TuneCP5_PU_150X_mcRun4_realistic_v1_RV269_Run4D110_PU-v1.txt"
 
 try:
     InputMC = [get_input_mc_line(DatasetDatabase, options.process)]
@@ -74,7 +74,7 @@ GEOMETRY = "D110"
 # 'HYBRID_DISPLACED_NEWKF_KILL' displaced tracklet followed by DR emulation and 5 param fit sim
 # 'HYBRID_DISPLACED_NEWKF_MERGE' displaced tracklet followed by DR simulation and 5 param fit sim
 # (Or legacy algos 'TMTT' or 'TRACKLET').
-L1TRKALGO = 'HYBRID_DISPLACED_NEWKF_KILL'
+L1TRKALGO = 'HYBRID_NEWKF'
 print("L1 tracking algorithm: " + L1TRKALGO)
 WRITE_DATA = False
 
@@ -114,7 +114,7 @@ process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 # input and output
 ############################################################
 
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(1))
 
 #--- To use MCsamples scripts, defining functions get*data*() for easy MC access,
 #--- follow instructions in https://github.com/cms-L1TK/MCsamples
