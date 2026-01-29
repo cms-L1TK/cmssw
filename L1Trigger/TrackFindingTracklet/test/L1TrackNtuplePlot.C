@@ -46,7 +46,7 @@ void makeAllAndTruePDF(TString type, TString dir, TString variable, TH1F* h_all,
 
 void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
                        TString inputDir = "./",
-                       bool useDisplacedTrkCuts = true,
+                       bool useDisplacedTrkCuts = false,
                        bool doDetailedPlots = true,
                        // For displaced tracking studies, consider using TP_minPt = 3.0, TP_maxEta = 2.0.
                        float TP_minPt = 2.0,
