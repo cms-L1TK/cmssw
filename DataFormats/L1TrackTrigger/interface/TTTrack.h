@@ -67,7 +67,7 @@ public:
           double trkMVA1,
           double trkMVA2,
           double trkMVA3,
-          unsigned int aHitpattern, // Bit order: Inner-->Outer tracker corresponds to Rightmost-->Leftmost bits
+          unsigned int aHitpattern,  // Bit order: Inner-->Outer tracker corresponds to Rightmost-->Leftmost bits
           unsigned int nPar,
           double Bfield,
           unsigned int phiSector = 99,
