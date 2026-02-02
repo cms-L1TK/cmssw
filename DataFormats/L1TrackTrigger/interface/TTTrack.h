@@ -25,6 +25,7 @@ class TTTrack : public TTTrack_TrackWord {
 public:
   typedef math::ErrorF<5>::type CovMat;
   typedef edm::Ref<edmNew::DetSetVector<TTStub<T> >, TTStub<T> > TTStubRef;
+  enum Hpar { INVR, PHI0, TANL, Z0, D0 };
 
 private:
   /// Data members
@@ -92,7 +93,7 @@ public:
   double phi() const { return thePhi_; }
 
   // Track phi with respect to centre line of phi nonant, which for sector 0 is parallel to x-axis.
-  double localPhi() const;
+  double localPhi() const { return TTTrack_TrackWord::localPhi(thePhi_, thePhiSector_); }
 
   /// Track tanL
   double tanL() const { return theTanL_; }
@@ -109,7 +110,8 @@ public:
   /// Track charge
   int charge() const { return (theRInv_ > 0) ? 1 : -1; }
 
-  // Helix covariance matrix (always 5x5) in (1/R, phi0, tanL, z0, d0).
+  // Helix covariance matrix (always 5x5) in (1/R, phi0, tanL, z0, d0),
+  // so elements can be accessed with enum Hpar.
   // (Added to study if any elements worth adding to L1 track firmware output).
   const CovMat& helixCovMat() const { return theHelixCovMat_; }
 
@@ -141,12 +143,13 @@ public:
 
   /// Chi2 and chi2/ndf ("Red")
   double chi2() const { return theChi2_; }
-  double chi2Red() const;
+  double chi2Red() const { return theChi2_ / (2 * theStubRefs.size() - theNumFitPars_); }
+
   // Ditto, but split into r-z and x-y components.
   double chi2Z() const { return theChi2_Z_; }
-  double chi2ZRed() const;
+  double chi2ZRed() const { return theChi2_Z_ / (theStubRefs.size() - 2.); }
   double chi2XY() const { return theChi2_XY_; }
-  double chi2XYRed() const;
+  double chi2XYRed() const { return theChi2_XY_ / (theStubRefs.size() - (theNumFitPars_ - 2)); }
 
   /// Stub Pt consistency (i.e. stub bend chi2/dof)
   double chi2BendRed() const { return theStubPtConsistency_; }
@@ -252,29 +255,6 @@ TTTrack<T>::TTTrack(double Rinv,
   theMomentum_ = GlobalVector(GlobalVector::Cylindrical(pT, phi0, pT * tanL));
 }
 
-template <typename T>
-double TTTrack<T>::localPhi() const {
-  return TTTrack_TrackWord::localPhi(thePhi_, thePhiSector_);
-}
-
-/// Chi2/dof
-template <typename T>
-double TTTrack<T>::chi2Red() const {
-  return theChi2_ / (2 * theStubRefs.size() - theNumFitPars_);
-}
-
-/// Chi2 in x-y / dof
-template <typename T>
-double TTTrack<T>::chi2XYRed() const {
-  return theChi2_XY_ / (theStubRefs.size() - (theNumFitPars_ - 2));
-}
-
-/// Chi2 in r-z / dof
-template <typename T>
-double TTTrack<T>::chi2ZRed() const {
-  return theChi2_Z_ / (theStubRefs.size() - 2.);
-}
-
 /// Get helix params & chi2XY after constraining track to x=y=0.
 template <typename T>
 void TTTrack<T>::beamConstraint(
@@ -291,10 +271,10 @@ void TTTrack<T>::beamConstraint(
     // To constrain to beam-spot (XB,YB) rather than (0,0), would need this,
     // in approx that XB,YB,D0 all small.
     // double d0 = this->d0() - (XB*sin(phi_con) - YB cos(phi_con));
-    double lagrange = d0 / theHelixCovMat_[4][4];
+    double lagrange = d0 / theHelixCovMat_[Hpar::D0][Hpar::D0];
     chi2XY_con += lagrange * d0;
-    rInv_con -= lagrange * theHelixCovMat_[4][0];
-    phi_con -= lagrange * theHelixCovMat_[4][1];
+    rInv_con -= lagrange * theHelixCovMat_[Hpar::D0][Hpar::INVR];
+    phi_con -= lagrange * theHelixCovMat_[Hpar::D0][Hpar::PHI0];
     phi_con = reco::deltaPhi(phi_con, 0.);
     pt_con = this->rinvToPt(rInv_con);
     int nHelPar = 4;

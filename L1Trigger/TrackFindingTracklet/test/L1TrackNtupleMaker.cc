@@ -1180,11 +1180,12 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
       const auto& helixCovMat = iterL1Track->helixCovMat();
       // Protect against wierd covariance matrices with negatives.
       auto safeSqrt = [](float q) { return q >= 0 ? sqrt(q) : -sqrt(-q); };
-      float tmp_trk_sigma_qOverPt = 2 * safeSqrt(helixCovMat[0][0]) / convertRtoPt;
-      float tmp_trk_sigma_phi = safeSqrt(helixCovMat[1][1]);
-      float tmp_trk_sigma_tanL = safeSqrt(helixCovMat[2][2]);
-      float tmp_trk_sigma_z0 = safeSqrt(helixCovMat[3][3]);
-      float tmp_trk_sigma_d0 = (nHelixPars == 5) ? safeSqrt(helixCovMat[4][4]) : 0.;
+      using enum TTTrack<Ref_Phase2TrackerDigi_>::Hpar;
+      float tmp_trk_sigma_qOverPt = 2 * safeSqrt(helixCovMat[INVR][INVR]) / convertRtoPt;
+      float tmp_trk_sigma_phi = safeSqrt(helixCovMat[PHI0][PHI0]);
+      float tmp_trk_sigma_tanL = safeSqrt(helixCovMat[TANL][TANL]);
+      float tmp_trk_sigma_z0 = safeSqrt(helixCovMat[Z0][Z0]);
+      float tmp_trk_sigma_d0 = (nHelixPars == 5) ? safeSqrt(helixCovMat[D0][D0]) : 0.;
 
       int tmp_trk_hitpattern = 0;
       tmp_trk_hitpattern = (int)iterL1Track->hitPattern();
