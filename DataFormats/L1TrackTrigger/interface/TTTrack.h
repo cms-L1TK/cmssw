@@ -147,9 +147,15 @@ public:
 
   // Ditto, but split into r-z and x-y components.
   double chi2Z() const { return theChi2_Z_; }
-  double chi2ZRed() const { return theChi2_Z_ / (theStubRefs.size() - 2.); }
+  double chi2ZRed() const {
+    constexpr int nHelixParsRZ = 2;
+    return theChi2_Z_ / (theStubRefs.size() - nHelixParsRZ);
+  }
   double chi2XY() const { return theChi2_XY_; }
-  double chi2XYRed() const { return theChi2_XY_ / (theStubRefs.size() - (theNumFitPars_ - 2)); }
+  double chi2XYRed() const {
+    int nHelixParsRPhi = theNumFitPars_ - 2;
+    return theChi2_XY_ / (theStubRefs.size() - nHelixParsRPhi);
+  }
 
   /// Stub Pt consistency (i.e. stub bend chi2/dof)
   double chi2BendRed() const { return theStubPtConsistency_; }
@@ -277,8 +283,8 @@ void TTTrack<T>::beamConstraint(
     phi_con -= lagrange * theHelixCovMat_[Hpar::D0][Hpar::PHI0];
     phi_con = reco::deltaPhi(phi_con, 0.);
     pt_con = this->rinvToPt(rInv_con);
-    int nHelPar = 4;
-    int dof = theStubRefs.size() - (nHelPar - 2);
+    constexpr int nHelixParsRPhi = 2;  // with d0 = 0 constraint
+    int dof = theStubRefs.size() - nHelixParsRPhi;
     chi2XY_dof_con = chi2XY_con / dof;
   }
 }
@@ -286,6 +292,7 @@ void TTTrack<T>::beamConstraint(
 /// set B field if need be
 template <typename T>
 void TTTrack<T>::setBField(double aBField) {
+  theBField_ = aBField;
   // if, for some reason, we want to change the value of the B-Field, recompute momentum:
   double thePT = this->rinvToPt(theRInv_);
   theMomentum_ = GlobalVector(GlobalVector::Cylindrical(thePT, thePhi_, thePT * theTanL_));
@@ -331,10 +338,9 @@ std::string TTTrack<T>::print() const {
   output << "chi2XYRed = " << chi2XYRed() << " vs " << getChi2RPhi() << "\n";
   output << "trkMVA1   = " << trkMVA1() << " vs " << getMVAQuality() << "\n";
   auto safeSqrt = [](float q) { return q >= 0 ? sqrt(q) : -sqrt(-q); };
-  output << "sigma(z0) = " << safeSqrt(theHelixCovMat_[3][3]) << "\n";
+  output << "sigma(z0) = " << safeSqrt(theHelixCovMat_[Hpar::Z0][Hpar::Z0]) << "\n";
   if (theNumFitPars_ == 5)
-    output << "sigma(d0) = " << safeSqrt(theHelixCovMat_[4][4]) << "\n";
-  output << "sigma(phi0) = " << safeSqrt(theHelixCovMat_[1][1]) << "\n";
+    output << "sigma(d0) = " << safeSqrt(theHelixCovMat_[Hpar::D0][Hpar::D0]) << "\n";
 
   output << "digi(L1 track) word = " << getTrackWord().to_string(16) << "\n";
 
