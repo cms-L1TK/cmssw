@@ -271,7 +271,9 @@ namespace trklet {
           ttTrack, setup_->trackerGeometry(), setup_->trackerTopology(), bfield_, nPar));
       ttTrack.setTrackWordBits();
 
-      //edm::LogVerbatim("Tracklet") << ttTrack;  // Print track
+      constexpr bool debug = false;
+      if (debug)
+        edm::LogVerbatim("Tracklet") << ttTrack;  // Print track
     }
   }
 
