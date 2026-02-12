@@ -133,10 +133,13 @@ namespace trklet {
     convert(iEvent, edGetTokenTracksOut_, edGetTokenStubsOut_, output, TBout_);
     if (!demonstrator_->analyze(input, output))
       throw cms::Exception("BitError.");
-    // create testvector compatible with L1T from the TFP output - each tracker region gets its own set of links in the same file
-    if (maxEventsPerL1TFile_)
-      demonstrator_->l1tInput(output, (nEvents_ - 1) % maxEventsPerL1TFile_); // if second argument is 0, l1tInput function will create a new output file
-    // test on hw
+    // create testvector compatible with L1T - each tracker region gets its own set of links in the same file
+    if (maxEventsPerL1TFile_) {
+      demonstrator_->makeInputFiles(input, (nEvents_ - 1) % maxEventsPerL1TFile_);
+      demonstrator_->makeOutputFiles(output, (nEvents_ - 1) % maxEventsPerL1TFile_);
+      demonstrator_->makeL1TFiles(output, (nEvents_ - 1) % maxEventsPerL1TFile_); // if second argument is 0, l1tInput function will create a new output file
+    }
+      // test on hw
     if (dirTGZ_ != "") {
       if (demonstrator_->hw(dirTGZ_, boardAdress_, boardType_, nameFPGA_, dockerImage_, bufferOffset_, nEvents_-1, saveAllFiles_))
         throw cms::Exception("HWError.");

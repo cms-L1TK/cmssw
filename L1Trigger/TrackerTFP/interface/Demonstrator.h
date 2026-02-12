@@ -30,17 +30,24 @@ namespace trackerTFP {
     // plays input through modelsim and compares result with output
     bool analyze(const std::vector<std::vector<tt::Frame>>& input,
                  const std::vector<std::vector<tt::Frame>>& output) const;
-    // create testvector compatible with L1T from the TFP output - each tracker region gets its own set of links
-    void l1tInput(const std::vector<std::vector<tt::Frame>>& output, const int nL1TEvent) const;
+    // create testvector compatible with L1T - each tracker region gets its own set of links
+    void makeInputFiles(const std::vector<std::vector<tt::Frame>>& input, const int nL1TEvent) const;
+    void makeOutputFiles(const std::vector<std::vector<tt::Frame>>& output, const int nL1TEvent) const;
+    void makeL1TFiles(const std::vector<std::vector<tt::Frame>>& output, const int nL1TEvent) const;
     // test on hardware
     int hw(std::string dirTGZ, std::string boardAdress, std::string boardType, std::string fpgaName, std::string dockerImage, int bufferOffset, int nEvents, bool saveAllFiles = false) const;
   private:
     // converts streams of bv into stringstream
     void convert(const std::vector<std::vector<tt::Frame>>& bits,
                  std::stringstream& ss,
+                 const std::vector<int>& mapping) const;
+    // converts streams of bv into stringstream
+    void convertL1T(const std::vector<std::vector<tt::Frame>>& bits,
+                 std::stringstream& ss,
                  const std::vector<int>& mapping,
-                 const int nL1TEvent = -1) const;
-    // plays stringstream through modelsim
+                 const int nL1TEvent,
+                 const int region = 0) const;
+                 // plays stringstream through modelsim
     void sim(const std::stringstream& ss) const;
     // compares stringstream with modelsim output
     bool compare(std::stringstream& ss) const;
@@ -77,6 +84,8 @@ namespace trackerTFP {
     int numRegions_;
     // number of L1T testvectors
     mutable int nL1TFiles_ = 0;
+    mutable int nInputFiles_ = 0;
+    mutable int nOutputFiles_ = 0;
   };
 
 }  // namespace trackerTFP

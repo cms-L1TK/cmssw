@@ -53,8 +53,7 @@ namespace trackerTFP {
   // converts streams of bv into stringstream
   void Demonstrator::convert(const std::vector<std::vector<tt::Frame>>& bits,
                              std::stringstream& ss,
-                             const std::vector<int>& mapping,
-                             const int nL1TEvent) const {
+                             const std::vector<int>& mapping) const {
     // reset ss
     ss.str("");
     ss.clear();
@@ -71,13 +70,11 @@ namespace trackerTFP {
         links.push_back(offset + c);
     }
     // start with header
-    if (nL1TEvent < 1)
-      ss << header(links);
-    int nFrame = nL1TEvent < 0 ? 0 :  (numFrames_ + numFramesInfra_) * nL1TEvent;
+    ss << header(links);
+    int nFrame(0);
     // create one packet per region
-    bool first = nL1TEvent > 0 ? false : true;
-    const int numRegions = nL1TEvent < 0 ? numRegions_ : 1; // Each region is a separate event for TF test vectors
-    for (int region = 0; region < numRegions; region++) {
+    bool first = true;
+    for (int region = 0; region < numRegions_; region++) {
       const int offset = region * mapping.size();
       // start with emp 6 frame gap
       ss << infraGap(nFrame, links.size());
@@ -178,22 +175,133 @@ namespace trackerTFP {
     return ss.str();
   }
 
-  // create testvector compatible with L1T from the TFP output - each tracker region gets its own set of links
-  void Demonstrator::l1tInput(const std::vector<std::vector<tt::Frame>>& output, const int nL1TEvent) const {
+  // converts streams of bv into stringstream
+  void Demonstrator::convertL1T(const std::vector<std::vector<tt::Frame>>& bits,
+                             std::stringstream& ss,
+                             const std::vector<int>& mapping,
+                             const int nL1TEvent,
+                             const int region) const {
+    // reset ss
+    ss.str("");
+    ss.clear();
+    // number of tranceiver in a quad
+    static constexpr int quad = 4;
+    std::set<int> quads;
+    for (int channel : mapping)
+      quads.insert(channel / quad);
+    std::vector<int> links;
+    links.reserve(quads.size() * quad);
+    for (int q : quads) {
+      const int offset = q * quad;
+      for (int c = 0; c < quad; c++)
+        links.push_back(offset + c);
+    }
+    // start with header
+    if (nL1TEvent == 0)
+      ss << header(links);
+    int nFrame = (numFrames_ + numFramesInfra_) * nL1TEvent;
+    // create one packet per region
+    bool first = nL1TEvent > 0 ? false : true;
+    const int offset = region * mapping.size();
+    // start with emp 6 frame gap
+    ss << infraGap(nFrame, links.size());
+    for (int frame = 0; frame < numFrames_; frame++) {
+      // write one frame for all channel
+      ss << this->frame(nFrame);
+      for (int link : links) {
+        const auto channel = find(mapping.begin(), mapping.end(), link);
+        if (channel == mapping.end())
+          ss << "  0000 " << std::string(TTBV::S_ / 4, '0');
+        else {
+          const std::vector<tt::Frame>& bvs = bits[offset + std::distance(mapping.begin(), channel)];
+          ss << (frame < static_cast<int>(bvs.size()) ? hex(bvs[frame], first) : hex(tt::Frame(), first));
+        }
+      }
+      ss << std::endl;
+      first = false;
+    }
+
+  }
+
+  // create testvector compatible with integration testing - tracker regions are not stacked in the same file
+  void Demonstrator::makeInputFiles(const std::vector<std::vector<tt::Frame>>& input, const int nL1TEvent) const {
     // default link mapping
     auto linkMapping =
         [this](const std::vector<int>& mapC, std::vector<int>& map, const std::vector<std::vector<tt::Frame>>& data) {
           if (mapC.empty()) {
-            map.resize(data.size());
+            map.resize(data.size()/numRegions_);
+            std::iota(map.begin(), map.end(), 0);
+          } else
+            map = mapC;
+        };
+    // converts input into stringstream
+    for (int region = 0; region < numRegions_; region++) {
+      std::stringstream ss;
+      std::vector<int> map;
+      linkMapping(linkMappingIn_, map, input);
+      convertL1T(input, ss, map, nL1TEvent, region);
+      // write ss to disk
+      std::fstream fs;
+      if (nL1TEvent == 0) { // new file
+        const std::string dirL1T = dirIPBB_ + "in_nonant" + std::to_string(region) + "_" + std::to_string(nInputFiles_) + ".txt";
+        fs.open(dirL1T.c_str(), std::fstream::out);
+        if (region == numRegions_ - 1)
+          nInputFiles_++;
+      } else { // append to existing file
+        const std::string dirL1T = dirIPBB_ + "in_nonant" + std::to_string(region) + "_" + std::to_string(nInputFiles_ - 1) + ".txt";
+        fs.open(dirL1T.c_str(), std::fstream::app);
+      }
+      fs << ss.rdbuf();
+      fs.close();
+    }
+  }
+
+  // create testvector compatible with integration testing - tracker regions are not stacked in the same file
+  void Demonstrator::makeOutputFiles(const std::vector<std::vector<tt::Frame>>& output, const int nL1TEvent) const {
+    // default link mapping
+    auto linkMapping =
+        [this](const std::vector<int>& mapC, std::vector<int>& map, const std::vector<std::vector<tt::Frame>>& data) {
+          if (mapC.empty()) {
+            map.resize(data.size()/numRegions_);
             std::iota(map.begin(), map.end(), 0);
           } else
             map = mapC;
         };
     // converts output into stringstream
+    for (int region = 0; region < numRegions_; region++) {
+      std::stringstream ss;
+      std::vector<int> map;
+      linkMapping(linkMappingOut_, map, output);
+      convertL1T(output, ss, map, nL1TEvent, region);
+      // write ss to disk
+      std::fstream fs;
+      if (nL1TEvent == 0) { // new file
+        const std::string dirL1T = dirIPBB_ + "pre_nonant" + std::to_string(region) + "_" + std::to_string(nOutputFiles_) + ".txt";
+        fs.open(dirL1T.c_str(), std::fstream::out);
+        if (region == numRegions_ - 1)
+          nOutputFiles_++;
+      } else { // append to existing file
+        const std::string dirL1T = dirIPBB_ + "pre_nonant" + std::to_string(region) + "_" + std::to_string(nOutputFiles_ - 1) + ".txt";
+        fs.open(dirL1T.c_str(), std::fstream::app);
+      }
+      fs << ss.rdbuf();
+      fs.close();
+    }
+  }
+
+  // create testvector compatible with L1T from the TFP output - each tracker region gets its own set of links
+  void Demonstrator::makeL1TFiles(const std::vector<std::vector<tt::Frame>>& output, const int nL1TEvent) const {
+    // default link mapping
+    auto linkMapping =
+        [this](const std::vector<int>& mapC, std::vector<int>& map, const std::vector<std::vector<tt::Frame>>& data) {
+          map.resize(data.size());
+          std::iota(map.begin(), map.end(), 0);
+        };
+    // converts output into stringstream
     std::stringstream ss;
     std::vector<int> map;
     linkMapping(linkMappingOut_, map, output);
-    convert(output, ss, map, nL1TEvent);
+    convertL1T(output, ss, map, nL1TEvent);
     // write ss to disk
     std::fstream fs;
     if (nL1TEvent == 0) { // new file
@@ -222,7 +330,7 @@ namespace trackerTFP {
       reset:source: internal
       powerUp:wait (s): "5"
       configureRxBuffers:startOffset: [0]
-      configureTxBuffers:startOffset: [)" << std::to_string(bufferOffset) << R"(]
+      configureTxBuffers:startOffset: [611]
       §configureRxBuffers:
         mode: [PlayOnce]
         ids: [replace_with: input_channels]
@@ -242,22 +350,28 @@ namespace trackerTFP {
       ofs << ss.rdbuf();
       ofs.close();
     }
-    // format link mapping
+    // extract link mapping from file
     auto getLinkMap = [](std::string& links, std::string fileName){
       std::ifstream ifs;
       ifs.open(fileName.c_str());
       std::string line;
-      while (std::getline(in, line)) {
-        if (line.find("Link") == 0) {
-          // TODO FIX ME
-          break;
+      while (std::getline(ifs, line)) {
+        if (line.find("Link") != std::string::npos) {
+          std::stringstream ss(line);
+          std::string token;
+          while (ss >> token) {
+            if (std::isdigit(token[0])) {
+              if (!links.empty())
+                  links += ",";
+              links += std::to_string(std::stoi(token));
+            }
+          }
         }
       }
       ifs.close();
-      links = line;
-    }
-    std::string inputLinks; // = "0-67";
-    std::string outputLinks; // = "0-3";
+    };
+    std::string inputLinks;
+    std::string outputLinks;
     getLinkMap(inputLinks, dirIn_);
     getLinkMap(outputLinks, dirOut_);
     // run singularity
@@ -273,7 +387,7 @@ namespace trackerTFP {
       auto copyFile = [suffix](const std::string dir){
         std::string dirCopy = dir;
         dirCopy.insert(dirCopy.find_last_of('.'), suffix);
-        dirCopy.insert(dirCopy.find_last_of('/'), "/hwtest"); // TODO: CREATE THIS DIRECTORY
+        // dirCopy.insert(dirCopy.find_last_of('/'), "/hwtest"); // TODO: CREATE THIS DIRECTORY
         std::ifstream ifs(dir.c_str());
         std::ofstream ofs(dirCopy.c_str());
         ofs << ifs.rdbuf();

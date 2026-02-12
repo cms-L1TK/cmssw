@@ -13,7 +13,7 @@ TrackTriggerDemonstrator_params = cms.PSet (
   RunTime  = cms.double( 6. ),                                   # runtime in us
 
   LinkMappingIn  = cms.vint32(  ),
-  LinkMappingOut = cms.vint32(  ),
+  LinkMappingOut = cms.vint32( 88, 89 ),
 
   # For L1T output (only relevant if OutputLabelTFP is used)
   MaxEventsPerL1TFile = cms.int32( 7 ),  # If non-zero: create testvector compatible with L1T from TFP outputs - each tracker region gets its own set of links
@@ -29,7 +29,7 @@ TrackTriggerDemonstrator_params = cms.PSet (
   BoardAddress = cms.string( "localhost" ), # DNS name of the board to run on, e.g. "APOLLO214". Use "localhost" if outside CERN network and follow step 3 above.
   BoardType = cms.string( "apollo" ), # `apollo`` or `serenity`
   NameFPGA = cms.string( "F1" ), # name of the FPGA on the board (`F1`` or `F2`` on apollo, `x0` or `x1` on serenity)
-  BufferOffset = cms.int32( 601 ), # tx buffer offeset, i.e. when to start capturing the HW output data to match with CMSSW
+  BufferOffset = cms.int32( 611 ), # tx buffer offeset, i.e. when to start capturing the HW output data to match with CMSSW
   SaveAllFiles = cms.bool(True) # save all in/out/diff/pre txt files for each event
 
 )
