@@ -42,33 +42,12 @@ options.register ('readerformat',
                   "File format of loaded tracks and vertices (APx, EMPv2)")
 options.parseArguments()
 
-inputFiles = []
-inputBuffers = []
-inputTrackBuffers = []
-for filePath in options.inputFiles:
-    if filePath.endswith(".root"):
-        inputFiles.append(filePath)
-    elif filePath.endswith("_cff.py"):
-        filePath = filePath.replace("/python/","/")
-        filePath = filePath.replace("/", ".")
-        inputFilesImport = getattr(__import__(filePath.strip(".py"),fromlist=["readFiles"]),"readFiles")
-        inputFiles.extend( inputFilesImport )
-        if options.vertices in ['load', 'overwrite']:
-            inputBuffersImport = getattr(__import__(filePath.strip(".py"),fromlist=["correlator_source"]),"correlator_source").fileNames
-            inputBuffers.extend( inputBuffersImport )
-        if options.tracks in ['load', 'overwrite']:
-            inputTrackBuffersImport = getattr(__import__(filePath.strip(".py"),fromlist=["track_source"]),"track_source").fileNames
-            inputTrackBuffers.extend( inputTrackBuffersImport )
-    else:
-        inputFiles += FileUtils.loadListFromFile(filePath)
-
-# PART 2: SETUP MAIN CMSSW PROCESS 
-
+inputMC = ["/store/relval/CMSSW_15_1_0_pre5/RelValTTbar_14TeV_TuneCP5/GEN-SIM-DIGI-RAW/PU_150X_mcRun4_realistic_v1_RV269_Run4D110_PU-v2/2590000/0f0bcfd3-dafe-4dda-8d39-9765f6eae68e.root"]
 
 process = cms.Process("GTTFileWriter")
-
-process.load('Configuration.Geometry.GeometryExtendedRun4D88Reco_cff')
-process.load('Configuration.Geometry.GeometryExtendedRun4D88_cff')
+GEOMETRY = "D110"
+process.load('Configuration.Geometry.GeometryExtendedRun4' + GEOMETRY + 'Reco_cff')
+process.load('Configuration.Geometry.GeometryExtendedRun4' + GEOMETRY +'_cff')
 process.load('Configuration.StandardSequences.MagneticField_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 from Configuration.AlCa.GlobalTag import GlobalTag
@@ -76,10 +55,10 @@ process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:phase2_realistic', '')
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 
 process.source = cms.Source("PoolSource",
-    fileNames = cms.untracked.vstring(inputFiles),
+    fileNames = cms.untracked.vstring(inputMC),
     inputCommands = cms.untracked.vstring("keep *", "drop l1tTkPrimaryVertexs_L1TkPrimaryVertex__*")
 )
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(options.maxEvents) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(3 * 10) )
 process.options = cms.untracked.PSet(
     numberOfThreads = cms.untracked.uint32(options.threads),
     numberOfStreams = cms.untracked.uint32(options.streams if options.streams>0 else 0)

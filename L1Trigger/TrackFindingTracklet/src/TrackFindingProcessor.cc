@@ -267,6 +267,8 @@ namespace trklet {
       ttTrack.setStubPtConsistency(StubPtConsistency::getConsistency(
           ttTrack, setup_->trackerGeometry(), setup_->trackerTopology(), bfield_, nPar));
       ttTrack.setTrackWordBits();
+      // if (aTanLambda < 0)
+      //   std::cout << " [DEBUG] L1Track @ " << &ttTrack << " with 96b Word " << ttTrack.getTrackWord().to_string(2) << std::endl;
     }
   }
 

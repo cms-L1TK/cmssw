@@ -126,6 +126,15 @@ L1GTTInputProducer::L1GTTInputProducer(const edm::ParameterSet& iConfig)
       outputCollectionName_(iConfig.getParameter<std::string>("outputCollectionName")),
       setTrackWordBits_(iConfig.getParameter<bool>("setTrackWordBits")),
       debug_(iConfig.getParameter<int>("debug")) {
+
+  edm::InputTag l1TracksInputTag =
+      iConfig.getParameter<edm::InputTag>("l1TracksInputTag");
+  std::cout << " [DEBUG] L1GTTInputProducer::L1GTTInputProducer(const edm::ParameterSet&) " << std::endl;
+  std::cout << " [DEBUG] l1TracksInputTag = "
+        << l1TracksInputTag.label() << " : "
+        << l1TracksInputTag.instance() << " : "
+        << l1TracksInputTag.process()
+        << std::endl;
   // Generate the required luts
   generate_eta_lut();
   generate_pt_lut();
@@ -403,6 +412,8 @@ bool L1GTTInputProducer::getPtBits(const L1Track& track,
 
 // ------------ method called to produce the data  ------------
 void L1GTTInputProducer::produce(edm::StreamID, edm::Event& iEvent, const edm::EventSetup& iSetup) const {
+  // std::cout << " [DEBUG] L1GTTInputProducer::produce(...) " << std::endl;
+
   auto vTTTrackOutput = std::make_unique<TTTrackCollection>();
   auto vPtOutput = std::make_unique<std::vector<double>>();
   auto vEtaOutput = std::make_unique<std::vector<double>>();
@@ -427,6 +438,8 @@ void L1GTTInputProducer::produce(edm::StreamID, edm::Event& iEvent, const edm::E
   double minExpectedPt = 10000000.0;  // keeps track of epsilon for max error
 
   unsigned int nOutput = l1TracksHandle->size();
+  // std::cout << " [DEBUG] Handling  " << nOutput << " L1 Tracks" << std::endl;
+
   vTTTrackOutput->reserve(nOutput);
   vPtOutput->reserve(nOutput);
   vEtaOutput->reserve(nOutput);
@@ -436,6 +449,9 @@ void L1GTTInputProducer::produce(edm::StreamID, edm::Event& iEvent, const edm::E
           << "L1GTTInputProducer::produce method is called with numFitPars_ = " << track.nFitPars()
           << ". The only possible values are 4/5.";
     }
+
+    // if (track.getTanl() < 0)
+    //   std::cout << " [DEBUG] L1Track @ " << &track << " with 96b Word " << track.getTrackWord().to_string(2) << std::endl;
 
     // Fill the vector of tracks
     vTTTrackOutput->push_back(track);

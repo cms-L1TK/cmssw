@@ -35,29 +35,42 @@ process.emu = cms.Sequence (  process.ProducerDTC
                             + process.ProducerTQ
                             + process.ProducerTFP
                            )
-process.demo = cms.Path( process.emu + process.TrackerTFPDemonstrator )
-process.schedule = cms.Schedule( process.demo )
 
-# create options
-import FWCore.ParameterSet.VarParsing as VarParsing
-options = VarParsing.VarParsing( 'analysis' )
-# specify input MC
+
 Samples = [
   "/store/relval/CMSSW_15_1_0_pre5/RelValTTbar_14TeV_TuneCP5/GEN-SIM-DIGI-RAW/PU_150X_mcRun4_realistic_v1_RV269_Run4D110_PU-v2/2590000/0f0bcfd3-dafe-4dda-8d39-9765f6eae68e.root"
 ]
 
-options.register( 'inputMC', Samples, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.string, "Files to be processed" )
-# specify number of events to process.
-options.register( 'Events',100,VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.int, "Number of Events to analyze" )
-options.parseArguments()
-
-process.options = cms.untracked.PSet( wantSummary = cms.untracked.bool(False) )
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(options.Events) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 process.source = cms.Source(
   "PoolSource",
-  fileNames = cms.untracked.vstring( options.inputMC ),
-  #skipEvents = cms.untracked.uint32( 2 ),
+  fileNames = cms.untracked.vstring( Samples ),
   secondaryFileNames = cms.untracked.vstring(),
-  duplicateCheckMode = cms.untracked.string( 'noDuplicateCheck' )
+  duplicateCheckMode = cms.untracked.string( 'noDuplicateCheck' ),
+  skipEvents = cms.untracked.uint32( 0 ),
 )
 process.Timing = cms.Service( "Timing", summaryOnly = cms.untracked.bool( True ) )
+L1TRK_NAME  = process.TrackFindingTrackletAnalyzer_params.OutputLabelTFP.value()
+L1TRK_LABEL = process.TrackFindingTrackletProducer_params.BranchTTTracks.value()
+process.load('L1Trigger.L1TTrackMatch.l1tGTTInputProducer_cfi')
+process.l1tGTTInputProducer.l1TracksInputTag = cms.InputTag(L1TRK_NAME, L1TRK_LABEL)
+
+process.load('L1Trigger.L1TTrackMatch.l1tTrackSelectionProducer_cfi')
+process.load('L1Trigger.VertexFinder.l1tVertexProducer_cfi')
+process.load('L1Trigger.DemonstratorTools.l1tGTTFileWriter_cfi')
+process.load('L1Trigger.L1TTrackMatch.l1tTrackVertexAssociationProducer_cfi')
+
+process.l1tGTTFileWriter.tracks = cms.untracked.InputTag(L1TRK_NAME, L1TRK_LABEL)
+process.l1tGTTFileWriter.vertices = cms.untracked.InputTag("l1tVertexFinderEmulator", "L1VerticesEmulation")
+process.l1tGTTFileWriter.selectedTracks = cms.untracked.InputTag("l1tTrackSelectionProducer", "Level1TTTracksSelectedEmulation")
+process.l1tGTTFileWriter.vertexAssociatedTracks = cms.untracked.InputTag("l1tTrackVertexAssociationProducer", "Level1TTTracksSelectedAssociatedEmulation")
+process.l1tGTTFileWriter.format = cms.untracked.string("EMPv2")
+process.l1tVertexFinderEmulator.VertexReconstruction.VxMinTrackPt = cms.double(0.0)
+
+process.demo = cms.Path(process.emu + 
+                        #process.TrackerTFPDemonstrator + 
+                        process.l1tGTTInputProducer + 
+                        process.l1tTrackSelectionProducer + 
+                        process.l1tVertexFinderEmulator + 
+                        process.l1tTrackVertexAssociationProducer +
+                        process.l1tGTTFileWriter)

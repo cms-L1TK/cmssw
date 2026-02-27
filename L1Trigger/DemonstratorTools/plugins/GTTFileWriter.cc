@@ -233,11 +233,11 @@ void GTTFileWriter::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
   // 3) Pass the 'event data' object to the file writer
 
   fileWriterInputTracks_.addEvent(eventDataTracks);
-  fileWriterConvertedTracks_.addEvent(eventDataConvertedTracks);
-  fileWriterSelectedTracks_.addEvent(eventDataSelectedTracks);
-  fileWriterVertexAssociatedTracks_.addEvent(eventDataVertexAssociatedTracks);
+  // fileWriterConvertedTracks_.addEvent(eventDataConvertedTracks);
+  // fileWriterSelectedTracks_.addEvent(eventDataSelectedTracks);
+  // fileWriterVertexAssociatedTracks_.addEvent(eventDataVertexAssociatedTracks);
   fileWriterOutputToCorrelator_.addEvent(eventDataVertices);
-  fileWriterOutputToGlobalTrigger_.addEvent(eventDataGlobalTrigger);
+  // fileWriterOutputToGlobalTrigger_.addEvent(eventDataGlobalTrigger);
 }
 
 // ------------ method called once each job just after ending the event loop  ------------
