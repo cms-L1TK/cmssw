@@ -82,7 +82,7 @@ namespace l1t::demo::gtt {
 
   static const std::map<l1t::demo::LinkId, std::vector<size_t>> kChannelIdsOutputToCorrelator = {
       /* logical channel within time slice -> vector of channel indices */
-      {{"vertices", 0}, {0}}};
+      {{"vertices", 0}, {5}}};
 
   static const std::map<std::string, l1t::demo::ChannelSpec> kChannelSpecsOutputToCorrelator = {
       /* interface name -> {link TMUX, inter-packet gap} */

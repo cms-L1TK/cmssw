@@ -58,7 +58,7 @@ process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(inputMC),
     inputCommands = cms.untracked.vstring("keep *", "drop l1tTkPrimaryVertexs_L1TkPrimaryVertex__*")
 )
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(3 * 10) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 process.options = cms.untracked.PSet(
     numberOfThreads = cms.untracked.uint32(options.threads),
     numberOfStreams = cms.untracked.uint32(options.streams if options.streams>0 else 0)
