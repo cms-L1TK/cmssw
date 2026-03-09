@@ -13,6 +13,7 @@ import FWCore.ParameterSet.Config as cms
 TTStubAlgorithm_official_Phase2TrackerDigi_ = cms.ESProducer("TTStubAlgorithm_official_Phase2TrackerDigi_",
        zMatchingPS  = cms.bool(True),
        zMatching2S  = cms.bool(True),
+       cosmics = cms.bool(False),
        NTiltedRings = cms.vdouble( 0., 12., 12., 12., 0., 0., 0.),
        BarrelCut    = cms.vdouble(0, 2.0, 2.5, 3.5, 4.0, 5.5, 6.5),
        TiltedBarrelCutSet = cms.VPSet(
