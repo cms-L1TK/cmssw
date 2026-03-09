@@ -65,7 +65,14 @@ void TTStubAlgorithm_official<Ref_Phase2TrackerDigi_>::PatternHitCorrelation(
   double DZ = Z1 - Z0;
 
   double alpha = atan2(DR, DZ);
-  double delta = sqrt(DR * DR + DZ * DZ) / (R0 * sin(alpha) + Z0 * cos(alpha));
+  double delta;
+  // In case of cosmics, delta is calculated from R = 1500cm
+  // Otherwise "collision point" is at x = 0 y = 0 z = 0
+  if (mCosmics) {
+    delta = sqrt(DR * DR + DZ * DZ) / ((R0 - 1500) * sin(alpha) + Z0 * cos(alpha));
+  } else {
+    delta = sqrt(DR * DR + DZ * DZ) / (R0 * sin(alpha) + Z0 * cos(alpha));
+  }
 
   int window = 0;
 
