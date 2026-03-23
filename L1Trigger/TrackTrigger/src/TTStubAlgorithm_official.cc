@@ -74,7 +74,7 @@ void TTStubAlgorithm_official<Ref_Phase2TrackerDigi_>::PatternHitCorrelation(
     double Y1 = det1->position().y();
     double DY = Y1 - Y0;
     alpha = atan2(DY, DZ);
-    delta = sqrt(DY * DY + DZ * DZ) / ((Y0 - 1500) * sin(alpha));
+    delta = sqrt(DY * DY + DZ * DZ) / ((Y0 + 1500) * sin(alpha));
   } else {
     alpha = atan2(DR, DZ);
     delta = sqrt(DR * DR + DZ * DZ) / (R0 * sin(alpha) + Z0 * cos(alpha));
