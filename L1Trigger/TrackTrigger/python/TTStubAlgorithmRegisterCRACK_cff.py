@@ -3,7 +3,6 @@ from L1Trigger.TrackTrigger.TTStubAlgorithmRegister_cfi import TTStubAlgorithm_o
 
 TTStubAlgorithm_official_Phase2TrackerDigi_ = _TTStubAlgorithm.clone(
         cosmics = cms.bool(True),
-       BarrelCut    = cms.vdouble(6.5, 6.5, 6.5, 6.5, 6.5, 6.5, 6.5),
 )
 
 # Set the preferred hit matching algorithms.

@@ -128,6 +128,9 @@ void TTStubAlgorithm_official<Ref_Phase2TrackerDigi_>::PatternHitCorrelation(
   } else if (stDetId.subdetId() == StripSubdetector::TID) {
     window = 2 * (ringCut.at(theTrackerTopo_->tidWheel(stDetId))).at(theTrackerTopo_->tidRing(stDetId));
   }
+  // For CRACK, window is maximum value
+  if (mCosmics)
+	  window = isPS ? 7 : 13;
 
   /// Accept the stub if the post-offset correction displacement is smaller than the half-window
   if (std::abs(dispI - offsetI) <= window)  /// In HALF-STRIP units!
