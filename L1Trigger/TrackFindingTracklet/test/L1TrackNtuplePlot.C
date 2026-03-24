@@ -1144,7 +1144,7 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
         continue;
       if (trk_nstub->at(it) < L1Tk_minNstub)
         continue;
-      if (abs(trk_z0->(it)) > 20.47)
+      if (std::abs(trk_z0->(it)) > 20.47)  // Built-in cut to make things the same between NewKF and OldKF; the NEWKF algorithms do not output any tracks with z0 > 20.47 cm
 		 continue;
 
 
