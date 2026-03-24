@@ -1144,6 +1144,9 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
         continue;
       if (trk_nstub->at(it) < L1Tk_minNstub)
         continue;
+      if (abs(trk_z0->(it)) > 20.47)
+		 continue;
+
 
       ntrk++;
       if (trk_genuine->at(it) == 1)
