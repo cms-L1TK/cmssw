@@ -33,9 +33,9 @@ def reducedConfig(process):
 def displacedNewKFMergeConfig(process):
   process.TrackTriggerSetup.KalmanFilter.Use5ParameterFit = True
   process.TrackTriggerSetup.Firmware.EnableTruncation = False
-  process.l1tTTTracksFromTrackletEmulation.Fakefit = True
-  process.l1tTTTracksFromTrackletEmulation.DoMultipleMatches = False
-  process.l1tTTTracksFromTrackletEmulation.RemovalType = "merge"
+  process.l1tTTTracksFromExtendedTrackletEmulation.Fakefit = True
+  process.l1tTTTracksFromExtendedTrackletEmulation.DoMultipleMatches = False
+  process.l1tTTTracksFromExtendedTrackletEmulation.RemovalType = ""
   process.AnalyzerDR.OutputLabelDR = "ProducerFakeDR"
   process.ProducerKF.InputLabelKF = "ProducerFakeDR"
 
@@ -43,10 +43,10 @@ def displacedNewKFMergeConfig(process):
 def displacedNewKFKillConfig(process):
   process.TrackTriggerSetup.KalmanFilter.Use5ParameterFit = True
   process.TrackTriggerSetup.Firmware.EnableTruncation = False
-  process.l1tTTTracksFromTrackletEmulation.Fakefit = True
-  process.l1tTTTracksFromTrackletEmulation.DoMultipleMatches = False
+  process.l1tTTTracksFromExtendedTrackletEmulation.Fakefit = True
+  process.l1tTTTracksFromExtendedTrackletEmulation.DoMultipleMatches = False
   process.ChannelAssignment.SeedTypes = ( "L1L2", "L2L3", "L3L4", "L5L6", "D1D2", "D3D4", "L1D1", "L2D1", "L2L3L4", "L4L5L6", "L2L3D1", "D1D2L2" )
-  process.ChannelAssignment.TM.MuxOrder = ( "L1L2", "L2L3", "L1D1", "D1D2", "D3D4", "L2D1", "L2L3D1", "D1D2L2", "L3L4", "L2L3L4", "L5L6", "L4L5L6" )
+  process.ChannelAssignment.TM.MuxOrder = ( "L1L2", "L3L4", "D3D4", "D1D2", "L2L3", "L2D1", "L5L6", "L1D1", "L2L3L4",  "L4L5L6", "D1D2L2" , "L2L3D1" )
   process.ChannelAssignment.SeedTypesSeedLayers = cms.PSet (
       L1L2   = cms.vint32(  1,  2     ),
       L2L3   = cms.vint32(  2,  3     ),
@@ -75,7 +75,7 @@ def displacedNewKFKillConfig(process):
       L2L3D1 = cms.vint32(  1, 12, 13, 14 ),
       D1D2L2 = cms.vint32(  1, 13, 14 )
   )
-  process.l1tTTTracksFromTrackletEmulation.RemovalType = ""
+  process.l1tTTTracksFromExtendedTrackletEmulation.RemovalType = ""
   process.AnalyzerTM.OutputLabelTM = "ProducerFakeTM"
   process.ProducerDR.InputLabelDR = "ProducerFakeTM"
 

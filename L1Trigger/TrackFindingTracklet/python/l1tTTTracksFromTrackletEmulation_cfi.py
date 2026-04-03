@@ -27,7 +27,7 @@ l1tTTTracksFromTrackletEmulation = cms.EDProducer("L1FPGATrackProducer",
                                                TrackQuality = cms.bool(True),
                                                Fakefit = cms.bool(False), # True causes Tracklet reco to output TTTracks before DR & KF
                                                StoreTrackBuilderOutput = cms.bool(False), # if True EDProducts for TrackBuilder tracks and stubs will be filled
-                                               RemovalType = cms.string("merge"), # Duplicate track removal
+                                               RemovalType = cms.string(""), # Duplicate track removal
                                                DoMultipleMatches = cms.bool(True), # Allow tracklet tracks multiple stubs per layer
                                                # TQ
                                                # It is compatible with the HYBRID simulation and will give equivilant performance with this workflow
