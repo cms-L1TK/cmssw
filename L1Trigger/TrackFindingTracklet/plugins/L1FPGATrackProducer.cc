@@ -290,7 +290,8 @@ L1FPGATrackProducer::L1FPGATrackProducer(edm::ParameterSet const& iConfig)
   settings_.setDoMultipleMatches(iConfig.getParameter<bool>("DoMultipleMatches"));
 
   if (extended_) {
-    settings_.setNumTracksComparedPerBin(9999);
+    settings_.setNumTracksComparedPerBin(32); // This was '9999' (i.e. infinty) by default, changed it to 32 to be the same as the NewKF default
+
 
     //FIXME: We need to allow for the additional tracklets that will eventually
     //       be removed by lookup tables, once they are finalized

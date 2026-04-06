@@ -35,7 +35,7 @@ def displacedNewKFMergeConfig(process):
   process.TrackTriggerSetup.Firmware.EnableTruncation = False
   process.l1tTTTracksFromExtendedTrackletEmulation.Fakefit = True
   process.l1tTTTracksFromExtendedTrackletEmulation.DoMultipleMatches = False
-  process.l1tTTTracksFromExtendedTrackletEmulation.RemovalType = ""
+  process.l1tTTTracksFromExtendedTrackletEmulation.RemovalType = "merge"
   process.AnalyzerDR.OutputLabelDR = "ProducerFakeDR"
   process.ProducerKF.InputLabelKF = "ProducerFakeDR"
 
