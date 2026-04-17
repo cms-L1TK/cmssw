@@ -130,7 +130,7 @@ void TTStubAlgorithm_official<Ref_Phase2TrackerDigi_>::PatternHitCorrelation(
   }
   // For CRACK, window is maximum value
   if (mCosmics)
-	  window = isPS ? 7 : 13;
+	  window = isPS ? 8 : 14;
 
   /// Accept the stub if the post-offset correction displacement is smaller than the half-window
   if (std::abs(dispI - offsetI) <= window)  /// In HALF-STRIP units!
