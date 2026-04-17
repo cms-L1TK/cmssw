@@ -997,8 +997,20 @@ void TrackletConfigBuilder::writeASMemories(std::ostream& os, std::ostream& memo
   }
 
   //Now handle the AS memories used by the TrackletProcessors. Original code tried to implement
-  //this algorithmically, but logic got super confusing so now rewritten using a 'table' of the TPs
-
+  //this algorithmically, but logic got super confusing and it was essentially impossible to understand
+  //what it did. So now rewritten using a 'table' of the TPs
+  //
+  //Each line bwlow specifies the configuration for one of the Tracklet Processors (TPs):
+  // o The first entry is the name, L1L2A means that a TP with name "TP_L1L2A" is created
+  // o The second entry specifies which outer layer memory this TP is using
+  // o The third entry is a list of the "AllStubInner" memories that the TP is
+  //   using to match stubs in the outer stub memory
+  //
+  // The AllStubInner memories have names on the form {L/D}PHI{A-H}_XY_ZZZZ
+  // ZZ is arbitrary, but XY is defined in the VMRouterCM module and select a subset of
+  // the stubs in the phi reagion (PHI{A-H}) such that the stub processing load is distributed accross
+  // different TPs
+  
   std::vector<std::pair<std::string, std::pair<std::string, std::vector<std::string> > > > TPs = {
       {"L1L2A", {"L2PHIA", {"L1PHIA_BB_L1L2A", "L1PHIB_BA_L1L2A"}}},
       {"L1L2B", {"L2PHIA", {"L1PHIB_BB_L1L2B", "L1PHIC_BB_L1L2B"}}},
