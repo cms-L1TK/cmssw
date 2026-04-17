@@ -1010,7 +1010,7 @@ void TrackletConfigBuilder::writeASMemories(std::ostream& os, std::ostream& memo
   // ZZ is arbitrary, but XY is defined in the VMRouterCM module and select a subset of
   // the stubs in the phi reagion (PHI{A-H}) such that the stub processing load is distributed accross
   // different TPs
-  
+
   std::vector<std::pair<std::string, std::pair<std::string, std::vector<std::string> > > > TPs = {
       {"L1L2A", {"L2PHIA", {"L1PHIA_BB_L1L2A", "L1PHIB_BA_L1L2A"}}},
       {"L1L2B", {"L2PHIA", {"L1PHIB_BB_L1L2B", "L1PHIC_BB_L1L2B"}}},
