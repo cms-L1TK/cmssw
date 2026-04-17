@@ -1001,16 +1001,16 @@ void TrackletConfigBuilder::writeASMemories(std::ostream& os, std::ostream& memo
 
   std::vector<std::pair<std::string, std::pair<std::string, std::vector<std::string> > > > TPs = {
       {"L1L2A", {"L2PHIA", {"L1PHIA_BB", "L1PHIB_BA"}}},
-      {"L1L2B", {"L2PHIA", {"L1PHIB_BB", "L1PHIC_BA"}}},
-      {"L1L2C", {"L2PHIB", {"L1PHIB_BD", "L1PHIC_BC"}}},
+      {"L1L2B", {"L2PHIA", {"L1PHIB_BB", "L1PHIC_BB"}}},
+      {"L1L2C", {"L2PHIB", {"L1PHIB_BD", "L1PHIC_BF"}}},
       {"L1L2D", {"L2PHIB", {"L1PHIC_BB"}}},
       {"L1L2E", {"L2PHIB", {"L1PHID_BA"}}},
-      {"L1L2F", {"L2PHIB", {"L1PHID_BB", "L1PHIE_BA"}}},
-      {"L1L2G", {"L2PHIC", {"L1PHID_BD", "L1PHIE_BC"}}},
+      {"L1L2F", {"L2PHIB", {"L1PHID_BB", "L1PHIE_BB"}}},
+      {"L1L2G", {"L2PHIC", {"L1PHID_BD", "L1PHIE_BF"}}},
       {"L1L2H", {"L2PHIC", {"L1PHIE_BB"}}},
       {"L1L2I", {"L2PHIC", {"L1PHIF_BA"}}},
-      {"L1L2J", {"L2PHIC", {"L1PHIF_BB", "L1PHIG_BA"}}},
-      {"L1L2K", {"L2PHID", {"L1PHIF_BD", "L1PHIG_BC"}}},
+      {"L1L2J", {"L2PHIC", {"L1PHIF_BB", "L1PHIG_BB"}}},
+      {"L1L2K", {"L2PHID", {"L1PHIF_BD", "L1PHIG_BF"}}},
       {"L1L2L", {"L2PHID", {"L1PHIG_BB", "L1PHIH_BA"}}},
 
       {"L2L3A", {"L3PHIA", {"L2PHIA_BM", "L2PHIB_BL"}}},
