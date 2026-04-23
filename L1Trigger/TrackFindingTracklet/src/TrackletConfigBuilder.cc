@@ -1007,9 +1007,17 @@ void TrackletConfigBuilder::writeASMemories(std::ostream& os, std::ostream& memo
   //   using to match stubs in the outer stub memory
   //
   // The AllStubInner memories have names on the form {L/D}PHI{A-H}_XY_ZZZZ
-  // ZZ is arbitrary, but XY is defined in the VMRouterCM module and select a subset of
+  // ZZZZ is arbitrary, but XY is defined in the VMRouterCM module and select a subset of
   // the stubs in the phi reagion (PHI{A-H}) such that the stub processing load is distributed accross
   // different TPs
+  //
+  // The goal of these configurations is to make sure we have full coverage - i.e. that each stub in the
+  // inner layer can be matched with all possible stubs that can form L1 tracks in the outer layer. This
+  // configuration would require to be updated if we change the definition of the "phi regions". E.g. we
+  // currecntly use 4 phi regions in L2, PHIA, PHIB, PHIC, and PHID. But if we added additional phi regions,
+  // e.g. PHIA-H we would need to add additional TPs to make sure that all stub pairs that can form L1 tracks
+  // are found.
+  //
 
   std::vector<std::pair<std::string, std::pair<std::string, std::vector<std::string> > > > TPs = {
       {"L1L2A", {"L2PHIA", {"L1PHIA_BB_L1L2A", "L1PHIB_BA_L1L2A"}}},
