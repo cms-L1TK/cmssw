@@ -249,8 +249,8 @@ void ProjectionCalculator::execute(unsigned int iSector, double phimin) {
           ////////////////////////////////
           // calculate disk projections //
           ////////////////////////////////
-          double irmindisk = settings_.rmindisk() / settings_.krprojshiftdisk();
-          double irmaxdisk = settings_.rmaxdisk() / settings_.krprojshiftdisk();
+          double irmindisk = settings_.rmindisk() / settings_.kr();
+          double irmaxdisk = settings_.rmaxdisk() / settings_.kr();
 
           int tcut = 1.0 / (settings_.ktpars());
 
@@ -410,9 +410,9 @@ void ProjectionCalculator::execute(unsigned int iSector, double phimin) {
               } else {
                 FPGAWord fpgar = tracklet->proj(layerdisk).fpgarzproj();
 
-                if (fpgar.value() * settings_.krprojshiftdisk() < settings_.rmindiskvm())
+                if (fpgar.value() * settings_.kr() < settings_.rmindiskvm())
                   continue;
-                if (fpgar.value() * settings_.krprojshiftdisk() > settings_.rmaxdisk())
+                if (fpgar.value() * settings_.kr() > settings_.rmaxdisk())
                   continue;
 
                 FPGAWord fpgaphi = tracklet->proj(layerdisk).fpgaphiproj();

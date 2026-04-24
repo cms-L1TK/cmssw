@@ -57,7 +57,7 @@ MatchProcessor::MatchProcessor(string name, Settings const& settings, Globals* g
     icorzshift_ = ilog2(settings_.kz(layerdisk_) / (settings_.krbarrel() * settings_.kzder()));
   } else {
     icorrshift_ = ilog2(settings_.kphi(layerdisk_) / (settings_.kz() * settings_.kphiderdisk()));
-    icorzshift_ = 2 + ilog2(settings_.krprojshiftdisk() / (settings_.kz() * settings_.krder()));
+    icorzshift_ = 2 + ilog2(settings_.kr() / (settings_.kz() * settings_.krder()));
   }
 
   luttable_.initBendMatch(layerdisk_);
@@ -92,10 +92,10 @@ MatchProcessor::MatchProcessor(string name, Settings const& settings, Globals* g
   }
 
   for (unsigned int i = 0; i < N_DSS_MOD * 2; i++) {
-    ialphafactinner_[i] = (1 << settings_.alphashift()) * settings_.krprojshiftdisk() * settings_.half2SmoduleWidth() /
+    ialphafactinner_[i] = (1 << settings_.alphashift()) * settings_.kr() * settings_.half2SmoduleWidth() /
                           (1 << (settings_.nbitsalpha() - 1)) / (settings_.rDSSinner(i) * settings_.rDSSinner(i)) /
                           settings_.kphi();
-    ialphafactouter_[i] = (1 << settings_.alphashift()) * settings_.krprojshiftdisk() * settings_.half2SmoduleWidth() /
+    ialphafactouter_[i] = (1 << settings_.alphashift()) * settings_.kr() * settings_.half2SmoduleWidth() /
                           (1 << (settings_.nbitsalpha() - 1)) / (settings_.rDSSouter(i) * settings_.rDSSouter(i)) /
                           settings_.kphi();
   }
@@ -899,7 +899,7 @@ bool MatchProcessor::matchCalculator(Tracklet* tracklet, const Stub* fpgastub, b
     }
 
     double drphicut = idrphicut * settings_.kphi() * settings_.kr();
-    double drcut = idrcut * settings_.krprojshiftdisk();
+    double drcut = idrcut * settings_.kr();
 
     if (settings_.writeMonitorData("Residuals")) {
       double pt = 0.01 * settings_.c() * settings_.bfield() / std::abs(tracklet->rinv());
@@ -907,8 +907,7 @@ bool MatchProcessor::matchCalculator(Tracklet* tracklet, const Stub* fpgastub, b
       globals_->ofstream("diskresiduals.txt")
           << layerdisk_ - N_LAYER + 1 << " " << stub->isPSmodule() << " " << tracklet->layer() << " "
           << abs(tracklet->disk()) << " " << pt << " " << ideltaphi * settings_.kphi() * stub->r() << " " << drphiapprox
-          << " " << drphicut << " " << ideltar * settings_.krprojshiftdisk() << " " << deltar << " " << drcut << " "
-          << endl;
+          << " " << drphicut << " " << ideltar * settings_.kr() << " " << deltar << " " << drcut << " " << endl;
     }
 
     bool match = (std::abs(drphi) < drphicut) && (std::abs(deltar) < drcut);
@@ -917,7 +916,7 @@ bool MatchProcessor::matchCalculator(Tracklet* tracklet, const Stub* fpgastub, b
     if (settings_.debugTracklet()) {
       edm::LogVerbatim("Tracklet") << "imatch match disk: " << imatch << " " << match << " " << std::abs(ideltaphi)
                                    << " " << drphicut / (settings_.kphi() * stub->r()) << " " << std::abs(ideltar)
-                                   << " " << drcut / settings_.krprojshiftdisk() << " r = " << stub->r();
+                                   << " " << drcut / settings_.kr() << " r = " << stub->r();
     }
 
     bool keep = true;

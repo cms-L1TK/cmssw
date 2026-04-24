@@ -87,9 +87,9 @@ void Projection::init(Settings const& settings,
     //TODO the -3 and +3 should be evaluated and efficiency for matching hits checked.
     //This code should be migrated in the ProjectionRouter
     double roffset = 3.0;
-    int rbin1 = 8.0 * (irzproj * settings.krprojshiftdisk() - roffset - settings.rmindiskvm()) /
+    int rbin1 = 8.0 * (irzproj * settings.kr() - roffset - settings.rmindiskvm()) /
                 (settings.rmaxdisk() - settings.rmindiskvm());
-    int rbin2 = 8.0 * (irzproj * settings.krprojshiftdisk() + roffset - settings.rmindiskvm()) /
+    int rbin2 = 8.0 * (irzproj * settings.kr() + roffset - settings.rmindiskvm()) /
                 (settings.rmaxdisk() - settings.rmindiskvm());
 
     if (rbin1 < 0) {
@@ -101,7 +101,7 @@ void Projection::init(Settings const& settings,
     assert(rbin2 - rbin1 <= 1);
 
     int finer = 64 *
-                ((irzproj * settings.krprojshiftdisk() - settings.rmindiskvm()) -
+                ((irzproj * settings.kr() - settings.rmindiskvm()) -
                  rbin1 * (settings.rmaxdisk() - settings.rmindiskvm()) / 8.0) /
                 (settings.rmaxdisk() - settings.rmindiskvm());
 

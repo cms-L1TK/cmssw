@@ -426,10 +426,6 @@ namespace trklet {
     double kzder() const { return 1.0 / 64; }
     double krder() const { return 1.0 / 128; }
 
-    //This is a 'historical accident' and should be fixed so that we don't
-    //have the factor if 2
-    double krprojshiftdisk() const { return kr(); }
-
     double benddecode(unsigned int ibend, unsigned int layerdisk, bool isPSmodule) const {
       if (layerdisk >= N_LAYER && (!isPSmodule))
         layerdisk += N_DISK;
