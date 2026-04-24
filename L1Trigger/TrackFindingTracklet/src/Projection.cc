@@ -34,7 +34,7 @@ void Projection::init(Settings const& settings,
   } else {
     fpgarzproj_.set(irzproj,
                     settings.nrbitsstub(layerdisk) + 1,
-                    false,
+                    true,
                     __LINE__,
                     __FILE__);  // + 1 to account for artificially reduced nrbits from r value offset for diskps stubs
   }
@@ -49,7 +49,7 @@ void Projection::init(Settings const& settings,
     }
   } else {
     fpgaphiprojder_.set(iphider, settings.nbitsphiprojderL123(), false, __LINE__, __FILE__);
-    fpgarzprojder_.set(irzder, settings.nrbitsprojderdisk(), false, __LINE__, __FILE__);
+    fpgarzprojder_.set(irzder, 1 + settings.nrbitsprojderdisk(), false, __LINE__, __FILE__);
   }
 
   if (layerdisk < N_LAYER) {

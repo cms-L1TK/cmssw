@@ -49,6 +49,7 @@ namespace trklet {
     //Constants used for projectison to layers
     int n_s_;
     int n_s6_;
+    int n_iv_;
 
     //Constants used for projectison to disks
     int n_tinv_;

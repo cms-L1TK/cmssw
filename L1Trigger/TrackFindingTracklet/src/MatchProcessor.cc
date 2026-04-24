@@ -57,7 +57,7 @@ MatchProcessor::MatchProcessor(string name, Settings const& settings, Globals* g
     icorzshift_ = ilog2(settings_.kz(layerdisk_) / (settings_.krbarrel() * settings_.kzder()));
   } else {
     icorrshift_ = ilog2(settings_.kphi(layerdisk_) / (settings_.kz() * settings_.kphiderdisk()));
-    icorzshift_ = ilog2(settings_.krprojshiftdisk() / (settings_.kz() * settings_.krder()));
+    icorzshift_ = 2 + ilog2(settings_.krprojshiftdisk() / (settings_.kz() * settings_.krder()));
   }
 
   luttable_.initBendMatch(layerdisk_);
@@ -488,7 +488,7 @@ void MatchProcessor::execute(unsigned int iSector, double phimin) {
         // 3 - the sign - i.e. if track is forward or backward
 
         int rindex = (projdata_->proj(layerdisk_).fpgarzproj().value() >>
-                      (projdata_->proj(layerdisk_).fpgarzproj().nbits() - nrbits_)) &
+                      (projdata_->proj(layerdisk_).fpgarzproj().nbits() - nrbits_ + 1)) &
                      ((1 << nrbits_) - 1);
 
         int phiprojder = projdata_->proj(layerdisk_).fpgaphiprojder().value();
@@ -521,7 +521,7 @@ void MatchProcessor::execute(unsigned int iSector, double phimin) {
         //The -1 here is due to not using the full range of bits. Should be fixed.
         unsigned int ir = projdata_->proj(layerdisk_).fpgarzproj().value() >>
                           (projdata_->proj(layerdisk_).fpgarzproj().nbits() - nrprojbits_ - 1);
-        unsigned int word = diskRadius_.lookup(ir);
+        unsigned int word = diskRadius_.lookup(ir >> 1);
 
         slot = (word >> 1) & ((1 << N_RZBITS) - 1);
         if (projdata_->proj(layerdisk_).fpgarzprojder().value() < 0) {
@@ -803,7 +803,7 @@ bool MatchProcessor::matchCalculator(Tracklet* tracklet, const Stub* fpgastub, b
     iphi += iphicorr;
 
     int ir = proj.fpgarzproj().value();
-    int ircorr = (iz * proj.fpgarzprojder().value()) >> icorzshift_;
+    int ircorr = (((iz * proj.fpgarzprojder().value()) >> (icorzshift_ - 1)) + 1) >> 1;
     ir += ircorr;
 
     int ideltaphi = fpgastub->phi().value() - iphi;
@@ -821,8 +821,7 @@ bool MatchProcessor::matchCalculator(Tracklet* tracklet, const Stub* fpgastub, b
       }
     }
 
-    constexpr int diff_bits = 1;
-    int ideltar = (irstub >> diff_bits) - ir;
+    int ideltar = irstub - ir;
 
     if (!stub->isPSmodule()) {
       int ialpha = fpgastub->alpha().value();
