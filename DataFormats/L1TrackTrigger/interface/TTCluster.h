@@ -70,9 +70,9 @@ public:
 
   /// Average cluster coordinates
   /// If outFE=true, then granularity will be reduced to match that output by front-end electronics.
-  MeasurementPoint findAverageLocalCoordinates(bool outFE = false) const;
+  MeasurementPoint findAverageLocalCoordinates(bool outFE = true) const;
   /// Average cluster coordinates offset by 0.5 strip/pitch so unbiased for coord calc.
-  MeasurementPoint findAverageLocalCoordinatesCentered(bool outFE = false) const;
+  MeasurementPoint findAverageLocalCoordinatesCentered(bool outFE = true) const;
 
   /// Information
   std::string print(unsigned int i = 0) const;
