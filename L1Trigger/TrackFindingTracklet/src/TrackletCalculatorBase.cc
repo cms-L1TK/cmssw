@@ -127,7 +127,6 @@ void TrackletCalculatorBase::exacttracklet(double r1,
   z0 = z1 - t * rhopsi1;
 }
 
-
 void TrackletCalculatorBase::calcPars(unsigned int idr,
                                       int iphi1,
                                       int ir1,
@@ -616,7 +615,6 @@ bool TrackletCalculatorBase::overlapSeeding(const Stub* innerFPGAStub,
                                     it_new,
                                     false,
                                     true);
-
 
   if (settings_.debugTracklet()) {
     edm::LogVerbatim("Tracklet") << "Found tracklet in overlap seed = " << iSeed_ << " " << tracklet << " " << iSector_;
