@@ -360,16 +360,16 @@ void Sector::executeFT(vector<vector<string>>& streamsTrackRaw, vector<vector<St
     deque<string> streamTrackTmp;
     vector<deque<StubStreamData>> streamsStubTmp(maxNumProjectionLayers);
     i->execute(streamTrackTmp, streamsStubTmp, isector_);
-		string ft_name = i->getName();
+    string ft_name = i->getName();
 
     if (!settings_.storeTrackBuilderOutput())
       continue;
 
     for (unsigned int i = 0; i < streamTrackTmp.size(); i++) {
       unsigned int channelTrack = 0;
-		  if (ft_name == "TB_BBBB") { 
-			  channelTrack = 1;
-			}
+      if (ft_name == "TB_BBBB") { 
+        channelTrack = 1;
+      }
       streamsTrackRaw[offsetTrack + channelTrack].push_back(streamTrackTmp[i]);
       const int offsetStub = (offsetTrack + channelTrack) * maxNumProjectionLayers;
       for (unsigned int j = 0; j < streamsStubTmp.size(); j++) {

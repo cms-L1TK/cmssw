@@ -765,7 +765,6 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
   // the code below implemnts a fix to handle this for the streamsTrack data.
   //
   std::vector<int> iTrkStart(trklet::N_SECTOR * channelAssignment_->numSeedTypes()); 
-
   for (int channel = 0; channel < static_cast<int>(trklet::N_SECTOR * channelAssignment_->numSeedTypes()); channel++) {
     const int seedType = channel % channelAssignment_->numSeedTypes();
     const int phiregion = channel / channelAssignment_->numSeedTypes();
@@ -785,18 +784,18 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
   // from end of tracklet pattern recognition.
   // Convertion here is from stream format that allows this code to run
   // outside CMSSW to the EDProduct one.
-	// NOTE this currently does not work since TM expects streams separated by
-	// sector and seed type while this is by sector and TB
+  // NOTE this currently does not work since TM expects streams separated by
+  // sector and seed type while this is by sector and TB
   tt::StreamsTrack streamsTrack(numStreamsTrack);
   tt::StreamsStub streamsStub(numStreamsStubRaw);
-	int iTrk = 0;
+  int iTrk = 0;
   for (int channel = 0; channel < (int)numStreamsTrack; channel++) {
     const int phiregion = channel / trklet::N_TB;
     const int offset = channel * numStubChannel;
     const std::vector<std::string>& tracks = streamsTrackRaw[channel];
     tt::StreamTrack& streamTrack = streamsTrack[channel];
     streamTrack.reserve(tracks.size());
-	  int seedType = -1;
+    int seedType = -1;
     for (int layer = 0; layer < (int)numStubChannel; layer++)
       streamsStub[offset + layer].reserve(tracks.size());
     for (int frame = 0; frame < (int)tracks.size(); frame++) {
@@ -806,12 +805,13 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
         for (int layer = 0; layer < (int)numStubChannel; layer++)
           streamsStub[offset + layer].emplace_back(tt::FrameStub());
         continue;
+
       }
-			int trackSeedType = std::stoi(tracks[frame].substr(1,3),nullptr,2);
-			if (trackSeedType != seedType) {
-			  seedType = trackSeedType;
-        iTrk = iTrkStart[phiregion * channelAssignment_->numSeedTypes() + seedType];
-			}
+      int trackSeedType = std::stoi(tracks[frame].substr(1,3),nullptr,2);
+      if (trackSeedType != seedType) {
+        seedType = trackSeedType;
+        iTrk = iTrkStart[phiregion * channelAssignment_->numSeedTypes() + seedType]; 
+      }
       const TTTrackRef ttTrackRef(oh, iTrk++); 
       streamTrack.emplace_back(ttTrackRef, bitsTrk); 
       tt::StreamStub stubs(numStubChannel, tt::FrameStub());
@@ -820,9 +820,9 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
         if (!stub.valid()) {
           streamsStub[offset + layer].emplace_back(tt::FrameStub());
           continue;
-			  }
+        }
         const TTStubRef& ttStubRef = stubMap[stub.stub()];
-				streamsStub[offset + layer].emplace_back(ttStubRef, stub.dataBits());
+        streamsStub[offset + layer].emplace_back(ttStubRef, stub.dataBits());
       }
     }
   }
