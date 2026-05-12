@@ -652,7 +652,7 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
   // max number of projection layers
   const unsigned int maxNumProjectionLayers = channelAssignment_->maxNumProjectionLayers();
   // number of track channels
-  const unsigned int numStreamsTrack = trklet::N_SECTOR * channelAssignment_->numChannelsTrack();
+  const unsigned int numStreamsTrack = trklet::N_SECTOR * trklet::N_TB;
   // number of stub channels
   const unsigned int numStreamsStub = trklet::N_SECTOR * channelAssignment_->numChannelsStub();
   // number of seeding layers
@@ -764,10 +764,11 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
   // were listed in the seed order. But with the two TrackBuilder configuration this was not longer true and
   // the code below implemnts a fix to handle this for the streamsTrack data.
   //
-  std::vector<int> iTrkStart(numStreamsTrack);
-  for (int channel = 0; channel < static_cast<int>(numStreamsTrack); channel++) {
-    const int seedType = channel % channelAssignment_->numChannelsTrack();
-    const int phiregion = channel / channelAssignment_->numChannelsTrack();
+  std::vector<int> iTrkStart(trklet::N_SECTOR * channelAssignment_->numSeedTypes()); 
+
+  for (int channel = 0; channel < static_cast<int>(trklet::N_SECTOR * channelAssignment_->numSeedTypes()); channel++) {
+    const int seedType = channel % channelAssignment_->numSeedTypes();
+    const int phiregion = channel / channelAssignment_->numSeedTypes();
 
     for (unsigned int i = 0; i < (*L1TkTracksForOutput).size(); i++) {
       if (phiregion == static_cast<int>(L1TkTracksForOutput->at(i).phiSector()) &&
@@ -784,41 +785,45 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
   // from end of tracklet pattern recognition.
   // Convertion here is from stream format that allows this code to run
   // outside CMSSW to the EDProduct one.
+	// NOTE this currently does not work since TM expects streams separated by
+	// sector and seed type while this is by sector and TB
   tt::StreamsTrack streamsTrack(numStreamsTrack);
-  tt::StreamsStub streamsStub(numStreamsStub);
+  tt::StreamsStub streamsStub(numStreamsStubRaw);
+	int iTrk = 0;
   for (int channel = 0; channel < (int)numStreamsTrack; channel++) {
-    const int seedType = channel % channelAssignment_->numChannelsTrack();
-    const int numLayers = channelAssignment_->numProjectionLayers(seedType) + channelAssignment_->numSeedingLayers();
-    const int offsetIn = channel * numStubChannel;
-    const int offsetOut = channelAssignment_->offsetStub(channel);
+    const int phiregion = channel / trklet::N_TB;
+    const int offset = channel * numStubChannel;
     const std::vector<std::string>& tracks = streamsTrackRaw[channel];
     tt::StreamTrack& streamTrack = streamsTrack[channel];
     streamTrack.reserve(tracks.size());
-    int iTrk = iTrkStart[channel];
-    for (int layer = 0; layer < numLayers; layer++)
-      streamsStub[offsetOut + layer].reserve(tracks.size());
+	  int seedType = -1;
+    for (int layer = 0; layer < (int)numStubChannel; layer++)
+      streamsStub[offset + layer].reserve(tracks.size());
     for (int frame = 0; frame < (int)tracks.size(); frame++) {
       const tt::Frame bitsTrk(tracks[frame]);
       if (bitsTrk.none()) {
         streamTrack.emplace_back(tt::FrameTrack());
-        for (int layer = 0; layer < numLayers; layer++)
-          streamsStub[offsetOut + layer].emplace_back(tt::FrameStub());
+        for (int layer = 0; layer < (int)numStubChannel; layer++)
+          streamsStub[offset + layer].emplace_back(tt::FrameStub());
         continue;
       }
-      const TTTrackRef ttTrackRef(oh, iTrk++);
-      streamTrack.emplace_back(ttTrackRef, bitsTrk);
-      tt::StreamStub stubs(numLayers, tt::FrameStub());
-      for (int layer = 0; layer < numLayers; layer++) {
-        const trklet::StubStreamData& stub = streamsStubRaw[offsetIn + layer][frame];
-        if (!stub.valid())
+			int trackSeedType = std::stoi(tracks[frame].substr(1,3),nullptr,2);
+			if (trackSeedType != seedType) {
+			  seedType = trackSeedType;
+        iTrk = iTrkStart[phiregion * channelAssignment_->numSeedTypes() + seedType];
+			}
+      const TTTrackRef ttTrackRef(oh, iTrk++); 
+      streamTrack.emplace_back(ttTrackRef, bitsTrk); 
+      tt::StreamStub stubs(numStubChannel, tt::FrameStub());
+      for (int layer = 0; layer < (int)numStubChannel; layer++) {
+        const trklet::StubStreamData& stub = streamsStubRaw[offset + layer][frame];
+        if (!stub.valid()) {
+          streamsStub[offset + layer].emplace_back(tt::FrameStub());
           continue;
+			  }
         const TTStubRef& ttStubRef = stubMap[stub.stub()];
-        const int index = channelAssignment_->channelId(seedType, setup_->layerId(ttStubRef));
-        stubs[index] = tt::FrameStub(ttStubRef, stub.dataBits());
+				streamsStub[offset + layer].emplace_back(ttStubRef, stub.dataBits());
       }
-      int layer(0);
-      for (const tt::FrameStub& fs : stubs)
-        streamsStub[offsetOut + layer++].push_back(fs);
     }
   }
   iEvent.emplace(putTokenTracks_, std::move(streamsTrack));
