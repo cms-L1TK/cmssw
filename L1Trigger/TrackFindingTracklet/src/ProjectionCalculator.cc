@@ -64,7 +64,7 @@ void ProjectionCalculator::projLayer(int ir, int irinv, int iphi0, int it, int i
 
 // Project to disk (taken from TrackletCalculatorBase.cc)
 void ProjectionCalculator::projDisk(
-    int iz, int irinv, int iphi0, int it, int iz0, int& ir, int& iphi, int& iderphi, int& iderr) {
+  int iz, int irinv, int iphi0, int it, int iz0, int& ir, int& iphi, int& iderphi, int& iderr, bool print) {
   long int iz0_sign = (it > 0) ? iz0 : -iz0;
 
   assert(abs(it) < static_cast<int>(LUT_itinv_.size()));
@@ -153,7 +153,8 @@ void ProjectionCalculator::addInput(MemoryBase* memory, string input) {
 }
 
 void ProjectionCalculator::execute(unsigned int iSector, double phimin) {
-  //bool print = getName() == "PC_L2L3ABCD" && iSector == 3;
+  //bool print = getName() == "PC_L1L2ABC" && iSector == 3;
+  bool print = false;
 
   unsigned int nPar1 = 0;
   unsigned int nPar2 = 0;
@@ -197,10 +198,6 @@ void ProjectionCalculator::execute(unsigned int iSector, double phimin) {
             continue;
           nPar2++;
           auto tracklet = inputpars_[i]->getTracklet(k);
-          //double phi0 = tracklet->phi0(); // non-digi track params, currently unneeded / unused
-          //double z0 = tracklet->z0();
-          //double t = tracklet->t();
-          //double rinv = tracklet->rinv();
 
           int irinv = tracklet->fpgarinv().value();  // digi track params
           int iphi0 = tracklet->fpgaphi0().value();
@@ -256,20 +253,17 @@ void ProjectionCalculator::execute(unsigned int iSector, double phimin) {
 
           for (unsigned int iDisk = N_LAYER; iDisk < N_LAYER + N_DISK; ++iDisk) {
             int izproj = settings_.izmean(iDisk % N_LAYER);
-            //double tsign= fabs(it)/it;
-            //double sinarg=fabs(tsign*izproj*settings_.kz()-iz0*settings_.kz0pars())*
-            //  irinv * settings_.krinvpars()/(2*fabs(it)*settings_.ktpars());
-            //double rtmp = (2/(irinv * settings_.krinvpars()))*sin(sinarg);
-            //double rtmp = (2/(irinv * settings_.krinvpars()))*sinarg;
-            //double rtmp1 = fabs(tsign*izproj*settings_.kz()-iz0*settings_.kz0pars())/(fabs(it)*settings_.ktpars());
-            projDisk(izproj, irinv, iphi0, it, iz0, izr_LD[iDisk], iphi_LD[iDisk], der_phi_LD[1], der_zr_LD[1]);
+            projDisk(izproj, irinv, iphi0, it, iz0, izr_LD[iDisk], iphi_LD[iDisk], der_phi_LD[1], der_zr_LD[1], print);
             valid_LD[iDisk] = izr_LD[iDisk] >= irmindisk && izr_LD[iDisk] < irmaxdisk && ((it > tcut) || (it < -tcut));
-            //if (rtmp<50.0) {
-            //  std::cout << "rproj: " << izr_LD[iDisk]*settings_.kr() << " " << rtmp << "   diff = " << izr_LD[iDisk]*settings_.kr() - rtmp << " kr = " << settings_.kr() << " correction " << sinarg*sinarg/6.0 << " " << 1.0 - rtmp/rtmp1 << " x=" << fabs(tsign*izproj*settings_.kz()-iz0*settings_.kz0pars())*irinv * settings_.krinvpars()/(sqrt(6.0)*2*fabs(it)*settings_.ktpars()) << " rapprox=" << fabs(tsign*izproj*settings_.kz()-iz0*settings_.kz0pars())/(sqrt(6.0)*2*fabs(it)*settings_.ktpars()) << "rinv = " << irinv * settings_.krinvpars() << " " << valid_LD[iDisk] << std::endl;
-            //}
-            //if (print) {
-            //  std::cout << "iDisk iphi_LD : " << iDisk << " " << iphi_LD[iDisk] << " valid: " << valid_LD[iDisk] << std::endl;
-            //}
+            if (settings_.writeMonitorData("ProjectionCalculator") & valid_LD[iDisk]) {
+              double tsign = fabs(it) / it;
+              double sinarg = fabs(tsign * izproj * settings_.kz() - iz0 * settings_.kz0pars()) * irinv *
+                              settings_.krinvpars() / (2 * fabs(it) * settings_.ktpars());
+              double rtmp = (2 / (irinv * settings_.krinvpars())) * sin(sinarg);
+              globals_->ofstream("projectioncalculator.txt")
+                  << "PC rproj: " << izr_LD[iDisk] * settings_.kr() << " " << rtmp
+                  << "   diff = " << izr_LD[iDisk] * settings_.kr() - rtmp << endl;
+            }
           }
 
           ///////////////////////////////////
@@ -286,17 +280,11 @@ void ProjectionCalculator::execute(unsigned int iSector, double phimin) {
                    ((1 << (settings_.nzbitsstub(layer - 1) - 1)) - 1))) {  // reject extreme z values
                 continue;
               }
-              if (std::abs(izr_LD[layer - 1]) > 2048) {
-                //This never happens... remove this block?
-                std::cout << "rejecting 2048 : " << layer << " " << izr_LD[layer - 1] << std::endl;
-                continue;
-              }
+              assert(std::abs(izr_LD[layer - 1]) <= 2048);
 
+              // FIXME find better way to calculate these - but don't have stub coordinates to use exacttracklet function
               double phiprojlayer = iphi_LD[layer - 1] * settings_.kphi(layer - 1);  // get un-digi projections
-              double zprojlayer =
-                  izr_LD[layer - 1] *
-                  settings_
-                      .kz();  // FIXME find better way to calculate these - but don't have stub coordinates to use exacttracklet function
+              double zprojlayer = izr_LD[layer - 1] * settings_.kz();
               double phiderlayer = der_phi_LD[0] * settings_.kphider();
               double zderlayer = der_zr_LD[0] * settings_.kzder();
 

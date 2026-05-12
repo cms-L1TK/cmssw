@@ -189,7 +189,7 @@ void TrackletProcessor::addInput(MemoryBase* memory, string input) {
 }
 
 void TrackletProcessor::execute(unsigned int iSector, double phimin, double phimax) {
-  // bool print = (iSector == 3) && (getName() == "TP_L1L2D");
+  //bool print = (iSector == 3) && (getName() == "TP_L5L6C");
   bool print = false;
 
   phimin_ = phimin;
@@ -292,7 +292,7 @@ void TrackletProcessor::execute(unsigned int iSector, double phimin, double phim
       bool accept = false;
 
       if (iSeed_ == Seed::L1L2 || iSeed_ == Seed::L2L3 || iSeed_ == Seed::L3L4 || iSeed_ == Seed::L5L6) {
-        accept = barrelSeeding(innerFPGAStub, innerStub, outerFPGAStub, outerStub);
+        accept = barrelSeeding(innerFPGAStub, innerStub, outerFPGAStub, outerStub, print);
       } else if (iSeed_ == Seed::D1D2 || iSeed_ == Seed::D3D4) {
         accept = diskSeeding(innerFPGAStub, innerStub, outerFPGAStub, outerStub);
       } else {

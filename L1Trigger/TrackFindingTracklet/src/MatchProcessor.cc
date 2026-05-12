@@ -245,7 +245,7 @@ void MatchProcessor::execute(unsigned int iSector, double phimin) {
     
   */
 
-  //constexpr bool print = getName() == "MP_L3PHIB_E" && iSector == 3;
+  //bool print = getName() == "MP_D1PHIB" && iSector == 3;
   constexpr bool print = false;
 
   phimin_ = phimin;
@@ -257,14 +257,6 @@ void MatchProcessor::execute(unsigned int iSector, double phimin) {
   unsigned int countall = 0;
   unsigned int countsel = 0;
   unsigned int countinputproj = 0;
-
-  if (print) {
-    for (const auto* proj : inputprojs_) {
-      for (unsigned int p = 0; p < proj->nPage(); p++) {
-        edm::LogVerbatim("Tracklet") << "ProjOcc: " << proj->getName() << " " << p << " " << proj->nTracklets(p);
-      }
-    }
-  }
 
   unsigned int imem = 0;
   unsigned int ipage = 0;
@@ -387,18 +379,6 @@ void MatchProcessor::execute(unsigned int iSector, double phimin) {
         assert(oldTracklet->TCID() <= tracklet_->TCID());
       }
       oldTracklet = tracklet_;
-
-      /*
-      bool match = matchCalculator(tracklet, fpgastub, print, istep);
-      
-      if (settings_.debugTracklet() && match) {
-        edm::LogVerbatim("Tracklet") << getName() << " have match";
-      }
-
-      countall++;
-      if (match)
-        countsel++;
-      */
     }
 
     //Step 2
@@ -545,21 +525,6 @@ void MatchProcessor::execute(unsigned int iSector, double phimin) {
       bool usesecondPlus = ivmPlus != ivmMinus && (second && (stubmem->nStubsBin(ivmPlus * nbins + slot + 1) != 0));
 
       bool good = usefirstPlus || usesecondPlus || usefirstMinus || usesecondMinus;
-
-      /*
-      int offset = 4;
-
-      int ztemp = proj->proj(layerdisk_).fpgarzproj().value()  >> (proj->proj(layerdisk_).fpgarzproj().nbits() - settings_.MEBinsBits() - NFINERZBITS);
-      unsigned int zbin1 = (1 << (settings_.MEBinsBits() - 1)) + ((ztemp - offset) >> NFINERZBITS);
-      unsigned int zbin2 = (1 << (settings_.MEBinsBits() - 1)) + ((ztemp + offset) >> NFINERZBITS);
-      
-      if (zbin1 >= settings_.MEBins()) {
-	zbin1 = 0;  //note that zbin1 is unsigned
-      }
-      if (zbin2 >= settings_.MEBins()) {
-	zbin2 = settings_.MEBins() - 1;
-      }
-      */
 
       if (good) {
         ProjectionTemp tmpProj(projdata_,
@@ -910,6 +875,25 @@ bool MatchProcessor::matchCalculator(Tracklet* tracklet, const Stub* fpgastub, b
           << " " << drphicut << " " << ideltar * settings_.kr() << " " << deltar << " " << drcut << " " << endl;
     }
 
+    if (settings_.writeMonitorData("MPDiskProjection")) {
+      double z_stub_tmp = stub->z();
+      double rinv_tmp = tracklet->fpgarinv().value() * settings_.krinvpars();
+      double z0_tmp = tracklet->fpgaz0().value() * settings_.kz0pars();
+      double t_tmp = tracklet->fpgat().value() * settings_.ktpars();
+
+      //std::cout << "Disk projection z0 t rinv : " << z0_tmp << " " << t_tmp << " " << rinv_tmp << std::endl;
+
+      double rproj_tmp = (2.0 / rinv_tmp) * sin(rinv_tmp * (z_stub_tmp - z0_tmp) / (2.0 * t_tmp));
+      //double rproj_tmp_pre = (2.0/rinv_tmp)*sin(rinv_tmp*(sign * settings_.zmean(layerdisk_ - N_LAYER)-z0_tmp)/(2.0*t_tmp));
+
+      //std::cout << "Disk projection pre r : " << proj.fpgarzproj().value()*settings_.krprojshiftdisk() << " " << rproj_tmp_pre << " dr= "
+      //		<< proj.fpgarzproj().value()*settings_.krprojshiftdisk() - rproj_tmp_pre << std::endl;
+
+      globals_->ofstream("mpdiskprojection.txt")
+          << "Disk projection r : " << stub->isPSmodule() << " " << ir * settings_.kr() << " " << rproj_tmp
+          << " dr= " << ir * settings_.kr() - rproj_tmp << endl;
+    }
+
     bool match = (std::abs(drphi) < drphicut) && (std::abs(deltar) < drcut);
     bool imatch = (std::abs(ideltaphi * irstub) < idrphicut) && (std::abs(ideltar) < idrcut);
 
@@ -943,8 +927,6 @@ bool MatchProcessor::matchCalculator(Tracklet* tracklet, const Stub* fpgastub, b
       if (std::abs(dphi) >= third * settings_.dphisectorHG()) {
         edm::LogPrint("Tracklet") << "dphi " << dphi << " ISeed " << tracklet->getISeed();
       }
-      //assert(std::abs(dphi) < third * settings_.dphisectorHG());
-      //assert(std::abs(dphiapprox) < third * settings_.dphisectorHG());
 
       tracklet->addMatch(layerdisk_,
                          ideltaphi,

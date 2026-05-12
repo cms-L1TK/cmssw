@@ -26,7 +26,8 @@ namespace trklet {
 
     void projLayer(int ir, int irinv, int iphi0, int it, int iz0, int &iz, int &iphi);
 
-    void projDisk(int iz, int irinv, int iphi0, int it, int iz0, int &ir, int &iphi, int &iderphi, int &iderr);
+    void projDisk(
+        int iz, int irinv, int iphi0, int it, int iz0, int &ir, int &iphi, int &iderphi, int &iderr, bool print);
 
   private:
     std::vector<std::vector<std::vector<TrackletProjectionsMemory *> > >
