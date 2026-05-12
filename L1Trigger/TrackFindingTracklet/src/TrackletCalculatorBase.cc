@@ -287,8 +287,9 @@ bool TrackletCalculatorBase::inSector(int iphi0, int irinv, double phi0approx, d
   int iphicritmincut = settings_.phicritminmc() / settings_.kphi0pars();
   int iphicritmaxcut = settings_.phicritmaxmc() / settings_.kphi0pars();
 
-  bool keepapprox = (phicritapprox > settings_.phicritminmc()) && (phicritapprox < settings_.phicritmaxmc()),
-       keep = (iphicrit > iphicritmincut) && (iphicrit < iphicritmaxcut);
+  bool keepapprox = (phi0approx >= 0) && (phicritapprox > settings_.phicritminmc()) &&
+                    (phicritapprox < settings_.phicritmaxmc()),
+       keep = (iphi0 >= 0) && (iphicrit > iphicritmincut) && (iphicrit < iphicritmaxcut);
   if (settings_.debugTracklet())
     if (keepapprox && !keep)
       edm::LogVerbatim("Tracklet") << getName()
