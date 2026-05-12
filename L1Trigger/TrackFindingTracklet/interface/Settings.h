@@ -882,6 +882,8 @@ namespace trklet {
                                                             {"TPars", false},
                                                             {"TPD", false},
                                                             {"TrackletPars", false},
+                                                            {"ProjectionCalculator", false},
+                                                            {"MPDiskProjection", false},
                                                             {"TED", false},
                                                             {"TP", false},
                                                             {"PC", false},

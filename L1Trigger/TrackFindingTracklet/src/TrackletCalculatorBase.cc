@@ -179,8 +179,6 @@ void TrackletCalculatorBase::calcPars(unsigned int idr,
   //Temporary hack here
   long int it1 = (ir1 * ideltaz) >> (n_Deltar_ - n_deltaz_ - 3);
 
-  //std::cout << "ifact it1 ix6: " << ifact << " " << it1 << " " << ix6 << std::endl;
-
   irinv_new = ((-idelta0 * ia) >> (n_phi_ + n_a_ - n_rinv_ + n_Deltar_ - n_delta0_ - n_r_ - 1));
 
   iphi0_new = (iphi1 >> (n_phi_ - n_phi0_)) +
@@ -450,7 +448,7 @@ bool TrackletCalculatorBase::diskSeeding(const Stub* innerFPGAStub,
 
   int irinv_new, iphi0_new, iz0_new, it_new;
 
-  calcPars(idr, iphi1, ir1, iz1abs, iphi2, ir2, iz2abs, irinv_new, iphi0_new, iz0_new, it_new);
+  calcPars(idr, iphi1, ir1, iz1abs, iphi2, ir2, iz2abs, irinv_new, iphi0_new, iz0_new, it_new, print);
 
   if (print) {
     edm::LogVerbatim("Tracklet") << "=======================";
