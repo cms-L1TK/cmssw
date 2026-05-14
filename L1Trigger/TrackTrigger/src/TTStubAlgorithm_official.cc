@@ -108,6 +108,12 @@ void TTStubAlgorithm_official<Ref_Phase2TrackerDigi_>::PatternHitCorrelation(
   double offsetD = 2 * delta * (mp0.x() - (top0->nrows() / 2 - 0.5)) * (pitch0.first / pitch1.first);
   int offsetI = ((offsetD > 0) - (offsetD < 0)) * floor(std::abs(offsetD));  /// In HALF-STRIP units!
 
+  // TODO: implement offset calculation for CRACK with tilted modules
+  // CRACK only has sensors perpendicular to vertical, so offset is always 0 for them.
+  // When tilted modules are used (nonant test), the offset should be different
+  if (mCosmics)
+    offsetI = 0;
+
   if (stDetId.subdetId() == StripSubdetector::TOB) {
     int layer = theTrackerTopo_->layer(stDetId);
     int ladder = theTrackerTopo_->tobRod(stDetId);
@@ -130,7 +136,7 @@ void TTStubAlgorithm_official<Ref_Phase2TrackerDigi_>::PatternHitCorrelation(
   }
   // For CRACK, window is maximum value
   if (mCosmics)
-	  window = isPS ? 8 : 14;
+    window = isPS ? 8 : 14;
 
   /// Accept the stub if the post-offset correction displacement is smaller than the half-window
   if (std::abs(dispI - offsetI) <= window)  /// In HALF-STRIP units!
