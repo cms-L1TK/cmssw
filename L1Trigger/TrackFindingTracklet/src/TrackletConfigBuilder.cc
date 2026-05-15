@@ -500,11 +500,7 @@ std::string TrackletConfigBuilder::iTBStr(unsigned int iTB) const {
 }
 
 std::string TrackletConfigBuilder::iSeedStr(unsigned int iSeed) const {
-  static std::string name[N_SEED] = {
-      "L1L2", "L2L3", "L3L4", "L5L6", "D1D2", "D3D4", "L1D1", "L2D1", "L3L4L2", "L5L6L4", "L2L3D1", "D1D2L2"};
-
-  assert(iSeed < N_SEED);
-  return name[iSeed];
+  return settings_.seedName(iSeed);
 }
 
 unsigned int TrackletConfigBuilder::strSeedInt(std::string strSeed) const {

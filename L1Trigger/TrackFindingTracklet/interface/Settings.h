@@ -58,8 +58,8 @@ namespace trklet {
   public:
     Settings() {};
     ~Settings() = default;
-    void passSetup(const Setup* setup) { setup_ = setup; }
-    const Setup* setup() const { return setup_; }
+    void passSetup(const tt::Setup* setup) { setup_ = setup; }
+    const tt::Setup* setup() const { return setup_; }
 
     // processing & memory modules, wiring, etc.
     std::string const& fitPatternFile() const { return fitPatternFile_; }
@@ -140,6 +140,38 @@ namespace trklet {
       return layerdisk;
     }
 
+
+    std::string seedName(unsigned int iSeed) const {
+      switch (iSeed) {
+      case Seed::L1L2:
+	return "L1L2";
+	break;
+      case Seed::L2L3:
+	return "L2L3";
+	break;
+      case Seed::L3L4:
+	return "L3L4";
+	break;
+      case Seed::L5L6:
+	return "L5L6";
+	break;
+      case Seed::D1D2:
+	return "D1D2";
+	break;
+      case Seed::D3D4:
+	return "D3D4";
+	break;
+      case Seed::L1D1:
+	return "L1D1";
+	break;
+      case Seed::L2D1:
+	return "L2D1";
+	break;
+      default:
+	assert(0);
+      }
+    }
+    
     unsigned int teunits(unsigned int iSeed) const { return teunits_[iSeed]; }
     unsigned int trpunits(unsigned int iSeed) const { return trpunits_[iSeed]; }
 
