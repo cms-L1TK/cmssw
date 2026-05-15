@@ -135,9 +135,14 @@ namespace trklet {
     }
 
     unsigned int seedlayers(int inner, int seed) const {
-      int layerdisk = seedlayers_[seed][inner];
+      int layerdisk = seedlayers_.at(seed)[inner];
       assert(layerdisk >= 0);
       return layerdisk;
+    }
+
+
+    const std::array<int, 3>& seedlayers(int seed) const {
+      return seedlayers_.at(seed);
     }
 
 
@@ -510,7 +515,7 @@ namespace trklet {
     }
 
     //layers/disks used by each seed
-    std::array<std::array<int, 3>, N_SEED> seedlayers() const { return seedlayers_; }
+    //std::array<std::array<int, 3>, N_SEED> seedlayers() const { return seedlayers_; }
 
     //projection layers by seed index. For each seeding index (row) the list of layers that we consider projections to
     std::array<std::array<unsigned int, N_LAYER - 2>, N_SEED> projlayers() const { return projlayers_; }
@@ -710,19 +715,20 @@ namespace trklet {
          {{21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21}}}};
 
     //layers/disks used by each seed
-    std::array<std::array<int, 3>, N_SEED> seedlayers_{{{{0, 1, -1}},   //L1L2
-                                                        {{1, 2, -1}},   //1 L2L3
-                                                        {{2, 3, -1}},   //2 L3L4
-                                                        {{4, 5, -1}},   //3 L5L6
-                                                        {{6, 7, -1}},   //4 D1D2
-                                                        {{8, 9, -1}},   //5 D3D4
-                                                        {{0, 6, -1}},   //6 L1D1
-                                                        {{1, 6, -1}},   //7 L2D1
-                                                        {{2, 3, 1}},    //8 L2L3L4
-                                                        {{4, 5, 3}},    //9 L4L5L6
-                                                        {{1, 2, 6}},    //10 L2L3D1
-                                                        {{6, 7, 1}}}};  //11 D1D2L2
+    std::map<unsigned int, std::array<int, 3>> seedlayers_{{Seed::L1L2,{{0, 1, -1}}},   //L1L2
+							   {Seed::L2L3,{{1, 2, -1}}},   //1 L2L3
+							   {Seed::L3L4,{{2, 3, -1}}},   //2 L3L4
+							   {Seed::L5L6,{{4, 5, -1}}},   //3 L5L6
+							   {Seed::D1D2,{{6, 7, -1}}},   //4 D1D2
+							   {Seed::D3D4,{{8, 9, -1}}},   //5 D3D4
+							   {Seed::L1D1,{{0, 6, -1}}},   //6 L1D1
+							   {Seed::L2D1,{{1, 6, -1}}},   //7 L2D1
+							   {Seed::L2L3L4,{{2, 3, 1}}},    //8 L2L3L4
+							   {Seed::L4L5L6,{{4, 5, 3}}},    //9 L4L5L6
+							   {Seed::L2L3D1,{{1, 2, 6}}},    //10 L2L3D1
+							   {Seed::D1D2L2,{{6, 7, 1}}}};  //11 D1D2L2
 
+    
     //Number of tracklet calculators for the prompt seeding combinations
     std::array<unsigned int, N_SEED> ntc_{{12, 4, 4, 4, 4, 4, 8, 4, 10, 10, 10, 10}};
 
