@@ -94,7 +94,7 @@ namespace trklet {
     unsigned int nbendbitsmedisk() const { return nbendbitsmedisk_; }
 
     bool useSeed(unsigned int iSeed) const { return useseeding_.find(iSeed) != useseeding_.end(); }
-    unsigned int nbitsvmte(unsigned int inner, unsigned int iSeed) const { return nbitsvmtecm_[inner][iSeed]; }
+    unsigned int nbitsvmte(unsigned int inner, unsigned int iSeed) const { return nbitsvmte_.at(iSeed)[inner]; }
     unsigned int nvmte(unsigned int inner, unsigned int iSeed) const { return (1 << nbitsvmte(inner, iSeed)); }
 
     unsigned int nbitsvmme(unsigned int layerdisk) const { return nbitsvmme_[layerdisk]; }
@@ -514,9 +514,6 @@ namespace trklet {
       return bendcutME_[layerdisk];
     }
 
-    //layers/disks used by each seed
-    //std::array<std::array<int, 3>, N_SEED> seedlayers() const { return seedlayers_; }
-
     //projection layers by seed index. For each seeding index (row) the list of layers that we consider projections to
     std::array<std::array<unsigned int, N_LAYER - 2>, N_SEED> projlayers() const { return projlayers_; }
 
@@ -567,10 +564,20 @@ namespace trklet {
 
     std::array<unsigned int, N_LAYER + N_DISK> nbitsallstubs_{{3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2}};
     std::array<unsigned int, N_LAYER + N_DISK> nbitsvmme_{{2, 3, 3, 3, 3, 3, 3, 2, 2, 2, 2}};
-    std::array<std::array<unsigned int, N_SEED>, 3> nbitsvmtecm_{
-        {{{2, 2, 2, 2, 2, 2, 1, 1, 2, 2, 3, 2}},  // (3 = #stubs/triplet, only row 1+2 used for tracklet)
-         {{3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2, 2}},
-         {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1}}}};
+
+    std::map<unsigned int, std::vector<int> > nbitsvmte_ = {{Seed::L1L2, {2, 3, 0}},
+							    {Seed::L2L3, {2, 3, 0}},
+							    {Seed::L3L4, {2, 3, 0}},   //2 L3L4
+							    {Seed::L5L6, {2, 3, 0}},   //3 L5L6
+							    {Seed::D1D2, {2, 3, 0}},   //4 D1D2
+							    {Seed::D3D4, {2, 3, 0}},   //5 D3D4
+							    {Seed::L1D1, {1, 3, 0}},   //6 L1D1
+							    {Seed::L2D1, {1, 3, 0}},   //7 L2D1
+							    {Seed::L2L3L4, {2, 3, 0}},    //8 L2L3L4
+							    {Seed::L4L5L6, {2, 3, 0}},    //9 L4L5L6
+							    {Seed::L2L3D1, {3, 3, 2}},    //10 L2L3D1
+							    {Seed::D1D2L2, {2, 2, 1}}};  //11 D1D2L2
+    
 
     // FIX: There should be 3 PS10G slots & 3 PS (5G) ones.
     // (Will change output files used by HLS).
