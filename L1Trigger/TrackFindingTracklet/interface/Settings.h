@@ -186,10 +186,10 @@ namespace trklet {
     unsigned int projdisks(unsigned int iSeed, unsigned int i) const { return projdisks_.at(iSeed)[i]; }
     double rphimatchcut(unsigned int iSeed, unsigned int ilayer) const { return rphimatchcut_.at(iSeed)[ilayer]; }
     double zmatchcut(unsigned int iSeed, unsigned int ilayer) const { return zmatchcut_.at(iSeed)[ilayer]; }
-    double rphicutPS(unsigned int iSeed, unsigned int idisk) const { return rphicutPS_[idisk][iSeed]; }
-    double rcutPS(unsigned int iSeed, unsigned int idisk) const { return rcutPS_[idisk][iSeed]; }
-    double rphicut2S(unsigned int iSeed, unsigned int idisk) const { return rphicut2S_[idisk][iSeed]; }
-    double rcut2S(unsigned int iSeed, unsigned int idisk) const { return rcut2S_[idisk][iSeed]; }
+    double rphicutPS(unsigned int iSeed, unsigned int idisk) const { return rphicutPS_.at(iSeed)[idisk]; }
+    double rcutPS(unsigned int iSeed, unsigned int idisk) const { return rcutPS_.at(iSeed)[idisk]; }
+    double rphicut2S(unsigned int iSeed, unsigned int idisk) const { return rphicut2S_.at(iSeed)[idisk]; }
+    double rcut2S(unsigned int iSeed, unsigned int idisk) const { return rcut2S_.at(iSeed)[idisk]; }
 
     unsigned int irmean(unsigned int iLayer) const { return rmean_[iLayer] * 4096 / rmaxdisk_ + 0.5; }
     double rmean(unsigned int iLayer) const { return rmean_[iLayer]; }
@@ -829,38 +829,61 @@ namespace trklet {
 								   {Seed::L2L3D1,{{1.00, 0.00, 0.00, 0.00, 0.00, 0.00}}},    //L2L3D1
 								   {Seed::D1D2L2,{{1.50, 0.00, 0.00, 0.00, 0.00, 0.00}}}};  //D1D2L2
 
-
     //rphi cuts for PS modules in disks - the column is the seedindex
-    std::array<std::array<double, N_SEED>, N_DISK> rphicutPS_{
-        {{{0.2, 0.2, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}},     //disk 1
-         {{0.2, 0.2, 0.0, 0.0, 0.0, 0.1, 0.1, 0.1, 0.0, 0.0, 0.15, 0.0}},    //disk 2
-         {{0.25, 0.2, 0.0, 0.0, 0.15, 0.0, 0.2, 0.15, 0.0, 0.0, 0.0, 0.2}},  //disk 3
-         {{0.5, 0.2, 0.0, 0.0, 0.2, 0.0, 0.3, 0.5, 0.0, 0.0, 0.0, 0.0}},     //disk 4
-         {{0.0, 0.0, 0.0, 0.0, 0.25, 0.1, 0.5, 0.0, 0.0, 0.0, 0.0, 0.0}}}};  //disk 5
-
+    std::map<unsigned int, std::array<double, N_DISK>> rphicutPS_{{Seed::L1L2,{{0.20, 0.20, 0.25, 0.50, 0.00}}},   //L1L2
+								  {Seed::L2L3,{{0.20, 0.20, 0.20, 0.20, 0.00}}},   //L2L3
+								  {Seed::L3L4,{{0.00, 0.00, 0.00, 0.00, 0.00}}},   //L3L4
+								  {Seed::L5L6,{{0.00, 0.00, 0.00, 0.00, 0.00}}},   //L5L6
+								  {Seed::D1D2,{{0.00, 0.00, 0.15, 0.20, 0.25}}},   //D1D2
+								  {Seed::D3D4,{{0.10, 0.10, 0.00, 0.00, 0.10}}},   //D3D4
+								  {Seed::L1D1,{{0.00, 0.10, 0.20, 0.30, 0.50}}},   //L1D1
+								  {Seed::L2D1,{{0.00, 0.10, 0.20, 0.50, 0.00}}},   //L2D1
+								  {Seed::L2L3L4,{{0.00, 0.00, 0.00, 0.00, 0.00}}},    //L2L3L4
+								  {Seed::L4L5L6,{{0.00, 0.00, 0.00, 0.00, 0.00}}},    //L4L5L6
+								  {Seed::L2L3D1,{{0.00, 0.15, 0.00, 0.00, 0.00}}},    //L2L3D1
+								  {Seed::D1D2L2,{{0.00, 0.00, 0.20, 0.00, 0.00}}}};  //D1D2L2
+    
     //r cuts for PS modules in disks - the column is the seedindex
-    std::array<std::array<double, N_SEED>, N_DISK> rcutPS_{
-        {{{0.5, 0.5, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}},    //disk 1
-         {{0.5, 0.5, 0.0, 0.0, 0.0, 0.5, 0.5, 0.5, 0.0, 0.0, 0.5, 0.0}},    //disk 2
-         {{0.5, 0.5, 0.0, 0.0, 0.5, 0.0, 0.6, 0.8, 0.0, 0.0, 0.0, 0.4}},    //disk 3
-         {{0.5, 0.5, 0.0, 0.0, 0.8, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0}},    //disk 4
-         {{0.0, 0.0, 0.0, 0.0, 1.0, 0.5, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0}}}};  //disk 5
-
+    std::map<unsigned int, std::array<double, N_DISK>> rcutPS_{{Seed::L1L2,{{0.50, 0.50, 0.50, 0.50, 0.00}}},   //L1L2
+							       {Seed::L2L3,{{0.50, 0.50, 0.50, 0.50, 0.00}}},   //L2L3
+							       {Seed::L3L4,{{0.00, 0.00, 0.00, 0.00, 0.00}}},   //L3L4
+							       {Seed::L5L6,{{0.00, 0.00, 0.00, 0.00, 0.00}}},   //L5L6
+							       {Seed::D1D2,{{0.00, 0.00, 0.50, 0.80, 1.00}}},   //D1D2
+							       {Seed::D3D4,{{0.50, 0.50, 0.00, 0.00, 0.50}}},   //D3D4
+							       {Seed::L1D1,{{0.00, 0.50, 0.60, 1.00, 2.00}}},   //L1D1
+							       {Seed::L2D1,{{0.00, 0.50, 0.80, 1.00, 0.00}}},   //L2D1
+							       {Seed::L2L3L4,{{0.00, 0.00, 0.00, 0.00, 0.00}}},    //L2L3L4
+							       {Seed::L4L5L6,{{0.00, 0.00, 0.00, 0.00, 0.00}}},    //L4L5L6
+							       {Seed::L2L3D1,{{0.00, 0.50, 0.00, 0.00, 0.00}}},    //L2L3D1
+							       {Seed::D1D2L2,{{0.00, 0.00, 0.40, 0.00, 0.00}}}};  //D1D2L2
+    
     //rphi cuts for 2S modules in disks = the column is the seedindex
-    std::array<std::array<double, N_SEED>, N_DISK> rphicut2S_{
-        {{{0.5, 0.5, 0.8, 0.0, 0.0, 0.0, 0.0, 0.0, 0.2, 0.0, 0.0, 0.0}},    //disk 1
-         {{0.5, 0.5, 0.8, 0.0, 0.0, 0.0, 0.5, 0.15, 0.3, 0.0, 0.68, 0.0}},  //disk 2
-         {{0.5, 0.5, 0.0, 0.0, 0.15, 0.0, 0.2, 0.25, 0.0, 0.0, 0.8, 0.1}},  //disk 3
-         {{0.5, 0.5, 0.0, 0.0, 0.2, 0.0, 0.25, 0.5, 0.0, 0.0, 0.6, 0.4}},   //disk 4
-         {{0.0, 0.0, 0.0, 0.0, 0.4, 0.2, 0.4, 0.0, 0.0, 0.0, 0.0, 0.8}}}};  //disk 5
+    std::map<unsigned int, std::array<double, N_DISK>> rphicut2S_{{Seed::L1L2,{{0.50, 0.50, 0.50, 0.50, 0.00}}},   //L1L2
+								  {Seed::L2L3,{{0.50, 0.50, 0.50, 0.50, 0.00}}},   //L2L3
+								  {Seed::L3L4,{{0.80, 0.80, 0.00, 0.00, 0.00}}},   //L3L4
+								  {Seed::L5L6,{{0.00, 0.00, 0.00, 0.00, 0.00}}},   //L5L6
+								  {Seed::D1D2,{{0.00, 0.00, 0.15, 0.20, 0.40}}},   //D1D2
+								  {Seed::D3D4,{{0.00, 0.00, 0.00, 0.00, 0.20}}},   //D3D4
+								  {Seed::L1D1,{{0.00, 0.50, 0.20, 0.25, 0.40}}},   //L1D1
+								  {Seed::L2D1,{{0.00, 0.15, 0.25, 0.50, 0.00}}},   //L2D1
+								  {Seed::L2L3L4,{{0.20, 0.30, 0.00, 0.00, 0.00}}},    //L2L3L4
+								  {Seed::L4L5L6,{{0.00, 0.00, 0.00, 0.00, 0.00}}},    //L4L5L6
+								  {Seed::L2L3D1,{{0.00, 0.68, 0.80, 0.60, 0.00}}},    //L2L3D1
+								  {Seed::D1D2L2,{{0.00, 0.00, 0.10, 0.40, 0.80}}}};  //D1D2L2
 
-    //r cuts for 2S modules in disks -the column is the seedindex
-    std::array<std::array<double, N_SEED>, N_DISK> rcut2S_{
-        {{{3.6, 3.6, 3.6, 0.0, 0.0, 0.0, 0.0, 0.0, 3.0, 0.0, 0.0, 0.0}},    //disk 1
-         {{3.6, 3.6, 3.6, 0.0, 0.0, 0.0, 3.6, 3.4, 3.0, 0.0, 3.0, 0.0}},    //disk 2
-         {{3.6, 3.6, 0.0, 0.0, 3.6, 0.0, 3.6, 3.6, 0.0, 0.0, 3.6, 3.0}},    //disk 3
-         {{3.6, 3.6, 0.0, 0.0, 3.6, 0.0, 3.5, 3.6, 0.0, 0.0, 3.0, 3.0}},    //disk 4
-         {{0.0, 0.0, 0.0, 0.0, 3.6, 3.4, 3.7, 0.0, 0.0, 0.0, 0.0, 3.0}}}};  //disk 5
+    //r cuts for 2S modules in disks -the column is the seedinde
+    std::map<unsigned int, std::array<double, N_DISK>> rcut2S_{{Seed::L1L2,{{3.60, 3.60, 3.60, 3.60, 0.00}}},   //L1L2
+							       {Seed::L2L3,{{3.60, 3.60, 3.60, 3.60, 0.00}}},   //L2L3
+							       {Seed::L3L4,{{3.60, 3.60, 0.00, 0.00, 0.00}}},   //L3L4
+							       {Seed::L5L6,{{0.00, 0.00, 0.00, 0.00, 0.00}}},   //L5L6
+							       {Seed::D1D2,{{0.00, 0.00, 3.60, 3.60, 3.60}}},   //D1D2
+							       {Seed::D3D4,{{0.00, 0.00, 0.00, 0.00, 3.40}}},   //D3D4
+							       {Seed::L1D1,{{0.00, 3.60, 3.60, 3.50, 3.70}}},   //L1D1
+							       {Seed::L2D1,{{0.00, 3.40, 3.60, 3.60, 0.00}}},   //L2D1
+							       {Seed::L2L3L4,{{3.00, 3.00, 0.00, 0.00, 0.00}}},    //L2L3L4
+							       {Seed::L4L5L6,{{0.00, 0.00, 0.00, 0.00, 0.00}}},    //L4L5L6
+							       {Seed::L2L3D1,{{0.00, 3.00, 3.60, 3.00, 0.00}}},    //L2L3D1
+							       {Seed::D1D2L2,{{0.00, 0.00, 3.00, 3.00, 3.00}}}};  //D1D2L2
 
     //returns the mean bend (in strips at a 1.8 mm separation) for bendcode
     std::array<std::array<double, 16>, 16> benddecode_{
