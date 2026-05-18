@@ -268,8 +268,8 @@ void ProjectionCalculator::execute(unsigned int iSector, double phimin) {
           // Write projections to memories //
           ///////////////////////////////////
 
-          for (unsigned int j = 0; j < settings_.projlayers()[iSeed].size(); ++j) {
-            unsigned int layer = settings_.projlayers()[iSeed][j];  // Loop through layers/disks projected to
+          for (unsigned int j = 0; j < settings_.projlayers(iSeed).size(); ++j) {
+            unsigned int layer = settings_.projlayers(iSeed,j);  // Loop through layers/disks projected to
             if (layer == 0)
               continue;                 // for seeds not projecting to any layers
             if (valid_LD[layer - 1]) {  // If projection to layer/disk is valid
@@ -304,8 +304,8 @@ void ProjectionCalculator::execute(unsigned int iSector, double phimin) {
               addedLayer[layer - 1] = true;
             }
           }
-          for (unsigned int j = 0; j < settings_.projdisks()[iSeed].size(); ++j) {
-            unsigned int disk = settings_.projdisks()[iSeed][j];
+          for (unsigned int j = 0; j < settings_.projdisks(iSeed).size(); ++j) {
+            unsigned int disk = settings_.projdisks(iSeed,j);
             if (disk == 0)
               continue;                          // for seeds not projecting to any disks
             if (valid_LD[N_LAYER + disk - 1]) {  // If projection to layer/disk is valid
