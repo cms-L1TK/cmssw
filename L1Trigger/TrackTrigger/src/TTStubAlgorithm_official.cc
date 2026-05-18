@@ -61,24 +61,16 @@ void TTStubAlgorithm_official<Ref_Phase2TrackerDigi_>::PatternHitCorrelation(
   double Z0 = det0->position().z();
   double Z1 = det1->position().z();
 
+  // note about CRACK full nonant/titled module implementation
+  // In case of cosmics, calcualtions should use Y instead of R.
+  // delta should be calculated with "collision point" at Z = Z0 to simulate straight tracks from above
+  // Otherwise "collision point" is at x = 0 y = 0 z = 0, not applicable to cosmics
+
   double DR = R1 - R0;
   double DZ = Z1 - Z0;
 
-  double alpha;
-  double delta;
-  // In case of cosmics, calcualtions use Y instead of R.
-  // delta is calculated from Y = 1500cm and with Z = Z0 to simulate straight tracks from above
-  // Otherwise "collision point" is at x = 0 y = 0 z = 0
-  if (mCosmics) {
-    double Y0 = det0->position().y();
-    double Y1 = det1->position().y();
-    double DY = Y1 - Y0;
-    alpha = atan2(DY, DZ);
-    delta = sqrt(DY * DY + DZ * DZ) / ((Y0 - 1500) * sin(alpha));
-  } else {
-    alpha = atan2(DR, DZ);
-    delta = sqrt(DR * DR + DZ * DZ) / (R0 * sin(alpha) + Z0 * cos(alpha));
-  }
+  double alpha = atan2(DR, DZ);
+  double delta = sqrt(DR * DR + DZ * DZ) / (R0 * sin(alpha) + Z0 * cos(alpha));
 
   int window = 0;
 
@@ -109,8 +101,16 @@ void TTStubAlgorithm_official<Ref_Phase2TrackerDigi_>::PatternHitCorrelation(
   int offsetI = ((offsetD > 0) - (offsetD < 0)) * floor(std::abs(offsetD));  /// In HALF-STRIP units!
 
   // TODO: implement offset calculation for CRACK with tilted modules
-  // CRACK only has sensors perpendicular to vertical, so offset is always 0 for them.
-  // When tilted modules are used (nonant test), the offset should be different
+  // For now CRACK only has sensors perpendicular to vertical, so offset is always 0 for them.
+  // When tilted modules are used (nonant test), the offset should be different.
+  // roughly: t*sin(omega)/[cos(theta)*cos(omega)] * (pitch0.first / pitch1.first)
+  // Where t is the separation of the two sensors. For modules at the top of the barrel omega = 0 & offset = 0.
+  // For omega = 90 degrees (module at the side of the barrel) the offset would be infinity
+  // (since these modules are in the vertical plane, i.e. endcap, they are no good for cosmics arriving vertically)
+  // The hardware also has maximum allowed offsets, listed below (but should be checked)
+  // PS max offset: +-4 strips
+  // 2S max offset: +-3 strips
+
   if (mCosmics)
     offsetI = 0;
 
@@ -136,7 +136,7 @@ void TTStubAlgorithm_official<Ref_Phase2TrackerDigi_>::PatternHitCorrelation(
   }
   // For CRACK, window is maximum value
   if (mCosmics)
-    window = isPS ? 8 : 14;
+    window = isPS ? 10 : 14;
 
   /// Accept the stub if the post-offset correction displacement is smaller than the half-window
   if (std::abs(dispI - offsetI) <= window)  /// In HALF-STRIP units!
