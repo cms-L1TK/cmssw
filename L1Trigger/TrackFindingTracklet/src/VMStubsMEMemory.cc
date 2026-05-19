@@ -33,7 +33,9 @@ void VMStubsMEMemory::writeStubs(bool first, unsigned int iSector) {
       stub += "|" + finephipos.str();
       FPGAWord finepos = binnedstubs_[i][j].finerz();
       stub += "|" + finepos.str();
-
+      if (layerdisk_ >= N_LAYER) {
+	stub += (binnedstubs_[i][j].isPSmodule()?"|1":"|0");
+      }
       out_ << hexstr(newi) << " " << hexstr(j) << " " << stub << " " << trklet::hexFormat(stub) << endl;
     }
   }

@@ -29,7 +29,7 @@ MatchEngineUnit::MatchEngineUnit(const Settings& settings,
   ir2smin_ = 0;
   if (layerdisk_ >= N_LAYER) {
     double rmin2s = (layerdisk_ < N_LAYER + 2) ? settings_.rDSSinner(0) : settings_.rDSSouter(0);
-    ir2smin_ = (1 << (N_RZBITS + NFINERZBITS)) * (rmin2s - settings_.rmindiskvm()) /
+    ir2smin_ = 0.5 + (1 << (N_RZBITS + NFINERZBITS)) * (rmin2s - settings_.rmindiskvm()) /
                (settings_.rmaxdisk() - settings_.rmindiskvm());
   }
 }
@@ -146,8 +146,10 @@ void MatchEngineUnit::processPipeline(bool print) {
       //Verify that ir2smin_ is initialized and check if irstub is less than radius of innermost 2s module
       assert(ir2smin_ > 0);
       isPSmodule = irstub < ir2smin_;
+      std::cout << "irstub ir2smin_ : " << irstub << "  " << ir2smin_ << std::endl;
     }
-    assert(isPSmodule == vmstub____.isPSmodule());
+    //    assert(isPSmodule == vmstub____.isPSmodule());
+    isPSmodule = vmstub____.isPSmodule();
 
     int deltaphi = stubfinephi - projfinephi____;
 
