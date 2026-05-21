@@ -653,14 +653,16 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
   const unsigned int maxNumProjectionLayers = channelAssignment_->maxNumProjectionLayers();
   // number of track channels
   const unsigned int numStreamsTrack = trklet::N_SECTOR * trklet::N_TB;
-  // number of stub channels
-  const unsigned int numStreamsStub = trklet::N_SECTOR * channelAssignment_->numChannelsStub();
   // number of seeding layers
   const unsigned int numSeedingLayers = channelAssignment_->numSeedingLayers();
   // max number of stub channel per track
   const unsigned int numStubChannel = maxNumProjectionLayers + numSeedingLayers;
   // number of stub channels if all seed types streams padded to have same number of stub channels (for coding simplicity)
   const unsigned int numStreamsStubRaw = numStreamsTrack * numStubChannel;
+  // number of layers and disks
+  const unsigned int numLayerDisk = trklet::N_LAYER + trklet::N_DISK;
+  // number of stub channels if 1 channel per layer/disk per track stream
+  const unsigned int numStreamsStub = numStreamsTrack * numLayerDisk;
 
   // Streams formatted to allow this code to run outside CMSSW.
   std::vector<std::vector<std::string>> streamsTrackRaw(numStreamsTrack);
@@ -787,7 +789,7 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
   // NOTE this currently does not work since TM expects streams separated by
   // sector and seed type while this is by sector and TB
   tt::StreamsTrack streamsTrack(numStreamsTrack);
-  tt::StreamsStub streamsStub(numStreamsStubRaw);
+  tt::StreamsStub streamsStub(numStreamsStub);
   int iTrk = 0;
   for (int channel = 0; channel < (int)numStreamsTrack; channel++) {
     const int phiregion = channel / trklet::N_TB;
@@ -814,19 +816,30 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
       }
       const TTTrackRef ttTrackRef(oh, iTrk++); 
       streamTrack.emplace_back(ttTrackRef, bitsTrk); 
-      tt::StreamStub stubs(numStubChannel, tt::FrameStub());
+      //DEBUG
+      std::cout << trackSeedType << " ";
+      std::cout << bitsTrk << " ";
+      //DEBUG
+      tt::StreamStub stubs(numLayerDisk, tt::FrameStub());
       for (int layer = 0; layer < (int)numStubChannel; layer++) {
         const trklet::StubStreamData& stub = streamsStubRaw[offset + layer][frame];
         if (!stub.valid())
           continue;
         const TTStubRef& ttStubRef = stubMap[stub.stub()];
         streamsStub[offset + layer].emplace_back(ttStubRef, stub.dataBits());
-        const int index = channelAssignment_->channelId(seedType, setup_->layerId(ttStubRef));
+        const int index = setup_->trackletLayerId(ttStubRef);
         stubs[index] = tt::FrameStub(ttStubRef, stub.dataBits());
       }
       int layer(0);
-      for (const tt::FrameStub& fs : stubs)
+      for (const tt::FrameStub& fs : stubs) { //DEBUG
         streamsStub[offset + layer++].push_back(fs);
+        //DEBUG
+        std::cout << fs.second << " ";
+        //DEBUG
+      } //DEBUG
+      //DEBUG
+      std::cout << std::endl;
+      //DEBUG
     }
   }
   iEvent.emplace(putTokenTracks_, std::move(streamsTrack));
