@@ -817,13 +817,16 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
       tt::StreamStub stubs(numStubChannel, tt::FrameStub());
       for (int layer = 0; layer < (int)numStubChannel; layer++) {
         const trklet::StubStreamData& stub = streamsStubRaw[offset + layer][frame];
-        if (!stub.valid()) {
-          streamsStub[offset + layer].emplace_back(tt::FrameStub());
+        if (!stub.valid())
           continue;
-        }
         const TTStubRef& ttStubRef = stubMap[stub.stub()];
         streamsStub[offset + layer].emplace_back(ttStubRef, stub.dataBits());
+        const int index = channelAssignment_->channelId(seedType, setup_->layerId(ttStubRef));
+        stubs[index] = tt::FrameStub(ttStubRef, stub.dataBits());
       }
+      int layer(0);
+      for (const tt::FrameStub& fs : stubs)
+        streamsStub[offset + layer++].push_back(fs);
     }
   }
   iEvent.emplace(putTokenTracks_, std::move(streamsTrack));
