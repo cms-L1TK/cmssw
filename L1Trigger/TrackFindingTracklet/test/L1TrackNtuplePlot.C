@@ -2999,7 +2999,7 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
   p_z0_residualVsEta_nps2->SetMarkerColor(3);
   p_z0_residualVsEta_nps3->SetMarkerColor(4);
   p_z0_residualVsEta_nps4->SetMarkerColor(5);
-  p_z0_residualVsEta->SetMaximum(0.0);
+  p_z0_residualVsEta->SetMinimum(0.0);
   p_z0_residualVsEta->SetMaximum(0.8);
   p_z0_residualVsEta->Draw();
   p_z0_residualVsEta_nps1->Draw("same");
