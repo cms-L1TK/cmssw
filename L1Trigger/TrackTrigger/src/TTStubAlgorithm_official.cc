@@ -107,12 +107,13 @@ void TTStubAlgorithm_official<Ref_Phase2TrackerDigi_>::PatternHitCorrelation(
   // Where t is the separation of the two sensors. For modules at the top of the barrel omega = 0 & offset = 0.
   // For omega = 90 degrees (module at the side of the barrel) the offset would be infinity
   // (since these modules are in the vertical plane, i.e. endcap, they are no good for cosmics arriving vertically)
-  // The hardware also has maximum allowed offsets, listed below (but should be checked)
-  // PS max offset: +-4 strips
-  // 2S max offset: +-3 strips
-
   if (mCosmics)
     offsetI = 0;
+
+  // Maximum allowed offsets in hardware:
+  // PS: +-4 strips
+  // 2S: +-3 strips
+  offsetI = isPS ? std::min(offsetI, 4) : std::min(offsetI, 3);
 
   if (stDetId.subdetId() == StripSubdetector::TOB) {
     int layer = theTrackerTopo_->layer(stDetId);
