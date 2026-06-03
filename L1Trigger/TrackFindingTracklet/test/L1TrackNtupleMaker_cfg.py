@@ -201,7 +201,7 @@ elif (L1TRKALGO == 'HYBRID_NEWKF' or L1TRKALGO == 'HYBRID_REDUCED'):
     if (L1TRKALGO == 'HYBRID_NEWKF'):
         fwConfig( process )
         # cheats to get good performance
-        process.TrackFindingTrackletSetup.TM.UseTTStubs = True
+        process.TrackFindingTrackletSetup.DR.UseTTStubs = True
     if (L1TRKALGO == 'HYBRID_REDUCED'):
         reducedConfig( process )
     # Needed by L1TrackNtupleMaker
