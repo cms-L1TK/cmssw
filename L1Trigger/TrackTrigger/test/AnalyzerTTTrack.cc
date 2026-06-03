@@ -47,8 +47,8 @@ namespace tt {
 
   private:
     // plot helper
-    std::vector<std::string> resolutions_ = {"Inv2R", "PT", "PhiT", "Phi0", "Cot", "ZT", "Z0", "D0"};
-    std::vector<std::string> efficiencies_ = {"Inv2R", "PT", "PhiT", "Eta", "Z0", "D0"};
+    std::vector<std::string> resolutions_ = {"Inv2R", "PT", "PhiT", "Phi0", "Cot", "ZT", "D0", "Z0", "Z0_3PS", "Z0_2PS","Z0_1PS"};
+    std::vector<std::string> efficiencies_ = {"Inv2R", "PT", "Eta", "Z0", "D0"};
     std::vector<double> limitsR_ = {.001, 100., .01, .01, .2, 5., 5., 2.};
     std::vector<double> limitsE_ = {.001, 100., 2. * M_PI, 2.4, 15., 10.};
     // ED input token of tracks
@@ -146,7 +146,7 @@ namespace tt {
     dir = fs->mkdir(name_ + "/Res");
     for (int i = 0; i < static_cast<int>(resolutions_.size()); i++) {
       hisRes_[i] = dir.make<TH1F>(("His" + resolutions_[i]).c_str(), ";", 128, -limitsR_[i], limitsR_[i]);
-      profRes_[i] = dir.make<TProfile>(("Prof" + resolutions_[i]).c_str(), ";", 32, 0, 2.4);
+      profRes_[i] = dir.make<TProfile>(("Prof" + resolutions_[i]).c_str(), ";", 12, 0, 2.5);
     }
     // Efficiencies
     dir = fs->mkdir(name_ + "/Eff");
@@ -195,6 +195,10 @@ namespace tt {
     for (const L1Track& ttTrack : ttTracks) {
       const int region = ttTrack.phiSector();
       const std::vector<TTStubRef>& ttStubRefs = ttTrack.getStubRefs();
+      int nPS = 0;
+      for (const TTStubRef& ttStubRef : ttStubRefs) {
+          if (setup.psModule(ttStubRef)) {nPS++;}
+      }
       regionTracks[region]++;
       regionStubs[region] += ttStubRefs.size();
       hisStubs_->Fill(ttStubRefs.size());
@@ -245,9 +249,21 @@ namespace tt {
         const double zT = tp_zT - tt_zT;
         const double d0 = tp_d0 - tt_d0;
         int i(0);
-        for (double d : {inv2R, pt, phiT, phi0, cot, zT, z0, d0}) {
+        for (double d : {inv2R, pt, phiT, phi0, cot, zT, d0, z0}) {
           hisRes_[i]->Fill(d);
           profRes_[i++]->Fill(eta, std::abs(d));
+        }
+        if (nPS == 3) {
+            hisRes_[8]->Fill(z0);
+            profRes_[8]->Fill(eta, std::abs(z0));
+        }
+        else if (nPS == 2) {
+            hisRes_[9]->Fill(z0);
+            profRes_[9]->Fill(eta, std::abs(z0));
+        }
+        else if (nPS == 1) {
+            hisRes_[10]->Fill(z0);
+            profRes_[10]->Fill(eta, std::abs(z0));
         }
       }
     }
