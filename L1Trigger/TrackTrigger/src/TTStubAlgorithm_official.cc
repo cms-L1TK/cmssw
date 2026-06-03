@@ -55,6 +55,10 @@ void TTStubAlgorithm_official<Ref_Phase2TrackerDigi_>::PatternHitCorrelation(
       return;
   }
 
+  // Maximum allowed offsets in hardware (half-strips):
+  constexpr int maxOffsetPS = 8;
+  constexpr int maxOffset2S = 6;
+
   /// Get the Stack radius and z and displacements
   double R0 = det0->position().perp();
   double R1 = det1->position().perp();
@@ -110,10 +114,12 @@ void TTStubAlgorithm_official<Ref_Phase2TrackerDigi_>::PatternHitCorrelation(
   if (mCosmics)
     offsetI = 0;
 
-  // Maximum allowed offsets in hardware:
-  // PS: +-4 strips
-  // 2S: +-3 strips
-  offsetI = isPS ? std::min(offsetI, 4) : std::min(offsetI, 3);
+  // Check offset is within maximum allowed in hardware & set to max offset if not
+  if (isPS && std::abs(offsetI) > maxOffsetPS) {
+    offsetI = ((offsetI > 0) - (offsetI < 0)) * maxOffsetPS;
+  } else if (std::abs(offsetI) > maxOffset2S) {
+    offsetI = ((offsetI > 0) - (offsetI < 0)) * maxOffset2S;
+  }
 
   if (stDetId.subdetId() == StripSubdetector::TOB) {
     int layer = theTrackerTopo_->layer(stDetId);
