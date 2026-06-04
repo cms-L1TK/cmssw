@@ -68,6 +68,8 @@ namespace trackerDTC {
     int layerIndexCombined() const { return layerIndexCombined_; }
     // layer id [1-6,11-15]
     int layerId() const { return layerId_; }
+    // layer id [0-6]
+    int layerIdReduced() const { return layerIdReduced_; }
     // module radius in cm
     double r() const { return r_; }
     // module phi w.r.t. detector region centre in rad
@@ -146,6 +148,8 @@ namespace trackerDTC {
     int layerIndexCombined_;
     // layer id [1-6,11-15]
     int layerId_;
+    // layer id [0-6]
+    int layerIdReduced_;
     // module radius in cm
     double r_;
     // module phi w.r.t. detector region centre in rad

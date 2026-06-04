@@ -72,6 +72,18 @@ namespace trackerDTC {
     layerIndexCombined_ = layerIndex_ + (barrel_ ? 0 : 6);
     // layer id [1-6,11-15]
     layerId_ = layerIndex_ + 1 + (barrel_ ? 0 : 10);
+    // reduced layer id [0-6]
+    layerIdReduced_ = layerId_;
+    if (layerIdReduced_ == 6)
+      layerIdReduced_ = 11;
+    else if (layerIdReduced_ == 5)
+      layerIdReduced_ = 12;
+    else if (layerIdReduced_ == 4)
+      layerIdReduced_ = 13;
+    else if (layerIdReduced_ == 3)
+      layerIdReduced_ = 15;
+    if (layerIdReduced_ > 10)
+      layerIdReduced_ -= 8;
     // TTStub row needs flip of sign
     signRow_ = std::signbit(tt::deltaPhi(plane.rotation().x().phi() - pos0.phi()));
     // TTStub col needs flip of sign

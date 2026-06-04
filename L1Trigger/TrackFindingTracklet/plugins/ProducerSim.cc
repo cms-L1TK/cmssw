@@ -37,8 +37,6 @@ namespace trklet {
   private:
     void produce(edm::Event&, const edm::EventSetup&) override;
     void beginRun(const edm::Run&, const edm::EventSetup&) override;
-    // converts layer Id  [barrel: 1-6, discs: 11-15] to reduced id [0-6] [0 = {1}, 1 = {2}, 2 = {11 or 6}, 3 = {12 or 5}, 4 = {13 or 4}, 5 = {14}, 6 = {15 or 3}]
-    int toReduced(int) const;
 
     // ED input token of TTTracks
     edm::EDGetTokenT<tt::TTTracks> edGetTokenTracks_;
@@ -211,7 +209,7 @@ namespace trklet {
           C41 -= S04 * K10;
           chi20 += r0 * r0 / R00;
           chi21 += r1 * r1 / R11;
-          hitPattern.set(toReduced(sm->layerId()));
+          hitPattern.set(sm->layerIdReduced());
         }
         // TTTrack conversion
         TTTrack<Ref_Phase2TrackerDigi_> comb(-2. * x0,
@@ -245,22 +243,6 @@ namespace trklet {
     // store products
     iEvent.emplace(edPutTokenTracks_, std::move(ttTracks));
   }
-
-  // converts layer Id  [barrel: 1-6, discs: 11-15] to reduced id [0-6] [0 = {1}, 1 = {2}, 2 = {11 or 6}, 3 = {12 or 5}, 4 = {13 or 4}, 5 = {14}, 6 = {15 or 3}]
-  int ProducerSim::toReduced(int layerId) const {
-    int reduced = layerId;
-    if (reduced == 6)
-      reduced = 11;
-    else if (reduced == 5)
-      reduced = 12;
-    else if (reduced == 4)
-      reduced = 13;
-    else if (reduced == 3)
-      reduced = 15;
-    if (reduced > 10)
-      reduced -= 8;
-    return reduced;
-  };
 
 }  // namespace trklet
 

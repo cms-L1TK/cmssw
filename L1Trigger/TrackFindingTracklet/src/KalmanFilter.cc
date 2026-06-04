@@ -16,13 +16,11 @@ namespace trklet {
   KalmanFilter::KalmanFilter(const Setup* setup,
                              const DataFormats* dataFormats,
                              KalmanFilterFormats* kalmanFilterFormats,
-                             int region,
-                             tt::TTTracks& ttTracks)
+                             int region)
       : setup_(setup),
         dataFormats_(dataFormats),
         kalmanFilterFormats_(kalmanFilterFormats),
         region_(region),
-        ttTracks_(ttTracks),
         layer_(0) {}
 
   // read in and organize input tracks and stubs
@@ -95,36 +93,19 @@ namespace trklet {
 
   // apply final cuts
   void KalmanFilter::finalize() {
-    // converts layer Id  [barrel: 1-6, discs: 11-15] to reduced id [0-6] [0 = {1}, 1 = {2}, 2 = {11 or 6}, 3 = {12 or 5}, 4 = {13 or 4}, 5 = {14}, 6 = {15 or 3}]
-    auto toReduced = [](int layerId) {
-      int reduced = layerId;
-      if (reduced == 6)
-        reduced = 11;
-      else if (reduced == 5)
-        reduced = 12;
-      else if (reduced == 4)
-        reduced = 13;
-      else if (reduced == 3)
-        reduced = 15;
-      if (reduced > 10)
-        reduced -= 8;
-      return reduced;
-    };
     finals_.reserve(stream_.size());
     for (State* state : stream_) {
-      const std::vector<int>& layersSeed = setup_->tbSeedLayers(state->trackDR()->seedType());
-      const std::vector<int>& layersProj = setup_->tbProjectionLayers(state->trackDR()->seedType());
       int numConsistent(0);
       int numConsistentPS(0);
       std::vector<StubKF> stubsKF;
       stubsKF.reserve(setup_->kfNumLayers());
-      auto add = [&numConsistent, &numConsistentPS, &stubsKF, state, toReduced, this](Stub* stub, int layerId) {
-        const int reduced = toReduced(layerId);
+      auto add = [&numConsistent, &numConsistentPS, &stubsKF, state, this](Stub* stub) {
+        const trackerDTC::SensorModule* sm = setup_->sensorModule(stub->stubDR_.frame().first);
         const double dPhi = state->x1() + stub->H() * state->x0() + state->x4() / stub->H();
         const double dZ = state->x3() + stub->H() * state->x2();
         const double phi = digi(VariableKF::m0, stub->m0() - dPhi);
         const double z = digi(VariableKF::m1, stub->m1() - dZ);
-        stubsKF.emplace_back(stub->stubDR_, reduced, stub->H(), phi, z, stub->d0(), stub->d1());
+        stubsKF.emplace_back(stub->stubDR_, sm->layerIdReduced(), stub->H(), phi, z, stub->d0(), stub->d1());
         if (std::abs(phi) <= stub->d0() && std::abs(z) <= stub->d1()) {
           numConsistent++;
           if (stub->stubDR_.frame().first->moduleTypePS())
@@ -132,9 +113,9 @@ namespace trklet {
         }
       };
       for (int layer = 0; layer < setup_->tbNumSeedingLayers(); layer++)
-        add(state->seed(layer), layersSeed[layer]);
+        add(state->seed(layer));
       for (int layer : state->hitPattern().ids())
-        add(state->proj(layer), layersProj[layer]);
+        add(state->proj(layer));
       // pt cut
       const bool validX0 = dataFormats_->format(Variable::inv2R, Process::kf).isCovered(state->x0());
       // cut on phi sector boundaries
@@ -158,7 +139,7 @@ namespace trklet {
     std::transform(finals_.begin(), finals_.end(), std::back_inserter(finals), [](Track& track) { return &track; });
     // prepare arrival order
     std::vector<int> trackIds;
-    trackIds.reserve(ttTracks_.size());
+    trackIds.reserve(tracks_.size());
     for (Track* track : finals) {
       const int trackId = track->trackId_;
       if (std::find_if(trackIds.begin(), trackIds.end(), [trackId](int id) { return id == trackId; }) == trackIds.end())

@@ -92,8 +92,6 @@ namespace trklet {
       int drBaseShiftDPhi;
       // precision difference in powers of 2 between dPhi and phi
       int drBaseShiftDZ;
-      // double precision simulation of 5 parameter fit instead of bit accurate emulation of 4 parameter fit
-      bool kfUse5ParameterFit;
       // simulate KF instead of emulate
       bool kfUseSimulation;
       // max number of tracks a kf worker can process
@@ -329,8 +327,6 @@ namespace trklet {
     // precision of internal inversere cot(theta)
     double drBaseInvCot() const { return drBaseInvCot_; }
 
-    // double precision simulation of 5 parameter fit instead of bit accurate emulation of 4 parameter fit
-    bool kfUse5ParameterFit() const { return config_.kfUse5ParameterFit; }
     // simulate KF instead of emulate
     bool kfUseSimulation() const { return config_.kfUseSimulation; }
     // max number of tracks a kf worker can process

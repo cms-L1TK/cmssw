@@ -45,7 +45,7 @@ namespace trklet {
   class KalmanFilter {
   public:
     typedef State::Stub Stub;
-    KalmanFilter(const Setup*, const DataFormats*, KalmanFilterFormats*, int, tt::TTTracks&);
+    KalmanFilter(const Setup*, const DataFormats*, KalmanFilterFormats*, int);
     ~KalmanFilter() = default;
     // read in and organize input tracks and stubs
     void consume(const tt::StreamsTrack&, const tt::StreamsStub&);
@@ -111,8 +111,6 @@ namespace trklet {
     KalmanFilterFormats* kalmanFilterFormats_;
     // processing region
     int region_;
-    //
-    tt::TTTracks& ttTracks_;
     // container of tracks
     std::vector<TrackDR> tracks_;
     // container of stubs

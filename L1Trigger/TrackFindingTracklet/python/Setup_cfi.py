@@ -83,13 +83,12 @@ TrackFindingTracklet_params = cms.PSet (
 
   # Parmeter specifying KalmanFilter
   KF = cms.PSet (
-    Use5ParameterFit = cms.bool ( False ), # double precision simulation of 5 parameter fit instead of bit accurate emulation of 4 parameter fit
-    UseSimulation    = cms.bool ( False ), # simulate KF instead of emulate
-    MaxTracks        = cms.int32(    63 ), # max number of tracks a kf worker can process
-    NumLayers        = cms.int32(     7 ), # number of layers a fitted track may cross
-    MinLayers        = cms.int32(     4 ), # required number of layers to form a track
-    BaseShiftPhi     = cms.int32(     2 ), # precision difference in powers of 2 between phi residual and phi position
-    BaseShiftZ       = cms.int32(     2 ), # precision difference in powers of 2 between z residual and z position
+    UseSimulation = cms.bool ( False ), # simulate KF instead of emulate
+    MaxTracks     = cms.int32(    63 ), # max number of tracks a kf worker can process
+    NumLayers     = cms.int32(     7 ), # number of layers a fitted track may cross
+    MinLayers     = cms.int32(     4 ), # required number of layers to form a track
+    BaseShiftPhi  = cms.int32(     2 ), # precision difference in powers of 2 between phi residual and phi position
+    BaseShiftZ    = cms.int32(     2 ), # precision difference in powers of 2 between z residual and z position
   ),
 
   # Parameter specifying Track Quality
