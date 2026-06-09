@@ -56,7 +56,7 @@ void TTStubAlgorithm_official<Ref_Phase2TrackerDigi_>::PatternHitCorrelation(
   }
 
   // Maximum allowed offsets in hardware (half-strips):
-  constexpr int maxOffsetPS = 8;
+  constexpr int maxOffsetPS = 15;
   constexpr int maxOffset2S = 6;
 
   /// Get the Stack radius and z and displacements
@@ -104,6 +104,9 @@ void TTStubAlgorithm_official<Ref_Phase2TrackerDigi_>::PatternHitCorrelation(
   double offsetD = 2 * delta * (mp0.x() - (top0->nrows() / 2 - 0.5)) * (pitch0.first / pitch1.first);
   int offsetI = ((offsetD > 0) - (offsetD < 0)) * floor(std::abs(offsetD));  /// In HALF-STRIP units!
 
+  int maxOffsetPSPitch = floor(std::abs((maxOffsetPS * (pitch0.first / pitch1.first))));
+  int maxOffset2SPitch = floor(std::abs((maxOffset2S * (pitch0.first / pitch1.first))));
+
   // TODO: implement offset calculation for CRACK with tilted modules
   // For now CRACK only has sensors perpendicular to vertical, so offset is always 0 for them.
   // When tilted modules are used (nonant test), the offset should be different.
@@ -115,10 +118,10 @@ void TTStubAlgorithm_official<Ref_Phase2TrackerDigi_>::PatternHitCorrelation(
     offsetI = 0;
 
   // Check offset is within maximum allowed in hardware & set to max offset if not
-  if (isPS && std::abs(offsetI) > maxOffsetPS) {
-    offsetI = ((offsetI > 0) - (offsetI < 0)) * maxOffsetPS;
-  } else if (std::abs(offsetI) > maxOffset2S) {
-    offsetI = ((offsetI > 0) - (offsetI < 0)) * maxOffset2S;
+  if (isPS && std::abs(offsetI) > maxOffsetPSPitch) {
+    offsetI = ((offsetI > 0) - (offsetI < 0)) * maxOffsetPSPitch;
+  } else if (!isPS && std::abs(offsetI) > maxOffset2SPitch) {
+    offsetI = ((offsetI > 0) - (offsetI < 0)) * maxOffset2SPitch;
   }
 
   if (stDetId.subdetId() == StripSubdetector::TOB) {
