@@ -47,7 +47,8 @@ namespace tt {
 
   private:
     // plot helper
-    std::vector<std::string> resolutions_ = {"Inv2R", "PT", "PhiT", "Phi0", "Cot", "ZT", "D0", "Z0", "Z0_3PS", "Z0_2PS","Z0_1PS"};
+    std::vector<std::string> resolutions_ = {
+        "Inv2R", "PT", "PhiT", "Phi0", "Cot", "ZT", "D0", "Z0", "Z0_3PS", "Z0_2PS", "Z0_1PS"};
     std::vector<std::string> efficiencies_ = {"Inv2R", "PT", "Eta", "Z0", "D0"};
     std::vector<double> limitsR_ = {.001, 100., .01, .01, .2, 5., 5., 2.};
     std::vector<double> limitsE_ = {.001, 100., 2. * M_PI, 2.4, 15., 10.};
@@ -197,7 +198,9 @@ namespace tt {
       const std::vector<TTStubRef>& ttStubRefs = ttTrack.getStubRefs();
       int nPS = 0;
       for (const TTStubRef& ttStubRef : ttStubRefs) {
-          if (setup.psModule(ttStubRef)) {nPS++;}
+        if (setup.psModule(ttStubRef)) {
+          nPS++;
+        }
       }
       regionTracks[region]++;
       regionStubs[region] += ttStubRefs.size();
@@ -254,16 +257,14 @@ namespace tt {
           profRes_[i++]->Fill(eta, std::abs(d));
         }
         if (nPS == 3) {
-            hisRes_[8]->Fill(z0);
-            profRes_[8]->Fill(eta, std::abs(z0));
-        }
-        else if (nPS == 2) {
-            hisRes_[9]->Fill(z0);
-            profRes_[9]->Fill(eta, std::abs(z0));
-        }
-        else if (nPS == 1) {
-            hisRes_[10]->Fill(z0);
-            profRes_[10]->Fill(eta, std::abs(z0));
+          hisRes_[8]->Fill(z0);
+          profRes_[8]->Fill(eta, std::abs(z0));
+        } else if (nPS == 2) {
+          hisRes_[9]->Fill(z0);
+          profRes_[9]->Fill(eta, std::abs(z0));
+        } else if (nPS == 1) {
+          hisRes_[10]->Fill(z0);
+          profRes_[10]->Fill(eta, std::abs(z0));
         }
       }
     }
