@@ -71,6 +71,7 @@ def trackletConfig(process):
 
 # configures old KF simulation in new KF emulation chain
 def oldKFConfig(process):
+  process.TrackFindingTrackletSetup.KF.UseSimulation = True
   #===== Use HYBRID TRACKING (Tracklet pattern reco + TMTT KF -- requires tracklet C++ too) =====
   process.ProducerKF.Hybrid                                   = True
   # Emulate dead/inefficient modules using the StubKiller code, with stubs killed according to the scenarios of the Stress Test group. 
