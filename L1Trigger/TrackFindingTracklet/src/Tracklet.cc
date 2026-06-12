@@ -340,10 +340,8 @@ std::string Tracklet::fullmatchdiskstr(int disk) {
   FPGAWord tcid;
   tcid.set(TCIndex_, settings_.nbitstcindex(), true, __LINE__, __FILE__);
   const FPGAWord stubr(resid_[N_LAYER + disk - 1].stubptr()->rvalue(), 12, true, __LINE__, __FILE__);
-  std::string oss = tcid.str() + "|" + tmp.str() + "|" + 
-                    resid_[N_LAYER + disk - 1].fpgastubid().str() + "|" +
-                    stubr.str() + "|" +
-                    resid_[N_LAYER + disk - 1].fpgaphiresid().str() + "|" +
+  std::string oss = tcid.str() + "|" + tmp.str() + "|" + resid_[N_LAYER + disk - 1].fpgastubid().str() + "|" +
+                    stubr.str() + "|" + resid_[N_LAYER + disk - 1].fpgaphiresid().str() + "|" +
                     resid_[N_LAYER + disk - 1].fpgarzresid().str();
   return oss;
 }
