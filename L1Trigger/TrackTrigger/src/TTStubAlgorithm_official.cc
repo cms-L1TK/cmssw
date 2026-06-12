@@ -36,8 +36,6 @@ void TTStubAlgorithm_official<Ref_Phase2TrackerDigi_>::PatternHitCorrelation(
   const PixelGeomDetUnit* pix1 = dynamic_cast<const PixelGeomDetUnit*>(det1);
   const PixelTopology* top0 = dynamic_cast<const PixelTopology*>(&(pix0->specificTopology()));
   const PixelTopology* top1 = dynamic_cast<const PixelTopology*>(&(pix1->specificTopology()));
-  std::pair<float, float> pitch0 = top0->pitch();
-  std::pair<float, float> pitch1 = top1->pitch();
 
   /// Stop if the clusters are not in the same z-segment
   int cols0 = top0->ncolumns();
@@ -90,27 +88,24 @@ void TTStubAlgorithm_official<Ref_Phase2TrackerDigi_>::PatternHitCorrelation(
   ///
   /// IN    | | | |x|x| | | | | | | | | | |
   ///             THIS is 3.5 (COORD) and 4.0 (POS)
-  /// 1) disp is the difference between average row coordinates
-  ///    in inner and outer stack member, in terms of outer member pitch
+  /// 1) disp is the difference between average row coordinates in inner and
+  ///    outer stack member
   ///    (in case they are the same, this is just a plain coordinate difference)
-  double dispD = 2 * (mp1.x() - mp0.x()) * (pitch0.first / pitch1.first);  /// In HALF-STRIP units!
-  int dispI = ((dispD > 0) - (dispD < 0)) * floor(std::abs(dispD));        /// In HALF-STRIP units!
-  /// 2) offset is the projection with a straight line of the innermost
-  ///    hit towards the ourermost stack member, still in terms of outer member pitch
+  double dispD = 2 * (mp1.x() - mp0.x());                            /// In HALF-STRIP units!
+  int dispI = ((dispD > 0) - (dispD < 0)) * floor(std::abs(dispD));  /// In HALF-STRIP units!
+  /// 2) offset is the projection with a straight line of the innermost hit towards
+  ///    the outermost stack member
   ///    NOTE: in terms of coordinates, the center of the module is at NROWS/2-0.5 to
   ///    be consistent with the definition given above
 
   /// In HALF-STRIP units!
-  double offsetD = 2 * delta * (mp0.x() - (top0->nrows() / 2 - 0.5)) * (pitch0.first / pitch1.first);
+  double offsetD = 2 * delta * (mp0.x() - (top0->nrows() / 2 - 0.5));
   int offsetI = ((offsetD > 0) - (offsetD < 0)) * floor(std::abs(offsetD));  /// In HALF-STRIP units!
-
-  int maxOffsetPSPitch = floor(std::abs((maxOffsetPS * (pitch0.first / pitch1.first))));
-  int maxOffset2SPitch = floor(std::abs((maxOffset2S * (pitch0.first / pitch1.first))));
 
   // TODO: implement offset calculation for CRACK with tilted modules
   // For now CRACK only has sensors perpendicular to vertical, so offset is always 0 for them.
   // When tilted modules are used (nonant test), the offset should be different.
-  // roughly: t*sin(omega)/[cos(theta)*cos(omega)] * (pitch0.first / pitch1.first)
+  // roughly: t*sin(omega)/[cos(theta)*cos(omega)
   // Where t is the separation of the two sensors. For modules at the top of the barrel omega = 0 & offset = 0.
   // For omega = 90 degrees (module at the side of the barrel) the offset would be infinity
   // (since these modules are in the vertical plane, i.e. endcap, they are no good for cosmics arriving vertically)
@@ -118,10 +113,10 @@ void TTStubAlgorithm_official<Ref_Phase2TrackerDigi_>::PatternHitCorrelation(
     offsetI = 0;
 
   // Check offset is within maximum allowed in hardware & set to max offset if not
-  if (isPS && std::abs(offsetI) > maxOffsetPSPitch) {
-    offsetI = ((offsetI > 0) - (offsetI < 0)) * maxOffsetPSPitch;
-  } else if (!isPS && std::abs(offsetI) > maxOffset2SPitch) {
-    offsetI = ((offsetI > 0) - (offsetI < 0)) * maxOffset2SPitch;
+  if (isPS && std::abs(offsetI) > maxOffsetPS) {
+    offsetI = ((offsetI > 0) - (offsetI < 0)) * maxOffsetPS;
+  } else if (!isPS && std::abs(offsetI) > maxOffset2S) {
+    offsetI = ((offsetI > 0) - (offsetI < 0)) * maxOffset2S;
   }
 
   if (stDetId.subdetId() == StripSubdetector::TOB) {
