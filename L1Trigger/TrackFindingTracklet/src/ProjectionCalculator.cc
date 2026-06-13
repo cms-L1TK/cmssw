@@ -64,7 +64,7 @@ void ProjectionCalculator::projLayer(int ir, int irinv, int iphi0, int it, int i
 
 // Project to disk (taken from TrackletCalculatorBase.cc)
 void ProjectionCalculator::projDisk(
-  int iz, int irinv, int iphi0, int it, int iz0, int& ir, int& iphi, int& iderphi, int& iderr, bool print) {
+    int iz, int irinv, int iphi0, int it, int iz0, int& ir, int& iphi, int& iderphi, int& iderr, bool print) {
   long int iz0_sign = (it > 0) ? iz0 : -iz0;
 
   assert(abs(it) < static_cast<int>(LUT_itinv_.size()));
