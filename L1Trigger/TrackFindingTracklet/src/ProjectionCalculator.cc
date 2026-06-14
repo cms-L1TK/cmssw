@@ -58,7 +58,7 @@ void ProjectionCalculator::projLayer(int ir, int irinv, int iphi0, int it, int i
   long int is6 = (1 << n_s6_) + ((is * is) >> (2 + 2 * n_r_ + 2 * n_rinv_ - 2 * n_s_ - n_s6_));
   long int iu = (ir * irinv) >> (n_r_ + n_rinv_ + 1 - n_phi_);
   iphi = (iphi0 << (n_phi_ - n_phi0_)) - ((iu * is6) >> n_s6_);
-  long int iv = (it * ir) >> (n_r_ + n_t_ - n_z_);
+  long int iv = (it * ir) >> (n_r_ + n_t_ - n_z_ - n_iv_);
   iz = iz0 + ((((iv * is6) >> (n_iv_ + n_s6_ - 1)) + 1) >> 1);
 }
 
