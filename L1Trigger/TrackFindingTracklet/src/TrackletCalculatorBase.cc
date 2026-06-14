@@ -159,22 +159,12 @@ void TrackletCalculatorBase::calcPars(unsigned int idr,
 
   long int ifact = (1 << n_r6_) * phiHG_ * phiHG_ / 6.0;
 
-<<<<<<< HEAD
-  long int ir6 = (ir1 + ir2) * ifact;
-=======
-  int ir6 = ((ir1 + ir2) * ifact) >> n_r6_;
->>>>>>> 26a000c856a (Some updates from debuging HLS)
+  long ir6 = ((ir1 + ir2) * ifact) >> n_r6_;
 
   long int idelta02 = (idelta0 * idelta2) >> n_delta02_;
 
-<<<<<<< HEAD
-  long int ix6 =
-      (-(1 << n_x6_) +
-       ((ir6 * idelta02) >> (n_r6_ + 2 * n_Deltar_ + 2 * n_phi_ - n_x6_ - n_delta2_ - n_delta02_ - 2 * n_delta0_)));
-=======
-  int ix6 = (-(1 << n_x6_) +
-             ((ir6 * idelta02) >> (2 * n_Deltar_ + 2 * n_phi_ - n_x6_ - n_delta2_ - n_delta02_ - 2 * n_delta0_)));
->>>>>>> 26a000c856a (Some updates from debuging HLS)
+  long int ix6 = (-(1 << n_x6_) +
+                  ((ir6 * idelta02) >> (2 * n_Deltar_ + 2 * n_phi_ - n_x6_ - n_delta2_ - n_delta02_ - 2 * n_delta0_)));
 
   //Temporary hack here
   long int it1 = (ir1 * ideltaz) >> (n_Deltar_ - n_deltaz_ - 3);
