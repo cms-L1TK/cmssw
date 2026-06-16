@@ -68,7 +68,7 @@ namespace trklet {
         StubKF* stub = frame.stubs_[layer];
         if (!stub)
           continue;
-        hitPattern.set(stub->layerId());
+        hitPattern.set(stub->layerId() - 1);
         const double m02 = internalFormats_->m02_.digi(std::pow(stub->phi(), 2));
         const double m12 = internalFormats_->m12_.digi(std::pow(stub->z(), 2));
         const double invV0 = internalFormats_->invV0_.digi(3. / std::pow(stub->dPhi(), 2));

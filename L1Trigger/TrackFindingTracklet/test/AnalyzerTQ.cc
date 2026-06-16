@@ -96,6 +96,14 @@ namespace trklet {
     std::vector<int> f_ngaps;
     std::vector<int> matched_;
     std::vector<int> matchtp_pdgid;
+    // Per-layer chi2 values
+    std::vector<double> f_chi20_layer_0;
+    std::vector<double> f_chi20_layer_1;
+    std::vector<double> f_chi20_layer_2;
+    std::vector<double> f_chi20_layer_3;
+    std::vector<double> f_chi20_layer_4;
+    std::vector<double> f_chi20_layer_5;
+    std::vector<double> f_chi20_layer_6;
 
     // private helper methods
     std::vector<TTStubRef> getStubRefs(int region, int frame, int numRegions, const tt::StreamsStub& streamsStub);
@@ -161,6 +169,15 @@ namespace trklet {
       tree_->Branch("trk_eta", &f_eta);
       tree_->Branch("trk_matchtp_eventtype", &matched_);
       tree_->Branch("matchtp_pdgid", &matchtp_pdgid);
+
+      // Per-layer chi2 branches
+      tree_->Branch("trk_chi20_layer_0", &f_chi20_layer_0);
+      tree_->Branch("trk_chi20_layer_1", &f_chi20_layer_1);
+      tree_->Branch("trk_chi20_layer_2", &f_chi20_layer_2);
+      tree_->Branch("trk_chi20_layer_3", &f_chi20_layer_3);
+      tree_->Branch("trk_chi20_layer_4", &f_chi20_layer_4);
+      tree_->Branch("trk_chi20_layer_5", &f_chi20_layer_5);
+      tree_->Branch("trk_chi20_layer_6", &f_chi20_layer_6);
     }
   }
 
@@ -257,6 +274,15 @@ namespace trklet {
         f_pt.clear();
         f_eta.clear();
         matchtp_pdgid.clear();
+
+        // Clear per-layer chi2 vectors
+        f_chi20_layer_0.clear();
+        f_chi20_layer_1.clear();
+        f_chi20_layer_2.clear();
+        f_chi20_layer_3.clear();
+        f_chi20_layer_4.clear();
+        f_chi20_layer_5.clear();
+        f_chi20_layer_6.clear();
       }
 
       for (int region = 0; region < setup->sysNumRegion(); region++) {
@@ -330,6 +356,38 @@ namespace trklet {
             }
           }
 
+          const int offset = region * setup->kfNumLayers();
+
+          double Chi20F = 0.0;
+          std::vector<double> chi20_layers(setup->kfNumLayers(), 0.0);
+
+          double Chi21F = 0.0;
+          std::vector<double> chi21_layers(setup->kfNumLayers(), 0.0);
+
+          for (int layer = 0; layer < setup->kfNumLayers(); layer++) {
+            const TTStubRef& ttStubRef = streamsStub[offset + layer][frame].first;
+            if (ttStubRef.isNonnull()) {
+              // Create StubKF from the frame stub
+              const tt::FrameStub& frameStub = streamsStub[offset + layer][frame];
+              StubKF stub(frameStub, df);
+              if (!stub)
+                continue;
+              
+              const double m02 = std::pow(stub.phi(), 2);
+              const double m12 = std::pow(stub.z(), 2);
+              const double invV0 = 3. / std::pow(stub.dPhi(), 2);
+              const double invV1 = 3. / std::pow(stub.dZ(), 2);
+              Chi20F += dfChi20.limit(dfChi20.digi(m02 * invV0));
+              Chi21F += dfChi21.limit(dfChi21.digi(m12 * invV1));
+              
+              // Use stub.layerId() to index into the vector
+              int layerId = stub.layerId() - 1; // [0 to 6]
+              if (layerId >= 0 && layerId < setup->kfNumLayers()) {
+                chi20_layers[layerId] = Chi20F;
+                chi21_layers[layerId] = Chi21F;
+              }
+            }
+          }
           if (training_run) {
 
             // fetch attributes (as they are on TrackQuality.cc)
@@ -355,6 +413,16 @@ namespace trklet {
             f_ngaps.push_back(feature_6);
             f_hitpattern.push_back(matchedTrack.hitPattern());
             matchtp_pdgid.push_back(tmp_matchtp_pdgid);
+            
+            // Fill per-layer chi2 values (using layerId as index)
+            f_chi20_layer_0.push_back(chi20_layers[0]);
+            f_chi20_layer_1.push_back(chi20_layers[1]);
+            f_chi20_layer_2.push_back(chi20_layers[2]);
+            f_chi20_layer_3.push_back(chi20_layers[3]);
+            f_chi20_layer_4.push_back(chi20_layers[4]);
+            f_chi20_layer_5.push_back(chi20_layers[5]);
+            f_chi20_layer_6.push_back(chi20_layers[6]);
+            
           }
         }
       }
