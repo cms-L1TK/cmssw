@@ -198,7 +198,7 @@ namespace tt {
       const std::vector<TTStubRef>& ttStubRefs = ttTrack.getStubRefs();
       int nPS = 0;
       for (const TTStubRef& ttStubRef : ttStubRefs) {
-        if (setup.psModule(ttStubRef)) {
+        if (setup.sensorModule(ttStubRef)->psModule()) {
           nPS++;
         }
       }
