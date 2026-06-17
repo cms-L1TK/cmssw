@@ -816,10 +816,6 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
       }
       const TTTrackRef ttTrackRef(oh, iTrk++); 
       streamTrack.emplace_back(ttTrackRef, bitsTrk); 
-      //DEBUG
-      std::cout << trackSeedType << " ";
-      std::cout << bitsTrk << " ";
-      //DEBUG
       tt::StreamStub stubs(numLayerDisk, tt::FrameStub());
       for (int layer = 0; layer < (int)numStubChannel; layer++) {
         const trklet::StubStreamData& stub = streamsStubRaw[offset + layer][frame];
@@ -831,15 +827,8 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
         stubs[index] = tt::FrameStub(ttStubRef, stub.dataBits());
       }
       int layer(0);
-      for (const tt::FrameStub& fs : stubs) { //DEBUG
+      for (const tt::FrameStub& fs : stubs)
         streamsStub[offset + layer++].push_back(fs);
-        //DEBUG
-        std::cout << fs.second << " ";
-        //DEBUG
-      } //DEBUG
-      //DEBUG
-      std::cout << std::endl;
-      //DEBUG
     }
   }
   iEvent.emplace(putTokenTracks_, std::move(streamsTrack));
