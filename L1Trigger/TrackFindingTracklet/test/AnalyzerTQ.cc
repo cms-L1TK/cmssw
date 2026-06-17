@@ -52,6 +52,8 @@ namespace trklet {
     edm::EDGetTokenT<tt::StreamsStub> edGetTokenStubs_;
     // ED input token of tracks
     edm::EDGetTokenT<tt::StreamsTrack> edGetTokenTracks_;
+    // ED input token of KF metadata
+    edm::EDGetTokenT<tt::StreamsTrack> edGetTokenMetadata_;
     // ED output token for stub association for fake rate
     edm::EDGetTokenT<tt::StubAssociation> edGetTokenFake_;
     // ED output token for stub association for tracking efficiency
@@ -96,6 +98,7 @@ namespace trklet {
     std::vector<int> f_ngaps;
     std::vector<int> matched_;
     std::vector<int> matchtp_pdgid;
+    std::vector<int> f_num_iterations;
     // Per-layer chi2 values
     std::vector<double> f_chi20_layer_0;
     std::vector<double> f_chi20_layer_1;
@@ -121,8 +124,10 @@ namespace trklet {
     const std::string& labelTQ = iConfig.getParameter<std::string>("OutputLabelTQ");
     const std::string& branchStubs = iConfig.getParameter<std::string>("BranchStubs");
     const std::string& branchTracks = iConfig.getParameter<std::string>("BranchTracks");
+    const std::string& branchMetadata = iConfig.getParameter<std::string>("BranchMetadata");
     edGetTokenStubs_ = consumes(edm::InputTag(labelKF, branchStubs));
     edGetTokenTracks_ = consumes(edm::InputTag(labelTQ, branchTracks));
+    edGetTokenMetadata_ = consumes(edm::InputTag(labelKF, branchMetadata));
     const std::string& labelMC = iConfig.getParameter<std::string>("LabelMC");
     const std::string& branchFake = iConfig.getParameter<std::string>("BranchFake");
     const std::string& branchEff = iConfig.getParameter<std::string>("BranchEff");
@@ -165,6 +170,7 @@ namespace trklet {
       tree_->Branch("trk_feature_5", &f_chi21);
       tree_->Branch("trk_feature_6", &f_ngaps);
       tree_->Branch("trk_hitpattern", &f_hitpattern);
+      tree_->Branch("trk_num_iterations", &f_num_iterations);
       tree_->Branch("trk_pt", &f_pt);
       tree_->Branch("trk_eta", &f_eta);
       tree_->Branch("trk_matchtp_eventtype", &matched_);
@@ -187,6 +193,7 @@ namespace trklet {
     // read in tracks and stubs products
     const tt::StreamsStub& streamsStub = iEvent.get(edGetTokenStubs_);
     const tt::StreamsTrack& streamsTrack = iEvent.get(edGetTokenTracks_);
+    const tt::StreamsTrack& streamsMetadata = iEvent.get(edGetTokenMetadata_);
     const Setup* setup = &iSetup.getData(esGetTokenSetup_);
     const DataFormats* df = &iSetup.getData(esGetTokenDataFormats_);
     // read in MCTruth
@@ -274,6 +281,7 @@ namespace trklet {
         f_pt.clear();
         f_eta.clear();
         matchtp_pdgid.clear();
+        f_num_iterations.clear();
 
         // Clear per-layer chi2 vectors
         f_chi20_layer_0.clear();
@@ -288,6 +296,7 @@ namespace trklet {
       for (int region = 0; region < setup->sysNumRegion(); region++) {
 
         const tt::StreamTrack& streamTrack = streamsTrack[region * 2 + 1];
+        const tt::StreamTrack& streamMetadata = streamsMetadata[region];
         const int numFrames = streamTrack.size();
 
         for (int frame = 0; frame < numFrames; frame++) {
@@ -300,6 +309,7 @@ namespace trklet {
           const DataFormat& dfChi21 = df->format(Variable::chi21, Process::tq);
           const DataFormat& dfZT = df->format(Variable::z0, Process::tq);
           const DataFormat& dfCot = df->format(Variable::cot, Process::tq);
+          const int numIterationsKF = streamMetadata[frame].second.to_ullong();
 
           auto stubRefs = getStubRefs(region, frame, setup->kfNumLayers(), streamsStub);
           std::set<TTStubRef> tqStubSet;
@@ -413,6 +423,7 @@ namespace trklet {
             f_ngaps.push_back(feature_6);
             f_hitpattern.push_back(matchedTrack.hitPattern());
             matchtp_pdgid.push_back(tmp_matchtp_pdgid);
+            f_num_iterations.push_back(numIterationsKF);
             
             // Fill per-layer chi2 values (using layerId as index)
             f_chi20_layer_0.push_back(chi20_layers[0]);

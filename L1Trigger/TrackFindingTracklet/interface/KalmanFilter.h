@@ -50,25 +50,28 @@ namespace trklet {
     // read in and organize input tracks and stubs
     void consume(const tt::StreamsTrack&, const tt::StreamsStub&);
     // fill output products
-    void produce(tt::StreamsStub&, tt::StreamsTrack&);
+    void produce(tt::StreamsStub&, tt::StreamsTrack&,  tt::StreamsTrack&);
 
   private:
     //
     struct Track {
       Track() {}
       Track(int trackId,
+            int numIterations,
             int numConsistent,
             int numConsistentPS,
             double d0,
             const TrackKF& trackKF,
             const std::vector<StubKF>& stubsKF)
           : trackId_(trackId),
+            numIterations_ (numIterations),
             numConsistent_(numConsistent),
             numConsistentPS_(numConsistentPS),
             d0_(d0),
             trackKF_(trackKF),
             stubsKF_(stubsKF) {}
       int trackId_;
+      int numIterations_;
       int numConsistent_;
       int numConsistentPS_;
       double d0_;
@@ -93,7 +96,7 @@ namespace trklet {
     // calculates the helix params & their cov. matrix from a pair of stubs
     void calcSeeds();
     // Transform States into output products
-    void conv(tt::StreamsStub& streamsStub, tt::StreamsTrack& streamsTrack);
+    void conv(tt::StreamsStub& streamsStub, tt::StreamsTrack& streamsTrack, tt::StreamsTrack& streamsMetadata);
     // adds a layer to states
     void addLayer(std::deque<State*>& stream);
     // apply final cuts

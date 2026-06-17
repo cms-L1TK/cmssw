@@ -49,6 +49,7 @@ namespace trklet {
     // ED output token for accepted stubs and tracks
     edm::EDPutTokenT<tt::StreamsStub> edPutTokenStubs_;
     edm::EDPutTokenT<tt::StreamsTrack> edPutTokenTracks_;
+    edm::EDPutTokenT<tt::StreamsTrack> edPutTokenMetadata_;
     // Setup token
     edm::ESGetToken<Setup, trackerDTC::SetupRcd> esGetTokenSetup_;
     // DataFormats token
@@ -121,11 +122,13 @@ namespace trklet {
     const std::string& label = iConfig.getParameter<std::string>("InputLabelKF");
     const std::string& branchStubs = iConfig.getParameter<std::string>("BranchStubs");
     const std::string& branchTracks = iConfig.getParameter<std::string>("BranchTracks");
+    const std::string& branchMetadata = iConfig.getParameter<std::string>("BranchMetadata");
     // book in- and output ED products
     edGetTokenStubs_ = consumes(edm::InputTag(label, branchStubs));
     edGetTokenTracks_ = consumes(edm::InputTag(label, branchTracks));
     edPutTokenStubs_ = produces(branchStubs);
     edPutTokenTracks_ = produces(branchTracks);
+    edPutTokenMetadata_ = produces(branchMetadata);
     // book ES products
     esGetTokenSetup_ = esConsumes<edm::Transition::BeginRun>();
     esGetTokenDataFormats_ = esConsumes<edm::Transition::BeginRun>();
@@ -144,6 +147,7 @@ namespace trklet {
     // empty KF products
     tt::StreamsStub streamsStub(setup_->sysNumRegion() * setup_->kfNumLayers());
     tt::StreamsTrack streamsTrack(setup_->sysNumRegion());
+    tt::StreamsTrack streamsMetadata(setup_->sysNumRegion());
     // read in DR Product and produce KF product
     const tt::StreamsStub& stubs = iEvent.get(edGetTokenStubs_);
     const tt::StreamsTrack& tracks = iEvent.get(edGetTokenTracks_);
@@ -156,12 +160,13 @@ namespace trklet {
         // read in and organize input tracks and stubs
         kf.consume(tracks, stubs);
         // fill output products
-        kf.produce(streamsStub, streamsTrack);
+        kf.produce(streamsStub, streamsTrack, streamsMetadata);
       }
     }
     // store products
     iEvent.emplace(edPutTokenStubs_, std::move(streamsStub));
     iEvent.emplace(edPutTokenTracks_, std::move(streamsTrack));
+    iEvent.emplace(edPutTokenMetadata_, std::move(streamsMetadata));
   }
 
   // call old KF

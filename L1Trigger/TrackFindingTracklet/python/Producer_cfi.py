@@ -16,6 +16,7 @@ TrackFindingTrackletProducer_params = cms.PSet (
   BranchTracks     = cms.string( "TrackAccepted"   ),                  #
   BranchTTTracks   = cms.string( "TTTrackAccepted" ),                  #
   BranchTruncated  = cms.string( "Truncated"       ),                  #
+  BranchMetadata   = cms.string( "MetadataAccepted"),
   PrintKFDebug     = cms.bool  ( False ),                              # print end job internal unused MSB
 
 )

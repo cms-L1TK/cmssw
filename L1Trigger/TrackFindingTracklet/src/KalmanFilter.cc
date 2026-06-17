@@ -65,7 +65,7 @@ namespace trklet {
   }
 
   // fill output products
-  void KalmanFilter::produce(tt::StreamsStub& streamsStub, tt::StreamsTrack& streamsTrack) {
+  void KalmanFilter::produce(tt::StreamsStub& streamsStub, tt::StreamsTrack& streamsTrack,  tt::StreamsTrack& streamsMetadata) {
     // calulcate seed parameter
     calcSeeds();
     std::vector<std::deque<State*>> streams(setup_->kfNumProj());
@@ -88,7 +88,7 @@ namespace trklet {
     // best track per candidate selection
     accumulator();
     // Transform States into output products
-    conv(streamsStub, streamsTrack);
+    conv(streamsStub, streamsTrack, streamsMetadata);
   }
 
   // apply final cuts
@@ -127,7 +127,7 @@ namespace trklet {
       if (!validX0 || !validX1 || !validX2 || !validX3)
         continue;
       const TrackKF trackKF(*state->trackDR(), state->x0(), state->x1(), state->x2(), state->x3());
-      finals_.emplace_back(state->trackId(), numConsistent, numConsistentPS, state->x4(), trackKF, stubsKF);
+      finals_.emplace_back(state->trackId(), 0, numConsistent, numConsistentPS, state->x4(), trackKF, stubsKF);
     }
   }
 
@@ -139,9 +139,11 @@ namespace trklet {
     std::transform(finals_.begin(), finals_.end(), std::back_inserter(finals), [](Track& track) { return &track; });
     // prepare arrival order
     std::vector<int> trackIds;
+    std::map<int, int> trackCount;  // trackId -> number of Track objects
     trackIds.reserve(tracks_.size());
     for (Track* track : finals) {
       const int trackId = track->trackId_;
+      trackCount[trackId]++;
       if (std::find_if(trackIds.begin(), trackIds.end(), [trackId](int id) { return id == trackId; }) == trackIds.end())
         trackIds.push_back(trackId);
     }
@@ -163,20 +165,24 @@ namespace trklet {
     finals.erase(std::unique(finals.begin(), finals.end(), sameTrack), finals.end());
     // apply to actual track container
     int i(0);
-    for (Track* track : finals)
+    for (Track* track : finals) {
+      track->numIterations_ = trackCount[track->trackId_];
       finals_[i++] = *track;
-    finals_.resize(i);
+    }
+    finals_.resize(i);   
   }
 
   // Transform States into output products
-  void KalmanFilter::conv(tt::StreamsStub& streamsStub, tt::StreamsTrack& streamsTrack) {
+  void KalmanFilter::conv(tt::StreamsStub& streamsStub, tt::StreamsTrack& streamsTrack, tt::StreamsTrack& streamsMetadata) {
     const int offset = region_ * setup_->kfNumLayers();
     tt::StreamTrack& streamTrack = streamsTrack[region_];
+    tt::StreamTrack& streamMetadata = streamsMetadata[region_];
     streamTrack.reserve(stream_.size());
     for (int layer = 0; layer < setup_->kfNumLayers(); layer++)
       streamsStub[offset + layer].reserve(stream_.size());
     for (const Track& track : finals_) {
       streamTrack.emplace_back(track.trackKF_.frame());
+      streamMetadata.emplace_back(track.trackKF_.frame().first, std::bitset<64>(track.numIterations_));
       const std::vector<StubKF>& stubsKF = track.stubsKF_;
       int size = stubsKF.size();
       for (int layer = 0; layer < size; layer++)
