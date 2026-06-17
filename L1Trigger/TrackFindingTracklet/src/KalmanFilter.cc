@@ -140,9 +140,15 @@ namespace trklet {
     // prepare arrival order
     std::vector<int> trackIds;
     std::map<int, int> trackCount;  // trackId -> number of Track objects
+    std::map<int, std::set<TTStubRef>> uniqueStubsPerTrack; 
     trackIds.reserve(tracks_.size());
     for (Track* track : finals) {
       const int trackId = track->trackId_;
+      auto& stubSet = uniqueStubsPerTrack[trackId];
+      std::vector<TTStubRef> ttStubRefs;
+      for (const StubKF& stubKF : track->stubsKF_) {
+        stubSet.insert(stubKF.frame().first);
+      }
       trackCount[trackId]++;
       if (std::find_if(trackIds.begin(), trackIds.end(), [trackId](int id) { return id == trackId; }) == trackIds.end())
         trackIds.push_back(trackId);
@@ -166,7 +172,7 @@ namespace trklet {
     // apply to actual track container
     int i(0);
     for (Track* track : finals) {
-      track->numIterations_ = trackCount[track->trackId_];
+      track->numIterations_ = uniqueStubsPerTrack[track->trackId_].size();
       finals_[i++] = *track;
     }
     finals_.resize(i);   
