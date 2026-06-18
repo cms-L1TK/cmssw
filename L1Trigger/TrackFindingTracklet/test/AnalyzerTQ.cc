@@ -107,6 +107,14 @@ namespace trklet {
     std::vector<double> f_chi20_layer_4;
     std::vector<double> f_chi20_layer_5;
     std::vector<double> f_chi20_layer_6;
+    // Per-layer chi2 values
+    std::vector<double> f_chi21_layer_0;
+    std::vector<double> f_chi21_layer_1;
+    std::vector<double> f_chi21_layer_2;
+    std::vector<double> f_chi21_layer_3;
+    std::vector<double> f_chi21_layer_4;
+    std::vector<double> f_chi21_layer_5;
+    std::vector<double> f_chi21_layer_6;
 
     // private helper methods
     std::vector<TTStubRef> getStubRefs(int region, int frame, int numRegions, const tt::StreamsStub& streamsStub);
@@ -184,6 +192,14 @@ namespace trklet {
       tree_->Branch("trk_chi20_layer_4", &f_chi20_layer_4);
       tree_->Branch("trk_chi20_layer_5", &f_chi20_layer_5);
       tree_->Branch("trk_chi20_layer_6", &f_chi20_layer_6);
+      // Per-layer chi2 branches
+      tree_->Branch("trk_chi21_layer_0", &f_chi21_layer_0);
+      tree_->Branch("trk_chi21_layer_1", &f_chi21_layer_1);
+      tree_->Branch("trk_chi21_layer_2", &f_chi21_layer_2);
+      tree_->Branch("trk_chi21_layer_3", &f_chi21_layer_3);
+      tree_->Branch("trk_chi21_layer_4", &f_chi21_layer_4);
+      tree_->Branch("trk_chi21_layer_5", &f_chi21_layer_5);
+      tree_->Branch("trk_chi21_layer_6", &f_chi21_layer_6);
     }
   }
 
@@ -291,6 +307,13 @@ namespace trklet {
         f_chi20_layer_4.clear();
         f_chi20_layer_5.clear();
         f_chi20_layer_6.clear();
+        f_chi21_layer_0.clear();
+        f_chi21_layer_1.clear();
+        f_chi21_layer_2.clear();
+        f_chi21_layer_3.clear();
+        f_chi21_layer_4.clear();
+        f_chi21_layer_5.clear();
+        f_chi21_layer_6.clear();
       }
 
       for (int region = 0; region < setup->sysNumRegion(); region++) {
@@ -433,6 +456,15 @@ namespace trklet {
             f_chi20_layer_4.push_back(chi20_layers[4]);
             f_chi20_layer_5.push_back(chi20_layers[5]);
             f_chi20_layer_6.push_back(chi20_layers[6]);
+
+            // Fill per-layer chi2 values (using layerId as index)
+            f_chi21_layer_0.push_back(chi21_layers[0]);
+            f_chi21_layer_1.push_back(chi21_layers[1]);
+            f_chi21_layer_2.push_back(chi21_layers[2]);
+            f_chi21_layer_3.push_back(chi21_layers[3]);
+            f_chi21_layer_4.push_back(chi21_layers[4]);
+            f_chi21_layer_5.push_back(chi21_layers[5]);
+            f_chi21_layer_6.push_back(chi21_layers[6]);
             
           }
         }

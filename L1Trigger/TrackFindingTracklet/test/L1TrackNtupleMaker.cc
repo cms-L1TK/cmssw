@@ -176,6 +176,18 @@ private:
   std::vector<float>* m_trk_sigma_d0;
   std::vector<float>* m_trk_sigma_z0;
   std::vector<float>* m_trk_sigma_tanL;
+  // Covariances from fitted helix covariance matrix (off-diagonal)
+  std::vector<float>* m_trk_cov_phi_tanL;
+  std::vector<float>* m_trk_cov_phi_z0;
+  std::vector<float>* m_trk_cov_phi_d0;
+  std::vector<float>* m_trk_cov_phi_invr;
+  std::vector<float>* m_trk_cov_tanL_z0;
+  std::vector<float>* m_trk_cov_tanL_d0;
+  std::vector<float>* m_trk_cov_tanL_invr;
+  std::vector<float>* m_trk_cov_z0_d0;
+  std::vector<float>* m_trk_cov_z0_invr;
+  std::vector<float>* m_trk_cov_d0_invr;
+
   std::vector<float>* m_trk_pt_beamCon;  // Helix params constrained to x=y=0.
   std::vector<float>* m_trk_phi_beamCon;
   std::vector<float>* m_trk_chi2rphi_beamCon;
@@ -380,6 +392,17 @@ void L1TrackNtupleMaker::endJob() {
   delete m_trk_sigma_d0;
   delete m_trk_sigma_z0;
   delete m_trk_sigma_tanL;
+  delete m_trk_cov_phi_tanL;
+  delete m_trk_cov_phi_z0;
+  delete m_trk_cov_phi_d0;
+  delete m_trk_cov_phi_invr;
+  delete m_trk_cov_tanL_z0;
+  delete m_trk_cov_tanL_d0;
+  delete m_trk_cov_tanL_invr;
+  delete m_trk_cov_z0_d0;
+  delete m_trk_cov_z0_invr;
+  delete m_trk_cov_d0_invr;
+
   delete m_trk_pt_beamCon;
   delete m_trk_phi_beamCon;
   delete m_trk_chi2rphi_beamCon;
@@ -520,6 +543,16 @@ void L1TrackNtupleMaker::beginJob() {
   m_trk_sigma_d0 = new std::vector<float>;
   m_trk_sigma_z0 = new std::vector<float>;
   m_trk_sigma_tanL = new std::vector<float>;
+  m_trk_cov_phi_tanL = new std::vector<float>;
+  m_trk_cov_phi_z0 = new std::vector<float>;
+  m_trk_cov_phi_d0 = new std::vector<float>;
+  m_trk_cov_phi_invr = new std::vector<float>;
+  m_trk_cov_tanL_z0 = new std::vector<float>;
+  m_trk_cov_tanL_d0 = new std::vector<float>;
+  m_trk_cov_tanL_invr = new std::vector<float>;
+  m_trk_cov_z0_d0 = new std::vector<float>;
+  m_trk_cov_z0_invr = new std::vector<float>;
+  m_trk_cov_d0_invr = new std::vector<float>;
   m_trk_pt_beamCon = new std::vector<float>;
   m_trk_phi_beamCon = new std::vector<float>;
   m_trk_chi2rphi_beamCon = new std::vector<float>;
@@ -647,11 +680,24 @@ void L1TrackNtupleMaker::beginJob() {
     eventTree->Branch("trk_chi2rz", &m_trk_chi2rz);
     eventTree->Branch("trk_chi2rz_dof", &m_trk_chi2rz_dof);
     eventTree->Branch("trk_bendchi2", &m_trk_bendchi2);
+    // On-diagonal covariance elements
     eventTree->Branch("trk_sigma_qOverPt", &m_trk_sigma_qOverPt);
     eventTree->Branch("trk_sigma_phi", &m_trk_sigma_phi);
     eventTree->Branch("trk_sigma_d0", &m_trk_sigma_d0);
     eventTree->Branch("trk_sigma_z0", &m_trk_sigma_z0);
     eventTree->Branch("trk_sigma_tanL", &m_trk_sigma_tanL);
+    // Off-diagonal covariance elements
+    eventTree->Branch("trk_cov_phi_tanL", &m_trk_cov_phi_tanL);
+    eventTree->Branch("trk_cov_phi_z0", &m_trk_cov_phi_z0);
+    eventTree->Branch("trk_cov_phi_d0", &m_trk_cov_phi_d0);
+    eventTree->Branch("trk_cov_phi_invr", &m_trk_cov_phi_invr);
+    eventTree->Branch("trk_cov_tanL_z0", &m_trk_cov_tanL_z0);
+    eventTree->Branch("trk_cov_tanL_d0", &m_trk_cov_tanL_d0);
+    eventTree->Branch("trk_cov_tanL_invr", &m_trk_cov_tanL_invr);
+    eventTree->Branch("trk_cov_z0_d0", &m_trk_cov_z0_d0);
+    eventTree->Branch("trk_cov_z0_invr", &m_trk_cov_z0_invr);
+    eventTree->Branch("trk_cov_d0_invr", &m_trk_cov_d0_invr);
+
     eventTree->Branch("trk_pt_beamCon", &m_trk_pt_beamCon);
     eventTree->Branch("trk_phi_beamCon", &m_trk_phi_beamCon);
     eventTree->Branch("trk_chi2rphi_beamCon", &m_trk_chi2rphi_beamCon);
@@ -813,6 +859,17 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
     m_trk_sigma_d0->clear();
     m_trk_sigma_z0->clear();
     m_trk_sigma_tanL->clear();
+   // Off-diagonal covariance elements
+    m_trk_cov_phi_tanL->clear();
+    m_trk_cov_phi_z0->clear();
+    m_trk_cov_phi_d0->clear();
+    m_trk_cov_phi_invr->clear();
+    m_trk_cov_tanL_z0->clear();
+    m_trk_cov_tanL_d0->clear();
+    m_trk_cov_tanL_invr->clear();
+    m_trk_cov_z0_d0->clear();
+    m_trk_cov_z0_invr->clear();
+    m_trk_cov_d0_invr->clear();
     m_trk_pt_beamCon->clear();
     m_trk_phi_beamCon->clear();
     m_trk_chi2rphi_beamCon->clear();
@@ -1176,11 +1233,23 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
       // Protect against wierd covariance matrices with negatives.
       auto safeSqrt = [](float q) { return q >= 0 ? sqrt(q) : -sqrt(-q); };
       using enum TTTrack<Ref_Phase2TrackerDigi_>::Hpar;
+      // diagonal
       float tmp_trk_sigma_qOverPt = 2 * safeSqrt(helixCovMat[INVR][INVR]) / convertRtoPt;
       float tmp_trk_sigma_phi = safeSqrt(helixCovMat[PHI0][PHI0]);
       float tmp_trk_sigma_tanL = safeSqrt(helixCovMat[TANL][TANL]);
       float tmp_trk_sigma_z0 = safeSqrt(helixCovMat[Z0][Z0]);
       float tmp_trk_sigma_d0 = (nHelixPars == 5) ? safeSqrt(helixCovMat[D0][D0]) : 0.;
+      // off diagonal
+      float tmp_trk_cov_phi_tanL = helixCovMat[PHI0][TANL];
+      float tmp_trk_cov_phi_z0 = helixCovMat[PHI0][Z0];
+      float tmp_trk_cov_phi_d0 = helixCovMat[PHI0][D0];
+      float tmp_trk_cov_phi_invr = helixCovMat[PHI0][INVR];
+      float tmp_trk_cov_tanL_z0 = helixCovMat[TANL][Z0];
+      float tmp_trk_cov_tanL_d0 = helixCovMat[TANL][D0];
+      float tmp_trk_cov_tanL_invr = helixCovMat[TANL][INVR];
+      float tmp_trk_cov_z0_d0 = helixCovMat[Z0][D0];
+      float tmp_trk_cov_z0_invr = helixCovMat[Z0][INVR];
+      float tmp_trk_cov_d0_invr = helixCovMat[D0][INVR];
 
       int tmp_trk_hitpattern = 0;
       tmp_trk_hitpattern = (int)iterL1Track->hitPattern();
@@ -1369,6 +1438,18 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
       m_trk_sigma_z0->push_back(tmp_trk_sigma_z0);
       m_trk_sigma_d0->push_back(tmp_trk_sigma_d0);
       m_trk_sigma_tanL->push_back(tmp_trk_sigma_tanL);
+      // === NEW: OFF-DIAGONAL COVARIANCES ===
+      m_trk_cov_phi_tanL->push_back(tmp_trk_cov_phi_tanL);
+      m_trk_cov_phi_z0->push_back(tmp_trk_cov_phi_z0);
+      m_trk_cov_phi_d0->push_back(tmp_trk_cov_phi_d0);
+      m_trk_cov_phi_invr->push_back(tmp_trk_cov_phi_invr);
+      m_trk_cov_tanL_z0->push_back(tmp_trk_cov_tanL_z0);
+      m_trk_cov_tanL_d0->push_back(tmp_trk_cov_tanL_d0);
+      m_trk_cov_tanL_invr->push_back(tmp_trk_cov_tanL_invr);
+      m_trk_cov_z0_d0->push_back(tmp_trk_cov_z0_d0);
+      m_trk_cov_z0_invr->push_back(tmp_trk_cov_z0_invr);
+      m_trk_cov_d0_invr->push_back(tmp_trk_cov_d0_invr);
+
       m_trk_MVA1->push_back(tmp_trk_MVA1);
       m_trk_pt_beamCon->push_back(tmp_trk_pt_beamCon);
       m_trk_phi_beamCon->push_back(tmp_trk_phi_beamCon);
