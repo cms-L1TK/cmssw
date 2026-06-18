@@ -92,8 +92,10 @@ namespace trklet {
     std::vector<double> f_chi20;
     std::vector<double> f_chi21;
     std::vector<int> f_hitpattern;
-    std::vector<int> f_pt;
-    std::vector<int> f_eta;
+    std::vector<double> f_pt;
+    std::vector<double> f_eta;
+    std::vector<double> f_phi;
+    std::vector<double> f_chi2bend;
     std::vector<int> f_nstubs;
     std::vector<int> f_ngaps;
     std::vector<int> matched_;
@@ -115,6 +117,14 @@ namespace trklet {
     std::vector<double> f_chi21_layer_4;
     std::vector<double> f_chi21_layer_5;
     std::vector<double> f_chi21_layer_6;
+    // Per-layer bendFE values
+    std::vector<double> f_bendFE_layer_0;
+    std::vector<double> f_bendFE_layer_1;
+    std::vector<double> f_bendFE_layer_2;
+    std::vector<double> f_bendFE_layer_3;
+    std::vector<double> f_bendFE_layer_4;
+    std::vector<double> f_bendFE_layer_5;
+    std::vector<double> f_bendFE_layer_6;
 
     // private helper methods
     std::vector<TTStubRef> getStubRefs(int region, int frame, int numRegions, const tt::StreamsStub& streamsStub);
@@ -181,6 +191,8 @@ namespace trklet {
       tree_->Branch("trk_num_iterations", &f_num_iterations);
       tree_->Branch("trk_pt", &f_pt);
       tree_->Branch("trk_eta", &f_eta);
+      tree_->Branch("trk_phi", &f_phi);
+      tree_->Branch("trk_chi2bend", &f_chi2bend);
       tree_->Branch("trk_matchtp_eventtype", &matched_);
       tree_->Branch("matchtp_pdgid", &matchtp_pdgid);
 
@@ -200,6 +212,14 @@ namespace trklet {
       tree_->Branch("trk_chi21_layer_4", &f_chi21_layer_4);
       tree_->Branch("trk_chi21_layer_5", &f_chi21_layer_5);
       tree_->Branch("trk_chi21_layer_6", &f_chi21_layer_6);
+      // Per-layer bendBE() branches
+      tree_->Branch("trk_bendbe_0", &f_bendFE_layer_0);
+      tree_->Branch("trk_bendbe_1", &f_bendFE_layer_1);
+      tree_->Branch("trk_bendbe_2", &f_bendFE_layer_2);
+      tree_->Branch("trk_bendbe_3", &f_bendFE_layer_3);
+      tree_->Branch("trk_bendbe_4", &f_bendFE_layer_4);
+      tree_->Branch("trk_bendbe_5", &f_bendFE_layer_5);
+      tree_->Branch("trk_bendbe_6", &f_bendFE_layer_6);
     }
   }
 
@@ -288,6 +308,8 @@ namespace trklet {
         // clean from previous event
         f_zT.clear();
         f_cot.clear();
+        f_phi.clear();
+        f_chi2bend.clear();
         f_chi20.clear();
         f_chi21.clear();
         f_hitpattern.clear();
@@ -307,6 +329,7 @@ namespace trklet {
         f_chi20_layer_4.clear();
         f_chi20_layer_5.clear();
         f_chi20_layer_6.clear();
+
         f_chi21_layer_0.clear();
         f_chi21_layer_1.clear();
         f_chi21_layer_2.clear();
@@ -314,6 +337,14 @@ namespace trklet {
         f_chi21_layer_4.clear();
         f_chi21_layer_5.clear();
         f_chi21_layer_6.clear();
+
+        f_bendFE_layer_0.clear();
+        f_bendFE_layer_1.clear();
+        f_bendFE_layer_2.clear();
+        f_bendFE_layer_3.clear();
+        f_bendFE_layer_4.clear();
+        f_bendFE_layer_5.clear();
+        f_bendFE_layer_6.clear();
       }
 
       for (int region = 0; region < setup->sysNumRegion(); region++) {
@@ -363,9 +394,14 @@ namespace trklet {
           const auto& matchedTrack = (*TTTrackHandle)[matchedIndex];
 
           edm::Ptr<TTTrack<Ref_Phase2TrackerDigi_>> l1track_ptr(TTTrackHandle, matchedIndex);
+          float tmp_trk_pt = l1track_ptr->pt();
+          float tmp_trk_eta = l1track_ptr->eta();
+          float tmp_trk_phi = l1track_ptr->phi();
+          float tmp_trk_z0 = l1track_ptr->z0();
+          float tmp_trk_tanL = l1track_ptr->tanL();
           int tmp_trk_genuine = 0;
           int tmp_matchtp_pdgid = -999;
-          
+          float tmp_trk_bendchi2 = l1track_ptr->chi2BendRed();
           if (MCTruthTTTrackHandle->isGenuine(l1track_ptr))
             tmp_trk_genuine = 1;
           int tmp_matchtp_eventtype = -999;
@@ -397,6 +433,8 @@ namespace trklet {
           double Chi21F = 0.0;
           std::vector<double> chi21_layers(setup->kfNumLayers(), 0.0);
 
+          std::vector<double> bend_layers(setup->kfNumLayers(), 0.0);
+
           for (int layer = 0; layer < setup->kfNumLayers(); layer++) {
             const TTStubRef& ttStubRef = streamsStub[offset + layer][frame].first;
             if (ttStubRef.isNonnull()) {
@@ -416,8 +454,9 @@ namespace trklet {
               // Use stub.layerId() to index into the vector
               int layerId = stub.layerId() - 1; // [0 to 6]
               if (layerId >= 0 && layerId < setup->kfNumLayers()) {
-                chi20_layers[layerId] = Chi20F;
-                chi21_layers[layerId] = Chi21F;
+                chi20_layers[layerId] = dfChi20.limit(dfChi20.digi(m02 * invV0));
+                chi21_layers[layerId] = dfChi21.limit(dfChi21.digi(m12 * invV1));
+                bend_layers[layerId] = (stub.frame().first)->bendBE();
               }
             }
           }
@@ -436,8 +475,10 @@ namespace trklet {
 
             // fill event
             matched_.push_back(tmp_matchtp_eventtype);
-            f_pt.push_back(matchedTrack.pt());
-            f_eta.push_back(matchedTrack.eta());
+            f_pt.push_back(tmp_trk_pt);
+            f_eta.push_back(tmp_trk_eta);
+            f_phi.push_back(tmp_trk_phi);
+            f_chi2bend.push_back(tmp_trk_bendchi2);
             f_nstubs.push_back(feature_1);
             f_zT.push_back(feature_2);
             f_cot.push_back(feature_3);
@@ -465,6 +506,15 @@ namespace trklet {
             f_chi21_layer_4.push_back(chi21_layers[4]);
             f_chi21_layer_5.push_back(chi21_layers[5]);
             f_chi21_layer_6.push_back(chi21_layers[6]);
+
+            // Fill per-layer chi2 values (using layerId as index)
+            f_bendFE_layer_0.push_back(bend_layers[0]);
+            f_bendFE_layer_1.push_back(bend_layers[1]);
+            f_bendFE_layer_2.push_back(bend_layers[2]);
+            f_bendFE_layer_3.push_back(bend_layers[3]);
+            f_bendFE_layer_4.push_back(bend_layers[4]);
+            f_bendFE_layer_5.push_back(bend_layers[5]);
+            f_bendFE_layer_6.push_back(bend_layers[6]);
             
           }
         }
