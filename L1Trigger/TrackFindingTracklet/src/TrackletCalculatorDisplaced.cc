@@ -564,6 +564,7 @@ bool TrackletCalculatorDisplaced::LLLSeeding(const Stub* innerFPGAStub,
   }
 
   Tracklet* tracklet = new Tracklet(settings_,
+                                    globals_,
                                     iSeed_,
                                     innerFPGAStub,
                                     middleFPGAStub,
@@ -971,6 +972,7 @@ bool TrackletCalculatorDisplaced::DDLSeeding(const Stub* innerFPGAStub,
   }
 
   Tracklet* tracklet = new Tracklet(settings_,
+                                    globals_,
                                     iSeed_,
                                     innerFPGAStub,
                                     middleFPGAStub,
@@ -1376,6 +1378,7 @@ bool TrackletCalculatorDisplaced::LLDSeeding(const Stub* innerFPGAStub,
   }
 
   Tracklet* tracklet = new Tracklet(settings_,
+                                    globals_,
                                     iSeed_,
                                     innerFPGAStub,
                                     middleFPGAStub,
