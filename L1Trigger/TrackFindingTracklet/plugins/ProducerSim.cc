@@ -10,6 +10,7 @@
 #include "FWCore/Utilities/interface/Exception.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "DataFormats/Common/interface/Handle.h"
+#include "DataFormats/Math/interface/Error.h"
 
 #include "L1Trigger/TrackFindingTracklet/interface/Setup.h"
 #include "L1Trigger/TrackTrigger/interface/StubPtConsistency.h"
@@ -48,8 +49,6 @@ namespace trklet {
     const Setup* setup_;
     //
     std::vector<int> nPer_;
-    //
-    int nPar_ = 5;
   };
 
   ProducerSim::ProducerSim(const edm::ParameterSet& iConfig) {
@@ -148,7 +147,7 @@ namespace trklet {
               comb.push_back(ttStubRefs[i]);
         while (std::prev_permutation(bitmask.begin(), bitmask.end()));
       }
-      ttTracks.emplace_back(0., 0., 0., 0., 0., 9.e3, 9.e3, 0., 0., 0., 0, nPar_, setup_->sysBField());
+      ttTracks.emplace_back(0., 0., 0., 0., 0., 9.e3, 9.e3, 0., 0., 0., 0, setup_->simNPar(), setup_->sysBField());
       TTTrack<Ref_Phase2TrackerDigi_>& ttTrack = ttTracks.back();
       ttTrack.setStubRefs(ttStubRefs);
       // fit all permutations
@@ -164,7 +163,7 @@ namespace trklet {
         double C22(9.e3);
         double C23(0.);
         double C33(9.e3);
-        double C44(9.e3);
+        double C44(setup_->simNPar() == 5 ? 9.e3 : 0.);
         double C40(0.);
         double C41(0.);
         double chi20(0.);
@@ -211,6 +210,20 @@ namespace trklet {
           chi21 += r1 * r1 / R11;
           hitPattern.set(sm->layerIdReduced());
         }
+        math::ErrorF<5>::type covMat;
+        covMat[0][0] = C00;
+        covMat[0][1] = C00;
+        covMat[1][0] = C01;
+        covMat[1][1] = C11;
+        covMat[2][2] = C22;
+        covMat[2][3] = C23;
+        covMat[3][2] = C23;
+        covMat[3][3] = C33;
+        covMat[4][4] = C44;
+        covMat[4][0] = C40;
+        covMat[0][4] = C40;
+        covMat[4][1] = C41;
+        covMat[1][4] = C41;
         // TTTrack conversion
         TTTrack<Ref_Phase2TrackerDigi_> comb(-2. * x0,
                                              tt::deltaPhi(x1 + phiR),
@@ -223,12 +236,13 @@ namespace trklet {
                                              0.,
                                              0.,
                                              hitPattern.val(),
-                                             nPar_,
+                                             setup_->simNPar(),
                                              setup_->sysBField(),
                                              iRegion,
                                              ttTrackRef->etaSector(),
                                              0.,
-                                             ttTrackRef->trackSeedType());
+                                             ttTrackRef->trackSeedType(),
+                                             covMat);
         // keep best combination
         if (comb.chi2Red() > ttTrack.chi2Red())
           continue;
@@ -237,7 +251,7 @@ namespace trklet {
       }
       // finish TTTrack
       ttTrack.setChi2BendRed(StubPtConsistency::getConsistency(
-          ttTrack, setup_->trackerGeometry(), setup_->trackerTopology(), setup_->sysBField(), nPar_));
+          ttTrack, setup_->trackerGeometry(), setup_->trackerTopology(), setup_->sysBField(), setup_->simNPar()));
       ttTrack.setTrackWordBits();
     }
     // store products
