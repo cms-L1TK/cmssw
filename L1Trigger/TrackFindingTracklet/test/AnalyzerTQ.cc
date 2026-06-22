@@ -39,6 +39,7 @@ namespace trklet {
    */
   class AnalyzerTQ : public edm::one::EDAnalyzer<edm::one::WatchRuns, edm::one::SharedResources> {
   public:
+
     AnalyzerTQ(const edm::ParameterSet& iConfig);
     void beginJob() override {}
     void beginRun(const edm::Run& iEvent, const edm::EventSetup& iSetup) override;
@@ -87,47 +88,57 @@ namespace trklet {
     bool training_run;
     bool evaluation_run;
     TTree* tree_;
-    std::vector<double> f_zT;
-    std::vector<double> f_cot;
-    std::vector<double> f_chi20;
-    std::vector<double> f_chi21;
-    std::vector<int> f_hitpattern;
-    std::vector<double> f_pt;
-    std::vector<double> f_eta;
-    std::vector<double> f_phi;
-    std::vector<double> f_chi2bend;
-    std::vector<int> f_nstubs;
-    std::vector<int> f_ngaps;
-    std::vector<int> matched_;
-    std::vector<int> matchtp_pdgid;
-    std::vector<int> f_num_iterations;
+    // TQ Features [1 tp 6]
+    std::vector<int>    trk_tq_feature_1;
+    std::vector<double> trk_tq_feature_2;
+    std::vector<double> trk_tq_feature_3;
+    std::vector<double> trk_tq_feature_4;
+    std::vector<double> trk_tq_feature_5;
+    std::vector<int>    trk_tq_feature_6;
+    // L1 Track Attributes
+    std::vector<int>    trk_hitpattern;
+    std::vector<double> trk_pt;
+    std::vector<double> trk_z0;
+    std::vector<double> trk_eta;
+    std::vector<double> trk_tanL;
+    std::vector<double> trk_phi;
+    std::vector<double> trk_chi2bend;
+    std::vector<int>    trk_matched_to_tp;
+    std::vector<int>    trk_matchedtp_pdgid;
+    std::vector<int>    trk_num_iterations;
+    std::vector<double> trk_matchtp_pt;
+    std::vector<double> trk_matchtp_eta;
+    std::vector<double> trk_matchtp_phi;
+    std::vector<double> trk_matchtp_z0;
+    std::vector<double> trk_matchtp_tanL;
     // Per-layer chi2 values
-    std::vector<double> f_chi20_layer_0;
-    std::vector<double> f_chi20_layer_1;
-    std::vector<double> f_chi20_layer_2;
-    std::vector<double> f_chi20_layer_3;
-    std::vector<double> f_chi20_layer_4;
-    std::vector<double> f_chi20_layer_5;
-    std::vector<double> f_chi20_layer_6;
+    std::vector<double> trk_chi20_layer_0;
+    std::vector<double> trk_chi20_layer_1;
+    std::vector<double> trk_chi20_layer_2;
+    std::vector<double> trk_chi20_layer_3;
+    std::vector<double> trk_chi20_layer_4;
+    std::vector<double> trk_chi20_layer_5;
+    std::vector<double> trk_chi20_layer_6;
     // Per-layer chi2 values
-    std::vector<double> f_chi21_layer_0;
-    std::vector<double> f_chi21_layer_1;
-    std::vector<double> f_chi21_layer_2;
-    std::vector<double> f_chi21_layer_3;
-    std::vector<double> f_chi21_layer_4;
-    std::vector<double> f_chi21_layer_5;
-    std::vector<double> f_chi21_layer_6;
+    std::vector<double> trk_chi21_layer_0;
+    std::vector<double> trk_chi21_layer_1;
+    std::vector<double> trk_chi21_layer_2;
+    std::vector<double> trk_chi21_layer_3;
+    std::vector<double> trk_chi21_layer_4;
+    std::vector<double> trk_chi21_layer_5;
+    std::vector<double> trk_chi21_layer_6;
     // Per-layer bendFE values
-    std::vector<double> f_bendFE_layer_0;
-    std::vector<double> f_bendFE_layer_1;
-    std::vector<double> f_bendFE_layer_2;
-    std::vector<double> f_bendFE_layer_3;
-    std::vector<double> f_bendFE_layer_4;
-    std::vector<double> f_bendFE_layer_5;
-    std::vector<double> f_bendFE_layer_6;
+    std::vector<double> trk_bendFE_layer_0;
+    std::vector<double> trk_bendFE_layer_1;
+    std::vector<double> trk_bendFE_layer_2;
+    std::vector<double> trk_bendFE_layer_3;
+    std::vector<double> trk_bendFE_layer_4;
+    std::vector<double> trk_bendFE_layer_5;
+    std::vector<double> trk_bendFE_layer_6;
 
     // private helper methods
     std::vector<TTStubRef> getStubRefs(int region, int frame, int numRegions, const tt::StreamsStub& streamsStub);
+    void clearTrackBranches();
   };
 
   AnalyzerTQ::AnalyzerTQ(const edm::ParameterSet& iConfig)
@@ -180,46 +191,53 @@ namespace trklet {
 
     if (training_run) {
       tree_ = fs->make<TTree>("TrackQualityAttributes", "Track Quality Analysis");
-      // main 
-      tree_->Branch("trk_feature_1", &f_nstubs);
-      tree_->Branch("trk_feature_2", &f_zT);
-      tree_->Branch("trk_feature_3", &f_cot);
-      tree_->Branch("trk_feature_4", &f_chi20);
-      tree_->Branch("trk_feature_5", &f_chi21);
-      tree_->Branch("trk_feature_6", &f_ngaps);
-      tree_->Branch("trk_hitpattern", &f_hitpattern);
-      tree_->Branch("trk_num_iterations", &f_num_iterations);
-      tree_->Branch("trk_pt", &f_pt);
-      tree_->Branch("trk_eta", &f_eta);
-      tree_->Branch("trk_phi", &f_phi);
-      tree_->Branch("trk_chi2bend", &f_chi2bend);
-      tree_->Branch("trk_matchtp_eventtype", &matched_);
-      tree_->Branch("matchtp_pdgid", &matchtp_pdgid);
-
+      // TQ Attributes
+      tree_->Branch("trk_feature_1", &trk_tq_feature_1);
+      tree_->Branch("trk_feature_2", &trk_tq_feature_2);
+      tree_->Branch("trk_feature_3", &trk_tq_feature_3);
+      tree_->Branch("trk_feature_4", &trk_tq_feature_4);
+      tree_->Branch("trk_feature_5", &trk_tq_feature_5);
+      tree_->Branch("trk_feature_6", &trk_tq_feature_6);
+      // Other L1 Track Attributes
+      tree_->Branch("trk_hitpattern", &trk_hitpattern);
+      tree_->Branch("trk_pt", &trk_pt);
+      tree_->Branch("trk_z0", &trk_z0);
+      tree_->Branch("trk_eta", &trk_eta);
+      tree_->Branch("trk_tanL", &trk_tanL);
+      tree_->Branch("trk_phi", &trk_phi);
+      tree_->Branch("trk_chi2bend", &trk_chi2bend);
+      tree_->Branch("trk_num_iterations", &trk_num_iterations);
+      tree_->Branch("trk_matchtp_eventtype", &trk_matched_to_tp);
+      tree_->Branch("trk_matchtp_pdgid", &trk_matchedtp_pdgid);
+      tree_->Branch("trk_matchtp_pt", &trk_matchtp_pt);
+      tree_->Branch("trk_matchtp_eta", &trk_matchtp_eta);
+      tree_->Branch("trk_matchtp_phi", &trk_matchtp_phi);
+      tree_->Branch("trk_matchtp_z0", &trk_matchtp_z0);
+      tree_->Branch("trk_matchtp_tanL", &trk_matchtp_tanL);
       // Per-layer chi2 branches
-      tree_->Branch("trk_chi20_layer_0", &f_chi20_layer_0);
-      tree_->Branch("trk_chi20_layer_1", &f_chi20_layer_1);
-      tree_->Branch("trk_chi20_layer_2", &f_chi20_layer_2);
-      tree_->Branch("trk_chi20_layer_3", &f_chi20_layer_3);
-      tree_->Branch("trk_chi20_layer_4", &f_chi20_layer_4);
-      tree_->Branch("trk_chi20_layer_5", &f_chi20_layer_5);
-      tree_->Branch("trk_chi20_layer_6", &f_chi20_layer_6);
+      tree_->Branch("trk_chi20_layer_0", &trk_chi20_layer_0);
+      tree_->Branch("trk_chi20_layer_1", &trk_chi20_layer_1);
+      tree_->Branch("trk_chi20_layer_2", &trk_chi20_layer_2);
+      tree_->Branch("trk_chi20_layer_3", &trk_chi20_layer_3);
+      tree_->Branch("trk_chi20_layer_4", &trk_chi20_layer_4);
+      tree_->Branch("trk_chi20_layer_5", &trk_chi20_layer_5);
+      tree_->Branch("trk_chi20_layer_6", &trk_chi20_layer_6);
       // Per-layer chi2 branches
-      tree_->Branch("trk_chi21_layer_0", &f_chi21_layer_0);
-      tree_->Branch("trk_chi21_layer_1", &f_chi21_layer_1);
-      tree_->Branch("trk_chi21_layer_2", &f_chi21_layer_2);
-      tree_->Branch("trk_chi21_layer_3", &f_chi21_layer_3);
-      tree_->Branch("trk_chi21_layer_4", &f_chi21_layer_4);
-      tree_->Branch("trk_chi21_layer_5", &f_chi21_layer_5);
-      tree_->Branch("trk_chi21_layer_6", &f_chi21_layer_6);
+      tree_->Branch("trk_chi21_layer_0", &trk_chi21_layer_0);
+      tree_->Branch("trk_chi21_layer_1", &trk_chi21_layer_1);
+      tree_->Branch("trk_chi21_layer_2", &trk_chi21_layer_2);
+      tree_->Branch("trk_chi21_layer_3", &trk_chi21_layer_3);
+      tree_->Branch("trk_chi21_layer_4", &trk_chi21_layer_4);
+      tree_->Branch("trk_chi21_layer_5", &trk_chi21_layer_5);
+      tree_->Branch("trk_chi21_layer_6", &trk_chi21_layer_6);
       // Per-layer bendBE() branches
-      tree_->Branch("trk_bendbe_0", &f_bendFE_layer_0);
-      tree_->Branch("trk_bendbe_1", &f_bendFE_layer_1);
-      tree_->Branch("trk_bendbe_2", &f_bendFE_layer_2);
-      tree_->Branch("trk_bendbe_3", &f_bendFE_layer_3);
-      tree_->Branch("trk_bendbe_4", &f_bendFE_layer_4);
-      tree_->Branch("trk_bendbe_5", &f_bendFE_layer_5);
-      tree_->Branch("trk_bendbe_6", &f_bendFE_layer_6);
+      tree_->Branch("trk_bendbe_0", &trk_bendFE_layer_0);
+      tree_->Branch("trk_bendbe_1", &trk_bendFE_layer_1);
+      tree_->Branch("trk_bendbe_2", &trk_bendFE_layer_2);
+      tree_->Branch("trk_bendbe_3", &trk_bendFE_layer_3);
+      tree_->Branch("trk_bendbe_4", &trk_bendFE_layer_4);
+      tree_->Branch("trk_bendbe_5", &trk_bendFE_layer_5);
+      tree_->Branch("trk_bendbe_6", &trk_bendFE_layer_6);
     }
   }
 
@@ -305,46 +323,7 @@ namespace trklet {
       }
 
       if (training_run) {
-        // clean from previous event
-        f_zT.clear();
-        f_cot.clear();
-        f_phi.clear();
-        f_chi2bend.clear();
-        f_chi20.clear();
-        f_chi21.clear();
-        f_hitpattern.clear();
-        f_nstubs.clear();
-        f_ngaps.clear();
-        matched_.clear();
-        f_pt.clear();
-        f_eta.clear();
-        matchtp_pdgid.clear();
-        f_num_iterations.clear();
-
-        // Clear per-layer chi2 vectors
-        f_chi20_layer_0.clear();
-        f_chi20_layer_1.clear();
-        f_chi20_layer_2.clear();
-        f_chi20_layer_3.clear();
-        f_chi20_layer_4.clear();
-        f_chi20_layer_5.clear();
-        f_chi20_layer_6.clear();
-
-        f_chi21_layer_0.clear();
-        f_chi21_layer_1.clear();
-        f_chi21_layer_2.clear();
-        f_chi21_layer_3.clear();
-        f_chi21_layer_4.clear();
-        f_chi21_layer_5.clear();
-        f_chi21_layer_6.clear();
-
-        f_bendFE_layer_0.clear();
-        f_bendFE_layer_1.clear();
-        f_bendFE_layer_2.clear();
-        f_bendFE_layer_3.clear();
-        f_bendFE_layer_4.clear();
-        f_bendFE_layer_5.clear();
-        f_bendFE_layer_6.clear();
+        clearTrackBranches();
       }
 
       for (int region = 0; region < setup->sysNumRegion(); region++) {
@@ -394,14 +373,23 @@ namespace trklet {
           const auto& matchedTrack = (*TTTrackHandle)[matchedIndex];
 
           edm::Ptr<TTTrack<Ref_Phase2TrackerDigi_>> l1track_ptr(TTTrackHandle, matchedIndex);
-          float tmp_trk_pt = l1track_ptr->pt();
-          float tmp_trk_eta = l1track_ptr->eta();
-          float tmp_trk_phi = l1track_ptr->phi();
-          float tmp_trk_z0 = l1track_ptr->z0();
-          float tmp_trk_tanL = l1track_ptr->tanL();
-          int tmp_trk_genuine = 0;
-          int tmp_matchtp_pdgid = -999;
-          float tmp_trk_bendchi2 = l1track_ptr->chi2BendRed();
+
+          float tmp_trk_pt        = l1track_ptr->pt();
+          float tmp_trk_eta       = l1track_ptr->eta();
+          float tmp_trk_phi       = l1track_ptr->phi();
+          float tmp_trk_z0        = l1track_ptr->z0();
+          float tmp_trk_tanL      = l1track_ptr->tanL();
+          float tmp_trk_bendchi2  = l1track_ptr->chi2BendRed();
+          int   tmp_trk_genuine   = 0;
+          
+
+          int   tmp_matchtp_pdgid = -999;
+          float tmp_matchtp_pt    = -999;
+          float tmp_matchtp_eta   = -999;
+          float tmp_matchtp_phi   = -999;
+          float tmp_matchtp_z0    = -999;
+          float tmp_matchtp_tanL  = -999;
+
           if (MCTruthTTTrackHandle->isGenuine(l1track_ptr))
             tmp_trk_genuine = 1;
           int tmp_matchtp_eventtype = -999;
@@ -414,6 +402,11 @@ namespace trklet {
             else
               tmp_matchtp_eventtype = 1;
             tmp_matchtp_pdgid = my_tp->pdgId();
+            tmp_matchtp_pt    = my_tp->pt();
+            tmp_matchtp_eta   = my_tp->eta();
+            tmp_matchtp_phi   = my_tp->phi();
+            tmp_matchtp_z0    = my_tp->z0();
+            tmp_matchtp_tanL  = my_tp->tanl();
           }
 
           if (evaluation_run) {
@@ -473,49 +466,53 @@ namespace trklet {
             const TTBV hitPattern = trackTQ.hitPattern();
             const double feature_6 = hitPattern.count(hitPattern.plEncode(), hitPattern.pmEncode(), false);
 
-            // fill event
-            matched_.push_back(tmp_matchtp_eventtype);
-            f_pt.push_back(tmp_trk_pt);
-            f_eta.push_back(tmp_trk_eta);
-            f_phi.push_back(tmp_trk_phi);
-            f_chi2bend.push_back(tmp_trk_bendchi2);
-            f_nstubs.push_back(feature_1);
-            f_zT.push_back(feature_2);
-            f_cot.push_back(feature_3);
-            f_chi20.push_back(feature_4);
-            f_chi21.push_back(feature_5);
-            f_ngaps.push_back(feature_6);
-            f_hitpattern.push_back(matchedTrack.hitPattern());
-            matchtp_pdgid.push_back(tmp_matchtp_pdgid);
-            f_num_iterations.push_back(numIterationsKF);
-            
+            // Push TQ Attributes
+            trk_tq_feature_1.push_back(feature_1);
+            trk_tq_feature_2.push_back(feature_2);
+            trk_tq_feature_3.push_back(feature_3);
+            trk_tq_feature_4.push_back(feature_4);
+            trk_tq_feature_5.push_back(feature_5);
+            trk_tq_feature_6.push_back(feature_6);
+            // Push Other L1 Track Attributes
+            trk_hitpattern.push_back(matchedTrack.hitPattern());
+            trk_pt.push_back(tmp_trk_pt);
+            trk_z0.push_back(tmp_trk_z0);
+            trk_eta.push_back(tmp_trk_eta);
+            trk_tanL.push_back(tmp_trk_tanL);
+            trk_phi.push_back(tmp_trk_phi);
+            trk_chi2bend.push_back(tmp_trk_bendchi2);            
+            trk_num_iterations.push_back(numIterationsKF);
+            trk_matched_to_tp.push_back(tmp_matchtp_eventtype);
+            trk_matchedtp_pdgid.push_back(tmp_matchtp_pdgid);
+            trk_matchtp_pt.push_back(tmp_matchtp_pt);
+            trk_matchtp_eta.push_back(tmp_matchtp_eta);
+            trk_matchtp_phi.push_back(tmp_matchtp_phi);
+            trk_matchtp_z0.push_back(tmp_matchtp_z0);
+            trk_matchtp_tanL.push_back(tmp_matchtp_tanL);
             // Fill per-layer chi2 values (using layerId as index)
-            f_chi20_layer_0.push_back(chi20_layers[0]);
-            f_chi20_layer_1.push_back(chi20_layers[1]);
-            f_chi20_layer_2.push_back(chi20_layers[2]);
-            f_chi20_layer_3.push_back(chi20_layers[3]);
-            f_chi20_layer_4.push_back(chi20_layers[4]);
-            f_chi20_layer_5.push_back(chi20_layers[5]);
-            f_chi20_layer_6.push_back(chi20_layers[6]);
-
+            trk_chi20_layer_0.push_back(chi20_layers[0]);
+            trk_chi20_layer_1.push_back(chi20_layers[1]);
+            trk_chi20_layer_2.push_back(chi20_layers[2]);
+            trk_chi20_layer_3.push_back(chi20_layers[3]);
+            trk_chi20_layer_4.push_back(chi20_layers[4]);
+            trk_chi20_layer_5.push_back(chi20_layers[5]);
+            trk_chi20_layer_6.push_back(chi20_layers[6]);
             // Fill per-layer chi2 values (using layerId as index)
-            f_chi21_layer_0.push_back(chi21_layers[0]);
-            f_chi21_layer_1.push_back(chi21_layers[1]);
-            f_chi21_layer_2.push_back(chi21_layers[2]);
-            f_chi21_layer_3.push_back(chi21_layers[3]);
-            f_chi21_layer_4.push_back(chi21_layers[4]);
-            f_chi21_layer_5.push_back(chi21_layers[5]);
-            f_chi21_layer_6.push_back(chi21_layers[6]);
-
+            trk_chi21_layer_0.push_back(chi21_layers[0]);
+            trk_chi21_layer_1.push_back(chi21_layers[1]);
+            trk_chi21_layer_2.push_back(chi21_layers[2]);
+            trk_chi21_layer_3.push_back(chi21_layers[3]);
+            trk_chi21_layer_4.push_back(chi21_layers[4]);
+            trk_chi21_layer_5.push_back(chi21_layers[5]);
+            trk_chi21_layer_6.push_back(chi21_layers[6]);
             // Fill per-layer chi2 values (using layerId as index)
-            f_bendFE_layer_0.push_back(bend_layers[0]);
-            f_bendFE_layer_1.push_back(bend_layers[1]);
-            f_bendFE_layer_2.push_back(bend_layers[2]);
-            f_bendFE_layer_3.push_back(bend_layers[3]);
-            f_bendFE_layer_4.push_back(bend_layers[4]);
-            f_bendFE_layer_5.push_back(bend_layers[5]);
-            f_bendFE_layer_6.push_back(bend_layers[6]);
-            
+            trk_bendFE_layer_0.push_back(bend_layers[0]);
+            trk_bendFE_layer_1.push_back(bend_layers[1]);
+            trk_bendFE_layer_2.push_back(bend_layers[2]);
+            trk_bendFE_layer_3.push_back(bend_layers[3]);
+            trk_bendFE_layer_4.push_back(bend_layers[4]);
+            trk_bendFE_layer_5.push_back(bend_layers[5]);
+            trk_bendFE_layer_6.push_back(bend_layers[6]);
           }
         }
       }
@@ -555,7 +552,57 @@ namespace trklet {
         ttStubRefs.push_back(ttStubRef);
     }
     return ttStubRefs;
-    }
+  }
+
+  void AnalyzerTQ::clearTrackBranches() {
+    // TQ Attributes
+    trk_tq_feature_1.clear();
+    trk_tq_feature_2.clear();
+    trk_tq_feature_3.clear();
+    trk_tq_feature_4.clear();
+    trk_tq_feature_5.clear();
+    trk_tq_feature_6.clear();
+    // L1 Track Attributes
+    trk_hitpattern.clear();
+    trk_pt.clear();
+    trk_z0.clear();
+    trk_eta.clear();
+    trk_tanL.clear();
+    trk_phi.clear();
+    trk_chi2bend.clear();
+    trk_matched_to_tp.clear();
+    trk_matchedtp_pdgid.clear();
+    trk_num_iterations.clear();
+    trk_matchtp_pt.clear();
+    trk_matchtp_eta.clear();
+    trk_matchtp_phi.clear();
+    trk_matchtp_z0.clear();
+    trk_matchtp_tanL.clear();
+    // Per-layer chi2 values (iteration 0)
+    trk_chi20_layer_0.clear();
+    trk_chi20_layer_1.clear();
+    trk_chi20_layer_2.clear();
+    trk_chi20_layer_3.clear();
+    trk_chi20_layer_4.clear();
+    trk_chi20_layer_5.clear();
+    trk_chi20_layer_6.clear();
+    // Per-layer chi2 values (iteration 1)
+    trk_chi21_layer_0.clear();
+    trk_chi21_layer_1.clear();
+    trk_chi21_layer_2.clear();
+    trk_chi21_layer_3.clear();
+    trk_chi21_layer_4.clear();
+    trk_chi21_layer_5.clear();
+    trk_chi21_layer_6.clear();
+    // Per-layer bendFE values
+    trk_bendFE_layer_0.clear();
+    trk_bendFE_layer_1.clear();
+    trk_bendFE_layer_2.clear();
+    trk_bendFE_layer_3.clear();
+    trk_bendFE_layer_4.clear();
+    trk_bendFE_layer_5.clear();
+    trk_bendFE_layer_6.clear();
+  }
 
 }  // namespace trklet
 

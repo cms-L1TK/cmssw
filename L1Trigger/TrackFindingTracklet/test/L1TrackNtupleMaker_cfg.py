@@ -42,7 +42,7 @@ options.parseArguments()
 print(f'~ Cluster ID: {options.cluster}')
 print(f'~ Process ID: {options.process}')
 
-DatasetDatabase = "/home/hep/am2023/TQ_NEW_PR/CMSSW_15_1_0_pre4/src/Files.txt"
+DatasetDatabase = "/home/hep/am2023/TQ_NEW_PR/CMSSW_15_1_0_pre4/src/Files_1.txt"
 
 try:
     InputMC = [get_input_mc_line(DatasetDatabase, options.process)]
@@ -108,7 +108,7 @@ process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 # input and output
 ############################################################
 
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(100))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring(*InputMC))
 process.Timing = cms.Service("Timing", summaryOnly = cms.untracked.bool(True))
