@@ -86,15 +86,10 @@ namespace trklet {
       const double feature_1 = nStubs;
       const double feature_2 = dfZT.integer(frame.track_->z0()) / z0_scale;
       const double feature_3 = dfCot.integer(frame.track_->cot()) / tanL_scale;
-      const double feature_4 = dfChi20.integer(chi20F); // leave as is
-      const double feature_5 = dfChi21.integer(chi21F); // leave as is
+      const double feature_4 = dfChi20.integer(chi20F);  // leave as is
+      const double feature_5 = dfChi21.integer(chi21F);  // leave as is
       const double feature_6 = nGaps;
-      const std::vector<AP_FIXED_BDT> features({feature_1, 
-                                                feature_2, 
-                                                feature_3, 
-                                                feature_4, 
-                                                feature_5, 
-                                                feature_6});
+      const std::vector<AP_FIXED_BDT> features({feature_1, feature_2, feature_3, feature_4, feature_5, feature_6});
 
       // Run the Track Quality BDT calculation
       const AP_FIXED_BDT mvaFixed = bdt_->decision_function(features).at(0);

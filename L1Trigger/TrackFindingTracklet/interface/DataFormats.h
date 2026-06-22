@@ -243,10 +243,15 @@ namespace trklet {
     }};
     // track word assembly, shows which track variables are used by each process
     static constexpr std::array<std::initializer_list<Variable>, +Process::end> tracks_ = {{
-        {Variable::seedType},                                                     // Process::dr
-        {Variable::inv2R, Variable::phi0, Variable::cot, Variable::z0},           // Process::kf
-        {Variable::hitPattern, Variable::mva, Variable::chi20, Variable::chi21, Variable::z0, Variable::cot},  // Process::tq
-        {}                                                                        // Process::tfp
+        {Variable::seedType},                                            // Process::dr
+        {Variable::inv2R, Variable::phi0, Variable::cot, Variable::z0},  // Process::kf
+        {Variable::hitPattern,
+         Variable::mva,
+         Variable::chi20,
+         Variable::chi21,
+         Variable::z0,
+         Variable::cot},  // Process::tq
+        {}                // Process::tfp
     }};
 
   public:
@@ -524,7 +529,7 @@ namespace trklet {
     double chi20() const { return std::get<2>(data_); }
     // track r-z chi2
     double chi21() const { return std::get<3>(data_); }
-    // 
+    //
     double z0() const { return std::get<4>(data_); }
     //
     double cot() const { return std::get<5>(data_); }

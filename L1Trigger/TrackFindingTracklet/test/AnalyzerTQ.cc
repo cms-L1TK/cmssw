@@ -47,7 +47,6 @@ namespace trklet {
     void endJob() override;
 
   private:
-
     // ED input token of stubs
     edm::EDGetTokenT<tt::StreamsStub> edGetTokenStubs_;
     // ED input token of tracks
@@ -149,7 +148,7 @@ namespace trklet {
 
     if (training_run) {
       tree_ = fs->make<TTree>("TrackQualityAttributes", "Track Quality Analysis");
-      // main 
+      // main
       tree_->Branch("trk_feature_1", &f_nstubs);
       tree_->Branch("trk_feature_2", &f_zT);
       tree_->Branch("trk_feature_3", &f_cot);
@@ -165,7 +164,6 @@ namespace trklet {
   }
 
   void AnalyzerTQ::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
-
     // TSCHUH PART
     // read in tracks and stubs products
     const tt::StreamsStub& streamsStub = iEvent.get(edGetTokenStubs_);
@@ -219,7 +217,6 @@ namespace trklet {
 
     // AMASTRON PART
     if (training_run || evaluation_run) {
-
       edm::Handle<TTTrackAssociationMap<Ref_Phase2TrackerDigi_>> MCTruthTTTrackHandle;
       iEvent.getByToken(ttTrackMCTruthToken_, MCTruthTTTrackHandle);
       edm::Handle<std::vector<TTTrack<Ref_Phase2TrackerDigi_>>> TTTrackHandle;
@@ -229,19 +226,19 @@ namespace trklet {
       std::map<std::set<TTStubRef>, int> stubSetToTrackIndex;
 
       if (TTTrackHandle.isValid()) {
-          // std::cout << "TTTrackHandle is valid, size = " << TTTrackHandle->size() << std::endl;
-          for (size_t idx = 0; idx < TTTrackHandle->size(); ++idx) {
-              const auto& ttTrack = (*TTTrackHandle)[idx];
-              std::set<TTStubRef> trackStubSet;
-              for (const auto& stub : ttTrack.getStubRefs()) {
-                  if (stub.isNonnull())
-                      trackStubSet.insert(stub);
-              }
-              stubSetToTrackIndex[trackStubSet] = idx;
-              // std::cout << "L1Track " << idx << " has " << trackStubSet.size() << " stubs" << std::endl;
+        // std::cout << "TTTrackHandle is valid, size = " << TTTrackHandle->size() << std::endl;
+        for (size_t idx = 0; idx < TTTrackHandle->size(); ++idx) {
+          const auto& ttTrack = (*TTTrackHandle)[idx];
+          std::set<TTStubRef> trackStubSet;
+          for (const auto& stub : ttTrack.getStubRefs()) {
+            if (stub.isNonnull())
+              trackStubSet.insert(stub);
           }
+          stubSetToTrackIndex[trackStubSet] = idx;
+          // std::cout << "L1Track " << idx << " has " << trackStubSet.size() << " stubs" << std::endl;
+        }
       } else {
-          std::cout << "[AnalyzerTQ] TTTrackHandle is NOT valid" << std::endl;
+        std::cout << "[AnalyzerTQ] TTTrackHandle is NOT valid" << std::endl;
       }
 
       if (training_run) {
@@ -260,16 +257,14 @@ namespace trklet {
       }
 
       for (int region = 0; region < setup->sysNumRegion(); region++) {
-
         const tt::StreamTrack& streamTrack = streamsTrack[region * 2 + 1];
         const int numFrames = streamTrack.size();
 
         for (int frame = 0; frame < numFrames; frame++) {
-
           if (streamTrack[frame].first.isNull())
             continue;
 
-          const TrackTQ trackTQ (streamTrack[frame], df);
+          const TrackTQ trackTQ(streamTrack[frame], df);
           const DataFormat& dfChi20 = df->format(Variable::chi20, Process::tq);
           const DataFormat& dfChi21 = df->format(Variable::chi21, Process::tq);
           const DataFormat& dfZT = df->format(Variable::z0, Process::tq);
@@ -281,7 +276,7 @@ namespace trklet {
             if (stub.isNonnull())
               tqStubSet.insert(stub);
           }
-          
+
           bool matched = false;
           int matchedIndex = -1;
           auto it = stubSetToTrackIndex.find(tqStubSet);
@@ -289,9 +284,9 @@ namespace trklet {
             matched = true;
             matchedIndex = it->second;
           }
-          
+
           // Print results
-          // std::cout << "TQ Track " << frame << ": " 
+          // std::cout << "TQ Track " << frame << ": "
           //           << tqStubSet.size() << " stubs, "
           //           << "matched = " << (matched ? "YES" : "NO");
           // if (matched) {
@@ -299,20 +294,22 @@ namespace trklet {
           // }
           // std::cout << std::endl;
 
-          if (!matched) continue;
+          if (!matched)
+            continue;
 
           const auto& matchedTrack = (*TTTrackHandle)[matchedIndex];
 
           edm::Ptr<TTTrack<Ref_Phase2TrackerDigi_>> l1track_ptr(TTTrackHandle, matchedIndex);
           int tmp_trk_genuine = 0;
           int tmp_matchtp_pdgid = -999;
-          
+
           if (MCTruthTTTrackHandle->isGenuine(l1track_ptr))
             tmp_trk_genuine = 1;
           int tmp_matchtp_eventtype = -999;
           if (tmp_trk_genuine) {
             edm::Ptr<TrackingParticle> my_tp = MCTruthTTTrackHandle->findTrackingParticlePtr(l1track_ptr);
-            if (my_tp.isNull()) assert(false);
+            if (my_tp.isNull())
+              assert(false);
             int tmp_eventid = my_tp->eventId().event();
             if (tmp_eventid > 0)
               tmp_matchtp_eventtype = 2;
@@ -331,7 +328,6 @@ namespace trklet {
           }
 
           if (training_run) {
-
             // fetch attributes (as they are on TrackQuality.cc)
             const double z0_scale = std::pow(2, 3);
             const double tanL_scale = std::pow(2, 7);
@@ -360,7 +356,8 @@ namespace trklet {
       }
     }
     // END OF AMASTRON PART
-    if (training_run) tree_->Fill();
+    if (training_run)
+      tree_->Fill();
     nEvents_++;
   }
 
@@ -384,7 +381,10 @@ namespace trklet {
     edm::LogPrint(moduleDescription().moduleName()) << log_.str();
   }
 
-  std::vector<TTStubRef> AnalyzerTQ::getStubRefs(int region, int frame, int numKFLayers, const tt::StreamsStub& streamsStub) {
+  std::vector<TTStubRef> AnalyzerTQ::getStubRefs(int region,
+                                                 int frame,
+                                                 int numKFLayers,
+                                                 const tt::StreamsStub& streamsStub) {
     const int offset = region * numKFLayers;
     std::vector<TTStubRef> ttStubRefs;
     ttStubRefs.reserve(numKFLayers);
@@ -394,7 +394,7 @@ namespace trklet {
         ttStubRefs.push_back(ttStubRef);
     }
     return ttStubRefs;
-    }
+  }
 
 }  // namespace trklet
 
