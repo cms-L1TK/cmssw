@@ -101,7 +101,7 @@ namespace trklet {
         if (mvaInt <= binEdges[mva + 1])
           break;
       // build output Track
-      TrackTQ trackTQ(*frame.track_, hitPattern, mva, chi20F, chi21F, frame.track_->z0(), frame.track_->cot());
+      TrackTQ trackTQ(*frame.track_, hitPattern, mva, chi20F, chi21F);
       // store result
       output.push_back(trackTQ.frame());
     }

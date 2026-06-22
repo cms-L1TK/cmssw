@@ -257,14 +257,16 @@ namespace trklet {
       }
 
       for (int region = 0; region < setup->sysNumRegion(); region++) {
-        const tt::StreamTrack& streamTrack = streamsTrack[region * 2 + 1];
-        const int numFrames = streamTrack.size();
+        const tt::StreamTrack& streamTrack1 = streamsTrack[region * 2 + 1];
+        const tt::StreamTrack& streamTrack0 = streamsTrack[region * 2 + 0];
+        const int numFrames = streamTrack1.size();
 
         for (int frame = 0; frame < numFrames; frame++) {
-          if (streamTrack[frame].first.isNull())
+          if (streamTrack1[frame].first.isNull())
             continue;
 
-          const TrackTQ trackTQ(streamTrack[frame], df);
+          const TrackTQ trackTQ(streamTrack1[frame], df);
+          const TrackKF trackKF(streamTrack0[frame], df);
           const DataFormat& dfChi20 = df->format(Variable::chi20, Process::tq);
           const DataFormat& dfChi21 = df->format(Variable::chi21, Process::tq);
           const DataFormat& dfZT = df->format(Variable::z0, Process::tq);
@@ -332,8 +334,8 @@ namespace trklet {
             const double z0_scale = std::pow(2, 3);
             const double tanL_scale = std::pow(2, 7);
             const double feature_1 = stubRefs.size();
-            const double feature_2 = dfZT.integer(trackTQ.z0()) / z0_scale;
-            const double feature_3 = dfCot.integer(trackTQ.cot()) / tanL_scale;
+            const double feature_2 = dfZT.integer(trackKF.z0()) / z0_scale;
+            const double feature_3 = dfCot.integer(trackKF.cot()) / tanL_scale;
             const double feature_4 = dfChi20.integer(trackTQ.chi20());
             const double feature_5 = dfChi21.integer(trackTQ.chi21());
             const TTBV hitPattern = trackTQ.hitPattern();
