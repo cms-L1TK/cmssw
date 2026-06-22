@@ -207,7 +207,7 @@ private:
   // N.B. This TP not required to have stubs in at least 4 layers.
 
   std::vector<int>*
-      m_trk_matchtp_eventtype;  //event type: -999 = fake track (not genuine), 1 = TP from signal pp event, 2 = TP from pileup
+      m_trk_matchtp_eventtype;  //event type: 0 = fake track (not genuine), 1 = TP from signal pp event, 2 = TP from pileup
   std::vector<int>* m_trk_matchtp_pdgid;
   // kinematics of matching truth particle
   std::vector<float>* m_trk_matchtp_pt;
@@ -1399,7 +1399,7 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
       // for studying the fake rate
       // ----------------------------------------------------------------------------------------------
 
-      int tmp_matchtp_eventtype = -999;
+      int tmp_matchtp_eventtype = 0;
       int tmp_matchtp_pdgid = -999;
       float tmp_matchtp_pt = -999;
       float tmp_matchtp_eta = -999;
