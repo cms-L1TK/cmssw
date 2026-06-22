@@ -211,19 +211,14 @@ namespace trklet {
           hitPattern.set(sm->layerIdReduced());
         }
         math::ErrorF<5>::type covMat;
-        covMat[0][0] = C00;
-        covMat[0][1] = C00;
-        covMat[1][0] = C01;
-        covMat[1][1] = C11;
-        covMat[2][2] = C22;
-        covMat[2][3] = C23;
-        covMat[3][2] = C23;
-        covMat[3][3] = C33;
-        covMat[4][4] = C44;
-        covMat[4][0] = C40;
-        covMat[0][4] = C40;
-        covMat[4][1] = C41;
-        covMat[1][4] = C41;
+        const std::array<std::array<double, 5>, 5> css{{{{C00, C01, 0., 0., C40}},
+                                                        {{C01, C11, 0., 0., C41}},
+                                                        {{0., 0., C22, C23, 0.}},
+                                                        {{0., 0., C23, C33, 0.}},
+                                                        {{C40, C41, 0., 0., C44}}}};
+        for (int i = 0; i < 5; i++)
+          for (int j = 0; j < 5; j++)
+            covMat[i][j] = css[i][j];
         // TTTrack conversion
         TTTrack<Ref_Phase2TrackerDigi_> comb(-2. * x0,
                                              tt::deltaPhi(x1 + phiR),
