@@ -14,7 +14,7 @@ process = cms.Process(L1TRK_INST)
 
 #L1TRKALGO = 'HYBRID'  #baseline, 4par fit
 #L1TRKALGO = 'HYBRID_DISPLACED'  #extended, 5par fit
-L1TRKALGO = 'HYBRID_PROMPTANDDISP'
+L1TRKALGO = 'HYBRID'
 
 DISPLACED = ''
 
@@ -43,10 +43,10 @@ process.MessageLogger.cerr.INFO.limit = cms.untracked.int32(0) # default: 0
 # input and output
 ############################################################
 
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(20))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 
 readFiles = cms.untracked.vstring(
-    '/store/mc/Phase2Spring23DIGIRECOMiniAOD/TT_TuneCP5_14TeV-powheg-pythia8/GEN-SIM-DIGI-RAW-MINIAOD/PU200_L1TFix_Trk1GeV_131X_mcRun4_realistic_v9-v1/50000/1cc5c14c-5bae-4e68-a369-04e230788660.root'
+    '/store/relval/CMSSW_15_1_0_pre5/RelValTTbar_14TeV_TuneCP5/GEN-SIM-DIGI-RAW/PU_150X_mcRun4_realistic_v1_RV269_Run4D110_PU-v2/2590000/0f0bcfd3-dafe-4dda-8d39-9765f6eae68e.root'
 )
 secFiles = cms.untracked.vstring()
 
