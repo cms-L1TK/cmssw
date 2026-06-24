@@ -273,32 +273,36 @@ namespace trklet {
             const DataFormat& dfZT = df->format(Variable::z0, Process::tq);
             const DataFormat& dfCot = df->format(Variable::cot, Process::tq);
 
-            // Fetch Stubs for Track.
             std::vector<TTStubRef> stubRefs = getStubRefs(region, frame, setup->kfNumLayers(), streamsStub);
             bool matched = (stubRefs == l1track_stubrefs);
 
             // If there is no L1 TTTrack Stub Refs that Match TQ/KF Track StubRefs, Simply Continue.
-            if (!matched)
+            if (!matched) {
               continue;
+            } else {
+              // Compute BDT Input Features
+              const double z0_scale = std::pow(2, 3);
+              const double tanL_scale = std::pow(2, 7);
+              feature_1 = stubRefs.size();
+              feature_2 = dfZT.integer(trackKF.z0()) / z0_scale;
+              feature_3 = dfCot.integer(trackKF.cot()) / tanL_scale;
+              feature_4 = dfChi20.integer(trackTQ.chi20());
+              feature_5 = dfChi21.integer(trackTQ.chi21());
+              const TTBV hitPattern = trackTQ.hitPattern();
+              feature_6 = hitPattern.count(hitPattern.plEncode(), hitPattern.pmEncode(), false);
 
-            // Compute BDT Input Features
-            const double z0_scale = std::pow(2, 3);
-            const double tanL_scale = std::pow(2, 7);
-            feature_1 = stubRefs.size();
-            feature_2 = dfZT.integer(trackKF.z0()) / z0_scale;
-            feature_3 = dfCot.integer(trackKF.cot()) / tanL_scale;
-            feature_4 = dfChi20.integer(trackTQ.chi20());
-            feature_5 = dfChi21.integer(trackTQ.chi21());
-            const TTBV hitPattern = trackTQ.hitPattern();
-            feature_6 = hitPattern.count(hitPattern.plEncode(), hitPattern.pmEncode(), false);
+              // Push to Event Vector.
+              f_nstubs.push_back(feature_1);
+              f_zT.push_back(feature_2);
+              f_cot.push_back(feature_3);
+              f_chi20.push_back(feature_4);
+              f_chi21.push_back(feature_5);
+              f_ngaps.push_back(feature_6);
 
-            // Push to Event Vector.
-            f_nstubs.push_back(feature_1);
-            f_zT.push_back(feature_2);
-            f_cot.push_back(feature_3);
-            f_chi20.push_back(feature_4);
-            f_chi21.push_back(feature_5);
-            f_ngaps.push_back(feature_6);
+              // Break out of the loop when a match is found.
+              // Oddly enough, it certain cases, two or more matches are found!
+              break;
+            }
           }
         }
         this_l1track++;
