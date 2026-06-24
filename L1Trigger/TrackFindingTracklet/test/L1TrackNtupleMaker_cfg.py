@@ -67,7 +67,7 @@ GEOMETRY = "D110"
 # 'HYBRID_REDUCED' to use the "L5L6" seeding only reduced configuration.
 # 'HYBRID_DISPLACED_SIM' displaced tracklet followed by DR simulation and 5 param fit sim
 # (Or legacy algos 'TMTT' or 'TRACKLET').
-L1TRKALGO = 'HYBRID_NEWKF'
+L1TRKALGO = 'HYBRID'
 TRAINING_RUN = True
 
 WRITE_DATA = False
