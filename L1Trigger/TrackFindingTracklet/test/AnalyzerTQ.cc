@@ -84,20 +84,16 @@ namespace trklet {
     bool training_run;
     bool evaluation_run;
     TTree* tree_;
+    std::vector<int> f_nstubs;
     std::vector<double> f_zT;
     std::vector<double> f_cot;
     std::vector<double> f_chi20;
     std::vector<double> f_chi21;
-    std::vector<int> f_hitpattern;
-    std::vector<int> f_pt;
-    std::vector<int> f_eta;
-    std::vector<int> f_nstubs;
     std::vector<int> f_ngaps;
-    std::vector<int> matched_;
-    std::vector<int> matchtp_pdgid;
 
     // private helper methods
     std::vector<TTStubRef> getStubRefs(int region, int frame, int numRegions, const tt::StreamsStub& streamsStub);
+    void clearBranches();
   };
 
   AnalyzerTQ::AnalyzerTQ(const edm::ParameterSet& iConfig)
@@ -148,18 +144,13 @@ namespace trklet {
 
     if (training_run) {
       tree_ = fs->make<TTree>("TrackQualityAttributes", "Track Quality Analysis");
-      // main
+      // Branches to Train Against
       tree_->Branch("trk_feature_1", &f_nstubs);
       tree_->Branch("trk_feature_2", &f_zT);
       tree_->Branch("trk_feature_3", &f_cot);
       tree_->Branch("trk_feature_4", &f_chi20);
       tree_->Branch("trk_feature_5", &f_chi21);
       tree_->Branch("trk_feature_6", &f_ngaps);
-      tree_->Branch("trk_hitpattern", &f_hitpattern);
-      tree_->Branch("trk_pt", &f_pt);
-      tree_->Branch("trk_eta", &f_eta);
-      tree_->Branch("trk_matchtp_eventtype", &matched_);
-      tree_->Branch("matchtp_pdgid", &matchtp_pdgid);
     }
   }
 
@@ -217,150 +208,108 @@ namespace trklet {
 
     // AMASTRON PART
     if (training_run || evaluation_run) {
+
+      // Initialize MCTruthTTTrackHandle
       edm::Handle<TTTrackAssociationMap<Ref_Phase2TrackerDigi_>> MCTruthTTTrackHandle;
       iEvent.getByToken(ttTrackMCTruthToken_, MCTruthTTTrackHandle);
+
+      // Initialize TTTrackHandle
       edm::Handle<std::vector<TTTrack<Ref_Phase2TrackerDigi_>>> TTTrackHandle;
       iEvent.getByToken(ttTrackToken_, TTTrackHandle);
 
-      // Build a map from stub set to L1Track index for fast lookup
-      std::map<std::set<TTStubRef>, int> stubSetToTrackIndex;
+      if (training_run)
+        clearBranches();
 
-      if (TTTrackHandle.isValid()) {
-        // std::cout << "TTTrackHandle is valid, size = " << TTTrackHandle->size() << std::endl;
-        for (size_t idx = 0; idx < TTTrackHandle->size(); ++idx) {
-          const auto& ttTrack = (*TTTrackHandle)[idx];
-          std::set<TTStubRef> trackStubSet;
-          for (const auto& stub : ttTrack.getStubRefs()) {
-            if (stub.isNonnull())
-              trackStubSet.insert(stub);
-          }
-          stubSetToTrackIndex[trackStubSet] = idx;
-          // std::cout << "L1Track " << idx << " has " << trackStubSet.size() << " stubs" << std::endl;
-        }
-      } else {
-        std::cout << "[AnalyzerTQ] TTTrackHandle is NOT valid" << std::endl;
-      }
+      // Initialize Dummy Variable for L1 TTTrack Counting and TQ BDT Features
+      int this_l1track = 0;
+      double feature_1 = 0;
+      double feature_2 = 0;
+      double feature_3 = 0;
+      double feature_4 = 0;
+      double feature_5 = 0;
+      double feature_6 = 0;
 
-      if (training_run) {
-        // clean from previous event
-        f_zT.clear();
-        f_cot.clear();
-        f_chi20.clear();
-        f_chi21.clear();
-        f_hitpattern.clear();
-        f_nstubs.clear();
-        f_ngaps.clear();
-        matched_.clear();
-        f_pt.clear();
-        f_eta.clear();
-        matchtp_pdgid.clear();
-      }
+      std::vector<TTTrack<Ref_Phase2TrackerDigi_>>::const_iterator iterL1Track;
+      for (iterL1Track = TTTrackHandle->begin(); iterL1Track != TTTrackHandle->end(); iterL1Track++) {
 
-      for (int region = 0; region < setup->sysNumRegion(); region++) {
-        const tt::StreamTrack& streamTrack1 = streamsTrack[region * 2 + 1];
-        const tt::StreamTrack& streamTrack0 = streamsTrack[region * 2 + 0];
-        const int numFrames = streamTrack1.size();
+        // Fetch L1 TTTrack from Collection.
+        edm::Ptr<TTTrack<Ref_Phase2TrackerDigi_>> l1track_ptr(TTTrackHandle, this_l1track);
 
-        for (int frame = 0; frame < numFrames; frame++) {
-          if (streamTrack1[frame].first.isNull())
-            continue;
+        // Get StubRefs for this TTTrack.
+        std::vector<TTStubRef> l1track_stubrefs = l1track_ptr->getStubRefs();
+        
+        for (int region = 0; region < setup->sysNumRegion(); region++) {
+          
+          // Fetch Stream with Offset #0, which corresponds to TQ Input (= KF Output) Tracks.
+          const tt::StreamTrack& streamTrack0 = streamsTrack[region * 2 + 0];
+          
+          // Fetch Stream with Offset #1, which corresponds to TQ Converted Tracks.
+          const tt::StreamTrack& streamTrack1 = streamsTrack[region * 2 + 1];
+          
+          // Fetch Num Frames = Num Track Objects
+          const int numFrames1 = streamTrack1.size();
+          const int numFrames0 = streamTrack0.size();
+          int numFrames = 0;
 
-          const TrackTQ trackTQ(streamTrack1[frame], df);
-          const TrackKF trackKF(streamTrack0[frame], df);
-          const DataFormat& dfChi20 = df->format(Variable::chi20, Process::tq);
-          const DataFormat& dfChi21 = df->format(Variable::chi21, Process::tq);
-          const DataFormat& dfZT = df->format(Variable::z0, Process::tq);
-          const DataFormat& dfCot = df->format(Variable::cot, Process::tq);
-
-          auto stubRefs = getStubRefs(region, frame, setup->kfNumLayers(), streamsStub);
-          std::set<TTStubRef> tqStubSet;
-          for (const auto& stub : stubRefs) {
-            if (stub.isNonnull())
-              tqStubSet.insert(stub);
+          // Throw Exception when Said Frames are mismatched.
+          if (numFrames1 != numFrames0) {
+            throw cms::Exception("FrameMismatch") << "numFrames1 (" << numFrames1 << ") != numFrames0 (" << numFrames0 << "). This should not happen.";
+          } else {
+            numFrames = numFrames1;
           }
 
-          bool matched = false;
-          int matchedIndex = -1;
-          auto it = stubSetToTrackIndex.find(tqStubSet);
-          if (it != stubSetToTrackIndex.end()) {
-            matched = true;
-            matchedIndex = it->second;
-          }
+          // Iterate Over Common
+          for (int frame = 0; frame < numFrames; frame++) {
+            
+            if (streamTrack1[frame].first.isNull() || streamTrack0[frame].first.isNull()) continue;
 
-          // Print results
-          // std::cout << "TQ Track " << frame << ": "
-          //           << tqStubSet.size() << " stubs, "
-          //           << "matched = " << (matched ? "YES" : "NO");
-          // if (matched) {
-          //     std::cout << " (L1Track index " << matchedIndex << ")";
-          // }
-          // std::cout << std::endl;
+            // Fetch TQ Frame for the Chi Squared Values.
+            const TrackTQ trackTQ(streamTrack1[frame], df);
 
-          if (!matched)
-            continue;
+            // Fetch KF Frame for the z0, cot and hitpattern.
+            const TrackKF trackKF(streamTrack0[frame], df);
 
-          const auto& matchedTrack = (*TTTrackHandle)[matchedIndex];
+            // Fetch DataFormats for said variables.
+            const DataFormat& dfChi20 = df->format(Variable::chi20, Process::tq);
+            const DataFormat& dfChi21 = df->format(Variable::chi21, Process::tq);
+            const DataFormat& dfZT = df->format(Variable::z0, Process::tq);
+            const DataFormat& dfCot = df->format(Variable::cot, Process::tq);
 
-          edm::Ptr<TTTrack<Ref_Phase2TrackerDigi_>> l1track_ptr(TTTrackHandle, matchedIndex);
-          int tmp_trk_genuine = 0;
-          int tmp_matchtp_pdgid = -999;
+            // Fetch Stubs for Track.
+            std::vector<TTStubRef> stubRefs = getStubRefs(region, frame, setup->kfNumLayers(), streamsStub);
+            bool matched = (stubRefs == l1track_stubrefs);
 
-          if (MCTruthTTTrackHandle->isGenuine(l1track_ptr))
-            tmp_trk_genuine = 1;
-          int tmp_matchtp_eventtype = -999;
-          if (tmp_trk_genuine) {
-            edm::Ptr<TrackingParticle> my_tp = MCTruthTTTrackHandle->findTrackingParticlePtr(l1track_ptr);
-            if (my_tp.isNull())
-              assert(false);
-            int tmp_eventid = my_tp->eventId().event();
-            if (tmp_eventid > 0)
-              tmp_matchtp_eventtype = 2;
-            else
-              tmp_matchtp_eventtype = 1;
-            tmp_matchtp_pdgid = my_tp->pdgId();
-          }
+            // If there is no L1 TTTrack Stub Refs that Match TQ/KF Track StubRefs, Simply Continue.
+            if (!matched) continue;
 
-          if (evaluation_run) {
-            const float mva = trackTQ.mva();
-            if (tmp_matchtp_eventtype != -999) {
-              BDTScoreHist_Real->Fill(mva);
-            } else {
-              BDTScoreHist_Fake->Fill(mva);
-            }
-          }
-
-          if (training_run) {
-            // fetch attributes (as they are on TrackQuality.cc)
+            // Compute BDT Input Features
             const double z0_scale = std::pow(2, 3);
             const double tanL_scale = std::pow(2, 7);
-            const double feature_1 = stubRefs.size();
-            const double feature_2 = dfZT.integer(trackKF.z0()) / z0_scale;
-            const double feature_3 = dfCot.integer(trackKF.cot()) / tanL_scale;
-            const double feature_4 = dfChi20.integer(trackTQ.chi20());
-            const double feature_5 = dfChi21.integer(trackTQ.chi21());
+            feature_1 = stubRefs.size();
+            feature_2 = dfZT.integer(trackKF.z0()) / z0_scale;
+            feature_3 = dfCot.integer(trackKF.cot()) / tanL_scale;
+            feature_4 = dfChi20.integer(trackTQ.chi20());
+            feature_5 = dfChi21.integer(trackTQ.chi21());
             const TTBV hitPattern = trackTQ.hitPattern();
-            const double feature_6 = hitPattern.count(hitPattern.plEncode(), hitPattern.pmEncode(), false);
+            feature_6 = hitPattern.count(hitPattern.plEncode(), hitPattern.pmEncode(), false);
 
-            // fill event
-            matched_.push_back(tmp_matchtp_eventtype);
-            f_pt.push_back(matchedTrack.pt());
-            f_eta.push_back(matchedTrack.eta());
+            // Push to Event Vector.
             f_nstubs.push_back(feature_1);
             f_zT.push_back(feature_2);
             f_cot.push_back(feature_3);
             f_chi20.push_back(feature_4);
             f_chi21.push_back(feature_5);
             f_ngaps.push_back(feature_6);
-            f_hitpattern.push_back(matchedTrack.hitPattern());
-            matchtp_pdgid.push_back(tmp_matchtp_pdgid);
           }
         }
+        this_l1track++;
       }
+
+      if (training_run)
+        tree_->Fill();
+        
+      nEvents_++;
     }
-    // END OF AMASTRON PART
-    if (training_run)
-      tree_->Fill();
-    nEvents_++;
   }
 
   void AnalyzerTQ::endJob() {
@@ -382,7 +331,6 @@ namespace trklet {
     log_ << "=============================================================";
     edm::LogPrint(moduleDescription().moduleName()) << log_.str();
   }
-
   std::vector<TTStubRef> AnalyzerTQ::getStubRefs(int region,
                                                  int frame,
                                                  int numKFLayers,
@@ -397,7 +345,14 @@ namespace trklet {
     }
     return ttStubRefs;
   }
-
+  void AnalyzerTQ::clearBranches() {
+    f_zT.clear();
+    f_cot.clear();
+    f_chi20.clear();
+    f_chi21.clear();
+    f_nstubs.clear();
+    f_ngaps.clear();
+  }
 }  // namespace trklet
 
 DEFINE_FWK_MODULE(trklet::AnalyzerTQ);
