@@ -208,7 +208,6 @@ namespace trklet {
 
     // AMASTRON PART
     if (training_run || evaluation_run) {
-
       // Initialize MCTruthTTTrackHandle
       edm::Handle<TTTrackAssociationMap<Ref_Phase2TrackerDigi_>> MCTruthTTTrackHandle;
       iEvent.getByToken(ttTrackMCTruthToken_, MCTruthTTTrackHandle);
@@ -231,21 +230,19 @@ namespace trklet {
 
       std::vector<TTTrack<Ref_Phase2TrackerDigi_>>::const_iterator iterL1Track;
       for (iterL1Track = TTTrackHandle->begin(); iterL1Track != TTTrackHandle->end(); iterL1Track++) {
-
         // Fetch L1 TTTrack from Collection.
         edm::Ptr<TTTrack<Ref_Phase2TrackerDigi_>> l1track_ptr(TTTrackHandle, this_l1track);
 
         // Get StubRefs for this TTTrack.
         std::vector<TTStubRef> l1track_stubrefs = l1track_ptr->getStubRefs();
-        
+
         for (int region = 0; region < setup->sysNumRegion(); region++) {
-          
           // Fetch Stream with Offset #0, which corresponds to TQ Input (= KF Output) Tracks.
           const tt::StreamTrack& streamTrack0 = streamsTrack[region * 2 + 0];
-          
+
           // Fetch Stream with Offset #1, which corresponds to TQ Converted Tracks.
           const tt::StreamTrack& streamTrack1 = streamsTrack[region * 2 + 1];
-          
+
           // Fetch Num Frames = Num Track Objects
           const int numFrames1 = streamTrack1.size();
           const int numFrames0 = streamTrack0.size();
@@ -253,15 +250,16 @@ namespace trklet {
 
           // Throw Exception when Said Frames are mismatched.
           if (numFrames1 != numFrames0) {
-            throw cms::Exception("FrameMismatch") << "numFrames1 (" << numFrames1 << ") != numFrames0 (" << numFrames0 << "). This should not happen.";
+            throw cms::Exception("FrameMismatch")
+                << "numFrames1 (" << numFrames1 << ") != numFrames0 (" << numFrames0 << "). This should not happen.";
           } else {
             numFrames = numFrames1;
           }
 
           // Iterate Over Common
           for (int frame = 0; frame < numFrames; frame++) {
-            
-            if (streamTrack1[frame].first.isNull() || streamTrack0[frame].first.isNull()) continue;
+            if (streamTrack1[frame].first.isNull() || streamTrack0[frame].first.isNull())
+              continue;
 
             // Fetch TQ Frame for the Chi Squared Values.
             const TrackTQ trackTQ(streamTrack1[frame], df);
@@ -280,7 +278,8 @@ namespace trklet {
             bool matched = (stubRefs == l1track_stubrefs);
 
             // If there is no L1 TTTrack Stub Refs that Match TQ/KF Track StubRefs, Simply Continue.
-            if (!matched) continue;
+            if (!matched)
+              continue;
 
             // Compute BDT Input Features
             const double z0_scale = std::pow(2, 3);
@@ -307,7 +306,7 @@ namespace trklet {
 
       if (training_run)
         tree_->Fill();
-        
+
       nEvents_++;
     }
   }
