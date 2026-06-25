@@ -4,12 +4,13 @@
 <use   name="DataFormats/L1TrackTrigger"/>
 <use   name="DataFormats/Math"/>
 <use   name="PhysicsTools/TensorFlow"/>
+<use   name="hls"/>
+<use   name="hls4mlEmulatorExtras"/>
 <use   name="boost"/>
 <use   name="xerces-c"/>
 <use   name="clhep"/>
 <use   name="root"/>
 <use   name="rootrflx"/>
-<use   name="hls"/>
 <use   name="conifer"/>
 <use   name="hepmc"/>
 <export>
