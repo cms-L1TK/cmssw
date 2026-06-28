@@ -155,7 +155,6 @@ namespace trklet {
   }
 
   void AnalyzerTQ::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
-    // TSCHUH PART
     // read in tracks and stubs products
     const tt::StreamsStub& streamsStub = iEvent.get(edGetTokenStubs_);
     const tt::StreamsTrack& streamsTrack = iEvent.get(edGetTokenTracks_);
@@ -204,9 +203,7 @@ namespace trklet {
       prof_[mva]->Fill(3, nMatched);
       prof_[mva]->Fill(4, tpPtrsPerfect.size());
     }
-    // END OF TSCHUH PART
 
-    // AMASTRON PART
     if (training_run || evaluation_run) {
       // Initialize MCTruthTTTrackHandle
       edm::Handle<TTTrackAssociationMap<Ref_Phase2TrackerDigi_>> MCTruthTTTrackHandle;
@@ -230,13 +227,22 @@ namespace trklet {
 
       std::vector<TTTrack<Ref_Phase2TrackerDigi_>>::const_iterator iterL1Track;
       for (iterL1Track = TTTrackHandle->begin(); iterL1Track != TTTrackHandle->end(); iterL1Track++) {
+        
         // Fetch L1 TTTrack from Collection.
         edm::Ptr<TTTrack<Ref_Phase2TrackerDigi_>> l1track_ptr(TTTrackHandle, this_l1track);
 
         // Get StubRefs for this TTTrack.
         std::vector<TTStubRef> l1track_stubrefs = l1track_ptr->getStubRefs();
 
-        for (int region = 0; region < setup->sysNumRegion(); region++) {
+        // Set NumMatched Variable
+        int num_matched = 0;
+
+        // Set found_match boolean variable.
+        bool found_match = false;
+
+        // Iterate over StreamTracks in Event; to find the one that matches to iterL1Track.
+        for (int region = 0; region < setup->sysNumRegion() && !found_match; region++) {
+          
           // Fetch Stream with Offset #0, which corresponds to TQ Input (= KF Output) Tracks.
           const tt::StreamTrack& streamTrack0 = streamsTrack[region * 2 + 0];
 
@@ -250,14 +256,14 @@ namespace trklet {
 
           // Throw Exception when Said Frames are mismatched.
           if (numFrames1 != numFrames0) {
-            throw cms::Exception("FrameMismatch")
-                << "numFrames1 (" << numFrames1 << ") != numFrames0 (" << numFrames0 << "). This should not happen.";
+            throw cms::Exception("FrameMismatch") << "numFrames1 (" << numFrames1 << ") != numFrames0 (" << numFrames0 << "). This should not happen.";
           } else {
             numFrames = numFrames1;
           }
 
           // Iterate Over Common
-          for (int frame = 0; frame < numFrames; frame++) {
+          for (int frame = 0; frame < numFrames && !found_match; frame++) {
+
             if (streamTrack1[frame].first.isNull() || streamTrack0[frame].first.isNull())
               continue;
 
@@ -280,6 +286,8 @@ namespace trklet {
             if (!matched) {
               continue;
             } else {
+              num_matched++;
+              found_match = true;
               // Compute BDT Input Features
               const double z0_scale = std::pow(2, 3);
               const double tanL_scale = std::pow(2, 7);
@@ -304,6 +312,13 @@ namespace trklet {
               break;
             }
           }
+        }
+
+        // This should never happen. Throw Exception if it does.
+        if (num_matched != 1) {
+            throw cms::Exception("MatchError")
+                << "L1 track " << this_l1track << " matched " << num_matched 
+                << " TQ tracks. Expected exactly 1 match.";
         }
         this_l1track++;
       }
