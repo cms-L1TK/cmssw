@@ -209,7 +209,6 @@ elif (L1TRKALGO == 'HYBRID_NEWKF' or L1TRKALGO == 'HYBRID_REDUCED'):
             TrainingMode = TRAINING_RUN,
             EvaluationMode = True,
             L1TrackInputTag = (L1TRK_NAME, L1TRK_LABEL),
-            MCTruthTrackInputTag = (L1TRUTH_NAME, L1TRK_LABEL),
         )
         process.AnalyzerTQ = analyzer
         process.TTTracksEmulationWithTruth = cms.Path(process.HybridNewKF + process.TrackTriggerAssociatorTracks + process.AnalyzerTracklet + process.AnalyzerTM + process.AnalyzerDR + process.AnalyzerKF + process.AnalyzerTQ + process.AnalyzerTFP )

@@ -78,7 +78,6 @@ namespace trklet {
     // printout
     std::stringstream log_;
     // private
-    edm::InputTag MCTruthTrackInputTag;
     edm::InputTag L1TrackInputTag;
     // tree
     bool training_run;
@@ -99,7 +98,6 @@ namespace trklet {
   AnalyzerTQ::AnalyzerTQ(const edm::ParameterSet& iConfig)
       : looseMatching_(iConfig.getParameter<bool>("LooseMatching")) {
     L1TrackInputTag = iConfig.getParameter<edm::InputTag>("L1TrackInputTag");
-    MCTruthTrackInputTag = iConfig.getParameter<edm::InputTag>("MCTruthTrackInputTag");
     training_run = iConfig.getParameter<bool>("TrainingMode");
     evaluation_run = iConfig.getParameter<bool>("EvaluationMode");
     usesResource("TFileService");
@@ -116,7 +114,6 @@ namespace trklet {
     edGetTokenFake_ = consumes(edm::InputTag(labelMC, branchFake));
     edGetTokenEff_ = consumes(edm::InputTag(labelMC, branchEff));
     ttTrackToken_ = consumes<std::vector<TTTrack<Ref_Phase2TrackerDigi_>>>(L1TrackInputTag);
-    ttTrackMCTruthToken_ = consumes<TTTrackAssociationMap<Ref_Phase2TrackerDigi_>>(MCTruthTrackInputTag);
     // book ES products
     esGetTokenAssociator_ = esConsumes();
     esGetTokenSetup_ = esConsumes();
@@ -205,10 +202,6 @@ namespace trklet {
     }
 
     if (training_run || evaluation_run) {
-      // Initialize MCTruthTTTrackHandle
-      edm::Handle<TTTrackAssociationMap<Ref_Phase2TrackerDigi_>> MCTruthTTTrackHandle;
-      iEvent.getByToken(ttTrackMCTruthToken_, MCTruthTTTrackHandle);
-
       // Initialize TTTrackHandle
       edm::Handle<std::vector<TTTrack<Ref_Phase2TrackerDigi_>>> TTTrackHandle;
       iEvent.getByToken(ttTrackToken_, TTTrackHandle);
@@ -227,7 +220,6 @@ namespace trklet {
 
       std::vector<TTTrack<Ref_Phase2TrackerDigi_>>::const_iterator iterL1Track;
       for (iterL1Track = TTTrackHandle->begin(); iterL1Track != TTTrackHandle->end(); iterL1Track++) {
-        
         // Fetch L1 TTTrack from Collection.
         edm::Ptr<TTTrack<Ref_Phase2TrackerDigi_>> l1track_ptr(TTTrackHandle, this_l1track);
 
@@ -242,7 +234,6 @@ namespace trklet {
 
         // Iterate over StreamTracks in Event; to find the one that matches to iterL1Track.
         for (int region = 0; region < setup->sysNumRegion() && !found_match; region++) {
-          
           // Fetch Stream with Offset #0, which corresponds to TQ Input (= KF Output) Tracks.
           const tt::StreamTrack& streamTrack0 = streamsTrack[region * 2 + 0];
 
@@ -256,14 +247,14 @@ namespace trklet {
 
           // Throw Exception when Said Frames are mismatched.
           if (numFrames1 != numFrames0) {
-            throw cms::Exception("FrameMismatch") << "numFrames1 (" << numFrames1 << ") != numFrames0 (" << numFrames0 << "). This should not happen.";
+            throw cms::Exception("FrameMismatch")
+                << "numFrames1 (" << numFrames1 << ") != numFrames0 (" << numFrames0 << "). This should not happen.";
           } else {
             numFrames = numFrames1;
           }
 
           // Iterate Over Common
           for (int frame = 0; frame < numFrames && !found_match; frame++) {
-
             if (streamTrack1[frame].first.isNull() || streamTrack0[frame].first.isNull())
               continue;
 
@@ -316,9 +307,8 @@ namespace trklet {
 
         // This should never happen. Throw Exception if it does.
         if (num_matched != 1) {
-            throw cms::Exception("MatchError")
-                << "L1 track " << this_l1track << " matched " << num_matched 
-                << " TQ tracks. Expected exactly 1 match.";
+          throw cms::Exception("MatchError")
+              << "L1 track " << this_l1track << " matched " << num_matched << " TQ tracks. Expected exactly 1 match.";
         }
         this_l1track++;
       }

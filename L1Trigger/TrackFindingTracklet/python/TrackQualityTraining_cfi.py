@@ -9,6 +9,5 @@ TrackQualityTraining_params = cms.PSet (
   TrainingMode              = cms.bool     ( True ), # By Default False.
   EvaluationMode            = cms.bool     ( True ), # By Default False.
   L1TrackInputTag           = cms.InputTag ("ProducerTFP", "TTTrackAccepted"),
-  MCTruthTrackInputTag      = cms.InputTag ("TTTrackAssociatorFromPixelDigis", "TTTrackAccepted"),
 
 )
