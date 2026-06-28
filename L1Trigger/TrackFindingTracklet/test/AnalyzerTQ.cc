@@ -17,6 +17,7 @@
 #include "L1Trigger/TrackTrigger/interface/Associator.h"
 #include "L1Trigger/TrackFindingTracklet/interface/DataFormats.h"
 #include "SimDataFormats/Associations/interface/TTTrackAssociationMap.h"
+#include "L1Trigger/TrackFindingTracklet/interface/TrackQuality.h"
 
 #include <TProfile.h>
 #include <TTree.h>
@@ -280,11 +281,9 @@ namespace trklet {
               num_matched++;
               found_match = true;
               // Compute BDT Input Features
-              const double z0_scale = std::pow(2, 3);
-              const double tanL_scale = std::pow(2, 7);
               feature_1 = stubRefs.size();
-              feature_2 = dfZT.integer(trackKF.z0()) / z0_scale;
-              feature_3 = dfCot.integer(trackKF.cot()) / tanL_scale;
+              feature_2 = static_cast<double>(dfZT.integer(trackKF.z0())) / trklet::Z0_SCALE_FACTOR;
+              feature_3 = static_cast<double>(dfCot.integer(trackKF.cot())) / trklet::TANL_SCALE_FACTOR;
               feature_4 = dfChi20.integer(trackTQ.chi20());
               feature_5 = dfChi21.integer(trackTQ.chi21());
               const TTBV hitPattern = trackTQ.hitPattern();

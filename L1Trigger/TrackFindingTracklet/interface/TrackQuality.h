@@ -15,6 +15,8 @@ namespace trklet {
   typedef ap_int<20> AP_INT_BDT;
   typedef ap_fixed<20, 10> AP_FIXED_BDT;
   typedef conifer::BDT<AP_FIXED_BDT, AP_FIXED_BDT> EmulatorBDT;
+  constexpr double Z0_SCALE_FACTOR = std::pow(2, 3);
+  constexpr double TANL_SCALE_FACTOR = std::pow(2, 7);
 
   /*! \class  trklet::TrackQuality
    *  \brief  Bit accurate emulation of the track quality BDT including calculation of chi2s.

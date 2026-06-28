@@ -81,11 +81,9 @@ namespace trklet {
       chi21F = dfChi21.limit(chi21F);
       const int nStubs = hitPattern.count();
       const int nGaps = hitPattern.count(hitPattern.plEncode(), hitPattern.pmEncode(), false);
-      const double z0_scale = std::pow(2, 3);
-      const double tanL_scale = std::pow(2, 7);
       const double feature_1 = nStubs;
-      const double feature_2 = dfZT.integer(frame.track_->z0()) / z0_scale;
-      const double feature_3 = dfCot.integer(frame.track_->cot()) / tanL_scale;
+      const double feature_2 = static_cast<double>(dfZT.integer(frame.track_->z0())) / Z0_SCALE_FACTOR;
+      const double feature_3 = static_cast<double>(dfCot.integer(frame.track_->cot())) / TANL_SCALE_FACTOR;
       const double feature_4 = dfChi20.integer(chi20F);  // leave as is
       const double feature_5 = dfChi21.integer(chi21F);  // leave as is
       const double feature_6 = nGaps;
