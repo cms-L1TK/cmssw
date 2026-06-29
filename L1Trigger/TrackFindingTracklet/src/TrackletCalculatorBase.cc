@@ -24,7 +24,7 @@ void TrackletCalculatorBase::init(int iSeed) {
   n_z_ = 11;
   n_phi0_ = 16;
   n_rinv_ = 13;
-  n_t_ = 9;
+  n_t_ = settings_.nbitst() - 5;
   n_phidisk_ = n_phi_ - 3;
   n_rdisk_ = n_r_ - 1;
 
@@ -39,31 +39,6 @@ void TrackletCalculatorBase::init(int iSeed) {
   n_delta02_ = 14 - 2;
   n_x6_ = 15 + 1;
   n_HG_ = 15;
-
-  //Note used?
-
-  /*
-  //Constants used for projectison to layers
-  n_s_ = 12;
-  n_s6_ = 14;
-
-  //Constants used for projectison to disks
-  n_tinv_ = 12;
-  n_y_ = 14;
-  n_x_ = 14;
-  n_xx6_ = 14;
-
-  //Not used!
-  LUT_itinv_.resize(8192);
-
-  for (int it = 0; it < 8192; it++) {
-    if (it < 100) {
-      LUT_itinv_[it] = 0;
-    } else {
-      LUT_itinv_[it] = (1 << (n_t_ + n_tinv_)) / abs(it);
-    }
-  }
-  */
 
   if (iSeed < 4) {  //FIXME - should not have hardcoded number here
     n_Deltar_ = 24;
@@ -184,6 +159,8 @@ void TrackletCalculatorBase::calcPars(unsigned int idr,
 
   iz0_new = iz1 + ((((it1 * ix6) >> (n_x6_ + 5 - 1)) + 1) >> 1);
 
+  std::cout << "TPAR: " << it_new << " " << iz0_new << " " << iphi0_new << " "<< irinv_new << std::endl;
+  
   if (print) {
     std::cout << "=================================" << std::endl;
     std::cout << "ir1 iz1: " << ir1 << " " << iz1 << std::endl;

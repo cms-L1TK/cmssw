@@ -593,13 +593,13 @@ namespace trklet {
     //Bits used to store track parameter in tracklet
     int nbitsrinv_{14};
     int nbitsphi0_{18};
-    int nbitst_{14};
+    int nbitst_{15}; //change from 14 to 15?
     int nbitsz0_{10};
 
     //track and tracklet parameters
     int rinv_shift_{-8};  // Krinv = 2^shift * Kphi/Kr
     int phi0_shift_{1};   // Kphi0 = 2^shift * Kphi
-    int t_shift_{-10};    // Kt    = 2^shift * Kz/Kr
+    int t_shift_{-10-1};    // Kt    = 2^shift * Kz/Kr
     int z0_shift_{0};     // Kz0   = 2^shift * kz
 
     //projections are coarsened from global to stub precision
@@ -868,21 +868,21 @@ namespace trklet {
                                                             {"HitPattern", false},
                                                             {"ChiSq", false},
                                                             {"Seeds", false},
-                                                            {"FT", false},
+                                                            {"FT", true},
                                                             {"Residuals", false},
                                                             {"StubBend", false},
                                                             {"MC", false},
-                                                            {"MP", false},
+                                                            {"MP", true},
                                                             {"ME", false},
                                                             {"AP", false},
                                                             {"VMP", false},
                                                             {"TrackProjOcc", false},
                                                             {"TC", false},
                                                             {"Pars", false},
-                                                            {"TPars", false},
+                                                            {"TPars", true},
                                                             {"TPD", false},
                                                             {"TrackletPars", false},
-                                                            {"ProjectionCalculator", false},
+                                                            {"ProjectionCalculator", true},
                                                             {"MPDiskProjection", false},
                                                             {"TED", false},
                                                             {"TP", false},

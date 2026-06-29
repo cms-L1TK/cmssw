@@ -58,7 +58,7 @@ void ProjectionCalculator::projLayer(int ir, int irinv, int iphi0, int it, int i
   long int is6 = (1 << n_s6_) + ((is * is) >> (2 + 2 * n_r_ + 2 * n_rinv_ - 2 * n_s_ - n_s6_));
   long int iu = (ir * irinv) >> (n_r_ + n_rinv_ + 1 - n_phi_);
   iphi = (iphi0 << (n_phi_ - n_phi0_)) - ((iu * is6) >> n_s6_);
-  long int iv = (it * ir) >> (n_r_ + n_t_ - n_z_ - n_iv_);
+  long int iv = (it * ir) >> (1 + n_r_ + n_t_ - n_z_ - n_iv_);
   iz = iz0 + ((((iv * is6) >> (n_iv_ + n_s6_ - 1)) + 1) >> 1);
 }
 
@@ -68,11 +68,16 @@ void ProjectionCalculator::projDisk(
   long int iz0_sign = (it > 0) ? iz0 : -iz0;
 
   assert(abs(it) < static_cast<int>(LUT_itinv_.size()));
-  long int itinv = LUT_itinv_[abs(it)];
+  long int itinv = LUT_itinv_[abs(it/2)];
 
   iderphi = (-irinv * itinv) >> (n_tinv_ + 5);
   iderr = ((itinv >> (n_tinv_ - 9 - 1)) + 1) >> 1;
 
+  if (iderr==512) {
+    std::cout << "Warning iderr" << std::endl;
+    iderr = 511;
+  }
+  
   if (it < 0) {
     iderphi = -iderphi;
     iderr = -iderr;
@@ -241,7 +246,7 @@ void ProjectionCalculator::execute(unsigned int iSector, double phimin) {
 
           // Layer Proj Derivatives
           der_phi_LD[0] = -(irinv >> (1 + 3));
-          der_zr_LD[0] = it >> 3;
+          der_zr_LD[0] = it >> (3+1);
 
           ////////////////////////////////
           // calculate disk projections //
