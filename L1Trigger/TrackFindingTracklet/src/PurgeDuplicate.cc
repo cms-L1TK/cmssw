@@ -162,9 +162,10 @@ void PurgeDuplicate::execute(std::vector<Track>& outputtracks, unsigned int iSec
               // Best Guess:          L1L2 > L1D1 > L2L3 > L2D1 > D1D2 > L3L4 > L5L6 > D3D4
               // Best Rank:           L1L2 > L3L4 > D3D4 > D1D2 > L2L3 > L2D1 > L5L6 > L1D1
               // Rank-Informed Guess: L1L2 > L3L4 > L1D1 > L2L3 > L2D1 > D1D2 > L5L6 > D3D4
-              // Best Displaced Rank: L2L3L4 >  L4L5L6 > L2D1D2 > L2L3D1   
+              // Best Displaced Rank: L2L3L4 >  L4L5L6 > L2D1D2 > L2L3D1
               const unsigned int curSeed = aTrack->seedIndex();
-              static const std::vector<int> ranks{1, 5, 2, 7, 4, 3, 8, 6, 9, 10, 12, 11}; // L2L3L4 >  L4L5L6 > L2D1D2 > L2L3D1 
+              static const std::vector<int> ranks{
+                  1, 5, 2, 7, 4, 3, 8, 6, 9, 10, 12, 11};  // L2L3L4 >  L4L5L6 > L2D1D2 > L2L3D1
               if (curSeed < ranks.size()) {
                 seedRank.push_back(ranks[curSeed]);
               }
@@ -294,7 +295,7 @@ void PurgeDuplicate::execute(std::vector<Track>& outputtracks, unsigned int iSec
               dupMap[seedRankIdx[itrk]][seedRankIdx[jtrk]] = true;
               dupMap[seedRankIdx[jtrk]][seedRankIdx[itrk]] = true;
               if (seedRank[seedRankIdx[itrk]] <= seedRank[seedRankIdx[jtrk]]) {
-                  mergedTrack[seedRankIdx[jtrk]] = true;
+                mergedTrack[seedRankIdx[jtrk]] = true;
               }
             }
           }
@@ -307,12 +308,12 @@ void PurgeDuplicate::execute(std::vector<Track>& outputtracks, unsigned int iSec
               int preftrk;
               int rejetrk;
               if (seedRank[seedRankIdx[itrk]] <= seedRank[seedRankIdx[jtrk]]) {
-                  preftrk = itrk;
-                  rejetrk = jtrk;
-                } else {
-                  preftrk = jtrk;
-                  rejetrk = itrk;
-                }
+                preftrk = itrk;
+                rejetrk = jtrk;
+              } else {
+                preftrk = jtrk;
+                rejetrk = itrk;
+              }
 
               // If the preffered track is in more than one bin, but not in the proper rinv or phi bin, then mark as true
               if (((findOverlapRinvBins(sortedinputtracklets[preftrk]).size() > 1) &&
