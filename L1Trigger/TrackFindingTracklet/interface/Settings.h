@@ -373,12 +373,6 @@ namespace trklet {
     int nbitst() const { return nbitst_; }
     int nbitsz0() const { return nbitsz0_; }
 
-    //track and tracklet parameters
-    int rinv_shift() const { return rinv_shift_; }
-    int phi0_shift() const { return phi0_shift_; }
-    int t_shift() const { return t_shift_; }
-    int z0_shift() const { return z0_shift_; }
-
     //projections are coarsened from global to stub precision
 
     //projection to R parameters
@@ -602,12 +596,6 @@ namespace trklet {
     int nbitsphi0_{18};
     int nbitst_{15}; //change from 14 to 15?
     int nbitsz0_{11}; //change from 10 to 11
-
-    //track and tracklet parameters
-    int rinv_shift_{-8};  // Krinv = 2^shift * Kphi/Kr
-    int phi0_shift_{1};   // Kphi0 = 2^shift * Kphi
-    int t_shift_{-10-1};    // Kt    = 2^shift * Kz/Kr
-    int z0_shift_{0};     // Kz0   = 2^shift * kz
 
     //projections are coarsened from global to stub precision
 
