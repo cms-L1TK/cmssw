@@ -867,7 +867,7 @@ namespace trklet {
                                                             {"Residuals", false},
                                                             {"StubBend", false},
                                                             {"MC", false},
-                                                            {"MP", true},
+                                                            {"MP", false},
                                                             {"ME", false},
                                                             {"AP", false},
                                                             {"VMP", false},
