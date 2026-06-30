@@ -61,8 +61,6 @@ namespace trklet {
     edm::ESGetToken<Setup, trackerDTC::SetupRcd> esGetTokenSetup_;
     // DataFormats token
     edm::ESGetToken<DataFormats, trackerDTC::SetupRcd> esGetTokenDataFormats_;
-    // TTTrackAssociationMap Token (Failed Attempt to Work with Those below)
-    edm::EDGetTokenT<TTTrackAssociationMap<Ref_Phase2TrackerDigi_>> ttTrackMCTruthToken_;
     //
     int numMVA_ = 8;
     //
