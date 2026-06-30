@@ -59,7 +59,7 @@ void ProjectionCalculator::projLayer(int ir, int irinv, int iphi0, int it, int i
   long int iu = (ir * irinv) >> (n_r_ + n_rinv_ + 1 - n_phi_);
   iphi = (iphi0 << (n_phi_ - n_phi0_)) - ((iu * is6) >> n_s6_);
   long int iv = (it * ir) >> (1 + n_r_ + n_t_ - n_z_ - n_iv_);
-  iz = iz0 + ((((iv * is6) >> (n_iv_ + n_s6_ - 1)) + 1) >> 1);
+  iz = ((iz0 + ((iv * is6) >> (n_iv_ + n_s6_ - 1)) + 1) >> 1); //FIXME
 }
 
 // Project to disk (taken from TrackletCalculatorBase.cc)
@@ -85,7 +85,7 @@ void ProjectionCalculator::projDisk(
 
   int nw = 2;
 
-  long int iw = (((iz << (n_r_ - n_z_)) - (iz0_sign << (n_r_ - n_z_))) * itinv) >> (n_tinv_ - nw);
+  long int iw = (((iz << (n_r_ - n_z_)) - (iz0_sign << (n_r_ - n_z_ - 1))) * itinv) >> (n_tinv_ - nw); //FIXME
 
   iphi = (iphi0 >> (n_phi0_ - n_phidisk_)) - ((iw * irinv) >> (1 + n_r_ + n_rinv_ - n_phidisk_ + nw));
 

@@ -22,6 +22,7 @@ void TrackletCalculatorBase::init(int iSeed) {
   n_phi_ = 17;
   n_r_ = 12;
   n_z_ = 11;
+  n_z0_ = 12;
   n_phi0_ = 16;
   n_rinv_ = 13;
   n_t_ = settings_.nbitst() - 5;
@@ -154,13 +155,12 @@ void TrackletCalculatorBase::calcPars(unsigned int idr,
   iphi0_new =
       (((iphi1 + ((idelta1 * ix6) >> (n_Deltar_ + n_x6_ - n_delta0_ - n_delta1_))) >> (n_phi_ - n_phi0_ - 1)) + 1) >> 1;
 
+  //Fixme - n_z_ should not be track pars
   long int shift_tmp = n_Deltar_ + n_a_ + n_z_ - n_t_ - n_deltaz_ - n_r_;
-  it_new = (((ideltaz * ia) >> (shift_tmp - 1)) + 1) >> 1;
+  it_new = (((ideltaz * ia) >> (shift_tmp-1)) + 1) >> 1;
 
-  iz0_new = iz1 + ((((it1 * ix6) >> (n_x6_ + 5 - 1)) + 1) >> 1);
+  iz0_new = (iz1 << 1) + ((((it1 * ix6) >> (n_x6_ + 3)) + 1) >> 1);
 
-  std::cout << "TPAR: " << it_new << " " << iz0_new << " " << iphi0_new << " "<< irinv_new << std::endl;
-  
   if (print) {
     std::cout << "=================================" << std::endl;
     std::cout << "ir1 iz1: " << ir1 << " " << iz1 << std::endl;
@@ -276,9 +276,9 @@ bool TrackletCalculatorBase::barrelSeeding(const Stub* innerFPGAStub,
   calcPars(idr, iphi1, ir1abs, iz1, iphi2, ir2abs, iz2, irinv_new, iphi0_new, iz0_new, it_new, print);
 
   bool rinvcut = abs(irinv_new) < settings_.rinvcut() * (120.0 * (1 << n_rinv_)) / phiHG_;
-  bool z0cut = abs(iz0_new) < settings_.z0cut() * (1 << n_z_) / 120.0;
+  bool z0cut = abs(iz0_new) < settings_.z0cut() * (1 << n_z0_) / 120.0;
   if (iSeed_ != 0) {
-    z0cut = abs(iz0_new) < 1.5 * settings_.z0cut() * (1 << n_z_) / 120.0;
+    z0cut = abs(iz0_new) < 1.5 * settings_.z0cut() * (1 << n_z0_) / 120.0;
   }
 
   if (!goodTrackPars(rinvcut, z0cut)) {
@@ -432,7 +432,7 @@ bool TrackletCalculatorBase::diskSeeding(const Stub* innerFPGAStub,
   }
 
   bool rinvcut = abs(irinv_new) < settings_.rinvcut() * (120.0 * (1 << n_rinv_)) / phiHG_;
-  bool z0cut = abs(iz0_new) < settings_.z0cut() * (1 << n_z_) / 120.0;
+  bool z0cut = abs(iz0_new) < settings_.z0cut() * (1 << n_z0_) / 120.0;
 
   if (print) {
     edm::LogVerbatim("Tracklet") << "Pass cuts: " << rinvcut << " " << z0cut << " "
@@ -440,6 +440,7 @@ bool TrackletCalculatorBase::diskSeeding(const Stub* innerFPGAStub,
     edm::LogVerbatim("Tracklet") << "rinvcut  : " << settings_.rinvmax() * (120.0 * (1 << n_rinv_)) / phiHG_ << " "
                                  << settings_.rinvmax() << " " << 1.0 / ((120.0 * (1 << n_rinv_)) / phiHG_);
   }
+
 
   if (!goodTrackPars(rinvcut, z0cut))
     return false;
@@ -573,7 +574,7 @@ bool TrackletCalculatorBase::overlapSeeding(const Stub* innerFPGAStub,
   }
 
   bool rinvcut = abs(irinv_new) < settings_.rinvcut() * (120.0 * (1 << n_rinv_)) / phiHG_;
-  bool z0cut = abs(iz0_new) < settings_.z0cut() * (1 << n_z_) / 120.0;
+  bool z0cut = abs(iz0_new) < settings_.z0cut() * (1 << n_z0_) / 120.0;
 
   if (!goodTrackPars(rinvcut, z0cut))
     return false;

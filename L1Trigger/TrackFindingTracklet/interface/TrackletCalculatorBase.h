@@ -89,6 +89,7 @@ namespace trklet {
     int n_phi_;
     int n_r_;
     int n_z_;
+    int n_z0_;
     int n_phi0_;
     int n_rinv_;
     int n_t_;
