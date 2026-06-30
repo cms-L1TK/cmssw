@@ -21,7 +21,6 @@
 
 #include <TProfile.h>
 #include <TTree.h>
-#include <TH1F.h>
 
 #include <vector>
 #include <deque>
@@ -44,7 +43,7 @@ namespace trklet {
     void beginJob() override {}
     void beginRun(const edm::Run& iEvent, const edm::EventSetup& iSetup) override;
     void analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) override;
-    void endRun(const edm::Run& iEvent, const edm::EventSetup& iSetup) override {}
+    void endRun(const edm::Run& iEvent, const edm::EventSetup& iSetup) override;
     void endJob() override;
 
   private:
@@ -64,8 +63,6 @@ namespace trklet {
     edm::ESGetToken<DataFormats, trackerDTC::SetupRcd> esGetTokenDataFormats_;
     // TTTrackAssociationMap Token (Failed Attempt to Work with Those below)
     edm::EDGetTokenT<TTTrackAssociationMap<Ref_Phase2TrackerDigi_>> ttTrackMCTruthToken_;
-    // TTTracks Token
-    edm::EDGetTokenT<std::vector<TTTrack<Ref_Phase2TrackerDigi_>>> ttTrackToken_;
     //
     int numMVA_ = 8;
     //
@@ -74,33 +71,21 @@ namespace trklet {
     int nEvents_ = 0;
     // Histograms
     std::vector<TProfile*> prof_;
-    TH1D* BDTScoreHist_Real;
-    TH1D* BDTScoreHist_Fake;
     // printout
     std::stringstream log_;
-    // private
-    edm::InputTag L1TrackInputTag;
-    // tree
-    bool training_run;
-    bool evaluation_run;
-    TTree* tree_;
-    std::vector<int> f_nstubs;
-    std::vector<double> f_zT;
-    std::vector<double> f_cot;
-    std::vector<double> f_chi20;
-    std::vector<double> f_chi21;
-    std::vector<int> f_ngaps;
-
-    // private helper methods
-    std::vector<TTStubRef> getStubRefs(int region, int frame, int numRegions, const tt::StreamsStub& streamsStub);
-    void clearBranches();
+    // BDT training data
+    TTree* tTree_;
+    std::vector<int>* nstubs_;
+    std::vector<double>* z0_;
+    std::vector<double>* cot_;
+    std::vector<double>* chi20_;
+    std::vector<double>* chi21_;
+    std::vector<int>* ngaps_;
+    std::vector<bool>* real_;
   };
 
   AnalyzerTQ::AnalyzerTQ(const edm::ParameterSet& iConfig)
       : looseMatching_(iConfig.getParameter<bool>("LooseMatching")) {
-    L1TrackInputTag = iConfig.getParameter<edm::InputTag>("L1TrackInputTag");
-    training_run = iConfig.getParameter<bool>("TrainingMode");
-    evaluation_run = iConfig.getParameter<bool>("EvaluationMode");
     usesResource("TFileService");
     // book in- and output ED products
     const std::string& labelKF = iConfig.getParameter<std::string>("OutputLabelKF");
@@ -114,7 +99,6 @@ namespace trklet {
     const std::string& branchEff = iConfig.getParameter<std::string>("BranchEff");
     edGetTokenFake_ = consumes(edm::InputTag(labelMC, branchFake));
     edGetTokenEff_ = consumes(edm::InputTag(labelMC, branchEff));
-    ttTrackToken_ = consumes<std::vector<TTTrack<Ref_Phase2TrackerDigi_>>>(L1TrackInputTag);
     // book ES products
     esGetTokenAssociator_ = esConsumes();
     esGetTokenSetup_ = esConsumes();
@@ -129,8 +113,6 @@ namespace trklet {
     edm::Service<TFileService> fs;
     TFileDirectory dir;
     dir = fs->mkdir("TQ");
-    BDTScoreHist_Real = dir.make<TH1D>("BDTScoreHist_Real", ";BDT Score;Entries", 7, 0, numMVA_ - 1);
-    BDTScoreHist_Fake = dir.make<TH1D>("BDTScoreHist_Fake", ";BDT Score;Entries", 7, 0, numMVA_ - 1);
     prof_ = std::vector<TProfile*>(numMVA_);
     for (int mva = 0; mva < numMVA_; mva++) {
       prof_[mva] = dir.make<TProfile>(("Counts for MVA" + std::to_string(mva)).c_str(), ";", 4, 0.5, 4.5);
@@ -139,17 +121,22 @@ namespace trklet {
       prof_[mva]->GetXaxis()->SetBinLabel(3, "Matched to any Tracks");
       prof_[mva]->GetXaxis()->SetBinLabel(4, "Found Perfect TPs");
     }
-
-    if (training_run) {
-      tree_ = fs->make<TTree>("TrackQualityAttributes", "Track Quality Analysis");
-      // Branches to Train Against
-      tree_->Branch("trk_feature_1", &f_nstubs);
-      tree_->Branch("trk_feature_2", &f_zT);
-      tree_->Branch("trk_feature_3", &f_cot);
-      tree_->Branch("trk_feature_4", &f_chi20);
-      tree_->Branch("trk_feature_5", &f_chi21);
-      tree_->Branch("trk_feature_6", &f_ngaps);
-    }
+    // book data storage for training
+    nstubs_ = new std::vector<int>;
+    z0_ = new std::vector<double>;
+    cot_ = new std::vector<double>;
+    chi20_ = new std::vector<double>;
+    chi21_ = new std::vector<double>;
+    ngaps_ = new std::vector<int>;
+    real_ = new std::vector<bool>;
+    tTree_ = fs->make<TTree>("TrackQualityAttributes", "Track Quality Analysis");
+    tTree_->Branch("trk_feature_1", nstubs_);
+    tTree_->Branch("trk_feature_2", z0_);
+    tTree_->Branch("trk_feature_3", cot_);
+    tTree_->Branch("trk_feature_4", chi20_);
+    tTree_->Branch("trk_feature_5", chi21_);
+    tTree_->Branch("trk_feature_6", ngaps_);
+    tTree_->Branch("trk_real", real_);
   }
 
   void AnalyzerTQ::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
@@ -158,6 +145,10 @@ namespace trklet {
     const tt::StreamsTrack& streamsTrack = iEvent.get(edGetTokenTracks_);
     const Setup* setup = &iSetup.getData(esGetTokenSetup_);
     const DataFormats* df = &iSetup.getData(esGetTokenDataFormats_);
+    const DataFormat& dfChi20 = df->format(Variable::chi20, Process::tq);
+    const DataFormat& dfChi21 = df->format(Variable::chi21, Process::tq);
+    const DataFormat& dfZ0 = df->format(Variable::z0, Process::tq);
+    const DataFormat& dfCot = df->format(Variable::cot, Process::tq);
     // read in MCTruth
     tt::Associator forFake = iSetup.getData(esGetTokenAssociator_);
     tt::Associator forEff = iSetup.getData(esGetTokenAssociator_);
@@ -165,12 +156,13 @@ namespace trklet {
     forEff.consume(iEvent.get(edGetTokenEff_));
     for (TProfile* prof : prof_)
       prof->Fill(1, forEff.numTPs());
-    // analyze and associate tracks with TrackingParticles per mva categorie
+    // analyze and associate tracks with TrackingParticles per mva categorie and Store training data
     for (int mva = 0; mva < numMVA_; mva++) {
       std::set<TPPtr> tpPtrsPerfect;
       int nTracks(0);
       int nMatched(0);
       for (int region = 0; region < setup->sysNumRegion(); region++) {
+        const int offset = region * setup->kfNumLayers();
         const tt::StreamTrack& streamTrack = streamsTrack[region * 2 + 1];
         const int numFrames = streamTrack.size();
         for (int frame = 0; frame < numFrames; frame++) {
@@ -180,13 +172,24 @@ namespace trklet {
           if (trackTQ.mva() < mva)
             continue;
           nTracks++;
-          const int offset = region * setup->kfNumLayers();
           std::vector<TTStubRef> ttStubRefs;
           ttStubRefs.reserve(setup->kfNumLayers());
           for (int layer = 0; layer < setup->kfNumLayers(); layer++) {
             const TTStubRef& ttStubRef = streamsStub[offset + layer][frame].first;
             if (ttStubRef.isNonnull())
               ttStubRefs.push_back(ttStubRef);
+          }
+          // store training data
+          if (mva == 0) {
+            const TrackKF trackKF(streamsTrack[region * 2][frame], df);
+            const TTBV& hitPattern = trackTQ.hitPattern();
+            nstubs_->emplace_back(hitPattern.count());
+            z0_->emplace_back(dfZ0.integer(trackKF.z0()) / setup->tqScaleFactorZ0());
+            cot_->emplace_back(dfCot.integer(trackKF.cot()) / setup->tqScaleFactorCot());
+            chi20_->emplace_back(dfChi20.integer(trackTQ.chi20()));
+            chi21_->emplace_back(dfChi21.integer(trackTQ.chi21()));
+            ngaps_->emplace_back(hitPattern.count(hitPattern.plEncode(), hitPattern.pmEncode(), false));
+            real_->emplace_back(!forFake.associateFinal(ttStubRefs).empty());
           }
           const std::vector<TPPtr>& any =
               looseMatching_ ? forFake.associate(ttStubRefs) : forFake.associateFinal(ttStubRefs);
@@ -201,122 +204,15 @@ namespace trklet {
       prof_[mva]->Fill(3, nMatched);
       prof_[mva]->Fill(4, tpPtrsPerfect.size());
     }
-
-    if (training_run || evaluation_run) {
-      // Initialize TTTrackHandle
-      edm::Handle<std::vector<TTTrack<Ref_Phase2TrackerDigi_>>> TTTrackHandle;
-      iEvent.getByToken(ttTrackToken_, TTTrackHandle);
-
-      if (training_run)
-        clearBranches();
-
-      // Initialize Dummy Variable for L1 TTTrack Counting and TQ BDT Features
-      int this_l1track = 0;
-      double feature_1 = 0;
-      double feature_2 = 0;
-      double feature_3 = 0;
-      double feature_4 = 0;
-      double feature_5 = 0;
-      double feature_6 = 0;
-
-      std::vector<TTTrack<Ref_Phase2TrackerDigi_>>::const_iterator iterL1Track;
-      for (iterL1Track = TTTrackHandle->begin(); iterL1Track != TTTrackHandle->end(); iterL1Track++) {
-        // Fetch L1 TTTrack from Collection.
-        edm::Ptr<TTTrack<Ref_Phase2TrackerDigi_>> l1track_ptr(TTTrackHandle, this_l1track);
-
-        // Get StubRefs for this TTTrack.
-        std::vector<TTStubRef> l1track_stubrefs = l1track_ptr->getStubRefs();
-
-        // Set NumMatched Variable
-        int num_matched = 0;
-
-        // Set found_match boolean variable.
-        bool found_match = false;
-
-        // Iterate over StreamTracks in Event; to find the one that matches to iterL1Track.
-        for (int region = 0; region < setup->sysNumRegion() && !found_match; region++) {
-          // Fetch Stream with Offset #0, which corresponds to TQ Input (= KF Output) Tracks.
-          const tt::StreamTrack& streamTrack0 = streamsTrack[region * 2 + 0];
-
-          // Fetch Stream with Offset #1, which corresponds to TQ Converted Tracks.
-          const tt::StreamTrack& streamTrack1 = streamsTrack[region * 2 + 1];
-
-          // Fetch Num Frames = Num Track Objects
-          const int numFrames1 = streamTrack1.size();
-          const int numFrames0 = streamTrack0.size();
-          int numFrames = 0;
-
-          // Throw Exception when Said Frames are mismatched.
-          if (numFrames1 != numFrames0) {
-            throw cms::Exception("FrameMismatch")
-                << "numFrames1 (" << numFrames1 << ") != numFrames0 (" << numFrames0 << "). This should not happen.";
-          } else {
-            numFrames = numFrames1;
-          }
-
-          // Iterate Over Common
-          for (int frame = 0; frame < numFrames && !found_match; frame++) {
-            if (streamTrack1[frame].first.isNull() || streamTrack0[frame].first.isNull())
-              continue;
-
-            // Fetch TQ Frame for the Chi Squared Values.
-            const TrackTQ trackTQ(streamTrack1[frame], df);
-
-            // Fetch KF Frame for the z0, cot and hitpattern.
-            const TrackKF trackKF(streamTrack0[frame], df);
-
-            // Fetch DataFormats for said variables.
-            const DataFormat& dfChi20 = df->format(Variable::chi20, Process::tq);
-            const DataFormat& dfChi21 = df->format(Variable::chi21, Process::tq);
-            const DataFormat& dfZT = df->format(Variable::z0, Process::tq);
-            const DataFormat& dfCot = df->format(Variable::cot, Process::tq);
-
-            std::vector<TTStubRef> stubRefs = getStubRefs(region, frame, setup->kfNumLayers(), streamsStub);
-            bool matched = (stubRefs == l1track_stubrefs);
-
-            // If there is no L1 TTTrack Stub Refs that Match TQ/KF Track StubRefs, Simply Continue.
-            if (!matched) {
-              continue;
-            } else {
-              num_matched++;
-              found_match = true;
-              // Compute BDT Input Features
-              feature_1 = stubRefs.size();
-              feature_2 = static_cast<double>(dfZT.integer(trackKF.z0())) / trklet::Z0_SCALE_FACTOR;
-              feature_3 = static_cast<double>(dfCot.integer(trackKF.cot())) / trklet::TANL_SCALE_FACTOR;
-              feature_4 = dfChi20.integer(trackTQ.chi20());
-              feature_5 = dfChi21.integer(trackTQ.chi21());
-              const TTBV hitPattern = trackTQ.hitPattern();
-              feature_6 = hitPattern.count(hitPattern.plEncode(), hitPattern.pmEncode(), false);
-
-              // Push to Event Vector.
-              f_nstubs.push_back(feature_1);
-              f_zT.push_back(feature_2);
-              f_cot.push_back(feature_3);
-              f_chi20.push_back(feature_4);
-              f_chi21.push_back(feature_5);
-              f_ngaps.push_back(feature_6);
-
-              // Break out of the loop when a match is found.
-              // Oddly enough, it certain cases, two or more matches are found!
-              break;
-            }
-          }
-        }
-
-        // This should never happen. Throw Exception if it does.
-        if (num_matched != 1) {
-          throw cms::Exception("MatchError")
-              << "L1 track " << this_l1track << " matched " << num_matched << " TQ tracks. Expected exactly 1 match.";
-        }
-        this_l1track++;
-      }
-
-      if (training_run)
-        tree_->Fill();
-
-      nEvents_++;
-    }
+    tTree_->Fill();
+    nstubs_->clear();
+    z0_->clear();
+    cot_->clear();
+    chi20_->clear();
+    chi21_->clear();
+    ngaps_->clear();
+    real_->clear();
+    nEvents_++;
   }
 
   void AnalyzerTQ::endJob() {
@@ -338,28 +234,17 @@ namespace trklet {
     log_ << "=============================================================";
     edm::LogPrint(moduleDescription().moduleName()) << log_.str();
   }
-  std::vector<TTStubRef> AnalyzerTQ::getStubRefs(int region,
-                                                 int frame,
-                                                 int numKFLayers,
-                                                 const tt::StreamsStub& streamsStub) {
-    const int offset = region * numKFLayers;
-    std::vector<TTStubRef> ttStubRefs;
-    ttStubRefs.reserve(numKFLayers);
-    for (int layer = 0; layer < numKFLayers; layer++) {
-      const TTStubRef& ttStubRef = streamsStub[offset + layer][frame].first;
-      if (ttStubRef.isNonnull())
-        ttStubRefs.push_back(ttStubRef);
-    }
-    return ttStubRefs;
+
+  void AnalyzerTQ::endRun(const edm::Run& iEvent, const edm::EventSetup& iSetup) {
+    delete nstubs_;
+    delete z0_;
+    delete cot_;
+    delete chi20_;
+    delete chi21_;
+    delete ngaps_;
+    delete real_;
   }
-  void AnalyzerTQ::clearBranches() {
-    f_zT.clear();
-    f_cot.clear();
-    f_chi20.clear();
-    f_chi21.clear();
-    f_nstubs.clear();
-    f_ngaps.clear();
-  }
+
 }  // namespace trklet
 
 DEFINE_FWK_MODULE(trklet::AnalyzerTQ);
