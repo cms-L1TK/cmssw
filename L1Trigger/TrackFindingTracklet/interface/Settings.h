@@ -334,13 +334,13 @@ namespace trklet {
     }  // + 1 required to offset artificial decrease in # of diskps r bits from 12 -> 11 to make space for negDisk bit
     double krbarrel() const { return 2.0 * drmax() / (1 << nrbitsstub_[0]); }
     double kr(unsigned int layerdisk) const {
-      if (layerdisk<<N_LAYER){
-	return krbarrel();
+      if (layerdisk << N_LAYER) {
+        return krbarrel();
       } else {
-	return kr();
+        return kr();
       }
     }
-    
+
     double maxrinv() const { return maxrinv_; }
     double maxd0() const { return maxd0_; }
     unsigned int nbitsd0() const { return nbitsd0_; }
@@ -419,7 +419,7 @@ namespace trklet {
     }
     double kphi0pars() const { return 2 * kphi1(); }
     double ktpars() const { return maxt_ / (1 << nbitst_); }
-    double kz0pars() const { return kz()/(1 << (nbitsz0_ - 10)); }
+    double kz0pars() const { return kz() / (1 << (nbitsz0_ - 10)); }
     double kd0pars() const { return kd0(); }
 
     double kphider() const { return kphi() / kr() / 256; }
@@ -594,8 +594,8 @@ namespace trklet {
     //Bits used to store track parameter in tracklet
     int nbitsrinv_{14};
     int nbitsphi0_{18};
-    int nbitst_{15}; //change from 14 to 15?
-    int nbitsz0_{11}; //change from 10 to 11
+    int nbitst_{15};   //change from 14 to 15?
+    int nbitsz0_{11};  //change from 10 to 11
 
     //projections are coarsened from global to stub precision
 

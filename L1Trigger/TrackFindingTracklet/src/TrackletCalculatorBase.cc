@@ -157,7 +157,7 @@ void TrackletCalculatorBase::calcPars(unsigned int idr,
 
   //Fixme - n_z_ should not be track pars
   long int shift_tmp = n_Deltar_ + n_a_ + n_z_ - n_t_ - n_deltaz_ - n_r_;
-  it_new = (((ideltaz * ia) >> (shift_tmp-1)) + 1) >> 1;
+  it_new = (((ideltaz * ia) >> (shift_tmp - 1)) + 1) >> 1;
 
   iz0_new = (iz1 << 1) + ((((it1 * ix6) >> (n_x6_ + 3)) + 1) >> 1);
 
@@ -440,7 +440,6 @@ bool TrackletCalculatorBase::diskSeeding(const Stub* innerFPGAStub,
     edm::LogVerbatim("Tracklet") << "rinvcut  : " << settings_.rinvmax() * (120.0 * (1 << n_rinv_)) / phiHG_ << " "
                                  << settings_.rinvmax() << " " << 1.0 / ((120.0 * (1 << n_rinv_)) / phiHG_);
   }
-
 
   if (!goodTrackPars(rinvcut, z0cut))
     return false;

@@ -49,9 +49,8 @@ namespace trklet {
     void execute(unsigned int iSector);
 
   private:
-
     void printStub(const Stub* stub);
-    
+
     //0-5 are the layers and 6-10 are the disks
     unsigned int layerdisk_;
 

@@ -385,18 +385,15 @@ bool TrackletCalculatorDisplaced::LLLSeeding(const Stub* innerFPGAStub,
   }
 
   //now binary
-  double krinv = settings_.krinvpars(),
-    kphi0 = settings_.kphi0pars(),
-    kt = settings_.ktpars(),
-    kz0 = settings_.kz0pars(),
-    kphiproj = settings_.kphi1() * pow(2, settings_.SS_phiL_shift()),
-    kphider = settings_.kphi1() / settings_.kr() * pow(2, settings_.SS_phiderL_shift()),
-    kzproj = settings_.kz() * pow(2, settings_.PS_zL_shift()),
-    kzder = settings_.kz() / settings_.kr() * pow(2, settings_.PS_zderL_shift()),
-    kphiprojdisk = settings_.kphi1() * pow(2, settings_.SS_phiD_shift()),
-    kphiderdisk = settings_.kphi1() / settings_.kr() * pow(2, settings_.SS_phiderD_shift()),
-    krprojdisk = settings_.kr() * pow(2, settings_.PS_rD_shift()),
-    krderdisk = settings_.kr() / settings_.kz() * pow(2, settings_.PS_rderD_shift());
+  double krinv = settings_.krinvpars(), kphi0 = settings_.kphi0pars(), kt = settings_.ktpars(),
+         kz0 = settings_.kz0pars(), kphiproj = settings_.kphi1() * pow(2, settings_.SS_phiL_shift()),
+         kphider = settings_.kphi1() / settings_.kr() * pow(2, settings_.SS_phiderL_shift()),
+         kzproj = settings_.kz() * pow(2, settings_.PS_zL_shift()),
+         kzder = settings_.kz() / settings_.kr() * pow(2, settings_.PS_zderL_shift()),
+         kphiprojdisk = settings_.kphi1() * pow(2, settings_.SS_phiD_shift()),
+         kphiderdisk = settings_.kphi1() / settings_.kr() * pow(2, settings_.SS_phiderD_shift()),
+         krprojdisk = settings_.kr() * pow(2, settings_.PS_rD_shift()),
+         krderdisk = settings_.kr() / settings_.kz() * pow(2, settings_.PS_rderD_shift());
 
   int irinv, iphi0, id0, it, iz0;
   int iphiproj[N_LAYER - 2], izproj[N_LAYER - 2], iphider[N_LAYER - 2], izder[N_LAYER - 2];
@@ -803,18 +800,15 @@ bool TrackletCalculatorDisplaced::DDLSeeding(const Stub* innerFPGAStub,
   }
 
   //now binary
-  double krinv = settings_.krinvpars(),
-    kphi0 = settings_.kphi0pars(),
-    kt = settings_.ktpars(),
-    kz0 = settings_.kz0pars(),
-    kphiproj = settings_.kphi1() * pow(2, settings_.SS_phiL_shift()),
-    kphider = settings_.kphi1() / settings_.kr() * pow(2, settings_.SS_phiderL_shift()),
-    kzproj = settings_.kz() * pow(2, settings_.PS_zL_shift()),
-    kzder = settings_.kz() / settings_.kr() * pow(2, settings_.PS_zderL_shift()),
-    kphiprojdisk = settings_.kphi1() * pow(2, settings_.SS_phiD_shift()),
-    kphiderdisk = settings_.kphi1() / settings_.kr() * pow(2, settings_.SS_phiderD_shift()),
-    krprojdisk = settings_.kr() * pow(2, settings_.PS_rD_shift()),
-    krderdisk = settings_.kr() / settings_.kz() * pow(2, settings_.PS_rderD_shift());
+  double krinv = settings_.krinvpars(), kphi0 = settings_.kphi0pars(), kt = settings_.ktpars(),
+         kz0 = settings_.kz0pars(), kphiproj = settings_.kphi1() * pow(2, settings_.SS_phiL_shift()),
+         kphider = settings_.kphi1() / settings_.kr() * pow(2, settings_.SS_phiderL_shift()),
+         kzproj = settings_.kz() * pow(2, settings_.PS_zL_shift()),
+         kzder = settings_.kz() / settings_.kr() * pow(2, settings_.PS_zderL_shift()),
+         kphiprojdisk = settings_.kphi1() * pow(2, settings_.SS_phiD_shift()),
+         kphiderdisk = settings_.kphi1() / settings_.kr() * pow(2, settings_.SS_phiderD_shift()),
+         krprojdisk = settings_.kr() * pow(2, settings_.PS_rD_shift()),
+         krderdisk = settings_.kr() / settings_.kz() * pow(2, settings_.PS_rderD_shift());
 
   int irinv, iphi0, id0, it, iz0;
   int iphiproj[N_LAYER - 2], izproj[N_LAYER - 2], iphider[N_LAYER - 2], izder[N_LAYER - 2];
@@ -1208,19 +1202,16 @@ bool TrackletCalculatorDisplaced::LLDSeeding(const Stub* innerFPGAStub,
   }
 
   //now binary
-  double krinv = settings_.krinvpars(),
-    kphi0 = settings_.kphi0pars(),
-    kt = settings_.ktpars(),
-    kz0 = settings_.kz0pars(),
-    kphiproj = settings_.kphi1() * pow(2, settings_.SS_phiL_shift()),
-    kphider = settings_.kphi1() / settings_.kr() * pow(2, settings_.SS_phiderL_shift()),
-    kzproj = settings_.kz() * pow(2, settings_.PS_zL_shift()),
-    kzder = settings_.kz() / settings_.kr() * pow(2, settings_.PS_zderL_shift()),
-    kphiprojdisk = settings_.kphi1() * pow(2, settings_.SS_phiD_shift()),
-    kphiderdisk = settings_.kphi1() / settings_.kr() * pow(2, settings_.SS_phiderD_shift()),
-    krprojdisk = settings_.kr() * pow(2, settings_.PS_rD_shift()),
-    krderdisk = settings_.kr() / settings_.kz() * pow(2, settings_.PS_rderD_shift());
-  
+  double krinv = settings_.krinvpars(), kphi0 = settings_.kphi0pars(), kt = settings_.ktpars(),
+         kz0 = settings_.kz0pars(), kphiproj = settings_.kphi1() * pow(2, settings_.SS_phiL_shift()),
+         kphider = settings_.kphi1() / settings_.kr() * pow(2, settings_.SS_phiderL_shift()),
+         kzproj = settings_.kz() * pow(2, settings_.PS_zL_shift()),
+         kzder = settings_.kz() / settings_.kr() * pow(2, settings_.PS_zderL_shift()),
+         kphiprojdisk = settings_.kphi1() * pow(2, settings_.SS_phiD_shift()),
+         kphiderdisk = settings_.kphi1() / settings_.kr() * pow(2, settings_.SS_phiderD_shift()),
+         krprojdisk = settings_.kr() * pow(2, settings_.PS_rD_shift()),
+         krderdisk = settings_.kr() / settings_.kz() * pow(2, settings_.PS_rderD_shift());
+
   int irinv, iphi0, id0, it, iz0;
   int iphiproj[N_LAYER - 2], izproj[N_LAYER - 2], iphider[N_LAYER - 2], izder[N_LAYER - 2];
   int iphiprojdisk[N_DISK], irprojdisk[N_DISK], iphiderdisk[N_DISK], irderdisk[N_DISK];
