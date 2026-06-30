@@ -211,7 +211,9 @@ void VMRouterCM::execute(unsigned int) {
 
       Stub* stub = stubinput->getStub(i);
 
-      printStub(stub);
+      if (settings_.writeMonitorData("VMR")) {
+	printStub(stub);
+      }
       
       //Note - below information is not part of the stub, but rather from which input memory
       //we are reading

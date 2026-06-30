@@ -28,7 +28,7 @@ ProjectionCalculator::ProjectionCalculator(string name, Settings const& settings
   n_iv_ = 4;
 
   //Constants used for projectison to disks
-  n_tinv_ = 12 + 1;
+  n_tinv_ = 12 + 2;
   n_y_ = 14;
   n_x_ = 14;
   n_xx6_ = 14 + 1;
@@ -68,16 +68,11 @@ void ProjectionCalculator::projDisk(
   long int iz0_sign = (it > 0) ? iz0 : -iz0;
 
   assert(abs(it) < static_cast<int>(LUT_itinv_.size()));
-  long int itinv = LUT_itinv_[abs(it/2)];
+  long int itinv = LUT_itinv_[abs(it)];
 
-  iderphi = (-irinv * itinv) >> (n_tinv_ + 5);
-  iderr = ((itinv >> (n_tinv_ - 9 - 1)) + 1) >> 1;
+  iderphi = (-irinv * itinv) >> (n_tinv_ + 4);
+  iderr = ((itinv >> (n_tinv_ - 9 - 2)) + 1) >> 1;
 
-  if (iderr==512) {
-    std::cout << "Warning iderr" << std::endl;
-    iderr = 511;
-  }
-  
   if (it < 0) {
     iderphi = -iderphi;
     iderr = -iderr;
@@ -85,7 +80,7 @@ void ProjectionCalculator::projDisk(
 
   int nw = 2;
 
-  long int iw = (((iz << (n_r_ - n_z_)) - (iz0_sign << (n_r_ - n_z_ - 1))) * itinv) >> (n_tinv_ - nw); //FIXME
+  long int iw = (((iz << (n_r_ - n_z_)) - (iz0_sign << (n_r_ - n_z_ - 1))) * itinv) >> (n_tinv_ - nw - 1); //FIXME
 
   iphi = (iphi0 >> (n_phi0_ - n_phidisk_)) - ((iw * irinv) >> (1 + n_r_ + n_rinv_ - n_phidisk_ + nw));
 
@@ -254,7 +249,7 @@ void ProjectionCalculator::execute(unsigned int iSector, double phimin) {
           double irmindisk = settings_.rmindisk() / settings_.kr();
           double irmaxdisk = settings_.rmaxdisk() / settings_.kr();
 
-          int tcut = 1.0 / (settings_.ktpars());
+          int tcut = 1.0 / (settings_.ktpars()) + 1; //Adding +1 protects against iderr (tinv) too large
 
           for (unsigned int iDisk = N_LAYER; iDisk < N_LAYER + N_DISK; ++iDisk) {
             int izproj = settings_.izmean(iDisk % N_LAYER);
