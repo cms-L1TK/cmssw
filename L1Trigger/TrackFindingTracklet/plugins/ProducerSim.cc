@@ -26,7 +26,7 @@
 namespace trklet {
 
   /*! \class  trklet::ProducerSim
-   *  \brief  simulation of Track Processing for extended track finding
+   *  \brief  simulation of Track Processing for prompt or extended track finding
    *  \author Thomas Schuh
    *  \date   2026, June
    */

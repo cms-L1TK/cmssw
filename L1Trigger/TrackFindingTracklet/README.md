@@ -34,7 +34,7 @@ Apart from producing TTTrack collection as the f/w will, HybridTracksNewKF_cfg.p
 
     cmsRun L1Trigger/TrackFindingTracklet/test/HybridTracksSim_cfg.py Events=<n>
 
-runs tracklet track finding followed by Track Processing simulation. In the run script one may want to change the used event files or tracker geometry. One can also easliy switch between prompt and extended tracking there.
+runs tracklet track finding followed by Track Processing simulation. In the run script one may want to change the used event files or tracker geometry. One can also easliy switch between prompt and extended tracking there. TTTracks produced by this contain covariance matrix elements.
 
 === Demonstration ===
 
