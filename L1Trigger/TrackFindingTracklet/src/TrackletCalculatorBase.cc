@@ -19,7 +19,7 @@ void TrackletCalculatorBase::init(int iSeed) {
   phiHG_ = settings_.dphisectorHG();
 
   //Constants for coordinates and track parameter definitions
-  n_phi_ = 17;
+  n_phi_ = settings_.nphibitsstub(N_LAYER - 1);
   n_r_ = 12;
   n_z_ = 11;
   n_z0_ = 12;
@@ -28,6 +28,10 @@ void TrackletCalculatorBase::init(int iSeed) {
   n_t_ = settings_.nbitst() - 5;
 
   //Constants used for tracklet parameter calculations
+  //These controls the number of bits that are kept in the intermediate
+  //calculations. They are in some sense arbitrary, but should be
+  //tuned to get an accurate result without using too much
+  //resources
   n_delta0_ = 9;
   n_deltaz_ = 9;
   n_delta1_ = 10;
