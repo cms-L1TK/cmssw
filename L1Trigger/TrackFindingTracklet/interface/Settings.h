@@ -419,7 +419,7 @@ namespace trklet {
     }
     double kphi0pars() const { return 2 * kphi1(); }
     double ktpars() const { return maxt_ / (1 << nbitst_); }
-    double kz0pars() const { return zlength_ / (1 << nbitsz0_); }
+    double kz0pars() const { return 0.5 * zlength_ / (1 << nbitsz0_); }
     double kd0pars() const { return kd0(); }
 
     double kphider() const { return kphi() / kr() / 256; }
