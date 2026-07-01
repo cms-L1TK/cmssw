@@ -20,11 +20,11 @@ void TrackletCalculatorBase::init(int iSeed) {
 
   //Constants for coordinates and track parameter definitions
   n_phi_ = settings_.nphibitsstub(N_LAYER - 1);
-  n_r_ = 12;
-  n_z_ = 11;
-  n_z0_ = 12;
-  n_phi0_ = 16;
-  n_rinv_ = 13;
+  n_r_ = settings_.nrbitsstub(N_LAYER) + 1;
+  n_z_ = settings_.nzbitsstub(0) - 1;
+  n_z0_ = settings_.nbitsz0() + 1;
+  n_phi0_ = settings_.nbitsphi0() - 2;
+  n_rinv_ = settings_.nbitsrinv() - 1;
   n_t_ = settings_.nbitst() - 5;
 
   //Constants used for tracklet parameter calculations
