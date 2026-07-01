@@ -682,14 +682,14 @@ void L1TrackQualityPlot(TString type, TString type_dir = "", TString treeName = 
     for (int it = 0; it < n_total_tracks; it++) {
       if (mva_cut > 0) {
         if (trk_MVA1s[it] >= mva_cut) {
-          if (trk_eventtypes[it] == 0) {
+          if (trk_eventtypes[it] == -999) {
             n_fakes++;
           } else {
             n_good++;
           }
         }
       } else {
-        if (trk_eventtypes[it] == 0) {
+        if (trk_eventtypes[it] == -999) {
           n_fakes++;
         } else {
           n_good++;
