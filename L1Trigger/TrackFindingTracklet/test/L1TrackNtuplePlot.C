@@ -995,16 +995,6 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
 
   TProfile* p_z0_residualVsEta =
       new TProfile("z0_residualVsEta", "; Tracking particle |#eta|; abs(z_{0} residual)[cm]", 12, 0.0, 2.5, 0.0, 10.);
-  /*
-     TProfile* p_z0_residualVsEta_nps1 = new TProfile(
-         "z0_residualVsEta_nps1", ";Tracking particle |#eta|; abs(z_{0} residual)[cm]", 12, 0.0, 2.5, 0.0, 10.);
-     TProfile* p_z0_residualVsEta_nps2 = new TProfile(
-      "z0_residualVsEta_nps2", ";Tracking particle |#eta|; abs(z_{0} residual)[cm]", 12, 0.0, 2.5, 0.0, 10.);
-  TProfile* p_z0_residualVsEta_nps3 = new TProfile(
-      "z0_residualVsEta_nps3", ";Tracking particle |#eta|; abs(z_{0} residual)[cm]", 12, 0.0, 2.5, 0.0, 10.);
-  TProfile* p_z0_residualVsEta_nps4 = new TProfile(
-      "z0_residualVsEta_nps4", ";Tracking particle |#eta|; abs(z_{0} residual)[cm]", 12, 0.0, 2.5, 0.0, 10.);
-  */
 
   const int nPSCategories = 4;
 
