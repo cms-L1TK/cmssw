@@ -489,6 +489,12 @@ namespace trklet {
     //projection disks by seed index. For each seeding index (row) the list of diks that we consider projections to
     std::array<std::array<unsigned int, N_DISK>, N_SEED> projdisks() const { return projdisks_; }
 
+    bool barrelSeed(unsigned int iSeed) const {
+      return iSeed == Seed::L1L2 || iSeed == Seed::L2L3 || iSeed == Seed::L3L4 || iSeed == Seed::L5L6;
+    }
+    bool diskSeed(unsigned int iSeed) const { return iSeed == Seed::D1D2 || iSeed == Seed::D3D4; }
+    bool overlapSeed(unsigned int iSeed) const { return iSeed == Seed::L1D1 || iSeed == Seed::L2D1; }
+
   private:
     const Setup* setup_;
 

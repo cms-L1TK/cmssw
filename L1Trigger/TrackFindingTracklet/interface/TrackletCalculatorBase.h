@@ -105,6 +105,7 @@ namespace trklet {
     int n_delta12_;
     int n_a_;
     int n_r6_;
+    int n_ifact_;
     int n_delta02_;
     int n_x6_;
     int n_HG_;

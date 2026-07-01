@@ -36,12 +36,13 @@ void TrackletCalculatorBase::init(int iSeed) {
   n_delta2_ = 13 - 1;
   n_delta12_ = 13;
   n_a_ = 15;
-  n_r6_ = 8 + 4;
+  n_r6_ = 6;
+  n_ifact_ = 8 + 4;
   n_delta02_ = 14 - 2;
   n_x6_ = 15 + 1;
   n_HG_ = 15;
 
-  if (iSeed < 4) {  //FIXME - should not have hardcoded number here
+  if (settings_.barrelSeed(iSeed)) {
     n_Deltar_ = 24;
     LUT_idrinv_.resize(512);
     for (int idr = -256; idr < 256; idr++) {
@@ -53,7 +54,7 @@ void TrackletCalculatorBase::init(int iSeed) {
     }
   }
 
-  if (iSeed >= 4 && iSeed < 6) {  //FIXME - should not have hardcoded number here
+  if (settings_.diskSeed(iSeed)) {
     n_Deltar_ = 24;
     LUT_idrinv_.resize(512);
     for (unsigned int idr = 1; idr < 512; idr++) {
@@ -61,12 +62,13 @@ void TrackletCalculatorBase::init(int iSeed) {
     }
   }
 
-  if (iSeed >= 6) {  //FIXME - should not have hardcoded number here
+  if (settings_.overlapSeed(iSeed)) {
     n_Deltar_ = 24;
     n_delta0_ = 14 - 5;
     n_deltaz_ = 9 - 3;
     n_a_ = 14;
-    n_r6_ = 6 + 4;
+    n_r6_ = 6;
+    n_ifact_ = 6 + 4;
     LUT_idrinv_.resize(1024);
     for (unsigned int idr = 1; idr < 1024; idr++) {
       LUT_idrinv_[idr] = 0.5 + float(1 << n_Deltar_) / idr;
@@ -138,14 +140,15 @@ void TrackletCalculatorBase::calcPars(unsigned int idr,
   long int ia = ((1 << n_a_) - ((idelta12 * iHG) >> (2 * n_Deltar_ + 2 * n_phi_ + n_HG_ - 2 * n_delta0_ - n_delta1_ -
                                                      n_delta2_ - n_delta12_ + 1 - n_a_)));
 
-  long int ifact = (1 << n_r6_) * phiHG_ * phiHG_ / 6.0;
+  long int ifact = (1 << n_ifact_) * phiHG_ * phiHG_ / 6.0;
 
-  long ir6 = ((ir1 + ir2) * ifact) >> (n_r6_ - 6);
+  long ir6 = ((ir1 + ir2) * ifact) >> (n_ifact_ - n_r6_);
 
   long int idelta02 = (idelta0 * idelta2) >> n_delta02_;
 
-  long int ix6 = (-(1 << n_x6_) + ((ir6 * idelta02) >>
-                                   (6 + 2 * n_Deltar_ + 2 * n_phi_ - n_x6_ - n_delta2_ - n_delta02_ - 2 * n_delta0_)));
+  long int ix6 =
+      (-(1 << n_x6_) +
+       ((ir6 * idelta02) >> (n_r6_ + 2 * n_Deltar_ + 2 * n_phi_ - n_x6_ - n_delta2_ - n_delta02_ - 2 * n_delta0_)));
 
   //Temporary hack here
   long int it1 = (ir1 * ideltaz) >> (n_Deltar_ - n_deltaz_ - 5);
@@ -155,7 +158,6 @@ void TrackletCalculatorBase::calcPars(unsigned int idr,
   iphi0_new =
       (((iphi1 + ((idelta1 * ix6) >> (n_Deltar_ + n_x6_ - n_delta0_ - n_delta1_))) >> (n_phi_ - n_phi0_ - 1)) + 1) >> 1;
 
-  //Fixme - n_z_ should not be track pars
   long int shift_tmp = n_Deltar_ + n_a_ + n_z_ - n_t_ - n_deltaz_ - n_r_;
   it_new = (((ideltaz * ia) >> (shift_tmp - 1)) + 1) >> 1;
 
