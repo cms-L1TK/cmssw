@@ -128,6 +128,21 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
   int ntrk_genuine_pt2 = 0;
   int ntp_ndupmatch = 0;
   int ntp_ndupmatch_pt2 = 0;
+
+  TH1F* h_trk_nPS_pie = new TH1F("trk_nPS_pie", ";Number of PS stubs;Tracks", 4, 0.5, 4.5);
+
+  h_trk_nPS_pie->GetXaxis()->SetBinLabel(1, "1 PS");
+  h_trk_nPS_pie->GetXaxis()->SetBinLabel(2, "2 PS");
+  h_trk_nPS_pie->GetXaxis()->SetBinLabel(3, "3 PS");
+  h_trk_nPS_pie->GetXaxis()->SetBinLabel(4, "#geq 4 PS");
+
+  TH1F* h_trk_nstub_pie = new TH1F("trk_nstub_pie", ";Number of stubs;Tracks", 4, 3.5, 7.5);
+
+  h_trk_nstub_pie->GetXaxis()->SetBinLabel(1, "4 stubs");
+  h_trk_nstub_pie->GetXaxis()->SetBinLabel(2, "5 stubs");
+  h_trk_nstub_pie->GetXaxis()->SetBinLabel(3, "6 stubs");
+  h_trk_nstub_pie->GetXaxis()->SetBinLabel(4, "7 stubs");
+
   // ----------------------------------------------------------------------------------------------------------------
   // read ntuples
   TChain* tree = new TChain("L1TrackNtuple/eventTree");
@@ -207,6 +222,7 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
   vector<int>* trk_loose;
   vector<int>* trk_matchtp_eventtype;
   vector<float>* trk_matchtp_z0;
+  vector<float>* trk_matchtp_eta;
   vector<int>* trk_injet;
   vector<int>* trk_injet_highpt;
   vector<int>* trk_injet_vhighpt;
@@ -272,6 +288,7 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
   TBranch* b_trk_loose;
   TBranch* b_trk_matchtp_eventtype;
   TBranch* b_trk_matchtp_z0;
+  TBranch* b_trk_matchtp_eta;
   TBranch* b_trk_injet;
   TBranch* b_trk_injet_highpt;
   TBranch* b_trk_injet_vhighpt;
@@ -337,6 +354,7 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
   trk_loose = 0;
   trk_matchtp_eventtype = 0;
   trk_matchtp_z0 = 0;
+  trk_matchtp_eta = 0;
   trk_injet = 0;
   trk_injet_highpt = 0;
   trk_injet_vhighpt = 0;
@@ -407,6 +425,8 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
   tree->SetBranchAddress("trk_loose", &trk_loose, &b_trk_loose);
   tree->SetBranchAddress("trk_matchtp_eventtype", &trk_matchtp_eventtype, &b_trk_matchtp_eventtype);
   tree->SetBranchAddress("trk_matchtp_z0", &trk_matchtp_z0, &b_trk_matchtp_z0);
+  tree->SetBranchAddress("trk_matchtp_eta", &trk_matchtp_eta, &b_trk_matchtp_eta);
+
   if (TP_select_injet > 0) {
     tree->SetBranchAddress("trk_injet", &trk_injet, &b_trk_injet);
     tree->SetBranchAddress("trk_injet_highpt", &trk_injet_highpt, &b_trk_injet_highpt);
@@ -972,6 +992,41 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
       new TProfile("resOverSigmaVsEta_z0", ";#eta; abs(z_{0} residual)/#sigma", 12, 0.0, 2.4, 0.0, 10.);
   TProfile* p_resOverSigmaVsNumPS_z0 = new TProfile(
       "resOverSigmaVsNumPS_z0", ";Number PS stub layers; abs(z_{0} residual)/#sigma", 10, -0.5, 9.5, 0.0, 10.);
+
+  TProfile* p_z0_residualVsEta =
+      new TProfile("z0_residualVsEta", "; Tracking particle |#eta|; abs(z_{0} residual)[cm]", 12, 0.0, 2.5, 0.0, 10.);
+  /*
+     TProfile* p_z0_residualVsEta_nps1 = new TProfile(
+         "z0_residualVsEta_nps1", ";Tracking particle |#eta|; abs(z_{0} residual)[cm]", 12, 0.0, 2.5, 0.0, 10.);
+     TProfile* p_z0_residualVsEta_nps2 = new TProfile(
+      "z0_residualVsEta_nps2", ";Tracking particle |#eta|; abs(z_{0} residual)[cm]", 12, 0.0, 2.5, 0.0, 10.);
+  TProfile* p_z0_residualVsEta_nps3 = new TProfile(
+      "z0_residualVsEta_nps3", ";Tracking particle |#eta|; abs(z_{0} residual)[cm]", 12, 0.0, 2.5, 0.0, 10.);
+  TProfile* p_z0_residualVsEta_nps4 = new TProfile(
+      "z0_residualVsEta_nps4", ";Tracking particle |#eta|; abs(z_{0} residual)[cm]", 12, 0.0, 2.5, 0.0, 10.);
+  */
+
+  const int nPSCategories = 4;
+
+  std::vector<TProfile*> p_z0_residualVsEta_nPS(nPSCategories);
+
+  for (int iPS = 0; iPS < nPSCategories; iPS++) {
+    const int nPSLabel = iPS + 1;
+
+    TString name;
+    TString title;
+
+    if (iPS < nPSCategories - 1) {
+      name = Form("z0_residualVsEta_nps%d", nPSLabel);
+      title = Form(";Tracking particle |#eta|;abs(z_{0} residual) [cm], %d PS stubs", nPSLabel);
+    } else {
+      name = "z0_residualVsEta_npsge4";
+      title = ";Tracking particle |#eta|;abs(z_{0} residual) [cm], #geq 4 PS stubs";
+    }
+
+    p_z0_residualVsEta_nPS[iPS] = new TProfile(name, title, 12, 0.0, 2.5, 0.0, 10.);
+  }
+
   // ----------------------------------------------------------------------------------------------------------------
   // additional ones for sum pt in jets
   /*
@@ -1197,13 +1252,27 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
       }
 
       if (trk_genuine->at(it) && trk_matchtp_eventtype->at(it) == 1) {
-        std::vector<float>* m_trk_matchtp_z0;
-        p_resOverSigmaVsEta_z0->Fill(fabs(trk_eta->at(it)),
-                                     fabs(trk_z0->at(it) - trk_matchtp_z0->at(it)) / trk_sigma_z0->at(it));
-        p_resOverSigmaVsNumPS_z0->Fill(trk_nPS_hitpattern->at(it),
-                                       fabs(trk_z0->at(it) - trk_matchtp_z0->at(it)) / trk_sigma_z0->at(it));
-      }
+        const double absEtaTP = fabs(trk_matchtp_eta->at(it));
+        const double absZ0Residual = fabs(trk_z0->at(it) - trk_matchtp_z0->at(it));
+        const int nPS = trk_nPS_hitpattern->at(it);
+        const int nStubs = trk_nstub->at(it);
 
+        p_resOverSigmaVsEta_z0->Fill(fabs(trk_eta->at(it)), absZ0Residual / trk_sigma_z0->at(it));
+
+        p_resOverSigmaVsNumPS_z0->Fill(nPS, absZ0Residual / trk_sigma_z0->at(it));
+
+        p_z0_residualVsEta->Fill(absEtaTP, absZ0Residual);
+
+        if (nPS >= 1) {
+          const int nPSForPlot = nPS > nPSCategories ? nPSCategories : nPS;
+          const int iPS = nPSForPlot - 1;
+
+          p_z0_residualVsEta_nPS[iPS]->Fill(absEtaTP, absZ0Residual);
+          h_trk_nPS_pie->Fill(nPSForPlot);
+        }
+
+        h_trk_nstub_pie->Fill(nStubs);
+      }
       // ----------------------------------------------------------------------------------------------------------------
       // Fill tracklet propogation efficiency histo
 
@@ -2934,6 +3003,109 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
   c.SaveAs(DIR + type + "_resOverSigmaVsEta_z0.pdf");
   p_resOverSigmaVsNumPS_z0->Draw();
   c.SaveAs(DIR + type + "_resOverSigmaVsNumPS_z0.pdf");
+
+  p_z0_residualVsEta->Write();
+
+  for (int iPS = 0; iPS < nPSCategories; iPS++) {
+    p_z0_residualVsEta_nPS[iPS]->Write();
+  }
+
+  p_z0_residualVsEta->SetLineColor(1);
+  p_z0_residualVsEta->SetMarkerColor(1);
+
+  for (int iPS = 0; iPS < nPSCategories; iPS++) {
+    const int color = iPS + 2;
+
+    p_z0_residualVsEta_nPS[iPS]->SetLineColor(color);
+    p_z0_residualVsEta_nPS[iPS]->SetMarkerColor(color);
+  }
+
+  p_z0_residualVsEta->SetMinimum(0.0);
+  p_z0_residualVsEta->SetMaximum(0.8);
+  p_z0_residualVsEta->Draw();
+
+  for (int iPS = 0; iPS < nPSCategories; iPS++) {
+    p_z0_residualVsEta_nPS[iPS]->Draw("same");
+  }
+
+  TLegend* leg = new TLegend(0.3, 0.7, 0.5, 0.9);
+
+  leg->AddEntry(p_z0_residualVsEta, "Inclusive", "l");
+
+  for (int iPS = 0; iPS < nPSCategories; iPS++) {
+    TString label;
+
+    if (iPS < nPSCategories - 1)
+      label = Form("#PS stubs = %d", iPS + 1);
+    else
+      label = Form("#PS stubs >= %d", nPSCategories);
+
+    leg->AddEntry(p_z0_residualVsEta_nPS[iPS], label, "l");
+  }
+
+  leg->Draw();
+
+  c.SaveAs(DIR + type + "_z0_residualVsEta_nPS.pdf");
+
+  const char* labels[4] = {"4 stubs", "5 stubs", "6 stubs", "7 stubs"
+
+  };
+  double values[4] = {h_trk_nstub_pie->GetBinContent(1),
+                      h_trk_nstub_pie->GetBinContent(2),
+                      h_trk_nstub_pie->GetBinContent(3),
+                      h_trk_nstub_pie->GetBinContent(4)};
+
+  c.SetMargin(0.05, 0.05, 0.05, 0.05);
+
+  TPie* pie = new TPie("pie_stubs", "|#eta| inclusive", 4, values);
+
+  for (int i = 0; i < 4; i++) {
+    pie->SetEntryLabel(i, labels[i]);
+  }
+
+  pie->SetEntryFillColor(0, kAzure + 1);
+  pie->SetEntryFillColor(1, kOrange + 7);
+  pie->SetEntryFillColor(2, kGreen + 2);
+  pie->SetEntryFillColor(3, kMagenta + 1);
+
+  pie->SetCircle(0.5, 0.5, 0.30);
+  pie->SetLabelsOffset(0.01);
+  pie->SetLabelFormat("#splitline{%txt}{%perc}");
+  pie->SetTextSize(0.03);
+  pie->Draw("");
+  c.SaveAs(DIR + type + "_pie_stubs_tracks.pdf");
+
+  double valuesPS[] = {h_trk_nPS_pie->GetBinContent(1),
+                       h_trk_nPS_pie->GetBinContent(2),
+                       h_trk_nPS_pie->GetBinContent(3),
+                       h_trk_nPS_pie->GetBinContent(4)};
+
+  const char* labelsPS[4] = {
+      "1 PS stub", "2 PS stubs", "3 PS stubs", "4 PS stubs"
+      //"Other"
+  };
+
+  //TCanvas* c_pie_PS = new TCanvas("c_pie_PS", "PS stub fractions", 1400, 1000);
+  c.SetMargin(0.05, 0.05, 0.05, 0.05);
+
+  TPie* piePS = new TPie("pie_PS_stubs", "|#eta| inclusive", 4, valuesPS);
+  for (int i = 0; i < 4; i++) {
+    piePS->SetEntryLabel(i, labelsPS[i]);
+  }
+
+  piePS->SetEntryFillColor(0, kAzure + 1);
+  piePS->SetEntryFillColor(1, kOrange + 7);
+  piePS->SetEntryFillColor(2, kGreen + 2);
+  piePS->SetEntryFillColor(3, kMagenta + 1);
+
+  piePS->SetCircle(0.5, 0.5, 0.30);
+  piePS->SetLabelsOffset(0.01);
+  piePS->SetLabelFormat("#splitline{%txt}{%perc}");
+  piePS->SetTextSize(0.03);
+
+  piePS->Draw("");
+  c.SaveAs(DIR + type + "_pie_PS_stubs_tracks.pdf");
+
   //----------------------------------------------------------------------------------------------------------------
   // track quality plots
   // ----------------------------------------------------------------------------------------------------------------
