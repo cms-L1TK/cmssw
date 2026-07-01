@@ -93,8 +93,6 @@ namespace trklet {
     int n_phi0_;
     int n_rinv_;
     int n_t_;
-    int n_phidisk_;
-    int n_rdisk_;
 
     //Constants used for tracklet parameter calculations
     int n_Deltar_;
@@ -108,19 +106,9 @@ namespace trklet {
     int n_ifact_;
     int n_delta02_;
     int n_x6_;
+    int n_it1_;
     int n_HG_;
 
-    //Constants used for projectison to layers
-    int n_s_;
-    int n_s6_;
-
-    //Constants used for projectison to disks
-    int n_tinv_;
-    int n_y_;
-    int n_x_;
-    int n_xx6_;
-
-    std::vector<int> LUT_itinv_;
     std::vector<int> LUT_idrinv_;
   };
 

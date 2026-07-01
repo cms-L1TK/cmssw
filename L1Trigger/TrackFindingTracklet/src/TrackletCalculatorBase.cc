@@ -26,20 +26,19 @@ void TrackletCalculatorBase::init(int iSeed) {
   n_phi0_ = 16;
   n_rinv_ = 13;
   n_t_ = settings_.nbitst() - 5;
-  n_phidisk_ = n_phi_ - 3;
-  n_rdisk_ = n_r_ - 1;
 
   //Constants used for tracklet parameter calculations
-  n_delta0_ = 13 - 4;
-  n_deltaz_ = 11 - 2;
-  n_delta1_ = 13 - 3;
-  n_delta2_ = 13 - 1;
+  n_delta0_ = 9;
+  n_deltaz_ = 9;
+  n_delta1_ = 10;
+  n_delta2_ = 12;
   n_delta12_ = 13;
   n_a_ = 15;
   n_r6_ = 6;
-  n_ifact_ = 8 + 4;
-  n_delta02_ = 14 - 2;
-  n_x6_ = 15 + 1;
+  n_ifact_ = 12;
+  n_delta02_ = 12;
+  n_x6_ = 16;
+  n_it1_ = 5;
   n_HG_ = 15;
 
   if (settings_.barrelSeed(iSeed)) {
@@ -64,11 +63,11 @@ void TrackletCalculatorBase::init(int iSeed) {
 
   if (settings_.overlapSeed(iSeed)) {
     n_Deltar_ = 24;
-    n_delta0_ = 14 - 5;
-    n_deltaz_ = 9 - 3;
+    n_delta0_ = 9;
+    n_deltaz_ = 6;
     n_a_ = 14;
     n_r6_ = 6;
-    n_ifact_ = 6 + 4;
+    n_ifact_ = 10;
     LUT_idrinv_.resize(1024);
     for (unsigned int idr = 1; idr < 1024; idr++) {
       LUT_idrinv_[idr] = 0.5 + float(1 << n_Deltar_) / idr;
@@ -151,7 +150,7 @@ void TrackletCalculatorBase::calcPars(unsigned int idr,
        ((ir6 * idelta02) >> (n_r6_ + 2 * n_Deltar_ + 2 * n_phi_ - n_x6_ - n_delta2_ - n_delta02_ - 2 * n_delta0_)));
 
   //Temporary hack here
-  long int it1 = (ir1 * ideltaz) >> (n_Deltar_ - n_deltaz_ - 5);
+  long int it1 = (ir1 * ideltaz) >> (n_Deltar_ - n_deltaz_ - n_it1_);
 
   irinv_new = (((-idelta0 * ia) >> (n_phi_ + n_a_ - n_rinv_ + n_Deltar_ - n_delta0_ - n_r_ - 1 - 1)) + 1) >> 1;
 
@@ -161,7 +160,7 @@ void TrackletCalculatorBase::calcPars(unsigned int idr,
   long int shift_tmp = n_Deltar_ + n_a_ + n_z_ - n_t_ - n_deltaz_ - n_r_;
   it_new = (((ideltaz * ia) >> (shift_tmp - 1)) + 1) >> 1;
 
-  iz0_new = (iz1 << 1) + ((((it1 * ix6) >> (n_x6_ + 3)) + 1) >> 1);
+  iz0_new = (iz1 << 1) + ((((it1 * ix6) >> (n_x6_ + n_it1_ - 2)) + 1) >> 1);
 
   if (print) {
     std::cout << "=================================" << std::endl;
