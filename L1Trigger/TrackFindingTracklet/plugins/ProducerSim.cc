@@ -55,9 +55,9 @@ namespace trklet {
     conifer::BDT<float, float> bdt5_;
   };
 
-  ProducerSim::ProducerSim(const edm::ParameterSet& iConfig) :
-    bdt4_ (iConfig.getParameter<edm::FileInPath>("BDT4ParSim").fullPath()),
-    bdt5_ (iConfig.getParameter<edm::FileInPath>("BDT5ParSim").fullPath()) {
+  ProducerSim::ProducerSim(const edm::ParameterSet& iConfig)
+      : bdt4_(iConfig.getParameter<edm::FileInPath>("BDT4ParSim").fullPath()),
+        bdt5_(iConfig.getParameter<edm::FileInPath>("BDT5ParSim").fullPath()) {
     const edm::InputTag& inputTag = iConfig.getParameter<edm::InputTag>("InputTagTracklet");
     const std::string& branchTracks = iConfig.getParameter<std::string>("BranchTTTracks");
     // book in- and output ED products
@@ -252,7 +252,7 @@ namespace trklet {
       }
       // prepare attributes for mva evaluation
       const float nstubs = ttTrack.getStubRefs().size();
-      const float z0 =  ttTrack.z0();
+      const float z0 = ttTrack.z0();
       const float tanL = ttTrack.tanL();
       const float chi20 = ttTrack.chi2XY();
       const float chi21 = ttTrack.chi2Z();
