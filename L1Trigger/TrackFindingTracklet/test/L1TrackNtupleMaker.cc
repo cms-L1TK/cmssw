@@ -1007,6 +1007,10 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
   edm::ESHandle<hph::Setup> hphHandle = iSetup.getHandle(getTokenHPHSetup_);
   edm::ESHandle<trklet::Setup> handleSetup = iSetup.getHandle(getTokenSetup_);
   const trklet::DataFormats* dataFormats = &iSetup.getData(getTokenDataFormats_);
+  const trklet::DataFormat& dfZ0 = dataFormats->format(trklet::Variable::z0, trklet::Process::tq);
+  const trklet::DataFormat& dfCot = dataFormats->format(trklet::Variable::cot, trklet::Process::tq);
+  const trklet::DataFormat& dfChi20 = dataFormats->format(trklet::Variable::chi20, trklet::Process::tq);
+  const trklet::DataFormat& dfChi21 = dataFormats->format(trklet::Variable::chi21, trklet::Process::tq);
 
   const TrackerTopology* const tTopo = tTopoHandle.product();
   const TrackerGeometry* const theTrackerGeom = tGeomHandle.product();
@@ -1441,20 +1445,13 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
 
       // Track Qualtity BDT training set
 
-      const TTBV tqbdt_hitPattern(static_cast<int>(iterL1Track->hitPattern()),
-                                  TTTrack_TrackWord::TrackBitWidths::kHitPatternSize);
-      m_tqbdt_nStubs_->push_back(tqbdt_hitPattern.count());
-      m_tqbdt_z0_->push_back(dataFormats->format(trklet::Variable::z0, trklet::Process::tq).integer(iterL1Track->z0()) /
-                             setup->tqScaleFactorZ0());
-      m_tqbdt_cot_->push_back(
-          dataFormats->format(trklet::Variable::cot, trklet::Process::tq).integer(iterL1Track->tanL()) /
-          setup->tqScaleFactorCot());
-      m_tqbdt_chi20_->push_back(
-          dataFormats->format(trklet::Variable::chi20, trklet::Process::tq).integer(iterL1Track->chi2XY()));
-      m_tqbdt_chi21_->push_back(
-          dataFormats->format(trklet::Variable::chi21, trklet::Process::tq).integer(iterL1Track->chi2Z()));
-      m_tqbdt_nGaps_->push_back(
-          tqbdt_hitPattern.count(tqbdt_hitPattern.plEncode(), tqbdt_hitPattern.pmEncode(), false));
+      const TTBV tqbdt_hp(tmp_trk_hitpattern, TTTrack_TrackWord::TrackBitWidths::kHitPatternSize);
+      m_tqbdt_nStubs_->push_back(tqbdt_hp.count());
+      m_tqbdt_z0_->push_back(dfZ0.integer(iterL1Track->z0()) / setup->tqScaleFactorZ0());
+      m_tqbdt_cot_->push_back(dfCot.integer(iterL1Track->tanL()) / setup->tqScaleFactorCot());
+      m_tqbdt_chi20_->push_back(dfChi20.integer(iterL1Track->chi2XY()));
+      m_tqbdt_chi21_->push_back(dfChi21.integer(iterL1Track->chi2Z()));
+      m_tqbdt_nGaps_->push_back(tqbdt_hp.count(tqbdt_hp.plEncode(), tqbdt_hp.pmEncode(), false));
       m_tqbdt_true_->push_back(tmp_trk_genuine);
 
       // ----------------------------------------------------------------------------------------------
