@@ -16,11 +16,8 @@
 #include "SimDataFormats/Associations/interface/StubAssociation.h"
 #include "L1Trigger/TrackTrigger/interface/Associator.h"
 #include "L1Trigger/TrackFindingTracklet/interface/DataFormats.h"
-#include "SimDataFormats/Associations/interface/TTTrackAssociationMap.h"
-#include "L1Trigger/TrackFindingTracklet/interface/TrackQuality.h"
 
 #include <TProfile.h>
-#include <TTree.h>
 
 #include <vector>
 #include <deque>
@@ -43,7 +40,7 @@ namespace trklet {
     void beginJob() override {}
     void beginRun(const edm::Run& iEvent, const edm::EventSetup& iSetup) override;
     void analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) override;
-    void endRun(const edm::Run& iEvent, const edm::EventSetup& iSetup) override;
+    void endRun(const edm::Run& iEvent, const edm::EventSetup& iSetup) override {}
     void endJob() override;
 
   private:
@@ -71,15 +68,6 @@ namespace trklet {
     std::vector<TProfile*> prof_;
     // printout
     std::stringstream log_;
-    // BDT training data
-    TTree* tTree_;
-    std::vector<int>* nstubs_;
-    std::vector<double>* z0_;
-    std::vector<double>* cot_;
-    std::vector<double>* chi20_;
-    std::vector<double>* chi21_;
-    std::vector<int>* ngaps_;
-    std::vector<bool>* real_;
   };
 
   AnalyzerTQ::AnalyzerTQ(const edm::ParameterSet& iConfig)
@@ -119,22 +107,6 @@ namespace trklet {
       prof_[mva]->GetXaxis()->SetBinLabel(3, "Matched to any Tracks");
       prof_[mva]->GetXaxis()->SetBinLabel(4, "Found Perfect TPs");
     }
-    // book data storage for training
-    nstubs_ = new std::vector<int>;
-    z0_ = new std::vector<double>;
-    cot_ = new std::vector<double>;
-    chi20_ = new std::vector<double>;
-    chi21_ = new std::vector<double>;
-    ngaps_ = new std::vector<int>;
-    real_ = new std::vector<bool>;
-    tTree_ = fs->make<TTree>("TrackQualityAttributes", "Track Quality Analysis");
-    tTree_->Branch("trk_feature_1", nstubs_);
-    tTree_->Branch("trk_feature_2", z0_);
-    tTree_->Branch("trk_feature_3", cot_);
-    tTree_->Branch("trk_feature_4", chi20_);
-    tTree_->Branch("trk_feature_5", chi21_);
-    tTree_->Branch("trk_feature_6", ngaps_);
-    tTree_->Branch("trk_real", real_);
   }
 
   void AnalyzerTQ::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
@@ -143,10 +115,6 @@ namespace trklet {
     const tt::StreamsTrack& streamsTrack = iEvent.get(edGetTokenTracks_);
     const Setup* setup = &iSetup.getData(esGetTokenSetup_);
     const DataFormats* df = &iSetup.getData(esGetTokenDataFormats_);
-    const DataFormat& dfChi20 = df->format(Variable::chi20, Process::tq);
-    const DataFormat& dfChi21 = df->format(Variable::chi21, Process::tq);
-    const DataFormat& dfZ0 = df->format(Variable::z0, Process::tq);
-    const DataFormat& dfCot = df->format(Variable::cot, Process::tq);
     // read in MCTruth
     tt::Associator forFake = iSetup.getData(esGetTokenAssociator_);
     tt::Associator forEff = iSetup.getData(esGetTokenAssociator_);
@@ -154,7 +122,7 @@ namespace trklet {
     forEff.consume(iEvent.get(edGetTokenEff_));
     for (TProfile* prof : prof_)
       prof->Fill(1, forEff.numTPs());
-    // analyze and associate tracks with TrackingParticles per mva categorie and Store training data
+    // analyze and associate tracks with TrackingParticles per mva categorie
     for (int mva = 0; mva < numMVA_; mva++) {
       std::set<TPPtr> tpPtrsPerfect;
       int nTracks(0);
@@ -177,18 +145,6 @@ namespace trklet {
             if (ttStubRef.isNonnull())
               ttStubRefs.push_back(ttStubRef);
           }
-          // store training data
-          if (mva == 0) {
-            const TrackKF trackKF(streamsTrack[region * 2][frame], df);
-            const TTBV& hitPattern = trackTQ.hitPattern();
-            nstubs_->emplace_back(hitPattern.count());
-            z0_->emplace_back(dfZ0.integer(trackKF.z0()) / setup->tqScaleFactorZ0());
-            cot_->emplace_back(dfCot.integer(trackKF.cot()) / setup->tqScaleFactorCot());
-            chi20_->emplace_back(dfChi20.integer(trackTQ.chi20()));
-            chi21_->emplace_back(dfChi21.integer(trackTQ.chi21()));
-            ngaps_->emplace_back(hitPattern.count(hitPattern.plEncode(), hitPattern.pmEncode(), false));
-            real_->emplace_back(!forFake.associateFinal(ttStubRefs).empty());
-          }
           const std::vector<TPPtr>& any =
               looseMatching_ ? forFake.associate(ttStubRefs) : forFake.associateFinal(ttStubRefs);
           if (any.empty())
@@ -202,14 +158,6 @@ namespace trklet {
       prof_[mva]->Fill(3, nMatched);
       prof_[mva]->Fill(4, tpPtrsPerfect.size());
     }
-    tTree_->Fill();
-    nstubs_->clear();
-    z0_->clear();
-    cot_->clear();
-    chi20_->clear();
-    chi21_->clear();
-    ngaps_->clear();
-    real_->clear();
     nEvents_++;
   }
 
@@ -231,16 +179,6 @@ namespace trklet {
     }
     log_ << "=============================================================";
     edm::LogPrint(moduleDescription().moduleName()) << log_.str();
-  }
-
-  void AnalyzerTQ::endRun(const edm::Run& iEvent, const edm::EventSetup& iSetup) {
-    delete nstubs_;
-    delete z0_;
-    delete cot_;
-    delete chi20_;
-    delete chi21_;
-    delete ngaps_;
-    delete real_;
   }
 
 }  // namespace trklet
