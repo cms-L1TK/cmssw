@@ -31,7 +31,7 @@ namespace trackerTFP {
    *  \author Thomas Schuh
    *  \date   2020, July
    */
-  class ProducerCTB : public edm::stream::EDProducer<edm::stream::WatchRuns> {
+  class ProducerCTB : public edm::stream::EDProducer<> {
   public:
     explicit ProducerCTB(const edm::ParameterSet&);
     ~ProducerCTB() override = default;

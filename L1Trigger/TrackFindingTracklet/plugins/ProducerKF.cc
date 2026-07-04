@@ -27,7 +27,7 @@ namespace trklet {
    *  \author Thomas Schuh
    *  \date   2020, July
    */
-  class ProducerKF : public edm::stream::EDProducer<> {
+  class ProducerKF : public edm::stream::EDProducer<edm::stream::WatchRuns> {
   public:
     explicit ProducerKF(const edm::ParameterSet&);
     ~ProducerKF() override = default;

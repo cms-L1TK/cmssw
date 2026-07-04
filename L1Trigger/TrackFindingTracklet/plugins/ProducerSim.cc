@@ -30,7 +30,7 @@ namespace trklet {
    *  \author Thomas Schuh
    *  \date   2026, June
    */
-  class ProducerSim : public edm::stream::EDProducer<> {
+  class ProducerSim : public edm::stream::EDProducer<edm::stream::WatchRuns> {
   public:
     explicit ProducerSim(const edm::ParameterSet&);
     ~ProducerSim() override = default;

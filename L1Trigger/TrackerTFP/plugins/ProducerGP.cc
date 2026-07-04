@@ -30,7 +30,7 @@ namespace trackerTFP {
    *  \author Thomas Schuh
    *  \date   2020, March
    */
-  class ProducerGP : public edm::stream::EDProducer<edm::stream::WatchRuns> {
+  class ProducerGP : public edm::stream::EDProducer<> {
   public:
     explicit ProducerGP(const edm::ParameterSet&);
     ~ProducerGP() override = default;
