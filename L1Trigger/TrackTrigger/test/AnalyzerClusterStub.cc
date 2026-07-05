@@ -734,7 +734,7 @@ void AnalyzerClusterStub::analyze(const edm::Event& iEvent, const edm::EventSetu
 
   /// Eta coverage
   /// Go on only if there are TrackingParticles
-  if (trackingParticleHandle->size() > 0) {
+  if (!trackingParticleHandle->empty()) {
     /// Loop over TrackingParticles
     unsigned int tpCnt = 0;
     std::vector<TrackingParticle>::const_iterator iterTP;
@@ -748,7 +748,7 @@ void AnalyzerClusterStub::analyze(const edm::Event& iEvent, const edm::EventSetu
       std::vector<edm::Ref<edmNew::DetSetVector<TTCluster<Ref_Phase2TrackerDigi_>>, TTCluster<Ref_Phase2TrackerDigi_>>>
           theseClusters = ttClusterAssocHandle->findTTClusterRefs(tempTPPtr);
 
-      if (theseClusters.size() > 0) {
+      if (!theseClusters.empty()) {
         bool normIClu = false;
         bool normOClu = false;
 
@@ -799,7 +799,7 @@ void AnalyzerClusterStub::analyze(const edm::Event& iEvent, const edm::EventSetu
       if (tempTPPtr->p4().pt() <= 10)
         continue;
 
-      if (theseStubs.size() > 0) {
+      if (!theseStubs.empty()) {
         bool normStub = false;
 
         /// Loop over the Stubs
@@ -943,7 +943,7 @@ void AnalyzerClusterStub::analyze(const edm::Event& iEvent, const edm::EventSetu
       std::vector<edm::Ptr<TrackingParticle>> theseTPs = ttClusterAssocHandle->findTrackingParticlePtrs(tempCluRef);
 
       for (unsigned int i = 0; i < theseTPs.size(); i++) {
-        edm::Ptr<TrackingParticle> tpPtr = theseTPs.at(i);
+        const edm::Ptr<TrackingParticle>& tpPtr = theseTPs.at(i);
 
         if (tpPtr.isNull())
           continue;
@@ -1139,7 +1139,7 @@ void AnalyzerClusterStub::analyze(const edm::Event& iEvent, const edm::EventSetu
 
       if (tpPtr.isNull())
         continue;  /// This prevents to fill the vector if the TrackingParticle is not found
-      TrackingParticle thisTP = *tpPtr;
+      const TrackingParticle& thisTP = *tpPtr;
 
       double simPt = thisTP.p4().pt();
       double simEta = thisTP.momentum().eta();
@@ -1234,7 +1234,7 @@ void AnalyzerClusterStub::analyze(const edm::Event& iEvent, const edm::EventSetu
   /// //////////////////////////
 
   /// Go on only if there are TrackingParticles
-  if (trackingParticleHandle->size() != 0) {
+  if (!trackingParticleHandle->empty()) {
     /// Loop over TrackingParticles
     std::vector<TrackingParticle>::const_iterator iterTrackingParticles;
     for (iterTrackingParticles = trackingParticleHandle->begin();

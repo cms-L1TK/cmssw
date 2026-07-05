@@ -178,7 +178,7 @@ namespace trackerDTC {
     constexpr std::array<double, NumResolution> ranges{{.2, .0002, .5}};
     constexpr int binsHis = 100;
     for (Resolution r : AllResolution) {
-      dir = fs->mkdir(("DTC/Res/" + name(r)).c_str());
+      dir = fs->mkdir("DTC/Res/" + name(r));
       std::vector<TH1F*>& his = hisResolution_[r];
       for (Module m : AllModule)
         his.emplace_back(dir.make<TH1F>(("HisRes" + name(m)).c_str(), ";", binsHis, -ranges[r], ranges[r]));
@@ -190,7 +190,7 @@ namespace trackerDTC {
       v.reserve(NumModule);
     profUncertainties_.reserve(NumResolution);
     for (Resolution r : AllResolution) {
-      dir = fs->mkdir(("DTC/Uncertainty/" + name(r)).c_str());
+      dir = fs->mkdir("DTC/Uncertainty/" + name(r));
       std::vector<TH1F*>& his = hisUncertainties_[r];
       for (Module m : AllModule)
         his.emplace_back(dir.make<TH1F>(("His d" + name(m)).c_str(), ";", 128, -5., 5.));

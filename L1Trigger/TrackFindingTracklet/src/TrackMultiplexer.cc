@@ -36,9 +36,9 @@ namespace trklet {
     for (int channel = 0; channel < setup_->tbNumSeedTypes(); channel++) {
       const int channelTrack = offsetTrack + channel;
       std::vector<Track*>& input = input_[channel];
-      const tt::StreamTrack streamTrack = streamsTrack[channelTrack];
+      const tt::StreamTrack& streamTrack = streamsTrack[channelTrack];
       for (int frame = 0; frame < static_cast<int>(streamTrack.size()); frame++) {
-        const tt::FrameTrack frameTrack = streamTrack[frame];
+        const tt::FrameTrack& frameTrack = streamTrack[frame];
         Track* track(nullptr);
         if (frameTrack.first.isNonnull()) {
           tracks_.emplace_back(channel, frame);

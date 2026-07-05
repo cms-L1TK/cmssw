@@ -78,7 +78,7 @@ public:
   typedef std::map<unsigned int, const SimTrack*> SimTracksMap;
 
   explicit AnalyzerCluster(const edm::ParameterSet&);
-  ~AnalyzerCluster();
+  ~AnalyzerCluster() override;
   void beginJob() override;
   void analyze(const edm::Event&, const edm::EventSetup&) override;
 
@@ -397,8 +397,8 @@ std::map<unsigned int, ClusterHistos>::iterator AnalyzerCluster::createLayerHist
     }
   }
 
-  TFileDirectory td1 = fs->mkdir(fname1.str().c_str());
-  TFileDirectory td = td1.mkdir(fname2.str().c_str());
+  TFileDirectory td1 = fs->mkdir(fname1.str());
+  TFileDirectory td = td1.mkdir(fname2.str());
 
   ClusterHistos local_histos;
 

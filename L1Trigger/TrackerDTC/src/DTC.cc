@@ -56,10 +56,10 @@ namespace trackerDTC {
       header(headerPre_, setup_->dtcNumTFP());
     }
     // prep paths
-    pathIn_ = config_->pathIPBB.c_str() + std::to_string(dtcId_) + "/in.txt";
-    pathPre_ = config_->pathIPBB.c_str() + std::to_string(dtcId_) + "/pre.txt";
-    pathOut_ = config_->pathIPBB.c_str() + std::to_string(dtcId_) + "/out.txt";
-    pathDiff_ = config_->pathIPBB.c_str() + std::to_string(dtcId_) + "/diff.txt";
+    pathIn_ = config_->pathIPBB + std::to_string(dtcId_) + "/in.txt";
+    pathPre_ = config_->pathIPBB + std::to_string(dtcId_) + "/pre.txt";
+    pathOut_ = config_->pathIPBB + std::to_string(dtcId_) + "/out.txt";
+    pathDiff_ = config_->pathIPBB + std::to_string(dtcId_) + "/diff.txt";
     // prep system command: go to project area
     cmd_ << "cd " << config_->pathIPBB << dtcId_ << " && ";
     // run questasim and supress output
