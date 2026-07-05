@@ -14,16 +14,16 @@ process = cms.Process("L1TrackNtuple")
 # edit options here
 ############################################################
 
-# D110 recommended (but D98 still works)
-#GEOMETRY = "D98"
-GEOMETRY = "D110"
+# D121 MC recommended. D110 MC can only be used if made with CMSSW_20.
+#GEOMETRY = "D110"
+GEOMETRY = "D121"
 
 # Set L1 tracking algorithm:
 # 'HYBRID' (baseline, 4par fit) or 'HYBRID_DISPLACED' (extended, 5par fit).
 # 'HYBRID_NEWKF' (baseline, 4par fit, with bit-accurate KF emulation),
-# 'HYBRID_REDUCED' to use the "L5L6" seeding only reduced configuration.
-# 'HYBRID_SIM' prompt tracklet track finding followed by Track Processing simulation (4 param fit)
-# 'HYBRID_SIM_DISPLACED' displaced tracklet track finding followed Track Processing simulation (5 param fit)
+# 'HYBRID_REDUCED' to use the "L5L6" seeding only reduced (NEWKF) cfg.
+# 'HYBRID_SIM' prompt tracklet reco + (NEWKF) Track Processing simulation (4 param fit)
+# 'HYBRID_SIM_DISPLACED' displaced tracklet reco + (NEWKF) Track Processing simulation (5 param fit)
 # (Or legacy algos 'TMTT' or 'TRACKLET').
 L1TRKALGO = 'HYBRID'
 
@@ -49,17 +49,9 @@ process.load('Configuration.Geometry.GeometryExtendedRun4' + GEOMETRY +'_cff')
 process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 from Configuration.AlCa.GlobalTag import GlobalTag
-# Change needed to run with D98 geometry in recent CMSSW versions.
-if GEOMETRY == 'D98':
-    process.GlobalTag = GlobalTag(process.GlobalTag, '133X_mcRun4_realistic_v1', '')
-elif GEOMETRY == 'D110':
-    process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:phase2_realistic', '')
-else:
-    print("this is not a valid geometry!!!")
-
+process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:phase2_realistic', '')
 process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
-
 
 ############################################################
 # input and output
@@ -90,13 +82,13 @@ if GEOMETRY == "D110":
   # ttbar + 200PU
   inputMC = ["/store/relval/CMSSW_15_1_0_pre5/RelValTTbar_14TeV_TuneCP5/GEN-SIM-DIGI-RAW/PU_150X_mcRun4_realistic_v1_RV269_Run4D110_PU-v2/2590000/0f0bcfd3-dafe-4dda-8d39-9765f6eae68e.root"]
 
-elif GEOMETRY == "D98":
+elif GEOMETRY == "D121":
 
-  # Or read .root files from directory on local computer:
-  dirName = "$scratchmc/MCsamples1400_D98/RelVal/TTbar/PU200/"
-  inputMC=getCMSlocaldata(dirName)  
+  # ttbar + 200PU
+  inputMC = ['/store/relval/CMSSW_20_0_0_pre1/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU_150X_mcRun4_realistic_v1_STD_D121_RegeneratedGS_PU-v1/2590000/0033230b-a131-453a-95c0-fe14d5027d1f.root']
   
-  #  inputMC = ['/store/relval/CMSSW_14_0_0_pre2/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU_133X_mcRun4_realistic_v1_STD_2026D98_PU200_RV229-v1/2580000/0b2b0b0b-f312-48a8-9d46-ccbadc69bbfd.root']  
+  # ttbar + 0PU
+  #inputMC = ['/store/relval/CMSSW_20_0_0_pre1/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/150X_mcRun4_realistic_v1_STD_RegeneratedGS_D121_noPU-v1/2590000/0a33391d-2eb7-45fe-98fe-ca7b70a785c4.root']  
   
 else:
 
