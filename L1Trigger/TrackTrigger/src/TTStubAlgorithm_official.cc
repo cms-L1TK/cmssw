@@ -119,25 +119,26 @@ void TTStubAlgorithm_official<Ref_Phase2TrackerDigi_>::PatternHitCorrelation(
     offsetI = ((offsetI > 0) - (offsetI < 0)) * maxOffset2S;
   }
 
-  if (stDetId.subdetId() == StripSubdetector::TOB) {
+  if (stDetId.subdetId() == Phase2Tracker::Subdetector::Barrel) {
     int layer = theTrackerTopo_->layer(stDetId);
-    int ladder = theTrackerTopo_->tobRod(stDetId);
-    int type = 2 * theTrackerTopo_->tobSide(stDetId) - 3;  // -1 for tilted-, 1 for tilted+, 3 for flat
+    int ladder = theTrackerTopo_->barrelRodP2(stDetId);
+    Phase2Tracker::BarrelModuleTilt type = theTrackerTopo_->barrelTiltTypeP2(stDetId); 
     double corr = 0;
 
-    if (type < 3)  // Only for tilted modules
+    if (type == Phase2Tracker::BarrelModuleTilt::tiltedZminus || type == Phase2Tracker::BarrelModuleTilt::tiltedZplus)  // Only for tilted modules
     {
       corr = (barrelNTilt.at(layer) + 1) / 2.;
       // Corrected ring number, bet 0 and barrelNTilt.at(layer), in ascending |z|
-      ladder = corr - (corr - ladder) * type;
+      int ladderSign = (type == Phase2Tracker::BarrelModuleTilt::tiltedZminus) ? -1 : +1;
+      ladder = corr - (corr - ladder) * ladderSign;
       window = 2 * (tiltedCut.at(layer)).at(ladder);
     } else  // Classis barrel window otherwise
     {
       window = 2 * barrelCut.at(layer);
     }
 
-  } else if (stDetId.subdetId() == StripSubdetector::TID) {
-    window = 2 * (ringCut.at(theTrackerTopo_->tidWheel(stDetId))).at(theTrackerTopo_->tidRing(stDetId));
+  } else if (stDetId.subdetId() == Phase2Tracker::Subdetector::Endcap) {
+    window = 2 * (ringCut.at(theTrackerTopo_->endcapWheelP2(stDetId))).at(theTrackerTopo_->endcapRingP2(stDetId));
   }
   // For CRACK, window is maximum value
   if (mCosmics)

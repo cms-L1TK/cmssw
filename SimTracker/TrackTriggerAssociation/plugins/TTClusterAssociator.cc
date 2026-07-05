@@ -73,7 +73,7 @@ void TTClusterAssociator<Ref_Phase2TrackerDigi_>::produce(edm::Event& iEvent, co
     /// Loop over the input Clusters
     for (const auto& gd : theTrackerGeom->dets()) {
       DetId detid = gd->geographicalId();
-      if (detid.subdetId() != StripSubdetector::TOB && detid.subdetId() != StripSubdetector::TID)
+      if (detid.subdetId() != Phase2Tracker::Subdetector::Barrel && detid.subdetId() != Phase2Tracker::Subdetector::Endcap)
         continue;  // only run on OT
 
       if (TTClusterHandle->find(detid) == TTClusterHandle->end())

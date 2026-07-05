@@ -581,21 +581,20 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
 
         bool barrel = (layerdisk < trklet::N_LAYER);
         // See  https://github.com/cms-sw/cmssw/tree/master/Geometry/TrackerNumberingBuilder
-        enum TypeBarrel { nonBarrel = 0, tiltedMinus = 1, tiltedPlus = 2, flat = 3 };
-        const TypeBarrel type = static_cast<TypeBarrel>(tTopo->tobSide(innerDetId));
-        bool tiltedBarrel = barrel && (type == tiltedMinus || type == tiltedPlus);
+        const Phase2Tracker::BarrelModuleTilt type = tTopo->barrelTiltTypeP2(innerDetId);
+        bool tiltedBarrel = barrel && (type == Phase2Tracker::BarrelModuleTilt::tiltedZminus || type == Phase2Tracker::BarrelModuleTilt::tiltedZplus);
         unsigned int tiltedRingId = 0;
         // Tilted module ring no. (Increasing 1 to 12 as |z| increases).
         if (tiltedBarrel) {
-          tiltedRingId = tTopo->tobRod(innerDetId);
-          if (type == tiltedMinus) {
+          tiltedRingId = tTopo->barrelRodP2(innerDetId);
+          if (type == Phase2Tracker::BarrelModuleTilt::tiltedZminus) {
             unsigned int layp1 = 1 + layerdisk;  // Setup counts from 1
             unsigned int nTilted = setup_->numTiltedLayerRing(layp1);
             tiltedRingId = 1 + nTilted - tiltedRingId;
           }
         }
         // Endcap module ring number (1-15) in endcap disks.
-        unsigned int endcapRingId = barrel ? 0 : tTopo->tidRing(innerDetId);
+        unsigned int endcapRingId = barrel ? 0 : tTopo->endcapRingP2(innerDetId);
 
         const unsigned int intDetId = innerDetId.rawId();
 

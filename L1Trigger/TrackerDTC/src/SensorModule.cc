@@ -113,15 +113,15 @@ namespace trackerDTC {
       // encoding for 2S endcap radii
       else {
         const int offset = setup->stubNumRingsPS(layerIndex_);
-        const int ring = trackerTopology->tidRing(detId);
+        const int ring = trackerTopology->endcapRingP2(detId);
         offsetR_ = numColumns_ * (ring - offset);
       }
     }
-    const TypeTilt typeTilt = static_cast<TypeTilt>(trackerTopology->tobSide(detId));
+    const Phase2Tracker::BarrelModuleTilt typeTilt = trackerTopology->barrelTiltTypeP2(detId);
     // encode layer id
     encodedLayer_ = std::distance(encodingLayer.begin(), encodingLayer.find(layerId_));
     // calculate tilt correction parameter used to project r to z uncertainty
-    tilted_ = typeTilt == tiltedMinus || typeTilt == tiltedPlus;
+    tilted_ = typeTilt == Phase2Tracker::BarrelModuleTilt::tiltedZminus || typeTilt == Phase2Tracker::BarrelModuleTilt::tiltedZplus;
     tiltCorrectionSlope_ = setup->smTiltApproxSlope();
     tiltCorrectionIntercept_ = setup->smTiltApproxIntercept();
     scattering_ = setup->smScattering();

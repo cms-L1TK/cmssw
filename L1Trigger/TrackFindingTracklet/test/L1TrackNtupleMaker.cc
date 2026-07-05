@@ -1029,7 +1029,7 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
   if (SaveStubs) {
     for (auto gd = theTrackerGeom->dets().begin(); gd != theTrackerGeom->dets().end(); gd++) {
       DetId detid = (*gd)->geographicalId();
-      if (detid.subdetId() != StripSubdetector::TOB && detid.subdetId() != StripSubdetector::TID)
+      if (detid.subdetId() != Phase2Tracker::Subdetector::Barrel && detid.subdetId() != Phase2Tracker::Subdetector::Endcap)
         continue;
       if (!tTopo->isLower(detid))
         continue;                              // loop on the stacks: choose the lower arbitrarily
@@ -1051,14 +1051,14 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
 
         int isBarrel = 0;
         int layer = -999999;
-        if (detid.subdetId() == StripSubdetector::TOB) {
+        if (detid.subdetId() == Phase2Tracker::Subdetector::Barrel) {
           isBarrel = 1;
           layer = static_cast<int>(tTopo->layer(detid));
-        } else if (detid.subdetId() == StripSubdetector::TID) {
+        } else if (detid.subdetId() == Phase2Tracker::Subdetector::Endcap) {
           isBarrel = 0;
           layer = static_cast<int>(tTopo->layer(detid));
         } else {
-          edm::LogVerbatim("Tracklet") << "WARNING -- neither TOB or TID stub, shouldn't happen...";
+          edm::LogVerbatim("Tracklet") << "WARNING -- neither barrel nor endcap stub, shouldn't happen...";
           layer = -1;
         }
 
@@ -1066,10 +1066,9 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
         if (topol->nrows() == 960)
           isPSmodule = 1;
 
-        const unsigned int tobSide = tTopo->tobSide(detid);  // nonBarrel = 0, tiltedMinus = 1, tiltedPlus = 2, flat = 3
+        const Phase2Tracker::BarrelModuleTilt tiltType = tTopo->barrelTiltTypeP2(detid); 
         int isTiltedBarrel = 0;
-        if (isBarrel == 1 && (tobSide == 1 || tobSide == 2))
-          isTiltedBarrel = 1;
+        if (isBarrel == 1 && (tiltType == Phase2Tracker::tiltedZminus || tiltType == Phase2Tracker::tiltedZplus)) isTiltedBarrel = 1;
 
         MeasurementPoint coords = tempStubPtr->clusterRef(0)->findAverageLocalCoordinatesCentered();
         LocalPoint clustlp = topol->localPosition(coords);
@@ -1321,7 +1320,7 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
           double z = posStub.z();
 
           int layer = -999999;
-          bool barrel = (detIdStub.subdetId() == StripSubdetector::TOB);
+          bool barrel = (detIdStub.subdetId() == Phase2Tracker::Subdetector::Barrel);
           if (barrel) {
             layer = static_cast<int>(tTopo->layer(detIdStub));
             if (DebugMode)
@@ -1660,9 +1659,9 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
       DetId detid(theStubRef->getDetId());
 
       int layer = -1;
-      if (detid.subdetId() == StripSubdetector::TOB) {
+      if (detid.subdetId() == Phase2Tracker::Subdetector::Barrel) {
         layer = static_cast<int>(tTopo->layer(detid)) - 1;  //fill in array as entries 0-5
-      } else if (detid.subdetId() == StripSubdetector::TID) {
+      } else if (detid.subdetId() == Phase2Tracker::Subdetector::Endcap) {
         layer = static_cast<int>(tTopo->layer(detid)) + 5;  //fill in array as entries 6-10
       }
 
@@ -1892,10 +1891,10 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
 	*/
 
         int layer = -999999;
-        if (detIdStub.subdetId() == StripSubdetector::TOB) {
+        if (detIdStub.subdetId() == Phase2Tracker::Subdetector::Barrel) {
           layer = static_cast<int>(tTopo->layer(detIdStub));
           tmp_matchtrk_lhits += pow(10, layer - 1);
-        } else if (detIdStub.subdetId() == StripSubdetector::TID) {
+        } else if (detIdStub.subdetId() == Phase2Tracker::Subdetector::Endcap) {
           layer = static_cast<int>(tTopo->layer(detIdStub));
           tmp_matchtrk_dhits += pow(10, layer - 1);
         }

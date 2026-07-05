@@ -877,9 +877,9 @@ void AnalyzerClusterStub::analyze(const edm::Event& iEvent, const edm::EventSetu
 
       hCluster_RZ->Fill(posClu.z(), posClu.perp());
 
-      bool barrel = detIdClu.subdetId() == StripSubdetector::TOB || detIdClu.subdetId() == StripSubdetector::TIB;
+      bool barrel = detIdClu.subdetId() == Phase2Tracker::Subdetector::Barrel || detIdClu.subdetId() == StripSubdetector::TIB;
       unsigned int layer = trackerTopo->layer(detIdClu);    // 1-6 in barrel
-      unsigned int disk = trackerTopo->tidWheel(detIdClu);  // 1-5 in endcap
+      unsigned int disk = trackerTopo->endcapWheelP2(detIdClu);  // 1-5 in endcap
 
       if (barrel) {
         if (memberClu == 0) {
@@ -1054,9 +1054,9 @@ void AnalyzerClusterStub::analyze(const edm::Event& iEvent, const edm::EventSetu
 
       hStub_RZ->Fill(posStub.z(), posStub.perp());
 
-      bool barrel = detIdStub.subdetId() == StripSubdetector::TOB || detIdStub.subdetId() == StripSubdetector::TIB;
+      bool barrel = detIdStub.subdetId() == Phase2Tracker::Subdetector::Barrel || detIdStub.subdetId() == StripSubdetector::TIB;
       unsigned int layer = trackerTopo->layer(detIdStub);
-      unsigned int disk = trackerTopo->tidWheel(detIdStub);
+      unsigned int disk = trackerTopo->endcapWheelP2(detIdStub);
 
       if (barrel) {
         hStub_Barrel->Fill(layer);

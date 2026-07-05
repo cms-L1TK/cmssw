@@ -157,9 +157,9 @@ namespace trackerDTC {
       // track trigger dtc id [0-215]
       const int dtcId = this->dtcId(tklId);
       // barrel or endcap
-      const bool barrel = detId.subdetId() == StripSubdetector::TOB;
+      const bool barrel = detId.subdetId() == Phase2Tracker::Subdetector::Barrel;
       // layer id [barrel: 1-6, endcap: 11-15]
-      const int layerId = (barrel ? trackerTopology_->layer(detId) : trackerTopology_->tidWheel(detId) + 10);
+      const int layerId = (barrel ? trackerTopology_->layer(detId) : trackerTopology_->endcapWheelP2(detId) + 10);
       // store layer id
       layerIds[dtcId % config_.regNumDTC].insert(layerId);
     }
@@ -186,22 +186,22 @@ namespace trackerDTC {
       // get layer encoding for this module
       const std::set<int>& encodingLayer = layerIds[dtcId % config_.regNumDTC];
       // getting bend window size
-      const bool barrel = detId.subdetId() == StripSubdetector::TOB;
-      const int index = barrel ? trackerTopology.layer(detId) : trackerTopology.tidWheel(detId);
+      const bool barrel = detId.subdetId() == Phase2Tracker::Subdetector::Barrel;
+      const int index = barrel ? trackerTopology.layer(detId) : trackerTopology.endcapWheelP2(detId);
       double ws;
       if (barrel) {
-        const SensorModule::TypeTilt typeTilt = static_cast<SensorModule::TypeTilt>(trackerTopology.tobSide(detId));
-        if (typeTilt == SensorModule::TypeTilt::flat)
+        const Phase2Tracker::BarrelModuleTilt typeTilt = trackerTopology.barrelTiltTypeP2(detId);
+        if (typeTilt == Phase2Tracker::BarrelModuleTilt::flat)
           ws = configTTStubAlgorithm.barrelCut[index];
         else {
-          int ladder = trackerTopology.tobRod(detId);
-          if (typeTilt == SensorModule::TypeTilt::tiltedMinus)
+          int ladder = trackerTopology.barrelRodP2(detId);
+          if (typeTilt == Phase2Tracker::BarrelModuleTilt::tiltedZminus)
             // Corrected ring number, bet 0 and barrelNTilt.at(layerIndex_), in ascending |z|
             ladder = 1 + configTTStubAlgorithm.nTiltedRings[index] - ladder;
           ws = configTTStubAlgorithm.tiltedBarrelCutSet[index][ladder];
         }
       } else {
-        const int ring = trackerTopology.tidRing(detId);
+        const int ring = trackerTopology.endcapRingP2(detId);
         ws = configTTStubAlgorithm.endcapCutSet[index][ring];
       }
       ws = tt::floor(ws / config_.feBaseRow);

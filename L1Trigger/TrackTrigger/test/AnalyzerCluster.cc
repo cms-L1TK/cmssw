@@ -217,7 +217,7 @@ void AnalyzerCluster::analyze(const edm::Event& event, const edm::EventSetup& ev
     if (!layer) {
       layer += tTopo->layer(detId);
     } else {
-      layer += (catECasRings_ ? tTopo->tidRing(detId) * 10 : tTopo->layer(detId));
+      layer += (catECasRings_ ? tTopo->endcapRingP2(detId) * 10 : tTopo->layer(detId));
     }
     TrackerGeometry::ModuleType mType = tkGeom->getDetectorType(detId);
     unsigned int det = 0;

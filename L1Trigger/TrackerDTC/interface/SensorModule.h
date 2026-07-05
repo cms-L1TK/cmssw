@@ -32,7 +32,6 @@ namespace trackerDTC {
     ~SensorModule() {}
 
     enum Type { BarrelPS, Barrel2S, DiskPS, Disk2S, NumTypes };
-    enum TypeTilt { nonBarrel = 0, tiltedMinus = 1, tiltedPlus = 2, flat = 3 };
 
     // cmssw det id
     const DetId& detId() const { return detId_; }

@@ -1480,22 +1480,21 @@ unsigned int TrackletLUT::ringId(const DetId& detId) const {
   // In disk: Endcap module ring number (1-15) in endcap disks
 
   // See  https://github.com/cms-sw/cmssw/tree/master/Geometry/TrackerNumberingBuilder
-  const bool barrel = detId.subdetId() == StripSubdetector::TOB;
+  const bool barrel = detId.subdetId() == Phase2Tracker::Subdetector::Barrel;
   const TrackerTopology* trackerTopology = setup_->trackerTopology();
-  enum TypeBarrel { nonBarrel = 0, tiltedMinus = 1, tiltedPlus = 2, flat = 3 };
-  const TypeBarrel type = static_cast<TypeBarrel>(trackerTopology->tobSide(detId));
-  bool tiltedBarrel = barrel && (type == tiltedMinus || type == tiltedPlus);
+  const Phase2Tracker::BarrelModuleTilt type = trackerTopology->barrelTiltTypeP2(detId);
+  bool tiltedBarrel = barrel && (type == Phase2Tracker::BarrelModuleTilt::tiltedZminus || type == Phase2Tracker::BarrelModuleTilt::tiltedZplus);
   unsigned int ringId = 0;
   // Tilted module ring no. (Increasing 1 to 12 as |z| increases).
   if (tiltedBarrel) {
-    ringId = trackerTopology->tobRod(detId);
-    if (type == tiltedMinus) {
+    ringId = trackerTopology->barrelRodP2(detId);
+    if (type == Phase2Tracker::BarrelModuleTilt::tiltedZminus) {
       unsigned int layp1 = trackerTopology->layer(detId);
       unsigned int nTilted = setup_->numTiltedLayerRing(layp1);
       ringId = 1 + nTilted - ringId;
     }
   } else {
-    ringId = barrel ? 0 : trackerTopology->tidRing(detId);
+    ringId = barrel ? 0 : trackerTopology->endcapRingP2(detId);
   }
   return ringId;
 }
