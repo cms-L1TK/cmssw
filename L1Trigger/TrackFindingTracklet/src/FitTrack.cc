@@ -854,7 +854,7 @@ void FitTrack::execute(deque<string>& streamTrackRaw,
   std::vector<std::vector<Tracklet*>> matches;
 
   matches.reserve(fullmatch_.size());
-for (unsigned int i = 0; i < fullmatch_.size(); i++) {
+  for (unsigned int i = 0; i < fullmatch_.size(); i++) {
     matches.push_back(orderedMatches(fullmatch_[i]));
   }
 

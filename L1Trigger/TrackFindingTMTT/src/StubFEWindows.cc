@@ -49,7 +49,8 @@ namespace tmtt {
       Phase2Tracker::BarrelModuleTilt type = trackerTopo->barrelTiltTypeP2(detId);
       double corr = 0;
 
-      if (type == Phase2Tracker::BarrelModuleTilt::tiltedZminus || type == Phase2Tracker::BarrelModuleTilt::tiltedZplus) {
+      if (type == Phase2Tracker::BarrelModuleTilt::tiltedZminus ||
+          type == Phase2Tracker::BarrelModuleTilt::tiltedZplus) {
         // Tilted barrel
         corr = (numTiltedLayerRings_.at(layer) + 1) / 2.;
         // Corrected ring number, between 0 and barrelNTilt.at(layer), in ascending |z|

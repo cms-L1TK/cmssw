@@ -123,7 +123,8 @@ namespace tmtt {
     listTrackerModule_.clear();
     for (const GeomDet* gd : trackerGeometry_->dets()) {
       DetId detId = gd->geographicalId();
-      if (detId.subdetId() != Phase2Tracker::Subdetector::Barrel && detId.subdetId() != Phase2Tracker::Subdetector::Endcap)
+      if (detId.subdetId() != Phase2Tracker::Subdetector::Barrel &&
+          detId.subdetId() != Phase2Tracker::Subdetector::Endcap)
         continue;
       if (trackerTopology_->isLower(detId)) {  // Select only lower of the two sensors in a module.
         // Store info about this tracker module.

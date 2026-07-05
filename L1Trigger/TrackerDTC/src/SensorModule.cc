@@ -121,7 +121,8 @@ namespace trackerDTC {
     // encode layer id
     encodedLayer_ = std::distance(encodingLayer.begin(), encodingLayer.find(layerId_));
     // calculate tilt correction parameter used to project r to z uncertainty
-    tilted_ = typeTilt == Phase2Tracker::BarrelModuleTilt::tiltedZminus || typeTilt == Phase2Tracker::BarrelModuleTilt::tiltedZplus;
+    tilted_ = typeTilt == Phase2Tracker::BarrelModuleTilt::tiltedZminus ||
+              typeTilt == Phase2Tracker::BarrelModuleTilt::tiltedZplus;
     tiltCorrectionSlope_ = setup->smTiltApproxSlope();
     tiltCorrectionIntercept_ = setup->smTiltApproxIntercept();
     scattering_ = setup->smScattering();

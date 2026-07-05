@@ -111,7 +111,7 @@ namespace trackerTFP {
     int layerId(const TTStubRef& ttStubRef) const {
       const DetId& detId = ttStubRef->getDetId();
       return detId.subdetId() == Phase2Tracker::Subdetector::Barrel ? trackerTopology()->layer(detId)
-                                                       : trackerTopology()->endcapWheelP2(detId) + 10;
+                                                                    : trackerTopology()->endcapWheelP2(detId) + 10;
     }
     // sensor module for ttStubRef
     const trackerDTC::SensorModule* sensorModule(const TTStubRef& ttStubRef) const {

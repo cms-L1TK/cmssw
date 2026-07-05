@@ -1483,7 +1483,8 @@ unsigned int TrackletLUT::ringId(const DetId& detId) const {
   const bool barrel = detId.subdetId() == Phase2Tracker::Subdetector::Barrel;
   const TrackerTopology* trackerTopology = setup_->trackerTopology();
   const Phase2Tracker::BarrelModuleTilt type = trackerTopology->barrelTiltTypeP2(detId);
-  bool tiltedBarrel = barrel && (type == Phase2Tracker::BarrelModuleTilt::tiltedZminus || type == Phase2Tracker::BarrelModuleTilt::tiltedZplus);
+  bool tiltedBarrel = barrel && (type == Phase2Tracker::BarrelModuleTilt::tiltedZminus ||
+                                 type == Phase2Tracker::BarrelModuleTilt::tiltedZplus);
   unsigned int ringId = 0;
   // Tilted module ring no. (Increasing 1 to 12 as |z| increases).
   if (tiltedBarrel) {

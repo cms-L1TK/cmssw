@@ -115,7 +115,8 @@ void TTStubBuilder<Ref_Phase2TrackerDigi_>::produce(edm::Event& iEvent, const ed
 
   for (const auto& gd : theTrackerGeom->dets()) {
     DetId detid = (*gd).geographicalId();
-    if (detid.subdetId() != Phase2Tracker::Subdetector::Barrel && detid.subdetId() != Phase2Tracker::Subdetector::Endcap)
+    if (detid.subdetId() != Phase2Tracker::Subdetector::Barrel &&
+        detid.subdetId() != Phase2Tracker::Subdetector::Endcap)
       continue;  // only run on OT
     if (!tTopo->isLower(detid))
       continue;  // loop on the stacks: choose the lower sensor

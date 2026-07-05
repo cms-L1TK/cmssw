@@ -23,7 +23,6 @@ namespace tmtt {
 
   class TrackerModule {
   public:
-
     // Info used to define firmware module type.
     struct ModuleTypeCfg {
       std::vector<double> pitchVsType;

@@ -164,7 +164,8 @@ void StubKiller::addDeadLayerModulesToDeadModuleList() {
     float moduleZ = gd->position().z();
     float modulePhi = gd->position().phi();
     DetId geoDetId = gd->geographicalId();
-    bool isInBarrel = geoDetId.subdetId() == Phase2Tracker::Subdetector::Barrel || geoDetId.subdetId() == StripSubdetector::TIB;
+    bool isInBarrel =
+        geoDetId.subdetId() == Phase2Tracker::Subdetector::Barrel || geoDetId.subdetId() == StripSubdetector::TIB;
 
     int layerID = 0;
     if (isInBarrel) {
@@ -229,7 +230,8 @@ bool StubKiller::killStub(const TTStub<Ref_Phase2TrackerDigi_>* stub,
     DetId stackDetid = stub->getDetId();
     DetId geoDetId(stackDetid.rawId() + 1);
 
-    bool isInBarrel = geoDetId.subdetId() == Phase2Tracker::Subdetector::Barrel || geoDetId.subdetId() == StripSubdetector::TIB;
+    bool isInBarrel =
+        geoDetId.subdetId() == Phase2Tracker::Subdetector::Barrel || geoDetId.subdetId() == StripSubdetector::TIB;
 
     int layerID = 0;
     if (isInBarrel) {

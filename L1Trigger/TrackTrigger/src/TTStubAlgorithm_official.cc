@@ -122,10 +122,11 @@ void TTStubAlgorithm_official<Ref_Phase2TrackerDigi_>::PatternHitCorrelation(
   if (stDetId.subdetId() == Phase2Tracker::Subdetector::Barrel) {
     int layer = theTrackerTopo_->layer(stDetId);
     int ladder = theTrackerTopo_->barrelRodP2(stDetId);
-    Phase2Tracker::BarrelModuleTilt type = theTrackerTopo_->barrelTiltTypeP2(stDetId); 
+    Phase2Tracker::BarrelModuleTilt type = theTrackerTopo_->barrelTiltTypeP2(stDetId);
     double corr = 0;
 
-    if (type == Phase2Tracker::BarrelModuleTilt::tiltedZminus || type == Phase2Tracker::BarrelModuleTilt::tiltedZplus)  // Only for tilted modules
+    if (type == Phase2Tracker::BarrelModuleTilt::tiltedZminus ||
+        type == Phase2Tracker::BarrelModuleTilt::tiltedZplus)  // Only for tilted modules
     {
       corr = (barrelNTilt.at(layer) + 1) / 2.;
       // Corrected ring number, bet 0 and barrelNTilt.at(layer), in ascending |z|

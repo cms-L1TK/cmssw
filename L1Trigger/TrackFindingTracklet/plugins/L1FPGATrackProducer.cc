@@ -582,7 +582,8 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
         bool barrel = (layerdisk < trklet::N_LAYER);
         // See  https://github.com/cms-sw/cmssw/tree/master/Geometry/TrackerNumberingBuilder
         const Phase2Tracker::BarrelModuleTilt type = tTopo->barrelTiltTypeP2(innerDetId);
-        bool tiltedBarrel = barrel && (type == Phase2Tracker::BarrelModuleTilt::tiltedZminus || type == Phase2Tracker::BarrelModuleTilt::tiltedZplus);
+        bool tiltedBarrel = barrel && (type == Phase2Tracker::BarrelModuleTilt::tiltedZminus ||
+                                       type == Phase2Tracker::BarrelModuleTilt::tiltedZplus);
         unsigned int tiltedRingId = 0;
         // Tilted module ring no. (Increasing 1 to 12 as |z| increases).
         if (tiltedBarrel) {

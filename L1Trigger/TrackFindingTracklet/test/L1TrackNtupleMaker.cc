@@ -1029,7 +1029,8 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
   if (SaveStubs) {
     for (auto gd = theTrackerGeom->dets().begin(); gd != theTrackerGeom->dets().end(); gd++) {
       DetId detid = (*gd)->geographicalId();
-      if (detid.subdetId() != Phase2Tracker::Subdetector::Barrel && detid.subdetId() != Phase2Tracker::Subdetector::Endcap)
+      if (detid.subdetId() != Phase2Tracker::Subdetector::Barrel &&
+          detid.subdetId() != Phase2Tracker::Subdetector::Endcap)
         continue;
       if (!tTopo->isLower(detid))
         continue;                              // loop on the stacks: choose the lower arbitrarily
@@ -1066,9 +1067,10 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
         if (topol->nrows() == 960)
           isPSmodule = 1;
 
-        const Phase2Tracker::BarrelModuleTilt tiltType = tTopo->barrelTiltTypeP2(detid); 
+        const Phase2Tracker::BarrelModuleTilt tiltType = tTopo->barrelTiltTypeP2(detid);
         int isTiltedBarrel = 0;
-        if (isBarrel == 1 && (tiltType == Phase2Tracker::tiltedZminus || tiltType == Phase2Tracker::tiltedZplus)) isTiltedBarrel = 1;
+        if (isBarrel == 1 && (tiltType == Phase2Tracker::tiltedZminus || tiltType == Phase2Tracker::tiltedZplus))
+          isTiltedBarrel = 1;
 
         MeasurementPoint coords = tempStubPtr->clusterRef(0)->findAverageLocalCoordinatesCentered();
         LocalPoint clustlp = topol->localPosition(coords);
