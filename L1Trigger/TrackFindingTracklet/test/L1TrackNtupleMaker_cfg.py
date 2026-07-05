@@ -1,8 +1,10 @@
-# N.B., DUE TO THE CHANGE IN STUB WINDOW SIZES WITH CMSSW 14_2_0_PRE2, THIS JOB HAS BEEN NODIFIED TO
-# RECREATE THE STUBS, WHICH IS NECESSARY WHEN RUNNING ON MONTE CARLO GENERATED WITH OLDER VERSIONS.
 
 ############################################################
-# define basic process
+# THIS JOB RUNS THE L1 TRACKING ALGORITHM.
+# (Several alternative algorithms can be specified).
+# It also runs an EDAnalyzer that makes a TTREE of
+# track performance. (The script makeHists.csh can
+# optionally then be used to create histograms from this).
 ############################################################
 
 import FWCore.ParameterSet.Config as cms
@@ -27,6 +29,7 @@ GEOMETRY = "D121"
 # (Or legacy algos 'TMTT' or 'TRACKLET').
 L1TRKALGO = 'HYBRID'
 
+# Write output dataset?
 WRITE_DATA = False
 
 ############################################################
@@ -102,8 +105,7 @@ process.source.inputCommands = cms.untracked.vstring()
 process.source.inputCommands.append('keep *_*_*_*')
 process.source.inputCommands.append('drop  *_*_*Level1TTTracks*_*')
 
-#if GEOMETRY == "D76":
-#  # If reading old MC dataset, drop incompatible EDProducts.
+#  # If reading old MC dataset, it can help to drop incompatible EDProducts.
 #  process.source.inputCommands.append('drop *_*_*_*')
 #  process.source.inputCommands.append('keep *_*_*Level1TTTracks*_*')
 #  process.source.inputCommands.append('keep *_*_*StubAccepted*_*')
@@ -124,15 +126,16 @@ process.Timing = cms.Service("Timing", summaryOnly = cms.untracked.bool(True))
 
 process.load('L1Trigger.TrackTrigger.TrackTrigger_cff')
 
-# remake stubs?
-#from L1Trigger.TrackTrigger.TTStubAlgorithmRegister_cfi import *
-#process.load("SimTracker.TrackTriggerAssociation.TrackTriggerAssociator_cff")
+# Load code needed to remake clusters + stubs + their association to truth,
+# in case user wants to remake them. 
+from L1Trigger.TrackTrigger.TTStubAlgorithmRegister_cfi import *
+process.load("SimTracker.TrackTriggerAssociation.TrackTriggerAssociator_cff")
 
-#from SimTracker.TrackTriggerAssociation.TTClusterAssociation_cfi import *
-#TTClusterAssociatorFromPixelDigis.digiSimLinks = cms.InputTag("simSiPixelDigis","Tracker")
+from SimTracker.TrackTriggerAssociation.TTClusterAssociation_cfi import *
+TTClusterAssociatorFromPixelDigis.digiSimLinks = cms.InputTag("simSiPixelDigis","Tracker")
 
-#process.TTClusterStub = cms.Path(process.TrackTriggerClustersStubs)
-#process.TTClusterStubTruth = cms.Path(process.TrackTriggerAssociatorClustersStubs)
+process.TTClusterStub = cms.Path(process.TrackTriggerClustersStubs)
+process.TTClusterStubTruth = cms.Path(process.TrackTriggerAssociatorClustersStubs)
 
 # load code that associates stubs with mctruth
 process.load( 'SimTracker.TrackTriggerAssociation.StubAssociator_cff' )
@@ -291,18 +294,16 @@ process.ana = cms.Path(process.L1TrackNtuple)
 # final schedule of what is to be run
 ############################################################
 
-# use this if you want to re-run the stub making
-#process.schedule = cms.Schedule(process.TTClusterStub,process.TTClusterStubTruth,process.dtc,process.TTTracksEmulationWithTruth,process.ana)
-
-# use this if cluster/stub associators not available
-# process.schedule = cms.Schedule(process.TTClusterStubTruth,process.dtc,process.TTTracksEmulationWithTruth,process.ana)
-
-# use this to only run tracking + track associator
+# Run tracking + track associator
 process.schedule = cms.Schedule(process.dtc,process.TTTracksEmulationWithTruth,process.ana)
+
+# use this to re-run the cluster+stub making + truth association
+# (Not needed unless their format has changed or you want to change them)
+#process.schedule = cms.Schedule(process.TTClusterStub,process.TTClusterStubTruth,process.dtc,process.TTTracksEmulationWithTruth,process.ana)
 
 
 ############################################################
-# write output dataset?
+# write output dataset
 ############################################################
 
 if (WRITE_DATA):
