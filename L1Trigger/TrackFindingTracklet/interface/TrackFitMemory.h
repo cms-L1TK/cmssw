@@ -26,7 +26,7 @@ namespace trklet {
     unsigned int nStublists() const { return stublists_.size(); }
     unsigned int nStubidslists() const { return stubidslists_.size(); }
 
-    Tracklet* getTrack(unsigned int i) { return tracks_[i]; }
+    Tracklet* getTrack(unsigned int i) const { return tracks_[i]; }
     // Get pointers to Stubs on track.
     std::vector<const Stub*> getStublist(unsigned int i) const { return stublists_[i]; }
     // Get (layer, unique stub index in layer) of stubs on track.

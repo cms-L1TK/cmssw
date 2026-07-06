@@ -74,7 +74,7 @@ namespace trklet {
     std::vector<std::vector<std::pair<int, int>>> inputstubidslists_;
     std::vector<std::vector<std::pair<int, int>>> mergedstubidslists_;
     std::vector<std::vector<std::pair<int, int>>> comparestubidslists_;
-    std::vector<TrackFitMemory*> inputtrackfits_;
+    std::vector<const TrackFitMemory*> inputtrackfits_;
     std::vector<Tracklet*> inputtracklets_;
     std::vector<CleanTrackMemory*> outputtracklets_;
     double phiSec_;  // phi of sector.

@@ -151,7 +151,7 @@ void PurgeDuplicate::execute(std::vector<Track>& outputtracks, unsigned int iSec
               if (inputtracklets_.size() >= settings_.maxStep("DR"))
                 continue;
               Tracklet* aTrack = inputtrackfits_[i]->getTrack(j);
-              inputtracklets_.push_back(inputtrackfits_[i]->getTrack(j));
+              inputtracklets_.push_back(aTrack);
               std::vector<const Stub*> stublist = inputtrackfits_[i]->getStublist(j);
               inputstublists_.push_back(stublist);
               std::vector<std::pair<int, int>> stubidslist = inputtrackfits_[i]->getStubidslist(j);
@@ -184,6 +184,8 @@ void PurgeDuplicate::execute(std::vector<Track>& outputtracks, unsigned int iSec
           }
         }
 
+        // All tracks from all memories in this (phi,rinv) bin are now
+        // in inputtracklets.
         if (inputtracklets_.empty())
           continue;
         const unsigned int numStublists = inputstublists_.size();
