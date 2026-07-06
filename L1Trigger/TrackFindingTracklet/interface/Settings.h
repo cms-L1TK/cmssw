@@ -946,8 +946,10 @@ namespace trklet {
 
     // Duplicate Removal
     // "merge" (hybrid dup removal)
-    // "ichi" (pairwise, keep track with best ichisq), "nstub" (pairwise, keep track with more stubs)
-    // "grid" (TMTT-like removal), "" (no removal)
+    // "ichi" (pairwise kill, keep track with best ichisq)
+    // "nstub" (pairwise kill, keep track with more stubs)
+    // "grid" (TMTT-like removal),
+    // "" (no removal)
     unsigned int minIndStubs_{3};  // not used with merge removal
 
 #ifdef USEHYBRID
@@ -1020,12 +1022,12 @@ namespace trklet {
 
     //Following values are used for duplicate removal
     //Only one bin currently used.
-    std::vector<double> rinvBins_{-rinvcut(), rinvcut()};
-    std::vector<double> phiBins_{0, dphisectorHG()};
+    std::vector<double> rinvBins_{-999.9, 999.9};
+    std::vector<double> phiBins_{-999.9, 999.9};
     //Overlap size for the overlap rinv bins in DR
-    double rinvOverlapSize_{0.0004};
+    double rinvOverlapSize_{0.0};
     //Overlap size for the overlap phi bins in DR
-    double phiOverlapSize_{M_PI / 360};
+    double phiOverlapSize_{0.0};
     //The maximum number of tracks that are compared to all the other tracks per rinv bin
     //VALUE AUTOMATICALLY SET TO INFINITY FOR EXTENDED TRACKING
     int numTracksComparedPerBin_{32};
