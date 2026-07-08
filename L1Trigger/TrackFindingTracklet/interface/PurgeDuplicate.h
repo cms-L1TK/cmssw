@@ -62,7 +62,7 @@ namespace trklet {
     void doCompareAll(const std::vector<std::pair<int, int>>& stubsTrk1,
                       const std::vector<std::pair<int, int>>& stubsTrk2,
                       bool layerArr[],
-                      unsigned int nShareLay) const;
+                      unsigned int& nShareLay) const;
     // makes CompareBest comaprison into a function to make code more readable
     void doCompareBest(const std::vector<std::pair<int, int>>& stubsTrk,
                        const std::vector<const Stub*>& fullStubslistsTrk,
@@ -73,10 +73,9 @@ namespace trklet {
     std::vector<std::vector<const Stub*>> inputstublists_;
     std::vector<std::vector<std::pair<int, int>>> inputstubidslists_;
     std::vector<std::vector<std::pair<int, int>>> mergedstubidslists_;
-    std::vector<std::vector<std::pair<int, int>>> comparestubidslists_;
-    std::vector<TrackFitMemory*> inputtrackfits_;
+    std::vector<const TrackFitMemory*> inputTrkFitMems_;
     std::vector<Tracklet*> inputtracklets_;
-    std::vector<CleanTrackMemory*> outputtracklets_;
+    std::vector<CleanTrackMemory*> outputCleanTrkMems_;
     double phiSec_;  // phi of sector.
   };
 
