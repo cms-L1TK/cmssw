@@ -240,8 +240,16 @@ void PurgeDuplicate::execute(std::vector<Track>& outputtracks, unsigned int iSec
         // numStublists-1 since last track has no other to compare to
         unsigned int CM = 0;
         for (unsigned int itrk = 0; itrk < numStublists - 1; itrk++) {
-          // If itrk is not a duplicate, or if it is a duplicate, but was not the merged track, increment CM, to keep track of how many tracks are being assigned to comparison modules.
-          // If itrk is a duplicate and it is the merged track, then continue
+          // If itrk is already identified as a duplicate,
+          // do not compare it to other tracks, if it wasn't preferred track
+          // in that duplicate.
+          // If itrk is not already identified as duplicate, then
+          // increment comparison module countor so can model truncation.
+          //
+          // COMMENT FROM IAN: commenting out next 8 lines of code reduces
+          // duplicate rate by factor 4! They are thought necessary for
+          // realistic FW algo.
+
           if (sortedMergedTrack[itrk]) {
             continue;
           } else {
