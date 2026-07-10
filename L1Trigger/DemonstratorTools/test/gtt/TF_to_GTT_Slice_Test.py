@@ -1,7 +1,7 @@
 # this compares event by event the output of the C++ emulation with the ModelSim simulation of the firmware
 import FWCore.ParameterSet.Config as cms
 
-process = cms.Process( "Demo" )
+process = cms.Process("Demo")
 process.load( 'FWCore.MessageService.MessageLogger_cfi' )
 process.load( 'Configuration.EventContent.EventContent_cff' )
 process.load( 'Configuration.Geometry.GeometryExtendedRun4D110Reco_cff' ) 
@@ -13,28 +13,24 @@ process.load( 'L1Trigger.TrackTrigger.TrackTrigger_cff' )
 from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:phase2_realistic', '')
 
-# load code that produces DTCStubs
 process.load( 'L1Trigger.TrackerDTC.DTC_cff' )
-# L1 tracking => hybrid emulation 
 process.load("L1Trigger.TrackFindingTracklet.L1HybridEmulationTracks_cff")
-# load code that fits hybrid tracks
 process.load( 'L1Trigger.TrackFindingTracklet.Producer_cff' )
 process.load( 'L1Trigger.TrackFindingTracklet.Analyzer_cff' )
-#--- Load code that compares s/w with f/w
 process.load( 'L1Trigger.TrackFindingTracklet.Demonstrator_cff' )
 from L1Trigger.TrackFindingTracklet.Customize_cff import *
 #reducedConfig( process )
 fwConfig( process )
 
 # build schedule
-process.emu = cms.Sequence (  process.ProducerDTC
-                            + process.L1THybridTracks
-                            + process.ProducerTM
-                            + process.ProducerDR
-                            + process.ProducerKF
-                            + process.ProducerTQ
-                            + process.ProducerTFP
-                           )
+process.TrackProcessorEmulation = cms.Sequence (  process.ProducerDTC
+                                                + process.L1THybridTracks
+                                                + process.ProducerTM
+                                                + process.ProducerDR
+                                                + process.ProducerKF
+                                                + process.ProducerTQ
+                                                + process.ProducerTFP
+                                                )
 
 
 Samples = ["/store/relval/CMSSW_15_1_0_pre5/RelValTTbar_14TeV_TuneCP5/GEN-SIM-DIGI-RAW/PU_150X_mcRun4_realistic_v1_RV269_Run4D110_PU-v2/2590000/0f0bcfd3-dafe-4dda-8d39-9765f6eae68e.root"]
@@ -60,7 +56,7 @@ process.source = cms.Source(
   fileNames = cms.untracked.vstring( Samples ),
   secondaryFileNames = cms.untracked.vstring(),
   duplicateCheckMode = cms.untracked.string( 'noDuplicateCheck' ),
-  skipEvents = cms.untracked.uint32( 13 ),
+  skipEvents = cms.untracked.uint32( 0 ),
 )
 process.Timing = cms.Service( "Timing", summaryOnly = cms.untracked.bool( True ) )
 L1TRK_NAME  = process.TrackFindingTrackletAnalyzer_params.OutputLabelTFP.value()
@@ -80,10 +76,10 @@ process.l1tGTTFileWriter.vertexAssociatedTracks = cms.untracked.InputTag("l1tTra
 process.l1tGTTFileWriter.format = cms.untracked.string("EMPv2")
 process.l1tVertexFinderEmulator.VertexReconstruction.VxMinTrackPt = cms.double(0.0)
 
-process.demo = cms.Path(process.emu + 
-                        process.l1tGTTInputProducer + 
-                        process.l1tTrackSelectionProducer + 
-                        process.l1tVertexFinderEmulator + 
-                        process.l1tTrackVertexAssociationProducer +
-                        process.l1tGTTFileWriter + 
-                        process.TrackerTFPDemonstrator)
+process.demo = cms.Path( process.TrackProcessorEmulation + 
+                         process.l1tGTTInputProducer + 
+                         process.l1tTrackSelectionProducer + 
+                         process.l1tVertexFinderEmulator + 
+                         process.l1tTrackVertexAssociationProducer +
+                         process.l1tGTTFileWriter +
+                         process.TrackerTFPDemonstrator)
