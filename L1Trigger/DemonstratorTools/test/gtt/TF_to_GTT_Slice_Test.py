@@ -69,12 +69,16 @@ process.load('L1Trigger.VertexFinder.l1tVertexProducer_cfi')
 process.load('L1Trigger.DemonstratorTools.l1tGTTFileWriter_cfi')
 process.load('L1Trigger.L1TTrackMatch.l1tTrackVertexAssociationProducer_cfi')
 
+# GTT File Writer
 process.l1tGTTFileWriter.tracks = cms.untracked.InputTag(L1TRK_NAME, L1TRK_LABEL)
 process.l1tGTTFileWriter.vertices = cms.untracked.InputTag("l1tVertexFinderEmulator", "L1VerticesEmulation")
 process.l1tGTTFileWriter.selectedTracks = cms.untracked.InputTag("l1tTrackSelectionProducer", "Level1TTTracksSelectedEmulation")
 process.l1tGTTFileWriter.vertexAssociatedTracks = cms.untracked.InputTag("l1tTrackVertexAssociationProducer", "Level1TTTracksSelectedAssociatedEmulation")
 process.l1tGTTFileWriter.format = cms.untracked.string("EMPv2")
+
+# Vertex Finder Emulator
 process.l1tVertexFinderEmulator.VertexReconstruction.VxMinTrackPt = cms.double(0.0)
+process.l1tVertexFinderEmulator.VertexReconstruction.Algorithm = cms.string("NNEmulation")
 
 process.demo = cms.Path( process.TrackProcessorEmulation + 
                          process.l1tGTTInputProducer + 
