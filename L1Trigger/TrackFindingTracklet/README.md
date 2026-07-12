@@ -1,12 +1,8 @@
 To run the L1 tracking & create a TTree of tracking performance:
 
-cmsRun L1TrackNtupleMaker_cfg.py 
+cmsRun L1TrackNtupleMaker_cfg.py
 
-<<<<<<< HEAD
 By setting variable L1TRKALGO inside this script, you can change which L1 tracking algo is used. It defaults to HYBRID, which runs Tracklet pattern reco followed by old floating point duplicate removal + Kalman track fit.
-=======
-By setting variable L1TRKALGO inside this script, you can change which L1 tracking algo is used. It defaults to HYBRID, which runs Tracklet pattern reco followed by old Kalman track fit. 
->>>>>>> ffa213966de (Fix formatting in README for L1 tracking instructions)
 
 The corresponding code for displaced tracking can be run by setting L1TRKALGO=HYBRID_DISPLACED. It uses displaced tracklet seeding + 5-param KF fit.
 
