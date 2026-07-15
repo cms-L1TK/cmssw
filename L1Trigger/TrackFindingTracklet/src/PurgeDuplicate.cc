@@ -310,9 +310,9 @@ void PurgeDuplicate::execute(std::vector<Track>& outputtracks, unsigned int iSec
               sortedDupMap[itrk][jtrk] = true;
               sortedDupMap[jtrk][itrk] = true;
               // Until extended tracking is optimized, dont set this for extended seeds
-              // if (seedRank[seedRankIdx[itrk]] != 9) {
-              sortedMergedTrack[jtrk] = true;
-              // }
+              if (seedRank[seedRankIdx[itrk]] != 9) {
+                sortedMergedTrack[jtrk] = true;
+              }
             }
           }
         }
@@ -323,15 +323,15 @@ void PurgeDuplicate::execute(std::vector<Track>& outputtracks, unsigned int iSec
               // Set preferred track based on seed rank
               int preftrk;
               int rejetrk;
-              // if (seedRank[seedRankIdx[itrk]] == 9) {  // extended track seed
-              //  // COMMENT FROM IAN: The swap here reduces the duplicate
-              //  // rate for extended tracking by 1/4. Why???
-              //  preftrk = jtrk;
-              //  rejetrk = itrk;
-              // } else {
-              preftrk = itrk;
-              rejetrk = jtrk;
-              //}
+              if (seedRank[seedRankIdx[itrk]] == 9) {  // extended track seed
+                // COMMENT FROM IAN: The swap here reduces the duplicate
+                // rate for extended tracking by 1/4. Why???
+                preftrk = jtrk;
+                rejetrk = itrk;
+              } else {
+                preftrk = itrk;
+                rejetrk = jtrk;
+              }
 
               // If the preffered track is in more than one bin, but not in the proper rinv or phi bin, then mark as true
               if (((findOverlapRinvBins(sortedinputtracklets[preftrk]).size() > 1) &&
