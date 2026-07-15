@@ -154,12 +154,12 @@ namespace trklet {
     double rphicut2S(unsigned int iSeed, unsigned int idisk) const { return rphicut2S_[idisk][iSeed]; }
     double rcut2S(unsigned int iSeed, unsigned int idisk) const { return rcut2S_[idisk][iSeed]; }
 
-    unsigned int irmean(unsigned int iLayer) const { return irmean_[iLayer]; }
-    double rmean(unsigned int iLayer) const { return irmean_[iLayer] * rmaxdisk_ / 4096; }
+    unsigned int irmean(unsigned int iLayer) const { return rmean_[iLayer] * 4096 / rmaxdisk_ + 0.5; }
+    double rmean(unsigned int iLayer) const { return rmean_[iLayer]; }
     double rmax(unsigned int iLayer) const { return rmean(iLayer) + drmax(); }
     double rmin(unsigned int iLayer) const { return rmean(iLayer) - drmax(); }
-    unsigned int izmean(unsigned int iDisk) const { return izmean_[iDisk]; }
-    double zmean(unsigned int iDisk) const { return izmean_[iDisk] * zlength_ / 2048; }
+    unsigned int izmean(unsigned int iDisk) const { return zmean_[iDisk] * 2048 / zlength_ + 0.5; }
+    double zmean(unsigned int iDisk) const { return zmean_[iDisk]; }
     double zmax(unsigned int iDisk) const { return zmean(iDisk) + dzmax(); }
     double zmin(unsigned int iDisk) const { return zmean(iDisk) - dzmax(); }
 
@@ -510,8 +510,8 @@ namespace trklet {
 
     double maxt_{32.0};  //range in t that we must cover
 
-    std::array<unsigned int, N_LAYER> irmean_{{851, 1269, 1784, 2347, 2936, 3697}};
-    std::array<unsigned int, N_DISK> izmean_{{2239, 2645, 3163, 3782, 4523}};
+    std::array<double, N_LAYER> rmean_{{24.932, 37.178, 52.266, 68.760, 86.016, 108.311}};
+    std::array<double, N_DISK> zmean_{{131.191, 154.980, 185.332, 221.602, 265.020}};
 
     std::array<unsigned int, N_LAYER + N_DISK> nndbitsstub_{{0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1}};
     std::array<unsigned int, N_LAYER + N_DISK> nzbitsstub_{{12, 12, 12, 8, 8, 8, 7, 7, 7, 7, 7}};
@@ -568,8 +568,8 @@ namespace trklet {
 
     unsigned int NLONGVMBITS_{3};
 
-    double zlength_{120.0};
-    double rmaxdisk_{120.0};
+    double zlength_{132.0};
+    double rmaxdisk_{zlength_};  //radial and z scales has to be the same
     double rmindisk_{20.0};
 
     double zsepdisk_{1.5};  //cm
