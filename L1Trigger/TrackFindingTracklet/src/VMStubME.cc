@@ -19,6 +19,8 @@ std::string VMStubME::str() const {
   stub += finephi_.str();
   stub += "|";
   stub += finerz_.str();
+  stub += "|";
+  stub += (stub_->isPSmodule() ? "1" : "0");
 
   return stub;
 }

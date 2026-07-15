@@ -214,7 +214,7 @@ void Stub::getCoord(double& phi, double& r, double& z) const {
     }
   } else {
     z += (negdisk ? -1 : 1) * settings_.zmean(layerdisk() - 6);
-    r += 7.5;
+    r += settings_.rmaxdisk() / 16;
     if (!isPSmodule()) {
       if (layerdisk() <= 7) {
         r = settings_.rDSSinner(r_.value());

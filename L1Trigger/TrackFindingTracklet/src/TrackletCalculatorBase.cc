@@ -280,10 +280,10 @@ bool TrackletCalculatorBase::barrelSeeding(const Stub* innerFPGAStub,
 
   calcPars(idr, iphi1, ir1abs, iz1, iphi2, ir2abs, iz2, irinv_new, iphi0_new, iz0_new, it_new, print);
 
-  bool rinvcut = abs(irinv_new) < settings_.rinvcut() * (120.0 * (1 << n_rinv_)) / phiHG_;
-  bool z0cut = abs(iz0_new) < settings_.z0cut() * (1 << n_z0_) / 120.0;
+  bool rinvcut = abs(irinv_new) < settings_.rinvcut() * (settings_.zlength() * (1 << n_rinv_)) / phiHG_;
+  bool z0cut = abs(iz0_new) < settings_.z0cut() * (1 << n_z0_) / settings_.zlength();
   if (iSeed_ != 0) {
-    z0cut = abs(iz0_new) < 1.5 * settings_.z0cut() * (1 << n_z0_) / 120.0;
+    z0cut = abs(iz0_new) < 1.5 * settings_.z0cut() * (1 << n_z0_) / settings_.zlength();
   }
 
   if (!goodTrackPars(rinvcut, z0cut)) {
@@ -436,14 +436,16 @@ bool TrackletCalculatorBase::diskSeeding(const Stub* innerFPGAStub,
                                  << iz0_new << " " << it_new;
   }
 
-  bool rinvcut = abs(irinv_new) < settings_.rinvcut() * (120.0 * (1 << n_rinv_)) / phiHG_;
-  bool z0cut = abs(iz0_new) < settings_.z0cut() * (1 << n_z0_) / 120.0;
+  bool rinvcut = abs(irinv_new) < settings_.rinvcut() * (settings_.zlength() * (1 << n_rinv_)) / phiHG_;
+  bool z0cut = abs(iz0_new) < settings_.z0cut() * (1 << n_z0_) / settings_.zlength();
 
   if (print) {
     edm::LogVerbatim("Tracklet") << "Pass cuts: " << rinvcut << " " << z0cut << " "
                                  << inSector(iphi0_new, irinv_new, phi0, rinv);
-    edm::LogVerbatim("Tracklet") << "rinvcut  : " << settings_.rinvmax() * (120.0 * (1 << n_rinv_)) / phiHG_ << " "
-                                 << settings_.rinvmax() << " " << 1.0 / ((120.0 * (1 << n_rinv_)) / phiHG_);
+    edm::LogVerbatim("Tracklet") << "rinvcut  : "
+                                 << settings_.rinvmax() * (settings_.zlength() * (1 << n_rinv_)) / phiHG_ << " "
+                                 << settings_.rinvmax() << " "
+                                 << 1.0 / ((settings_.zlength() * (1 << n_rinv_)) / phiHG_);
   }
 
   if (!goodTrackPars(rinvcut, z0cut))
@@ -577,8 +579,8 @@ bool TrackletCalculatorBase::overlapSeeding(const Stub* innerFPGAStub,
     edm::LogVerbatim("Tracklet") << "pars: " << irinv_new << " " << iphi0_new << " " << iz0_new << " " << it_new;
   }
 
-  bool rinvcut = abs(irinv_new) < settings_.rinvcut() * (120.0 * (1 << n_rinv_)) / phiHG_;
-  bool z0cut = abs(iz0_new) < settings_.z0cut() * (1 << n_z0_) / 120.0;
+  bool rinvcut = abs(irinv_new) < settings_.rinvcut() * (settings_.zlength() * (1 << n_rinv_)) / phiHG_;
+  bool z0cut = abs(iz0_new) < settings_.z0cut() * (1 << n_z0_) / settings_.zlength();
 
   if (!goodTrackPars(rinvcut, z0cut))
     return false;
