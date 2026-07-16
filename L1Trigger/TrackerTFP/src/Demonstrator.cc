@@ -100,7 +100,7 @@ namespace trackerTFP {
   void Demonstrator::sim(const std::stringstream& ss) const {
     // write ss to disk
     std::fstream fs;
-    fs.open(dirIn_.c_str(), std::fstream::out);
+    fs.open(dirIn_.c_str(), std::fstream::out | std::fstream::app);
     fs << ss.rdbuf();
     fs.close();
     // run modelsim

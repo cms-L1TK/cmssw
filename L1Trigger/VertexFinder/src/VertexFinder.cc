@@ -1229,7 +1229,7 @@ namespace l1tVertexFinder {
     const double zmin = settings_->vx_histogram_min();
     const double bw = settings_->vx_histogram_binwidth();
     const double z0_center = (static_cast<double>(PV_index) + 0.5) * bw + zmin;
-
+    std::cout << z0_center << std::endl;
     l1t::VertexWord::vtxz0_t z0_word = z0_center;
 
     // Hardware-like pattern output encoding

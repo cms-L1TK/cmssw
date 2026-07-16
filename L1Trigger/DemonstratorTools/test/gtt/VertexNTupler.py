@@ -53,7 +53,7 @@ def get_data_from_file(filepath):
     return samples
 
 Samples = get_data_from_file("/home/hep/am2023/new-investigation/CMSSW_15_1_0_pre4/src/Files.txt")[0]
-Samples = ["/store/mc/Phase2Spring24DIGIRECOMiniAOD/DisplacedSUSY_stopToBottom_M-800_500mm_TuneCP5_14TeV-pythia8/GEN-SIM-DIGI-RAW-MINIAOD/PU200_AllTP_140X_mcRun4_realistic_v4-v1/2810000/c63cb0cc-b447-4220-8f72-8005a07aa8a8.root"]
+#Samples = ["/store/mc/Phase2Spring24DIGIRECOMiniAOD/DisplacedSUSY_stopToBottom_M-800_500mm_TuneCP5_14TeV-pythia8/GEN-SIM-DIGI-RAW-MINIAOD/PU200_AllTP_140X_mcRun4_realistic_v4-v1/2810000/c63cb0cc-b447-4220-8f72-8005a07aa8a8.root"]
 
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(10) )
 process.source = cms.Source(

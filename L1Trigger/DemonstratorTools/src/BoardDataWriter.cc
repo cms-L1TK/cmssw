@@ -80,7 +80,7 @@ namespace l1t::demo {
                                  "] was given to BoardDataWriter, but its structure was not defined");
 
       const auto& [spec, indices] = channelMap_.at(id);
-      const size_t chanIndex(indices.at(pendingEvents_ % (spec.tmux / boardTMUX_)));
+      const size_t chanIndex (indices.at(pendingEvents_ % (spec.tmux / boardTMUX_)));
 
       // Check that that expected amount of data has been provided
       if (channelData.size() > (spec.tmux * framesPerBX_ - spec.interpacketGap))
