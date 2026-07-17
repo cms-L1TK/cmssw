@@ -1,4 +1,4 @@
-Two options:
+Two options: 
 
 1) Run the TMTT L1 tracking algorithm (with detailed internal histos)
 
