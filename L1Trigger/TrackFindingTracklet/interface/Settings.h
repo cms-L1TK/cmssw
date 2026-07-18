@@ -568,7 +568,9 @@ namespace trklet {
 
     unsigned int NLONGVMBITS_{3};
 
-    double zlength_{132.0};
+    //If the zlength_ is change the digitization parameters in TrackerDTC/python/Setup_cfi.py
+    //need to be updated correspondingly
+    double zlength_{124.0};
     double rmaxdisk_{zlength_};  //radial and z scales has to be the same
     double rmindisk_{20.0};
 

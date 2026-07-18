@@ -124,10 +124,10 @@ TrackerDTCSetup_params = cms.PSet (
     WidthsPhi     = cms.vint32 ( 14, 17, 14, 14 ), # number of bits used for stub phi w.r.t. region centre for module types (barrelPS, barrel2S, diskPS, disk2S)
     WidthsAlpha   = cms.vint32 (  0,  0,  0,  4 ), # number of bits used for stub row number for module types (barrelPS, barrel2S, diskPS, disk2S)
     WidthsBend    = cms.vint32 (  3,  4,  3,  4 ), # number of bits used for stub bend number for module types (barrelPS, barrel2S, diskPS, disk2S)
-    RangesR       = cms.vdouble(   7.5*132.0/120.0,   7.5*132.0/120.0, 60.*132.0/120.0 ,    0.  ), # range in stub r which needs to be covered for module types (barrelPS, barrel2S, diskPS, disk2S)
-    RangesZ       = cms.vdouble( 240.*132.0/120.0,  240.*132.0/120.0,   7.5*132.0/120.0,    7.5*132.0/120.0 ), # range in stub z which needs to be covered for module types (barrelPS, barrel2S, diskPS, disk2S)
+    RangesR       = cms.vdouble( 7.75,   7.75, 62.0,    0.  ), # range in stub r which needs to be covered for module types (barrelPS, barrel2S, diskPS, disk2S)
+    RangesZ       = cms.vdouble( 248.0,  248.0,   7.75,    7.75 ), # range in stub z which needs to be covered for module types (barrelPS, barrel2S, diskPS, disk2S)
     RangesAlpha   = cms.vdouble(   0.,    0.,   0.,  1024.  ), # range in stub row which needs to be covered for module types (barrelPS, barrel2S, diskPS, disk2S)
-    OffsetRDiskPS = cms.double(   7.5*132.0/120.0 ), # radial offset in cm applied to disk PS stubs
+    OffsetRDiskPS = cms.double(   7.75 ), # radial offset in cm applied to disk PS stubs
     MinPt         = cms.double(   2.0 ), # in GeV, used to define output stub data format
   ),
 

@@ -9,6 +9,9 @@
 #include "DataFormats/Math/interface/deltaPhi.h"
 #include "L1Trigger/L1TCommon/interface/BitShift.h"
 
+//#include <cstdlib>
+//#include <iostream>
+
 using namespace std;
 using namespace trklet;
 
@@ -17,6 +20,131 @@ TrackletCalculatorBase::TrackletCalculatorBase(string name, Settings const& sett
 
 void TrackletCalculatorBase::init(int iSeed) {
   phiHG_ = settings_.dphisectorHG();
+
+  //Constants used for tracklet parameter calculations
+  //These controls the number of bits that are kept in the intermediate
+  //calculations. They are in some sense arbitrary, but should be
+  //tuned to get an accurate result without using too much
+  //resources
+  std::map<int, int> na = {{Seed::L1L2, 15},
+                           {Seed::L2L3, 15},
+                           {Seed::L3L4, 15},
+                           {Seed::L5L6, 15},
+                           {Seed::D1D2, 15},
+                           {Seed::D3D4, 15},
+                           {Seed::L1D1, 14},
+                           {Seed::L2D1, 14}};
+  std::map<int, int> ndelta0 = {{Seed::L1L2, 12},
+                                {Seed::L2L3, 12},
+                                {Seed::L3L4, 12},
+                                {Seed::L5L6, 12},
+                                {Seed::D1D2, 12},
+                                {Seed::D3D4, 12},
+                                {Seed::L1D1, 12},
+                                {Seed::L2D1, 12}};
+  std::map<int, int> ndelta02 = {{Seed::L1L2, 15},
+                                 {Seed::L2L3, 15},
+                                 {Seed::L3L4, 15},
+                                 {Seed::L5L6, 15},
+                                 {Seed::D1D2, 15},
+                                 {Seed::D3D4, 15},
+                                 {Seed::L1D1, 15},
+                                 {Seed::L2D1, 15}};
+  std::map<int, int> ndelta1 = {{Seed::L1L2, 11},
+                                {Seed::L2L3, 11},
+                                {Seed::L3L4, 11},
+                                {Seed::L5L6, 11},
+                                {Seed::D1D2, 11},
+                                {Seed::D3D4, 11},
+                                {Seed::L1D1, 11},
+                                {Seed::L2D1, 11}};
+  std::map<int, int> ndelta2 = {{Seed::L1L2, 15},
+                                {Seed::L2L3, 15},
+                                {Seed::L3L4, 15},
+                                {Seed::L5L6, 15},
+                                {Seed::D1D2, 15},
+                                {Seed::D3D4, 15},
+                                {Seed::L1D1, 15},
+                                {Seed::L2D1, 15}};
+  std::map<int, int> ndelta12 = {{Seed::L1L2, 15},
+                                 {Seed::L2L3, 15},
+                                 {Seed::L3L4, 15},
+                                 {Seed::L5L6, 15},
+                                 {Seed::D1D2, 15},
+                                 {Seed::D3D4, 15},
+                                 {Seed::L1D1, 15},
+                                 {Seed::L2D1, 15}};
+  std::map<int, int> ndeltaz = {{Seed::L1L2, 9},
+                                {Seed::L2L3, 9},
+                                {Seed::L3L4, 9},
+                                {Seed::L5L6, 9},
+                                {Seed::D1D2, 9},
+                                {Seed::D3D4, 9},
+                                {Seed::L1D1, 7},
+                                {Seed::L2D1, 7}};
+  std::map<int, int> nr6 = {{Seed::L1L2, 0},
+                            {Seed::L2L3, 0},
+                            {Seed::L3L4, 0},
+                            {Seed::L5L6, 0},
+                            {Seed::D1D2, 0},
+                            {Seed::D3D4, 0},
+                            {Seed::L1D1, 0},
+                            {Seed::L2D1, 0}};
+  std::map<int, int> nifact = {{Seed::L1L2, 11},
+                               {Seed::L2L3, 12},
+                               {Seed::L3L4, 12},
+                               {Seed::L5L6, 13},
+                               {Seed::D1D2, 11},
+                               {Seed::D3D4, 12},
+                               {Seed::L1D1, 9},
+                               {Seed::L2D1, 9}};
+  std::map<int, int> nx6 = {{Seed::L1L2, 16},
+                            {Seed::L2L3, 16},
+                            {Seed::L3L4, 16},
+                            {Seed::L5L6, 16},
+                            {Seed::D1D2, 16},
+                            {Seed::D3D4, 16},
+                            {Seed::L1D1, 16},
+                            {Seed::L2D1, 16}};
+  std::map<int, int> nit1 = {{Seed::L1L2, 5},
+                             {Seed::L2L3, 5},
+                             {Seed::L3L4, 5},
+                             {Seed::L5L6, 5},
+                             {Seed::D1D2, 5},
+                             {Seed::D3D4, 5},
+                             {Seed::L1D1, 5},
+                             {Seed::L2D1, 5}};
+  std::map<int, int> nHG = {{Seed::L1L2, 10},
+                            {Seed::L2L3, 11},
+                            {Seed::L3L4, 11},
+                            {Seed::L5L6, 11},
+                            {Seed::D1D2, 11},
+                            {Seed::D3D4, 11},
+                            {Seed::L1D1, 10},
+                            {Seed::L2D1, 11}};
+  std::map<int, int> ndeltar = {{Seed::L1L2, 25},
+                                {Seed::L2L3, 25},
+                                {Seed::L3L4, 25},
+                                {Seed::L5L6, 25},
+                                {Seed::D1D2, 25},
+                                {Seed::D3D4, 25},
+                                {Seed::L1D1, 25},
+                                {Seed::L2D1, 25}};
+
+  //The offests that are commented out here are useful for adjusting the number of bits
+  n_delta0_ = ndelta0[iSeed];    // + stoi(getenv("N_DELTA0"));
+  n_deltaz_ = ndeltaz[iSeed];    // + stoi(getenv("N_DELTAZ"));
+  n_delta1_ = ndelta1[iSeed];    // + stoi(getenv("N_DELTA1"));
+  n_delta2_ = ndelta2[iSeed];    // + stoi(getenv("N_DELTA2"));
+  n_delta12_ = ndelta12[iSeed];  // + stoi(getenv("N_DELTA12"));
+  n_a_ = na[iSeed];              // + stoi(getenv("N_A"));
+  n_r6_ = nr6[iSeed];            // + stoi(getenv("N_R6"));
+  n_ifact_ = nifact[iSeed];      // + stoi(getenv("N_IFACT"));
+  n_delta02_ = ndelta02[iSeed];  // + stoi(getenv("N_DELTA02"));
+  n_x6_ = nx6[iSeed];            // + stoi(getenv("N_X6"));
+  n_it1_ = nit1[iSeed];          // + stoi(getenv("N_IT1"));
+  n_HG_ = nHG[iSeed];            // + stoi(getenv("N_HG"));
+  n_Deltar_ = ndeltar[iSeed];    // + stoi(getenv("N_DELTAR"));
 
   //Constants for coordinates and track parameter definitions
   n_phi_ = settings_.nphibitsstub(N_LAYER - 1);
@@ -27,26 +155,7 @@ void TrackletCalculatorBase::init(int iSeed) {
   n_rinv_ = settings_.nbitsrinv() - 1;
   n_t_ = settings_.nbitst() - 5;
 
-  //Constants used for tracklet parameter calculations
-  //These controls the number of bits that are kept in the intermediate
-  //calculations. They are in some sense arbitrary, but should be
-  //tuned to get an accurate result without using too much
-  //resources
-  n_delta0_ = 9;
-  n_deltaz_ = 9;
-  n_delta1_ = 10;
-  n_delta2_ = 12;
-  n_delta12_ = 13;
-  n_a_ = 15;
-  n_r6_ = 6;
-  n_ifact_ = 12;
-  n_delta02_ = 12;
-  n_x6_ = 16;
-  n_it1_ = 5;
-  n_HG_ = 15;
-
   if (settings_.barrelSeed(iSeed)) {
-    n_Deltar_ = 24;
     LUT_idrinv_.resize(512);
     for (int idr = -256; idr < 256; idr++) {
       int uidr = idr;
@@ -58,7 +167,6 @@ void TrackletCalculatorBase::init(int iSeed) {
   }
 
   if (settings_.diskSeed(iSeed)) {
-    n_Deltar_ = 24;
     LUT_idrinv_.resize(512);
     for (unsigned int idr = 1; idr < 512; idr++) {
       LUT_idrinv_[idr] = 0.5 + float(1 << n_Deltar_) / idr;
@@ -66,12 +174,6 @@ void TrackletCalculatorBase::init(int iSeed) {
   }
 
   if (settings_.overlapSeed(iSeed)) {
-    n_Deltar_ = 24;
-    n_delta0_ = 9;
-    n_deltaz_ = 6;
-    n_a_ = 14;
-    n_r6_ = 6;
-    n_ifact_ = 10;
     LUT_idrinv_.resize(1024);
     for (unsigned int idr = 1; idr < 1024; idr++) {
       LUT_idrinv_[idr] = 0.5 + float(1 << n_Deltar_) / idr;
