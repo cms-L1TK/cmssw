@@ -58,7 +58,14 @@ namespace trklet {
     int n_x_;
     int n_xx6_;
 
-    unsigned int nMergedTC[8] = {6, 1, 2, 1, 1, 1, 2, 1};
+    std::map<unsigned int, unsigned int> nMergedTC = {{Seed::L1L2, 6},
+						      {Seed::L2L3, 1},
+						      {Seed::L3L4, 2},
+						      {Seed::L5L6, 1},
+						      {Seed::D1D2, 1},
+						      {Seed::D3D4, 1},
+						      {Seed::L1D1, 2},
+						      {Seed::L2D1, 1}};
 
     double phiHG_;
 

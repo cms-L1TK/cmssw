@@ -58,8 +58,8 @@ namespace trklet {
   public:
     Settings() {};
     ~Settings() = default;
-    void passSetup(const tt::Setup* setup) { setup_ = setup; }
-    const tt::Setup* setup() const { return setup_; }
+    void passSetup(const Setup* setup) { setup_ = setup; }
+    const Setup* setup() const { return setup_; }
 
     // processing & memory modules, wiring, etc.
     std::string const& fitPatternFile() const { return fitPatternFile_; }
@@ -180,7 +180,7 @@ namespace trklet {
     unsigned int teunits(unsigned int iSeed) const { return teunits_[iSeed]; }
     unsigned int trpunits(unsigned int iSeed) const { return trpunits_[iSeed]; }
 
-    unsigned int NTC(int seed) const { return ntc_[seed]; }
+    unsigned int NTC(int iSeed) const { return ntc_.at(iSeed); }
 
     unsigned int projlayers(unsigned int iSeed, unsigned int i) const { return projlayers_.at(iSeed)[i]; }
     unsigned int projdisks(unsigned int iSeed, unsigned int i) const { return projdisks_.at(iSeed)[i]; }
@@ -770,7 +770,19 @@ namespace trklet {
 
     
     //Number of tracklet calculators for the prompt seeding combinations
-    std::array<unsigned int, N_SEED> ntc_{{12, 4, 4, 4, 4, 4, 8, 4, 10, 10, 10, 10}};
+    std::map<unsigned int, unsigned int> ntc_{{Seed::L1L2, 12},   //L1L2
+					      {Seed::L2L3, 4},   //L2L3
+					      {Seed::L3L4, 4},   //L3L4
+					      {Seed::L5L6, 4},   //L5L6
+					      {Seed::D1D2, 4},   //D1D2
+					      {Seed::D3D4, 4},   //D3D4
+					      {Seed::L1D1, 8},   //L1D1
+					      {Seed::L2D1, 4},   //L2D1
+					      {Seed::L2L3L4, 10},    //L2L3L4
+					      {Seed::L4L5L6, 10},    //L4L5L6
+					      {Seed::L2L3D1, 10},    //L2L3D1
+					      {Seed::D1D2L2, 10}};  //D1D2L2
+
 
     //projection layers by seed index. For each seeding index (row) the list of layers that we consider projections to
     std::map<unsigned int, std::array<unsigned int, N_LAYER-2>> projlayers_{{Seed::L1L2,{{3, 4, 5, 6}}},   //L1L2

@@ -377,11 +377,12 @@ void TrackletProcessor::execute(unsigned int iSector, double phimin, double phim
       }
 
       int lutval = -1;
-      if (iSeed_ < 6) {  //FIXME should only be one table - but will need coordination with HLS code.
-        lutval = innerTable_.lookup((indexz << nbitsrfinebintable_) + indexr);
+      if (iSeed_ == Seed::L1D1 || iSeed_ == Seed::L2D1) {  //FIXME should only be one table - but will need coordination with HLS code.
+	lutval = innerOverlapTable_.lookup((indexz << nbitsrfinebintable_) + indexr);
       } else {
-        lutval = innerOverlapTable_.lookup((indexz << nbitsrfinebintable_) + indexr);
+        lutval = innerTable_.lookup((indexz << nbitsrfinebintable_) + indexr);
       }
+
 
       if (lutval != -1) {
         unsigned int lutwidth = settings_.lutwidthtab(0, iSeed_);
