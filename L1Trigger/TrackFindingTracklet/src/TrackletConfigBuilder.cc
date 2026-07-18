@@ -529,49 +529,49 @@ std::string TrackletConfigBuilder::iTCStr(unsigned int iTC) const {
 std::string TrackletConfigBuilder::iMergedTCStr(unsigned int iSeed, unsigned int iTC) {
   assert(iSeed < 8);
 
-  if (iSeed == 0) {
+  if (iSeed == Seed::L1L2) {
     static std::string name[6] = {"AB", "CD", "EF", "GH", "IJ", "KL"};
     assert(iTC < 6);
     return name[iTC];
   }
 
-  if (iSeed == 1) {
+  if (iSeed == Seed::L2L3) {
     static std::string name[1] = {"ABCD"};
     assert(iTC < 1);
     return name[iTC];
   }
 
-  if (iSeed == 2) {
+  if (iSeed == Seed::L3L4) {
     static std::string name[2] = {"AB", "CD"};
     assert(iTC < 2);
     return name[iTC];
   }
 
-  if (iSeed == 3) {
+  if (iSeed == Seed::L5L6) {
     static std::string name[1] = {"ABCD"};
     assert(iTC < 1);
     return name[iTC];
   }
 
-  if (iSeed == 4) {
+  if (iSeed == Seed::D1D2) {
     static std::string name[1] = {"ABCD"};
     assert(iTC < 1);
     return name[iTC];
   }
 
-  if (iSeed == 5) {
+  if (iSeed == Seed::D3D4) {
     static std::string name[1] = {"ABCD"};
     assert(iTC < 1);
     return name[iTC];
   }
 
-  if (iSeed == 6) {
+  if (iSeed == Seed::L1D1) {
     static std::string name[2] = {"ABCD", "EFGH"};
     assert(iTC < 2);
     return name[iTC];
   }
 
-  if (iSeed == 7) {
+  if (iSeed == Seed::L2D1) {
     static std::string name[1] = {"ABCD"};
     assert(iTC < 1);
     return name[iTC];
@@ -637,11 +637,18 @@ void TrackletConfigBuilder::writeMergedProjectionMemories(std::ostream& os,
   // MPROJ_L1L2ABC_L3PHIA) indicating that TP_L1L2A, TP_L1L2B, and TP_L1L2C are merged together
   //
 
-  unsigned int nMergedTC[8] = {6, 1, 2, 1, 1, 1, 2, 1};
+  std::map<unsigned int, unsigned int> nMergedTC = {{Seed::L1L2, 6},
+						    {Seed::L2L3, 1},
+						    {Seed::L3L4, 2},
+						    {Seed::L5L6, 1},
+						    {Seed::D1D2, 1},
+						    {Seed::D3D4, 1},
+						    {Seed::L1D1, 2},
+						    {Seed::L2D1, 1}};
 
   for (unsigned int iSeed = 0; iSeed < 8; iSeed++) {
     unsigned int iTB = 0;
-    if (iSeed == 2 || iSeed == 4 || iSeed == 5 || iSeed == 6) {
+    if (iSeed == Seed::L3L4 || iSeed == Seed::D1D2 || iSeed == Seed::D3D4 || iSeed == Seed::L1D1) {
       iTB = 1;
     }
     for (unsigned int iPC = 0; iPC < nMergedTC[iSeed]; iPC++) {
@@ -681,7 +688,7 @@ void TrackletConfigBuilder::writeMergedProjectionMemories(std::ostream& os,
               (settings_.layersDisksDuplicatedEqualProjBalance()[ilayer] ||
                settings_.layersDisksDuplicatedWeightedProjBalance()[ilayer]) &&
               (ireg == 1 || ireg == 2)) {  // regions with worst truncation
-            if (iSeed == 0) {
+            if (iSeed == Seed::L1L2) {
               memories << "TrackletProjections: " + MPROJName(iSeed, iMergedTC, ilayer, ireg) + "_E [54]" << std::endl;
               os << MPROJName(iSeed, iMergedTC, ilayer, ireg) << "_E input=> " << PCName(iSeed, iMergedTC)
                  << ".projout"
@@ -1221,7 +1228,15 @@ void TrackletConfigBuilder::writeTPARMemories(std::ostream& os, std::ostream& me
   // Each TC module (e.g. TC_L1L2A) stores helix params in a single TPAR memory of similar name
   // (e.g. TPAR_L1L2A). The TPAR is subsequently read by the TrackBuilder (FT).
 
-  unsigned int nMergedTC[8] = {6, 1, 2, 1, 1, 1, 2, 1};
+  //FIME - duplicated - move to Settings.h
+  std::map<unsigned int, unsigned int> nMergedTC = {{Seed::L1L2, 6},
+						    {Seed::L2L3, 1},
+						    {Seed::L3L4, 2},
+						    {Seed::L5L6, 1},
+						    {Seed::D1D2, 1},
+						    {Seed::D3D4, 1},
+						    {Seed::L1D1, 2},
+						    {Seed::L2D1, 1}};
 
   for (unsigned int iSeed = 0; iSeed < N_SEED_PROMPT; iSeed++) {
     for (unsigned int iTP = 0; iTP < TC_[iSeed].size(); iTP++) {
