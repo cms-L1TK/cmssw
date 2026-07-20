@@ -93,7 +93,7 @@ void ProcessBase::initLayerDisksandISeed(unsigned int& layerdisk1, unsigned int&
       layerdisk2 = N_LAYER + name_[6] - '1';
     }
   }
-  
+
   if (layerdisk1 == LayerDisk::L1 && layerdisk2 == LayerDisk::L2)
     iSeed = Seed::L1L2;
   else if (layerdisk1 == LayerDisk::L2 && layerdisk2 == LayerDisk::L3)

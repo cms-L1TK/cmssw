@@ -350,7 +350,7 @@ void VMRouterCM::execute(unsigned int) {
 
         if (!isTripletSeed && layerdisk_ >= N_LAYER && (!stub->isPSmodule()))
           continue;
-	//Is inner allways 1 - it is for the non displaced. Can simplify code?
+        //Is inner allways 1 - it is for the non displaced. Can simplify code?
         unsigned int inner = (!isTripletSeed ? 1 : ivmstubTEPHI.stubposition);
         unsigned int lutwidth = settings_.lutwidthtab(inner, iseed);
         if (settings_.extended()) {

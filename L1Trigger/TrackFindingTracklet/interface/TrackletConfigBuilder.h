@@ -294,25 +294,26 @@ namespace trklet {
     std::vector<std::vector<std::pair<unsigned int, unsigned int> > > projections_[N_LAYER + N_DISK];
 
     //Which matches are used for each seeding layer
-    std::map<unsigned int, std::vector<int> >  matchport_  = {{Seed::L1L2, {-1, -1, 1, 2, 3, 4, 4, 3, 2, 1, -1}},       //L1L2
-							      {Seed::L2L3, {1, -1, -1, 2, 3, -1, 4, 3, 2, 1, -1}},      //L2L3
-							      {Seed::L3L4, {1, 2, -1, -1, 3, 4, 4, 3, -1, -1, -1}},     //L3L4
-							      {Seed::L5L6, {1, 2, 3, 4, -1, -1, -1, -1, -1, -1, -1}},   //L5L6
-							      {Seed::D1D2, {1, 2, -1, -1, -1, -1, -1, -1, 2, 3, 4}},    //D1D2
-							      {Seed::D3D4, {1, -1, -1, -1, -1, -1, 2, 3, -1, -1, 4}},   //D3D4
-							      {Seed::L1D1, {-1, -1, -1, -1, -1, -1, -1, 1, 2, 3, 4}},   //L1D1
-							      {Seed::L2D1, {1, -1, -1, -1, -1, -1, -1, 2, 3, 4, -1}},   //L2D1
-							      {Seed::L2L3L4, {1, -1, -1, -1, 2, 3, 4, 3, 2, -1, -1}},     //L3L4L2
-							      {Seed::L4L5L6, {1, 2, 3, -1, -1, -1, -1, -1, -1, -1, -1}},  //L5L6L4
-							      {Seed::L2L3D1, {1, -1, -1, 2, -1, -1, -1, 4, 3, 2, -1}},    //L2L3D1
-							      {Seed::D1D2L2, {1, -1, 4, -1, -1, -1, -1, -1, 2, 3, 4}}};   //D1D2L2
-
+    std::map<unsigned int, std::vector<int> > matchport_ = {
+        {Seed::L1L2, {-1, -1, 1, 2, 3, 4, 4, 3, 2, 1, -1}},         //L1L2
+        {Seed::L2L3, {1, -1, -1, 2, 3, -1, 4, 3, 2, 1, -1}},        //L2L3
+        {Seed::L3L4, {1, 2, -1, -1, 3, 4, 4, 3, -1, -1, -1}},       //L3L4
+        {Seed::L5L6, {1, 2, 3, 4, -1, -1, -1, -1, -1, -1, -1}},     //L5L6
+        {Seed::D1D2, {1, 2, -1, -1, -1, -1, -1, -1, 2, 3, 4}},      //D1D2
+        {Seed::D3D4, {1, -1, -1, -1, -1, -1, 2, 3, -1, -1, 4}},     //D3D4
+        {Seed::L1D1, {-1, -1, -1, -1, -1, -1, -1, 1, 2, 3, 4}},     //L1D1
+        {Seed::L2D1, {1, -1, -1, -1, -1, -1, -1, 2, 3, 4, -1}},     //L2D1
+        {Seed::L2L3L4, {1, -1, -1, -1, 2, 3, 4, 3, 2, -1, -1}},     //L3L4L2
+        {Seed::L4L5L6, {1, 2, 3, -1, -1, -1, -1, -1, -1, -1, -1}},  //L5L6L4
+        {Seed::L2L3D1, {1, -1, -1, 2, -1, -1, -1, 4, 3, 2, -1}},    //L2L3D1
+        {Seed::D1D2L2, {1, -1, 4, -1, -1, -1, -1, -1, 2, 3, 4}}};   //D1D2L2
 
     //allStub, VMStub, and projection wires for the displaced tracking
     nlohmann::ordered_json seedwires_;
 
     //Which seeds handled by each TB
-    int tbseed_[N_TB][4] = {{Seed::L1L2, Seed::L2L3, Seed::L5L6, Seed::L2D1}, {Seed::L3L4, Seed::D1D2, Seed::D3D4, Seed::L1D1}};
+    int tbseed_[N_TB][4] = {{Seed::L1L2, Seed::L2L3, Seed::L5L6, Seed::L2D1},
+                            {Seed::L3L4, Seed::D1D2, Seed::D3D4, Seed::L1D1}};
 
     struct DTCinfo {
       std::string name;

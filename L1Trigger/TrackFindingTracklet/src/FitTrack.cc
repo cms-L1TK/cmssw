@@ -109,7 +109,6 @@ void FitTrack::trackFitKF(Tracklet* tracklet,
 
 #else  // Code for pure Tracklet algo -- now deleted...
 
-
 #endif
 
 void FitTrack::trackFitFake(Tracklet* tracklet, std::vector<const Stub*>&, std::vector<std::pair<int, int>>&) {

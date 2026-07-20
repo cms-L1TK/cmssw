@@ -651,7 +651,7 @@ std::string Tracklet::trackfitstr() const {
   // Assign stub strings for each of the possible projections for each seed.
   // The specific layers/disks for a given seed are determined by the wiring.
   switch (seedIndex()) {
-  case Seed::L1L2:                       // L1L2
+    case Seed::L1L2:              // L1L2
       stub[2] = layerstubstr(2);  // L3
       stub[3] = layerstubstr(3);  // L4
       stub[4] = layerstubstr(4);  // L5
@@ -664,7 +664,7 @@ std::string Tracklet::trackfitstr() const {
 
       break;
 
-  case Seed::L2L3:                       // L2L3
+    case Seed::L2L3:              // L2L3
       stub[0] = layerstubstr(0);  // L1
       stub[3] = layerstubstr(3);  // L4
       stub[4] = layerstubstr(4);  // L5
@@ -676,7 +676,7 @@ std::string Tracklet::trackfitstr() const {
 
       break;
 
-  case Seed::L3L4:                       // L3L4
+    case Seed::L3L4:              // L3L4
       stub[0] = layerstubstr(0);  // L1
       stub[1] = layerstubstr(1);  // L2
       stub[4] = layerstubstr(4);  // L5
@@ -687,7 +687,7 @@ std::string Tracklet::trackfitstr() const {
 
       break;
 
-  case Seed::L5L6:                       // L5L6
+    case Seed::L5L6:              // L5L6
       stub[0] = layerstubstr(0);  // L1
       stub[1] = layerstubstr(1);  // L2
       stub[2] = layerstubstr(2);  // L3
@@ -695,7 +695,7 @@ std::string Tracklet::trackfitstr() const {
 
       break;
 
-  case Seed::D1D2:                       // D1D2
+    case Seed::D1D2:              // D1D2
       stub[0] = layerstubstr(0);  // L1
       stub[1] = layerstubstr(1);  // L2
 
@@ -705,7 +705,7 @@ std::string Tracklet::trackfitstr() const {
 
       break;
 
-  case Seed::D3D4:                       // D3D4
+    case Seed::D3D4:              // D3D4
       stub[0] = layerstubstr(0);  // L1
 
       stub[6] = diskstubstr(0);   // D1
@@ -714,7 +714,7 @@ std::string Tracklet::trackfitstr() const {
 
       break;
 
-  case Seed::L1D1:                       // L1D1
+    case Seed::L1D1:              // L1D1
       stub[7] = diskstubstr(1);   // D2
       stub[8] = diskstubstr(2);   // D3
       stub[9] = diskstubstr(3);   // D4
@@ -722,7 +722,7 @@ std::string Tracklet::trackfitstr() const {
 
       break;
 
-  case Seed::L2D1:                       // L2D1
+    case Seed::L2D1:              // L2D1
       stub[0] = layerstubstr(0);  // L1
 
       stub[7] = diskstubstr(1);  // D2

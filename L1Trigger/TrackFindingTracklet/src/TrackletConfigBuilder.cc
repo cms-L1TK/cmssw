@@ -499,9 +499,7 @@ std::string TrackletConfigBuilder::iTBStr(unsigned int iTB) const {
   return name[iTB];
 }
 
-std::string TrackletConfigBuilder::iSeedStr(unsigned int iSeed) const {
-  return settings_.seedName(iSeed);
-}
+std::string TrackletConfigBuilder::iSeedStr(unsigned int iSeed) const { return settings_.seedName(iSeed); }
 
 unsigned int TrackletConfigBuilder::strSeedInt(std::string strSeed) const {
   for (unsigned int i = 0; i < N_SEED; i++)
@@ -638,13 +636,13 @@ void TrackletConfigBuilder::writeMergedProjectionMemories(std::ostream& os,
   //
 
   std::map<unsigned int, unsigned int> nMergedTC = {{Seed::L1L2, 6},
-						    {Seed::L2L3, 1},
-						    {Seed::L3L4, 2},
-						    {Seed::L5L6, 1},
-						    {Seed::D1D2, 1},
-						    {Seed::D3D4, 1},
-						    {Seed::L1D1, 2},
-						    {Seed::L2D1, 1}};
+                                                    {Seed::L2L3, 1},
+                                                    {Seed::L3L4, 2},
+                                                    {Seed::L5L6, 1},
+                                                    {Seed::D1D2, 1},
+                                                    {Seed::D3D4, 1},
+                                                    {Seed::L1D1, 2},
+                                                    {Seed::L2D1, 1}};
 
   for (unsigned int iSeed = 0; iSeed < 8; iSeed++) {
     unsigned int iTB = 0;
@@ -1230,13 +1228,13 @@ void TrackletConfigBuilder::writeTPARMemories(std::ostream& os, std::ostream& me
 
   //FIME - duplicated - move to Settings.h
   std::map<unsigned int, unsigned int> nMergedTC = {{Seed::L1L2, 6},
-						    {Seed::L2L3, 1},
-						    {Seed::L3L4, 2},
-						    {Seed::L5L6, 1},
-						    {Seed::D1D2, 1},
-						    {Seed::D3D4, 1},
-						    {Seed::L1D1, 2},
-						    {Seed::L2D1, 1}};
+                                                    {Seed::L2L3, 1},
+                                                    {Seed::L3L4, 2},
+                                                    {Seed::L5L6, 1},
+                                                    {Seed::D1D2, 1},
+                                                    {Seed::D3D4, 1},
+                                                    {Seed::L1D1, 2},
+                                                    {Seed::L2D1, 1}};
 
   for (unsigned int iSeed = 0; iSeed < N_SEED_PROMPT; iSeed++) {
     for (unsigned int iTP = 0; iTP < TC_[iSeed].size(); iTP++) {
