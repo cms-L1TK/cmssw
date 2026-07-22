@@ -99,7 +99,7 @@ void VMRouterCM::addOutput(MemoryBase* memory, string output) {
 
       // This flag is used to replicate the behavior of the old VMRouter for
       // the case of the triplet seeds.
-      const bool isTripletSeed = (iseed >= L2L3L4);
+      const bool isTripletSeed = (iseed >= L3L4L2);
 
       // seedtype, vmbin, and inner are only used in the case of the triplet
       // seeds.
@@ -346,7 +346,7 @@ void VMRouterCM::execute(unsigned int) {
 
         // This flag is used to replicate the behavior of the old VMRouter for
         // the case of the triplet seeds.
-        const bool isTripletSeed = (iseed >= L2L3L4);
+        const bool isTripletSeed = (iseed >= L3L4L2);
 
         if (!isTripletSeed && layerdisk_ >= N_LAYER && (!stub->isPSmodule()))
           continue;

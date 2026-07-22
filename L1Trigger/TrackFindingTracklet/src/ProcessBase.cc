@@ -140,9 +140,9 @@ void ProcessBase::initLayerDisksandISeedDisp(unsigned int& layerdisk1,
   }
 
   if (layerdisk1 == LayerDisk::L3 && layerdisk2 == LayerDisk::L4 && layerdisk3 == LayerDisk::L2)
-    iSeed = Seed::L2L3L4;
+    iSeed = Seed::L3L4L2;
   else if (layerdisk1 == LayerDisk::L5 && layerdisk2 == LayerDisk::L6 && layerdisk3 == LayerDisk::L4)
-    iSeed = Seed::L4L5L6;
+    iSeed = Seed::L5L6L4;
   else if (layerdisk1 == LayerDisk::L2 && layerdisk2 == LayerDisk::L3 && layerdisk3 == LayerDisk::D1)
     iSeed = Seed::L2L3D1;
   else if (layerdisk1 == LayerDisk::D1 && layerdisk2 == LayerDisk::D2 && layerdisk3 == LayerDisk::L2)
