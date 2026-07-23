@@ -309,7 +309,8 @@ void PurgeDuplicate::execute(std::vector<Track>& outputtracks, unsigned int iSec
             if (nShareLay >= settings_.minIndStubs()) {  // For number of shared stub merge condition
               sortedDupMap[itrk][jtrk] = true;
               sortedDupMap[jtrk][itrk] = true;
-              // Until extended tracking is optimized, dont set this for extended seeds
+              // Preserve the displaced-track duplicate-rate benefit by allowing
+              // lower-priority displaced tracks to participate in later comparisons.
               if (seedRank[seedRankIdx[itrk]] < 9) {
                 sortedMergedTrack[jtrk] = true;
               }
@@ -323,7 +324,10 @@ void PurgeDuplicate::execute(std::vector<Track>& outputtracks, unsigned int iSec
               // Set preferred track based on seed rank
               int preftrk;
               int rejetrk;
-              if (seedRank[seedRankIdx[itrk]] >= 9) {  // extended track seed
+              const bool identicalDisplacedSeeds =
+                  seedRank[seedRankIdx[itrk]] >= 9 &&
+                  sortedinputtracklets[itrk]->seedIndex() == sortedinputtracklets[jtrk]->seedIndex();
+              if (identicalDisplacedSeeds) {
                 // COMMENT FROM IAN: The swap here reduces the duplicate
                 // rate for extended tracking by 1/4. Why???
                 preftrk = jtrk;
