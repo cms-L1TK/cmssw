@@ -135,8 +135,8 @@ namespace tt {
     prof_->GetXaxis()->SetBinLabel(8, "Found Selected TPs");
     prof_->GetXaxis()->SetBinLabel(9, "Found Perfect TPs");
     prof_->GetXaxis()->SetBinLabel(10, "All TPs");
-    hisLayer_ = dir.make<TH1F>("Layer Occupancy", ";", 8, -0.5, 7.5);
-    hisStubs_ = dir.make<TH1F>("Stubs per Track", ";", 8, .5, 8.5);
+    hisLayer_ = dir.make<TH1F>("Layer Occupancy", ";", 7, -.5, 6.5);
+    hisStubs_ = dir.make<TH1F>("Stubs per Track", ";", 8, -.5, 7.5);
     // chi2s
     hisChi2s_[0] = dir.make<TH1F>("His Chi20 bin", ";", 16, -.5, 15.5);
     hisChi2s_[1] = dir.make<TH1F>("His Chi21 bin", ";", 16, -.5, 15.5);
@@ -195,6 +195,8 @@ namespace tt {
     for (const L1Track& ttTrack : ttTracks) {
       const int region = ttTrack.phiSector();
       const std::vector<TTStubRef>& ttStubRefs = ttTrack.getStubRefs();
+      for (const TTStubRef& ttStubRef : ttStubRefs)
+        hisLayer_->Fill(setup.sensorModule(ttStubRef)->layerIdReduced());
       regionTracks[region]++;
       regionStubs[region] += ttStubRefs.size();
       hisStubs_->Fill(ttStubRefs.size());
