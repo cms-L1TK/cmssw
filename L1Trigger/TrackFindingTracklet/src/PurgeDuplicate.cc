@@ -169,12 +169,11 @@ void PurgeDuplicate::execute(std::vector<Track>& outputtracks, unsigned int iSec
               // Rank-Informed Guess: L1L2 > L3L4 > L1D1 > L2L3 > L2D1 > D1D2 > L5L6 > D3D4
               // Best Displaced Rank: L2L3L4 >  L4L5L6 > L2D1D2 > L2L3D1
               const unsigned int curSeed = aTrack->seedIndex();
-              static const std::vector<int> ranks{
-                  1, 5, 2, 7, 4, 3, 8, 6, 9, 10, 12, 11};  // L2L3L4 >  L4L5L6 > L2D1D2 > L2L3D1};
+              static const std::vector<int> ranks{1, 5, 2, 7, 4, 3, 8, 6, 10, 9, 12, 11};  //  L4L5L6 >  L2L3L4   > L2D1D2 > L2L3D1};};
               if (curSeed < ranks.size()) {
                 seedRank.push_back(ranks[curSeed]);
-                // } else if (settings_.extended()) {
-                // seedRank.push_back(9);
+              // } else if (settings_.extended()) {
+              //  seedRank.push_back(9);
               } else {
                 throw cms::Exception("LogError") << __FILE__ << " " << __LINE__ << " Seed type " << curSeed
                                                  << " not found in list, and settings->extended() not set.";
@@ -309,11 +308,10 @@ void PurgeDuplicate::execute(std::vector<Track>& outputtracks, unsigned int iSec
             if (nShareLay >= settings_.minIndStubs()) {  // For number of shared stub merge condition
               sortedDupMap[itrk][jtrk] = true;
               sortedDupMap[jtrk][itrk] = true;
-              // Preserve the displaced-track duplicate-rate benefit by allowing
-              // lower-priority displaced tracks to participate in later comparisons.
-              if (seedRank[seedRankIdx[itrk]] < 9) {
+              // Until extended tracking is optimized, dont set this for extended seeds
+              // if (seedRank[seedRankIdx[itrk]] != 9) {
                 sortedMergedTrack[jtrk] = true;
-              }
+              //}
             }
           }
         }
@@ -324,18 +322,15 @@ void PurgeDuplicate::execute(std::vector<Track>& outputtracks, unsigned int iSec
               // Set preferred track based on seed rank
               int preftrk;
               int rejetrk;
-              const bool identicalDisplacedSeeds =
-                  seedRank[seedRankIdx[itrk]] >= 9 &&
-                  sortedinputtracklets[itrk]->seedIndex() == sortedinputtracklets[jtrk]->seedIndex();
-              if (identicalDisplacedSeeds) {
+              // if (seedRank[seedRankIdx[itrk]] == 9) {  // extended track seed
                 // COMMENT FROM IAN: The swap here reduces the duplicate
                 // rate for extended tracking by 1/4. Why???
-                preftrk = jtrk;
-                rejetrk = itrk;
-              } else {
+              //  preftrk = jtrk;
+              //  rejetrk = itrk;
+              //} else {
                 preftrk = itrk;
                 rejetrk = jtrk;
-              }
+              //}
 
               // If the preffered track is in more than one bin, but not in the proper rinv or phi bin, then mark as true
               if (((findOverlapRinvBins(sortedinputtracklets[preftrk]).size() > 1) &&
