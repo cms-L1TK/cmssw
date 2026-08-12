@@ -169,7 +169,7 @@ void PurgeDuplicate::execute(std::vector<Track>& outputtracks, unsigned int iSec
               // Rank-Informed Guess: L1L2 > L3L4 > L1D1 > L2L3 > L2D1 > D1D2 > L5L6 > D3D4
               // Best Displaced Rank: L2L3L4 >  L4L5L6 > L2D1D2 > L2L3D1
               const unsigned int curSeed = aTrack->seedIndex();
-              static const std::vector<int> ranks{1, 5, 2, 7, 4, 3, 8, 6, 10, 9, 12, 11};  //  L4L5L6 >  L2L3L4   > L2D1D2 > L2L3D1};};
+              static const std::vector<int> ranks{1, 5, 2, 7, 4, 3, 8, 6, 9, 10, 12, 11};  //   L2L3L4>  L4L5L6   > L2D1D2 > L2L3D1};};
               if (curSeed < ranks.size()) {
                 seedRank.push_back(ranks[curSeed]);
               // } else if (settings_.extended()) {
