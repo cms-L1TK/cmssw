@@ -67,13 +67,15 @@ namespace trklet {
     // calc permutations for all found track sizes [4 - 7]
     auto fac = [](int n) {
       int f(1);
-      for (int i = 1; i < n; i++)
+      for (int i = 1; i <= n; i++)
         f *= i;
       return f;
     };
-    nPer_.reserve(setup_->kfNumLayers() - setup_->kfMinLayers() + 1);
+    auto bc = [fac](int n, int k) { return fac(n) / fac(k) / fac(n - k); };
+    nPer_ = std::vector<int>(setup_->kfNumLayers() - setup_->kfMinLayers() + 1, 0);
     for (int i = setup_->kfMinLayers(); i <= setup_->kfNumLayers(); i++)
-      nPer_.push_back(fac(i) / fac(setup_->kfMinLayers()) / fac(i - setup_->kfMinLayers()));
+      for (int j = setup_->kfMinLayers(); j <= i; j++)
+        nPer_[i - setup_->kfMinLayers()] += bc(i, j);
   }
 
   void ProducerSim::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
@@ -135,17 +137,17 @@ namespace trklet {
       std::vector<std::vector<TTStubRef>> permutations;
       permutations.reserve(nPer_[size - setup_->kfMinLayers()]);
       for (int nStubs = setup_->kfMinLayers(); nStubs <= size; nStubs++) {
-        permutations.emplace_back();
-        std::vector<TTStubRef>& comb = permutations.back();
-        comb.reserve(nStubs);
         // form all nStubs out of size combinations
-        std::string bitmask(size, 1);
-        bitmask.resize(setup_->kfMinLayers(), 0);
-        do
-          for (int i = 0; i < setup_->kfMinLayers(); ++i)
+        std::string bitmask(nStubs, 1);
+        bitmask.resize(size, 0);
+        do {
+          permutations.emplace_back();
+          std::vector<TTStubRef>& comb = permutations.back();
+          comb.reserve(nStubs);
+          for (int i = 0; i < size; ++i)
             if (bitmask[i])
               comb.push_back(ttStubRefs[i]);
-        while (std::prev_permutation(bitmask.begin(), bitmask.end()));
+        } while (std::prev_permutation(bitmask.begin(), bitmask.end()));
       }
       ttTracks.emplace_back(0., 0., 0., 0., 0., 9.e3, 9.e3, 0., 0., 0., 0, setup_->simNPar(), setup_->sysBField());
       TTTrack<Ref_Phase2TrackerDigi_>& ttTrack = ttTracks.back();
@@ -224,7 +226,7 @@ namespace trklet {
                                              tt::deltaPhi(x1 + phiR),
                                              x2,
                                              x3,
-                                             x4,
+                                             -x4,
                                              chi20,
                                              chi21,
                                              0.,
