@@ -208,12 +208,13 @@ void AnalyzerCluster::analyze(const edm::Event& event, const edm::EventSetup& ev
 
   SimHitsMap simhitsMap;
   for (int simhitidx = 0; simhitidx < 2; ++simhitidx) {  // loop over both barrel and endcap hits
-    for (edm::PSimHitContainer::const_iterator simhitIt(simHitsRaw[simhitidx]->begin()); simhitIt != simHitsRaw[simhitidx]->end(); simhitIt++) {
+    for (edm::PSimHitContainer::const_iterator simhitIt(simHitsRaw[simhitidx]->begin());
+         simhitIt != simHitsRaw[simhitidx]->end();
+         simhitIt++) {
       simhitsMap[simhitIt->detUnitId()].push_back(&(*simhitIt));
     }
   }
-  
-  
+
   /*
      * Validation   
      */
