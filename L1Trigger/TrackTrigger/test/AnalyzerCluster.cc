@@ -301,7 +301,6 @@ void AnalyzerCluster::analyze(const edm::Event& event, const edm::EventSetup& ev
       SimHitsMap::const_iterator simhitsInDet = simhitsMap.find(detId.rawId());
       if (simhitsInDet != simhitsMap.end()) {
         for (const auto* sh : simhitsInDet->second) {
-          //std::cout << "=== " << rawid << " " << &simhitIt << " " << sh->trackId() << " " << sh->localPosition().x() << " " << sh->localPosition().y() << std::endl;
           auto it = std::lower_bound(clusterSimTrackIds.begin(), clusterSimTrackIds.end(), sh->trackId());
           if (it != clusterSimTrackIds.end() && *it == sh->trackId()) {
             if (simhit == nullptr || fabs(sh->localPosition().x() - localPosClu.x()) < minx) {
