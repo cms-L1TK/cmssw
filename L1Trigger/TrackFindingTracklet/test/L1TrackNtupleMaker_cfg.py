@@ -99,19 +99,11 @@ else:
 
 process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring(*inputMC))
 
-# Drop previously reconstructed L1 tracks + their truth association to avoid risk of analysing them instead of new tracks created by this job.
+# To avoid confusion, drop previously reconstructed L1 tracks + their truth association.
 process.source.dropDescendantsOfDroppedBranches = cms.untracked.bool(False)
 process.source.inputCommands = cms.untracked.vstring()
 process.source.inputCommands.append('keep *_*_*_*')
-process.source.inputCommands.append('drop  *_*_*Level1TTTracks*_*')
-
-#  # If reading old MC dataset, it can help to drop incompatible EDProducts.
-#  process.source.inputCommands.append('drop *_*_*_*')
-#  process.source.inputCommands.append('keep *_*_*Level1TTTracks*_*')
-#  process.source.inputCommands.append('keep *_*_*StubAccepted*_*')
-#  process.source.inputCommands.append('keep *_*_*ClusterAccepted*_*')
-#  process.source.inputCommands.append('keep *_*_*MergedTrackTruth*_*')
-#  process.source.inputCommands.append('keep *_genParticles_*_*')
+process.source.inputCommands.append('drop  *_*TTTrack*_*_*')
 
 # Use skipEvents to select particular single events for test vectors
 #process.source.skipEvents = cms.untracked.uint32(11)
@@ -119,25 +111,21 @@ process.source.inputCommands.append('drop  *_*_*Level1TTTracks*_*')
 process.TFileService = cms.Service("TFileService", fileName = cms.string('L1TrkNtuple.root'), closeFileFast = cms.untracked.bool(True))
 process.Timing = cms.Service("Timing", summaryOnly = cms.untracked.bool(True))
 
-
 ############################################################
 # L1 tracking: stubs / DTC emulation
 ############################################################
 
 process.load('L1Trigger.TrackTrigger.TrackTrigger_cff')
 
-# Load code needed to remake clusters + stubs + their association to truth,
+# Load code to remake clusters + stubs + their truth association,
 # in case user wants to remake them. 
-from L1Trigger.TrackTrigger.TTStubAlgorithmRegister_cfi import *
 process.load("SimTracker.TrackTriggerAssociation.TrackTriggerAssociator_cff")
-
-from SimTracker.TrackTriggerAssociation.TTClusterAssociation_cfi import *
-TTClusterAssociatorFromPixelDigis.digiSimLinks = cms.InputTag("simSiPixelDigis","Tracker")
+process.TTClusterAssociatorFromPixelDigis.digiSimLinks = cms.InputTag("simSiPixelDigis","Tracker")
 
 process.TTClusterStub = cms.Path(process.TrackTriggerClustersStubs)
 process.TTClusterStubTruth = cms.Path(process.TrackTriggerAssociatorClustersStubs)
 
-# load code that associates stubs with mctruth
+# load more code to associate stubs with mctruth
 process.load( 'SimTracker.TrackTriggerAssociation.StubAssociator_cff' )
 # load code that analyzes mc truth
 process.load( 'L1Trigger.TrackTrigger.AnalyzerMC_cff' )
@@ -297,9 +285,12 @@ process.ana = cms.Path(process.L1TrackNtuple)
 # Run tracking + track associator
 process.schedule = cms.Schedule(process.dtc,process.TTTracksEmulationWithTruth,process.ana)
 
-# use this to re-run the cluster+stub making + truth association
-# (Not needed unless their format has changed or you want to change them)
-#process.schedule = cms.Schedule(process.TTClusterStub,process.TTClusterStubTruth,process.dtc,process.TTTracksEmulationWithTruth,process.ana)
+# Use this to re-run the cluster+stub making + truth association
+# (Not needed unless you want to change them)
+# To avoid confusion, drop existing info if you are doing this. 
+#process.source.inputCommands.append('drop  *_*TTCluster*_*_*')
+#process.source.inputCommands.append('drop  *_*TTStub*_*_*')
+#process.schedule = #cms.Schedule(process.TTClusterStub,process.TTClusterStubTruth,process.dtc,process.TTTracksEmulationWithTruth,process.ana)
 
 
 ############################################################

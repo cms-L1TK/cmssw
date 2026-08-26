@@ -76,6 +76,7 @@ struct ClusterHistos {
 class AnalyzerCluster : public edm::one::EDAnalyzer<edm::one::SharedResources> {
 public:
   typedef std::map<unsigned int, const SimTrack*> SimTracksMap;
+  typedef std::map<unsigned int, std::vector<const PSimHit*>> SimHitsMap;
 
   explicit AnalyzerCluster(const edm::ParameterSet&);
   ~AnalyzerCluster() override;
@@ -193,11 +194,24 @@ void AnalyzerCluster::analyze(const edm::Event& event, const edm::EventSetup& ev
      */
 
   // Rearrange the simTracks for ease of use <simTrackID, simTrack>
-  SimTracksMap simTracks;
+  SimTracksMap simTracksMap;
   for (edm::SimTrackContainer::const_iterator simTrackIt(simTracksRaw->begin()); simTrackIt != simTracksRaw->end();
        ++simTrackIt) {
     if (simTrackIt->momentum().pt() > simtrackminpt_) {
-      simTracks.emplace(simTrackIt->trackId(), &(*simTrackIt));
+      simTracksMap.emplace(simTrackIt->trackId(), &(*simTrackIt));
+    }
+  }
+
+  /*
+   * Rearrange SimHits
+   */
+
+  SimHitsMap simhitsMap;
+  for (int simhitidx = 0; simhitidx < 2; ++simhitidx) {  // loop over both barrel and endcap hits
+    for (edm::PSimHitContainer::const_iterator simhitIt(simHitsRaw[simhitidx]->begin());
+         simhitIt != simHitsRaw[simhitidx]->end();
+         simhitIt++) {
+      simhitsMap[simhitIt->detUnitId()].push_back(&(*simhitIt));
     }
   }
 
@@ -213,7 +227,8 @@ void AnalyzerCluster::analyze(const edm::Event& event, const edm::EventSetup& ev
     // Get the detector unit's id
     unsigned int rawid(DSViter->detId());
     DetId detId(rawid);
-    unsigned int layer = (tTopo->side(detId) != 0) * 1000;  // don't split up endcap sides
+    bool barrel = tTopo->side(detId) == 0;
+    unsigned int layer = (not barrel) * 1000;  // don't split up endcap sides
     if (!layer) {
       layer += tTopo->layer(detId);
     } else {
@@ -259,8 +274,8 @@ void AnalyzerCluster::analyze(const edm::Event& event, const edm::EventSetup& ev
 
       // Get all the simTracks that form the cluster
       std::vector<unsigned int> clusterSimTrackIds;
-      const auto& rows = clustIt->findRows();
-      const auto& cols = clustIt->findCols();
+      const auto& rows = clustIt->getRows();
+      const auto& cols = clustIt->getCols();
       for (unsigned int i = 0; i < rows.size(); ++i) {
         unsigned int channel(Phase2TrackerDigi::pixelToChannel(rows[i], cols[i]));
         std::vector<unsigned int> simTrackIds(getSimTrackId(pixelSimLinks, detId, channel));
@@ -282,16 +297,15 @@ void AnalyzerCluster::analyze(const edm::Event& event, const edm::EventSetup& ev
       // when there are more than 1 cluster with common simtrackids
       const PSimHit* simhit = nullptr;  // bad naming to avoid changing code below. This is the closest simhit in x
       float minx = 10000;
-      for (unsigned int simhitidx = 0; simhitidx < 2; ++simhitidx) {  // loop over both barrel and endcap hits
-        for (auto& simhitIt : *simHitsRaw[simhitidx]) {
-          if (rawid == simhitIt.detUnitId()) {
-            //std::cout << "=== " << rawid << " " << &simhitIt << " " << simhitIt.trackId() << " " << simhitIt.localPosition().x() << " " << simhitIt.localPosition().y() << std::endl;
-            auto it = std::lower_bound(clusterSimTrackIds.begin(), clusterSimTrackIds.end(), simhitIt.trackId());
-            if (it != clusterSimTrackIds.end() && *it == simhitIt.trackId()) {
-              if (simhit == nullptr || fabs(simhitIt.localPosition().x() - localPosClu.x()) < minx) {
-                minx = fabs(simhitIt.localPosition().x() - localPosClu.x());
-                simhit = &simhitIt;
-              }
+
+      SimHitsMap::const_iterator simhitsInDet = simhitsMap.find(detId.rawId());
+      if (simhitsInDet != simhitsMap.end()) {
+        for (const auto* sh : simhitsInDet->second) {
+          auto it = std::lower_bound(clusterSimTrackIds.begin(), clusterSimTrackIds.end(), sh->trackId());
+          if (it != clusterSimTrackIds.end() && *it == sh->trackId()) {
+            if (simhit == nullptr || fabs(sh->localPosition().x() - localPosClu.x()) < minx) {
+              minx = fabs(sh->localPosition().x() - localPosClu.x());
+              simhit = sh;
             }
           }
         }
@@ -301,8 +315,8 @@ void AnalyzerCluster::analyze(const edm::Event& event, const edm::EventSetup& ev
         continue;
 
       // only look at simhits from highpT tracks
-      const auto simTrkIt(simTracks.find(simhit->trackId()));
-      if (simTrkIt == simTracks.end())
+      const auto simTrkIt(simTracksMap.find(simhit->trackId()));
+      if (simTrkIt == simTracksMap.end())
         continue;
       const SimTrack* simTrk = simTrkIt->second;
 
@@ -315,7 +329,6 @@ void AnalyzerCluster::analyze(const edm::Event& event, const edm::EventSetup& ev
 
       // cluster size
       histogramLayer->second.clusterSize[det]->Fill(clustIt->findWidth());
-      histogramLayer->second.clusterSizeRZ[det]->Fill(clustIt->findWidthCols());
 
       // Fill the position histograms
       trackerLayout_->Fill(globalPosClu.z(), globalPosClu.perp());
