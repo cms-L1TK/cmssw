@@ -66,12 +66,11 @@ namespace trklet {
     bool inSector(int iphi0, int irinv, double phi0approx, double rinvapprox);
 
     bool processStubPair(const Stub* innerFPGAStub,
-			 const L1TStub* innerStub,
-			 const Stub* outerFPGAStub,
-			 const L1TStub* outerStub,
-			 bool print);
+                         const L1TStub* innerStub,
+                         const Stub* outerFPGAStub,
+                         const L1TStub* outerStub,
+                         bool print);
 
-    
   private:
     unsigned int iSeed_;
     unsigned int layerdisk1_;
@@ -84,7 +83,7 @@ namespace trklet {
     double phiHG_;
 
     TrackletParametersMemory* trackletpars_;
-    
+
     int iTC_;
     int iAllStub_;
 
@@ -143,7 +142,6 @@ namespace trklet {
     int n_HG_;
 
     std::vector<int> LUT_idrinv_;
-
   };
 
 };  // namespace trklet

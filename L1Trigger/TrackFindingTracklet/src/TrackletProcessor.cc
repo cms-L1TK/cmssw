@@ -8,7 +8,6 @@
 #include "L1Trigger/TrackFindingTracklet/interface/Tracklet.h"
 #include "L1Trigger/TrackFindingTracklet/interface/Util.h"
 
-
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 #include "FWCore/Utilities/interface/Exception.h"
 #include "DataFormats/Math/interface/deltaPhi.h"
@@ -22,13 +21,13 @@ using namespace std;
 using namespace trklet;
 
 TrackletProcessor::TrackletProcessor(string name, Settings const& settings, Globals* globals)
-  : ProcessBase(name, settings, globals),
-    tebuffer_(CircularBuffer<TEData>(3), 0, 0, 0, 0),
-    pttableinner_(settings),
-    pttableouter_(settings),
-    useregiontable_(settings),
-    innerTable_(settings),
-    innerOverlapTable_(settings) {
+    : ProcessBase(name, settings, globals),
+      tebuffer_(CircularBuffer<TEData>(3), 0, 0, 0, 0),
+      pttableinner_(settings),
+      pttableouter_(settings),
+      useregiontable_(settings),
+      innerTable_(settings),
+      innerOverlapTable_(settings) {
   iAllStub_ = -1;
 
   outervmstubs_ = nullptr;
@@ -510,7 +509,6 @@ void TrackletProcessor::execute(unsigned int iSector, double phimin, double phim
   }
 }
 
-
 void TrackletProcessor::init(int iSeed) {
   phiHG_ = settings_.dphisectorHG();
 
@@ -675,16 +673,16 @@ void TrackletProcessor::init(int iSeed) {
 }
 
 void TrackletProcessor::exacttracklet(double r1,
-				      double z1,
-				      double phi1,
-				      double r2,
-				      double z2,
-				      double phi2,
-				      double,
-				      double& rinv,
-				      double& phi0,
-				      double& t,
-				      double& z0) {
+                                      double z1,
+                                      double phi1,
+                                      double r2,
+                                      double z2,
+                                      double phi2,
+                                      double,
+                                      double& rinv,
+                                      double& phi0,
+                                      double& t,
+                                      double& z0) {
   double deltaphi = reco::reducePhiRange(phi1 - phi2);
 
   double dist = sqrt(r2 * r2 + r1 * r1 - 2 * r1 * r2 * cos(deltaphi));
@@ -709,17 +707,17 @@ void TrackletProcessor::exacttracklet(double r1,
 }
 
 void TrackletProcessor::calcPars(unsigned int idr,
-				 int iphi1,
-				 int ir1,
-				 int iz1,
-				 int iphi2,
-				 int ir2,
-				 int iz2,
-				 int& irinv_new,
-				 int& iphi0_new,
-				 int& iz0_new,
-				 int& it_new,
-				 bool print) {
+                                 int iphi1,
+                                 int ir1,
+                                 int iz1,
+                                 int iphi2,
+                                 int ir2,
+                                 int iz2,
+                                 int& irinv_new,
+                                 int& iphi0_new,
+                                 int& iz0_new,
+                                 int& it_new,
+                                 bool print) {
   long int idz = iz2 - iz1;
 
   assert(idr < LUT_idrinv_.size());
@@ -814,12 +812,11 @@ bool TrackletProcessor::inSector(int iphi0, int irinv, double phi0approx, double
   return true;
 }
 
-
 bool TrackletProcessor::processStubPair(const Stub* innerFPGAStub,
-					const L1TStub* innerStub,
-					const Stub* outerFPGAStub,
-					const L1TStub* outerStub,
-					bool print) {
+                                        const L1TStub* innerStub,
+                                        const Stub* outerFPGAStub,
+                                        const L1TStub* outerStub,
+                                        bool print) {
   if (settings_.debugTracklet()) {
     edm::LogVerbatim("Tracklet") << "TrackletCalculatorBase " << getName()
                                  << " trying stub pair in layer (inner outer): " << innerFPGAStub->layer().value()
@@ -849,11 +846,10 @@ bool TrackletProcessor::processStubPair(const Stub* innerFPGAStub,
   int iz2 = outerFPGAStub->z().value();
 
   int idr, ir1abs, ir2abs, iz1abs, iz2abs;
-  
+
   //barrel
 
   if (settings_.barrelSeed(iSeed_)) {
-  
     iphi1 <<= (settings_.nphibitsstub(5) - settings_.nphibitsstub(layerdisk1_));
     iphi2 <<= (settings_.nphibitsstub(5) - settings_.nphibitsstub(layerdisk2_));
     ir1 <<= (8 - settings_.nrbitsstub(layerdisk1_));
@@ -868,35 +864,32 @@ bool TrackletProcessor::processStubPair(const Stub* innerFPGAStub,
     if (idr < 0)
       idr += 512;
 
-
     unsigned int ir1mean = settings_.irmean(layerdisk1_);
     unsigned int ir2mean = settings_.irmean(layerdisk2_);
 
     ir1abs = ir1 + ir1mean;
     ir2abs = ir2 + ir2mean;
-  } else  if (settings_.diskSeed(iSeed_)) {
-    
+  } else if (settings_.diskSeed(iSeed_)) {
     //disk
 
     //To get same precission as for layers.
     iphi1 <<= (settings_.nphibitsstub(5) - settings_.nphibitsstub(0));
     iphi2 <<= (settings_.nphibitsstub(5) - settings_.nphibitsstub(0));
-    
+
     //Each of ir1 and ir2 are signed 8 bit integers. idr is signed 9 bit integer
     idr = ir2 - ir1;
 
     int sign = (innerFPGAStub->disk().value() < 0) ? -1 : 1;
-    
+
     unsigned int iz1mean = sign * settings_.izmean(layerdisk1_ - N_LAYER);
     unsigned int iz2mean = sign * settings_.izmean(layerdisk2_ - N_LAYER);
-    
+
     iz1abs = iz1 + iz1mean;
     iz2abs = iz2 + iz2mean;
-    
+
     ir1abs = ir1;
     ir2abs = ir2;
   } else {
-    
     //overlap
 
     //Protection for wrong radii. Could be handled cleaner to avoid problem with floating point calculation and with overflows in the integer calculation.
@@ -904,7 +897,6 @@ bool TrackletProcessor::processStubPair(const Stub* innerFPGAStub,
       return false;
     }
 
-    
     //To get global precission
     int ll = innerFPGAStub->layer().value() + 1;
     ir1 = l1t::bitShift(ir1, (8 - settings_.nrbitsstub(ll - 1)));
@@ -915,7 +907,7 @@ bool TrackletProcessor::processStubPair(const Stub* innerFPGAStub,
 
     ir1abs = ir1 + ir1mean;
     ir2abs = ir2;
-    
+
     idr = ir2 - ir1abs;
 
     if (idr >= (int)LUT_idrinv_.size()) {
@@ -931,7 +923,7 @@ bool TrackletProcessor::processStubPair(const Stub* innerFPGAStub,
     iz1abs = iz1;
     iz2abs = iz2 + iz2mean;
   }
-  
+
   int irinv_new, iphi0_new, iz0_new, it_new;
 
   calcPars(idr, iphi1, ir1abs, iz1abs, iphi2, ir2abs, iz2abs, irinv_new, iphi0_new, iz0_new, it_new, print);
@@ -985,7 +977,7 @@ bool TrackletProcessor::processStubPair(const Stub* innerFPGAStub,
                                     iz0_new,
                                     it_new,
                                     settings_.diskSeed(iSeed_),
-				    settings_.overlapSeed(iSeed_));
+                                    settings_.overlapSeed(iSeed_));
 
   if (settings_.debugTracklet()) {
     edm::LogVerbatim("Tracklet") << "TrackletCalculator " << getName() << " Found tracklet for seed = " << iSeed_ << " "
@@ -1022,4 +1014,3 @@ bool TrackletProcessor::processStubPair(const Stub* innerFPGAStub,
 
   return true;
 }
-
