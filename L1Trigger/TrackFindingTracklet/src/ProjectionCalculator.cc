@@ -162,13 +162,11 @@ void ProjectionCalculator::execute(unsigned int iSector, double phimin) {
   for (unsigned int i = 0; i < inputpars_.size(); i++) {  // send copy of tpars to TB
     int projPage = 0;
     std::string iname = inputpars_[i]->getName();
-
-    std::vector<std::string> seedNames = {"L1L2", "L2L3", "L3L4", "L5L6", "D1D2", "D3D4", "L1D1", "L2D1"};
+    std::string seed = iname.substr(5, 4);  // extract seed from name
 
     for (int iSeed = 0; iSeed < 8; ++iSeed) {
-      std::string seed = iname.substr(5, 4);  // extract seed from name
       bool psSeed = !(iSeed == Seed::L3L4 || iSeed == Seed::L5L6);
-      if (seed == seedNames[iSeed]) {  // FIXME find easier way to get iSeed (probably from seed name)
+      if (seed == settings_.seedName(iSeed)) {  // FIXME find easier way to get iSeed (probably from seed name)
         unsigned int numTCs = nMergedTC[iSeed];
         for (unsigned int iTC = 0; iTC < numTCs; ++iTC) {
           std::string tcStr = TrackletConfigBuilder::iMergedTCStr(iSeed, iTC);
@@ -270,8 +268,8 @@ void ProjectionCalculator::execute(unsigned int iSector, double phimin) {
           // Write projections to memories //
           ///////////////////////////////////
 
-          for (unsigned int j = 0; j < settings_.projlayers()[iSeed].size(); ++j) {
-            unsigned int layer = settings_.projlayers()[iSeed][j];  // Loop through layers/disks projected to
+          for (unsigned int j = 0; j < settings_.projlayers(iSeed).size(); ++j) {
+            unsigned int layer = settings_.projlayers(iSeed, j);  // Loop through layers/disks projected to
             if (layer == 0)
               continue;                 // for seeds not projecting to any layers
             if (valid_LD[layer - 1]) {  // If projection to layer/disk is valid
@@ -306,8 +304,8 @@ void ProjectionCalculator::execute(unsigned int iSector, double phimin) {
               addedLayer[layer - 1] = true;
             }
           }
-          for (unsigned int j = 0; j < settings_.projdisks()[iSeed].size(); ++j) {
-            unsigned int disk = settings_.projdisks()[iSeed][j];
+          for (unsigned int j = 0; j < settings_.projdisks(iSeed).size(); ++j) {
+            unsigned int disk = settings_.projdisks(iSeed, j);
             if (disk == 0)
               continue;                          // for seeds not projecting to any disks
             if (valid_LD[N_LAYER + disk - 1]) {  // If projection to layer/disk is valid

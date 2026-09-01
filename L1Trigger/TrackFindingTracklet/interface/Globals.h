@@ -17,7 +17,6 @@
 
 namespace trklet {
 
-  class TrackDerTable;
   class SLHCEvent;
   class HistBase;
   class Settings;
@@ -32,8 +31,6 @@ namespace trklet {
     SLHCEvent*& event() { return theEvent_; }
 
     HistBase*& histograms() { return theHistBase_; }
-
-    TrackDerTable*& trackDerTable() { return trackDerTable_; }
 
     TrackletLUT*& phiCorr(unsigned int layer) { return thePhiCorr_[layer]; }
 
@@ -54,8 +51,6 @@ namespace trklet {
     SLHCEvent* theEvent_{nullptr};
 
     HistBase* theHistBase_{nullptr};
-
-    TrackDerTable* trackDerTable_{nullptr};
 
 #ifdef USEHYBRID
     std::unique_ptr<tmtt::Settings> tmttSettings_;

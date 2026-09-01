@@ -216,7 +216,7 @@ void TrackletProcessorDisplaced::execute(unsigned int iSector, double phimin, do
 
       // check if the seed made from the 3 stubs is valid
       bool accept = false;
-      if (iSeed_ == Seed::L2L3L4 || iSeed_ == Seed::L4L5L6)
+      if (iSeed_ == Seed::L3L4L2 || iSeed_ == Seed::L5L6L4)
         accept = LLLSeeding(innerFPGAStub, innerStub, middleFPGAStub, middleStub, outerFPGAStub, outerStub);
       else if (iSeed_ == Seed::L2L3D1)
         accept = LLDSeeding(innerFPGAStub, innerStub, middleFPGAStub, middleStub, outerFPGAStub, outerStub);

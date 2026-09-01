@@ -51,7 +51,7 @@ namespace trklet {
   constexpr double VMROUTERCUTZL1 = 70.0;      //Max z for L1 barrel seeding
   constexpr double VMROUTERCUTRD1D3 = 55.0;    //Max r for disk seeds
 
-  enum Seed { L1L2 = 0, L2L3, L3L4, L5L6, D1D2, D3D4, L1D1, L2D1, L2L3L4, L4L5L6, L2L3D1, D1D2L2 };
+  enum Seed { L1L2 = 0, L2L3, L3L4, L5L6, D1D2, D3D4, L1D1, L2D1, L3L4L2, L5L6L4, L2L3D1, D1D2L2 };
   enum LayerDisk { L1 = 0, L2, L3, L4, L5, L6, D1, D2, D3, D4, D5 };
 
   class Settings {
@@ -94,7 +94,7 @@ namespace trklet {
     unsigned int nbendbitsmedisk() const { return nbendbitsmedisk_; }
 
     bool useSeed(unsigned int iSeed) const { return useseeding_.find(iSeed) != useseeding_.end(); }
-    unsigned int nbitsvmte(unsigned int inner, unsigned int iSeed) const { return nbitsvmtecm_[inner][iSeed]; }
+    unsigned int nbitsvmte(unsigned int inner, unsigned int iSeed) const { return nbitsvmte_.at(iSeed)[inner]; }
     unsigned int nvmte(unsigned int inner, unsigned int iSeed) const { return (1 << nbitsvmte(inner, iSeed)); }
 
     unsigned int nbitsvmme(unsigned int layerdisk) const { return nbitsvmme_[layerdisk]; }
@@ -127,39 +127,84 @@ namespace trklet {
 
     double half2SmoduleWidth() const { return half2SmoduleWidth_; }
 
-    int nfinephi(unsigned int inner, unsigned int iSeed) const { return nfinephi_[inner][iSeed]; }
-    double nphireg(unsigned int inner, unsigned int iSeed) const { return nphiregcm_[inner][iSeed]; }
-    double lutwidthtab(unsigned int inner, unsigned int iSeed) const { return lutwidthtab_[inner][iSeed]; }
+    int nfinephi(unsigned int inner, unsigned int iSeed) const { return nfinephi_.at(iSeed)[inner]; }
+    double nphireg(unsigned int inner, unsigned int iSeed) const { return nphireg_.at(iSeed)[inner]; }
+    double lutwidthtab(unsigned int inner, unsigned int iSeed) const { return lutwidthtab_.at(iSeed)[inner]; }
     double lutwidthtabextended(unsigned int inner, unsigned int iSeed) const {
-      return lutwidthtabextended_[inner][iSeed];
+      return lutwidthtabextended_.at(iSeed)[inner];
     }
 
     unsigned int seedlayers(int inner, int seed) const {
-      int layerdisk = seedlayers_[seed][inner];
+      int layerdisk = seedlayers_.at(seed)[inner];
       assert(layerdisk >= 0);
       return layerdisk;
+    }
+
+    const std::array<int, 3>& seedlayers(int seed) const { return seedlayers_.at(seed); }
+
+    std::string seedName(unsigned int iSeed) const {
+      switch (iSeed) {
+        case Seed::L1L2:
+          return "L1L2";
+          break;
+        case Seed::L2L3:
+          return "L2L3";
+          break;
+        case Seed::L3L4:
+          return "L3L4";
+          break;
+        case Seed::L5L6:
+          return "L5L6";
+          break;
+        case Seed::D1D2:
+          return "D1D2";
+          break;
+        case Seed::D3D4:
+          return "D3D4";
+          break;
+        case Seed::L1D1:
+          return "L1D1";
+          break;
+        case Seed::L2D1:
+          return "L2D1";
+          break;
+        case Seed::L3L4L2:
+          return "L3L4L2";
+          break;
+        case Seed::L5L6L4:
+          return "L5L6L4";
+          break;
+        case Seed::L2L3D1:
+          return "L2L3D1";
+          break;
+        case Seed::D1D2L2:
+          return "D1D2L2";
+          break;
+        default:
+          assert(0);
+      }
     }
 
     unsigned int teunits(unsigned int iSeed) const { return teunits_[iSeed]; }
     unsigned int trpunits(unsigned int iSeed) const { return trpunits_[iSeed]; }
 
-    unsigned int NTC(int seed) const { return ntc_[seed]; }
+    unsigned int NTC(int iSeed) const { return ntc_.at(iSeed); }
 
-    unsigned int projlayers(unsigned int iSeed, unsigned int i) const { return projlayers_[iSeed][i]; }
-    unsigned int projdisks(unsigned int iSeed, unsigned int i) const { return projdisks_[iSeed][i]; }
-    double rphimatchcut(unsigned int iSeed, unsigned int ilayer) const { return rphimatchcut_[ilayer][iSeed]; }
-    double zmatchcut(unsigned int iSeed, unsigned int ilayer) const { return zmatchcut_[ilayer][iSeed]; }
-    double rphicutPS(unsigned int iSeed, unsigned int idisk) const { return rphicutPS_[idisk][iSeed]; }
-    double rcutPS(unsigned int iSeed, unsigned int idisk) const { return rcutPS_[idisk][iSeed]; }
-    double rphicut2S(unsigned int iSeed, unsigned int idisk) const { return rphicut2S_[idisk][iSeed]; }
-    double rcut2S(unsigned int iSeed, unsigned int idisk) const { return rcut2S_[idisk][iSeed]; }
+    unsigned int projlayers(unsigned int iSeed, unsigned int i) const { return projlayers_.at(iSeed)[i]; }
+    unsigned int projdisks(unsigned int iSeed, unsigned int i) const { return projdisks_.at(iSeed)[i]; }
+    double rphimatchcut(unsigned int iSeed, unsigned int ilayer) const { return rphimatchcut_.at(iSeed)[ilayer]; }
+    double zmatchcut(unsigned int iSeed, unsigned int ilayer) const { return zmatchcut_.at(iSeed)[ilayer]; }
+    double rphicutPS(unsigned int iSeed, unsigned int idisk) const { return rphicutPS_.at(iSeed)[idisk]; }
+    double rcutPS(unsigned int iSeed, unsigned int idisk) const { return rcutPS_.at(iSeed)[idisk]; }
+    double rphicut2S(unsigned int iSeed, unsigned int idisk) const { return rphicut2S_.at(iSeed)[idisk]; }
+    double rcut2S(unsigned int iSeed, unsigned int idisk) const { return rcut2S_.at(iSeed)[idisk]; }
 
-    unsigned int irmean(unsigned int iLayer) const { return irmean_[iLayer]; }
-    double rmean(unsigned int iLayer) const { return irmean_[iLayer] * rmaxdisk_ / 4096; }
+    unsigned int irmean(unsigned int iLayer) const { return rmean_[iLayer] * 4096 / rmaxdisk_ + 0.5; }
+    double rmean(unsigned int iLayer) const { return rmean_[iLayer]; }
     double rmax(unsigned int iLayer) const { return rmean(iLayer) + drmax(); }
     double rmin(unsigned int iLayer) const { return rmean(iLayer) - drmax(); }
-    unsigned int izmean(unsigned int iDisk) const { return izmean_[iDisk]; }
-    double zmean(unsigned int iDisk) const { return izmean_[iDisk] * zlength_ / 2048; }
+    unsigned int izmean(unsigned int iDisk) const { return zmean_[iDisk] * 2048 / zlength_ + 0.5; }
+    double zmean(unsigned int iDisk) const { return zmean_[iDisk]; }
     double zmax(unsigned int iDisk) const { return zmean(iDisk) + dzmax(); }
     double zmin(unsigned int iDisk) const { return zmean(iDisk) - dzmax(); }
 
@@ -477,14 +522,11 @@ namespace trklet {
       return bendcutME_[layerdisk];
     }
 
-    //layers/disks used by each seed
-    std::array<std::array<int, 3>, N_SEED> seedlayers() const { return seedlayers_; }
-
     //projection layers by seed index. For each seeding index (row) the list of layers that we consider projections to
-    std::array<std::array<unsigned int, N_LAYER - 2>, N_SEED> projlayers() const { return projlayers_; }
+    const std::array<unsigned int, N_LAYER - 2>& projlayers(unsigned int iSeed) const { return projlayers_.at(iSeed); }
 
     //projection disks by seed index. For each seeding index (row) the list of diks that we consider projections to
-    std::array<std::array<unsigned int, N_DISK>, N_SEED> projdisks() const { return projdisks_; }
+    const std::array<unsigned int, N_DISK>& projdisks(unsigned int iSeed) const { return projdisks_.at(iSeed); }
 
     bool barrelSeed(unsigned int iSeed) const {
       return iSeed == Seed::L1L2 || iSeed == Seed::L2L3 || iSeed == Seed::L3L4 || iSeed == Seed::L5L6;
@@ -510,8 +552,8 @@ namespace trklet {
 
     double maxt_{32.0};  //range in t that we must cover
 
-    std::array<unsigned int, N_LAYER> irmean_{{851, 1269, 1784, 2347, 2936, 3697}};
-    std::array<unsigned int, N_DISK> izmean_{{2239, 2645, 3163, 3782, 4523}};
+    std::array<double, N_LAYER> rmean_{{24.932, 37.178, 52.266, 68.760, 86.016, 108.311}};
+    std::array<double, N_DISK> zmean_{{131.191, 154.980, 185.332, 221.602, 265.020}};
 
     std::array<unsigned int, N_LAYER + N_DISK> nndbitsstub_{{0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1}};
     std::array<unsigned int, N_LAYER + N_DISK> nzbitsstub_{{12, 12, 12, 8, 8, 8, 7, 7, 7, 7, 7}};
@@ -530,28 +572,37 @@ namespace trklet {
 
     std::array<unsigned int, N_LAYER + N_DISK> nbitsallstubs_{{3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2}};
     std::array<unsigned int, N_LAYER + N_DISK> nbitsvmme_{{2, 3, 3, 3, 3, 3, 3, 2, 2, 2, 2}};
-    std::array<std::array<unsigned int, N_SEED>, 3> nbitsvmtecm_{
-        {{{2, 2, 2, 2, 2, 2, 1, 1, 2, 2, 3, 2}},  // (3 = #stubs/triplet, only row 1+2 used for tracklet)
-         {{3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2, 2}},
-         {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1}}}};
+
+    std::map<unsigned int, std::vector<int>> nbitsvmte_ = {{Seed::L1L2, {2, 3, 0}},
+                                                           {Seed::L2L3, {2, 3, 0}},
+                                                           {Seed::L3L4, {2, 3, 0}},     //2 L3L4
+                                                           {Seed::L5L6, {2, 3, 0}},     //3 L5L6
+                                                           {Seed::D1D2, {2, 3, 0}},     //4 D1D2
+                                                           {Seed::D3D4, {2, 3, 0}},     //5 D3D4
+                                                           {Seed::L1D1, {1, 3, 0}},     //6 L1D1
+                                                           {Seed::L2D1, {1, 3, 0}},     //7 L2D1
+                                                           {Seed::L3L4L2, {2, 3, 0}},   //8 L3L4L2
+                                                           {Seed::L5L6L4, {2, 3, 0}},   //9 L5L6L4
+                                                           {Seed::L2L3D1, {3, 2, 2}},   //10 L2L3D1
+                                                           {Seed::D1D2L2, {2, 2, 1}}};  //11 D1D2L2
 
     // FIX: There should be 3 PS10G slots & 3 PS (5G) ones.
     // (Will change output files used by HLS).
     std::vector<std::string> slotToDTCname_{
         "PS10G_1", "PS10G_2", "PS10G_3", "PS10G_4", "PS_1", "PS_2", "2S_1", "2S_2", "2S_3", "2S_4", "2S_5", "2S_6"};
 
-    std::map<std::string, std::vector<int> > dtclayers_{{"PS10G_1", {0, 6, 8, 10}},
-                                                        {"PS10G_2", {0, 7, 9}},
-                                                        {"PS10G_3", {1, 7}},
-                                                        {"PS10G_4", {6, 8, 10}},
-                                                        {"PS_1", {2, 7}},
-                                                        {"PS_2", {2, 9}},
-                                                        {"2S_1", {3, 4}},
-                                                        {"2S_2", {4}},
-                                                        {"2S_3", {5}},
-                                                        {"2S_4", {5, 8}},
-                                                        {"2S_5", {6, 9}},
-                                                        {"2S_6", {7, 10}}};
+    std::map<std::string, std::vector<int>> dtclayers_{{"PS10G_1", {0, 6, 8, 10}},
+                                                       {"PS10G_2", {0, 7, 9}},
+                                                       {"PS10G_3", {1, 7}},
+                                                       {"PS10G_4", {6, 8, 10}},
+                                                       {"PS_1", {2, 7}},
+                                                       {"PS_2", {2, 9}},
+                                                       {"2S_1", {3, 4}},
+                                                       {"2S_2", {4}},
+                                                       {"2S_3", {5}},
+                                                       {"2S_4", {5, 8}},
+                                                       {"2S_5", {6, 9}},
+                                                       {"2S_6", {7, 10}}};
 
     double rmindiskvm_{22.5};
     double rmaxdiskvm_{67.0};
@@ -568,8 +619,10 @@ namespace trklet {
 
     unsigned int NLONGVMBITS_{3};
 
-    double zlength_{120.0};
-    double rmaxdisk_{120.0};
+    //If the zlength_ is change the digitization parameters in TrackerDTC/python/Setup_cfi.py
+    //need to be updated correspondingly
+    double zlength_{124.0};
+    double rmaxdisk_{zlength_};  //radial and z scales has to be the same
     double rmindisk_{20.0};
 
     double zsepdisk_{1.5};  //cm
@@ -646,129 +699,210 @@ namespace trklet {
     std::array<unsigned int, N_LAYER + N_DISK> vmrlutrbits_{
         {4, 4, 4, 4, 4, 4, 8, 8, 8, 8, 8}};  // rbits used by LUT in VMR
 
-    std::array<std::array<unsigned int, N_SEED>, 3> nfinephi_{
-        {{{2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2}},    //inner  (3 = #stubs/triplet, only row 1+2 used for tracklet)
-         {{3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3}},    //outer
-         {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3}}}};  //outermost (triplets only)
+    //inner  (3 = #stubs/triplet, only row 1+2 used for tracklet)
+    //outer
+    //outermost (triplets only)
+    std::map<unsigned int, std::array<int, 3>> nfinephi_{{Seed::L1L2, {{2, 3, 0}}},     //L1L2
+                                                         {Seed::L2L3, {{2, 3, 0}}},     //L2L3
+                                                         {Seed::L3L4, {{2, 3, 0}}},     //L3L4
+                                                         {Seed::L5L6, {{2, 3, 0}}},     //L5L6
+                                                         {Seed::D1D2, {{2, 3, 0}}},     //D1D2
+                                                         {Seed::D3D4, {{2, 3, 0}}},     //D3D4
+                                                         {Seed::L1D1, {{2, 3, 0}}},     //L1D1
+                                                         {Seed::L2D1, {{2, 3, 0}}},     //L2D1
+                                                         {Seed::L3L4L2, {{2, 3, 0}}},   //L3L4L2
+                                                         {Seed::L5L6L4, {{2, 3, 0}}},   //L5L6L4
+                                                         {Seed::L2L3D1, {{2, 3, 3}}},   //L2L3D1
+                                                         {Seed::D1D2L2, {{2, 3, 3}}}};  //D1D2L2
 
     //These are the number of bits used for the VM regions in the TE by seedindex
-    std::array<std::array<unsigned int, N_SEED>, 3> nphiregcm_{
-        {{{5, 4, 4, 4, 4, 4, 4, 3, 4, 4, 5, 4}},    //inner
-         {{5, 5, 5, 5, 5, 5, 5, 5, 4, 4, 4, 4}},    //outer
-         {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 4}}}};  //outermost (triplets only)
+    std::map<unsigned int, std::array<int, 3>> nphireg_{{Seed::L1L2, {{5, 5, 0}}},     //L1L2
+                                                        {Seed::L2L3, {{4, 5, 0}}},     //L2L3
+                                                        {Seed::L3L4, {{4, 5, 0}}},     //L3L4
+                                                        {Seed::L5L6, {{4, 5, 0}}},     //L5L6
+                                                        {Seed::D1D2, {{4, 5, 0}}},     //D1D2
+                                                        {Seed::D3D4, {{4, 5, 0}}},     //D3D4
+                                                        {Seed::L1D1, {{4, 5, 0}}},     //L1D1
+                                                        {Seed::L2D1, {{3, 5, 0}}},     //L2D1
+                                                        {Seed::L3L4L2, {{4, 4, 0}}},   //L3L4L2
+                                                        {Seed::L5L6L4, {{4, 4, 0}}},   //L5L6L4
+                                                        {Seed::L2L3D1, {{5, 4, 4}}},   //L2L3D1
+                                                        {Seed::D1D2L2, {{4, 4, 4}}}};  //D1D2L2
 
     // These are the number of bits to represent lutval for VM memories in TE
-    std::array<std::array<unsigned int, N_SEED>, 3> lutwidthtab_{{{{10, 10, 10, 10, 10, 10, 10, 10, 0, 0, 11, 0}},
-                                                                  {{6, 6, 6, 6, 10, 10, 10, 10, 0, 0, 6, 0}},
-                                                                  {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 6}}}};
+    std::map<unsigned int, std::array<int, 3>> lutwidthtab_{{Seed::L1L2, {{10, 6, 0}}},    //L1L2
+                                                            {Seed::L2L3, {{10, 6, 0}}},    //L2L3
+                                                            {Seed::L3L4, {{10, 6, 0}}},    //L3L4
+                                                            {Seed::L5L6, {{10, 6, 0}}},    //L5L6
+                                                            {Seed::D1D2, {{10, 10, 0}}},   //D1D2
+                                                            {Seed::D3D4, {{10, 10, 0}}},   //D3D4
+                                                            {Seed::L1D1, {{10, 10, 0}}},   //L1D1
+                                                            {Seed::L2D1, {{10, 10, 0}}},   //L2D1
+                                                            {Seed::L3L4L2, {{0, 0, 0}}},   //L3L4L2
+                                                            {Seed::L5L6L4, {{0, 0, 0}}},   //L5L6L4
+                                                            {Seed::L2L3D1, {{11, 6, 4}}},  //L2L3D1
+                                                            {Seed::D1D2L2, {{0, 0, 6}}}};  //D1D2L2
 
     // These are the number of bits to represent lutval for VM memories in TED
     // TO DO: tune lutwidthtabextended_ values
-
-    /* std::array<std::array<unsigned int, N_SEED>, 3> lutwidthtabextended_{ */
-    /*     {{{11, 11, 21, 21, 21, 21, 11, 11, 0, 0, 21, 0}}, */
-    /*      {{6, 6, 6, 6, 10, 10, 10, 10, 0, 0, 6, 0}}, */
-    /*      {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 6}}}}; */
-
-    std::array<std::array<unsigned int, N_SEED>, 3> lutwidthtabextended_{
-        {{{21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21}},
-         {{21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21}},
-         {{21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21}}}};
+    std::map<unsigned int, std::array<int, 3>> lutwidthtabextended_{{Seed::L1L2, {{21, 21, 21}}},     //L1L2
+                                                                    {Seed::L2L3, {{21, 21, 21}}},     //L2L3
+                                                                    {Seed::L3L4, {{21, 21, 21}}},     //L3L4
+                                                                    {Seed::L5L6, {{21, 21, 21}}},     //L5L6
+                                                                    {Seed::D1D2, {{21, 21, 21}}},     //D1D2
+                                                                    {Seed::D3D4, {{21, 21, 21}}},     //D3D4
+                                                                    {Seed::L1D1, {{21, 21, 21}}},     //L1D1
+                                                                    {Seed::L2D1, {{21, 21, 21}}},     //L2D1
+                                                                    {Seed::L3L4L2, {{21, 21, 21}}},   //L3L4L2
+                                                                    {Seed::L5L6L4, {{21, 21, 21}}},   //L5L6L4
+                                                                    {Seed::L2L3D1, {{21, 21, 21}}},   //L2L3D1
+                                                                    {Seed::D1D2L2, {{21, 21, 21}}}};  //D1D2L2
 
     //layers/disks used by each seed
-    std::array<std::array<int, 3>, N_SEED> seedlayers_{{{{0, 1, -1}},   //L1L2
-                                                        {{1, 2, -1}},   //1 L2L3
-                                                        {{2, 3, -1}},   //2 L3L4
-                                                        {{4, 5, -1}},   //3 L5L6
-                                                        {{6, 7, -1}},   //4 D1D2
-                                                        {{8, 9, -1}},   //5 D3D4
-                                                        {{0, 6, -1}},   //6 L1D1
-                                                        {{1, 6, -1}},   //7 L2D1
-                                                        {{2, 3, 1}},    //8 L2L3L4
-                                                        {{4, 5, 3}},    //9 L4L5L6
-                                                        {{1, 2, 6}},    //10 L2L3D1
-                                                        {{6, 7, 1}}}};  //11 D1D2L2
+    std::map<unsigned int, std::array<int, 3>> seedlayers_{{Seed::L1L2, {{0, 1, -1}}},    //L1L2
+                                                           {Seed::L2L3, {{1, 2, -1}}},    //L2L3
+                                                           {Seed::L3L4, {{2, 3, -1}}},    //L3L4
+                                                           {Seed::L5L6, {{4, 5, -1}}},    //L5L6
+                                                           {Seed::D1D2, {{6, 7, -1}}},    //D1D2
+                                                           {Seed::D3D4, {{8, 9, -1}}},    //D3D4
+                                                           {Seed::L1D1, {{0, 6, -1}}},    //L1D1
+                                                           {Seed::L2D1, {{1, 6, -1}}},    //L2D1
+                                                           {Seed::L3L4L2, {{2, 3, 1}}},   //L3L4L2
+                                                           {Seed::L5L6L4, {{4, 5, 3}}},   //L5L6L4
+                                                           {Seed::L2L3D1, {{1, 2, 6}}},   //L2L3D1
+                                                           {Seed::D1D2L2, {{6, 7, 1}}}};  //D1D2L2
 
     //Number of tracklet calculators for the prompt seeding combinations
-    std::array<unsigned int, N_SEED> ntc_{{12, 4, 4, 4, 4, 4, 8, 4, 10, 10, 10, 10}};
+    std::map<unsigned int, unsigned int> ntc_{{Seed::L1L2, 12},     //L1L2
+                                              {Seed::L2L3, 4},      //L2L3
+                                              {Seed::L3L4, 4},      //L3L4
+                                              {Seed::L5L6, 4},      //L5L6
+                                              {Seed::D1D2, 4},      //D1D2
+                                              {Seed::D3D4, 4},      //D3D4
+                                              {Seed::L1D1, 8},      //L1D1
+                                              {Seed::L2D1, 4},      //L2D1
+                                              {Seed::L3L4L2, 10},   //L3L4L2
+                                              {Seed::L5L6L4, 10},   //L5L6L4
+                                              {Seed::L2L3D1, 10},   //L2L3D1
+                                              {Seed::D1D2L2, 10}};  //D1D2L2
 
     //projection layers by seed index. For each seeding index (row) the list of layers that we consider projections to
-    std::array<std::array<unsigned int, N_LAYER - 2>, N_SEED> projlayers_{{{{3, 4, 5, 6}},  //0 L1L2
-                                                                           {{1, 4, 5, 6}},  //1 L2L3
-                                                                           {{1, 2, 5, 6}},  //2 L3L4
-                                                                           {{1, 2, 3, 4}},  //3 L5L6
-                                                                           {{1, 2}},        //4 D1D2
-                                                                           {{1}},           //5 D3D4
-                                                                           {{}},            //6 L1D1
-                                                                           {{1}},           //7 L2D1
-                                                                           {{1, 5, 6}},     //8 L2L3L4
-                                                                           {{1, 2, 3}},     //9 L4L5L6
-                                                                           {{1}},           //10 L2L3D1
-                                                                           {{1}}}};         //11 D1D2L2
+    std::map<unsigned int, std::array<unsigned int, N_LAYER - 2>> projlayers_{{Seed::L1L2, {{3, 4, 5, 6}}},  //L1L2
+                                                                              {Seed::L2L3, {{1, 4, 5, 6}}},  //L2L3
+                                                                              {Seed::L3L4, {{1, 2, 5, 6}}},  //L3L4
+                                                                              {Seed::L5L6, {{1, 2, 3, 4}}},  //L5L6
+                                                                              {Seed::D1D2, {{1, 2}}},        //D1D2
+                                                                              {Seed::D3D4, {{1}}},           //D3D4
+                                                                              {Seed::L1D1, {{}}},            //L1D1
+                                                                              {Seed::L2D1, {{1}}},           //L2D1
+                                                                              {Seed::L3L4L2, {{1, 5, 6}}},   //L3L4L2
+                                                                              {Seed::L5L6L4, {{1, 2, 3}}},   //L5L6L4
+                                                                              {Seed::L2L3D1, {{1}}},         //L2L3D1
+                                                                              {Seed::D1D2L2, {{1}}}};        //D1D2L2
 
     //projection disks by seed index. For each seeding index (row) the list of diks that we consider projections to
-    std::array<std::array<unsigned int, N_DISK>, N_SEED> projdisks_{{{{1, 2, 3, 4}},  //0 L1L2
-                                                                     {{1, 2, 3, 4}},  //1 L2L3
-                                                                     {{1, 2}},        //2 L3L4
-                                                                     {{}},            //3 L5L6
-                                                                     {{3, 4, 5}},     //4 D1D2
-                                                                     {{1, 2, 5}},     //5 D3D4
-                                                                     {{2, 3, 4, 5}},  //6 L1D1
-                                                                     {{2, 3, 4}},     //7 L2D1
-                                                                     {{1, 2, 3}},     //8 L2L3L4
-                                                                     {{}},            //9 L4L5L6
-                                                                     {{2, 3, 4}},     //10 L2L3D1
-                                                                     {{3, 4}}}};      //11 D1D2L2
+    std::map<unsigned int, std::array<unsigned int, N_DISK>> projdisks_{{Seed::L1L2, {{1, 2, 3, 4}}},  //L1L2
+                                                                        {Seed::L2L3, {{1, 2, 3, 4}}},  //L2L3
+                                                                        {Seed::L3L4, {{1, 2}}},        //L3L4
+                                                                        {Seed::L5L6, {{}}},            //L5L6
+                                                                        {Seed::D1D2, {{3, 4, 5}}},     //D1D2
+                                                                        {Seed::D3D4, {{1, 2, 5}}},     //D3D4
+                                                                        {Seed::L1D1, {{2, 3, 4, 5}}},  //L1D1
+                                                                        {Seed::L2D1, {{2, 3, 4}}},     //L2D1
+                                                                        {Seed::L3L4L2, {{1, 2, 3}}},   //L3L4L2
+                                                                        {Seed::L5L6L4, {{}}},          //L5L6L4
+                                                                        {Seed::L2L3D1, {{2, 3, 4}}},   //L2L3D1
+                                                                        {Seed::D1D2L2, {{3, 4}}}};     //D1D2L2
 
     //rphi cuts for layers - the column is the seedindex
-    std::array<std::array<double, N_SEED>, N_LAYER> rphimatchcut_{
-        {{{0.0, 0.1, 0.07, 0.08, 0.07, 0.05, 0.0, 0.05, 0.08, 0.15, 0.125, 0.15}},  //Layer 1
-         {{0.0, 0.0, 0.06, 0.08, 0.05, 0.0, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0}},         //Layer 2
-         {{0.1, 0.0, 0.0, 0.08, 0.0, 0.0, 0.0, 0.0, 0.0, 0.08, 0.0, 0.0}},          //Layer 3
-         {{0.19, 0.19, 0.0, 0.05, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}},         //Layer 4
-         {{0.4, 0.4, 0.08, 0.0, 0.0, 0.0, 0.0, 0.0, 0.08, 0.0, 0.0, 0.0}},          //Layer 5
-         {{0.5, 0.0, 0.19, 0.0, 0.0, 0.0, 0.0, 0.0, 0.2, 0.0, 0.0, 0.0}}}};         //Layer 6
+    std::map<unsigned int, std::array<double, N_LAYER>> rphimatchcut_{
+        {Seed::L1L2, {{0.00, 0.00, 0.10, 0.19, 0.40, 0.50}}},     //L1L2
+        {Seed::L2L3, {{0.10, 0.00, 0.00, 0.19, 0.40, 0.00}}},     //L2L3
+        {Seed::L3L4, {{0.07, 0.06, 0.00, 0.00, 0.08, 0.19}}},     //L3L4
+        {Seed::L5L6, {{0.08, 0.08, 0.08, 0.05, 0.00, 0.00}}},     //L5L6
+        {Seed::D1D2, {{0.07, 0.05, 0.00, 0.00, 0.00, 0.00}}},     //D1D2
+        {Seed::D3D4, {{0.05, 0.00, 0.00, 0.00, 0.00, 0.00}}},     //D3D4
+        {Seed::L1D1, {{0.00, 0.00, 0.00, 0.00, 0.00, 0.00}}},     //L1D1
+        {Seed::L2D1, {{0.05, 0.00, 0.00, 0.00, 0.00, 0.00}}},     //L2D1
+        {Seed::L3L4L2, {{0.08, 0.00, 0.00, 0.00, 0.08, 0.20}}},   //L3L4L2
+        {Seed::L5L6L4, {{0.15, 0.10, 0.08, 0.00, 0.00, 0.00}}},   //L5L6L4
+        {Seed::L2L3D1, {{0.125, 0.00, 0.00, 0.00, 0.00, 0.00}}},  //L2L3D1
+        {Seed::D1D2L2, {{0.15, 0.00, 0.00, 0.00, 0.00, 0.00}}}};  //D1D2L2
 
     //z cuts for layers - the column is the seedindex
-    std::array<std::array<double, N_SEED>, N_LAYER> zmatchcut_{
-        {{{0.0, 0.7, 5.5, 15.0, 1.5, 2.0, 0.0, 1.5, 1.0, 8.0, 1.0, 1.5}},   //Layer 1
-         {{0.0, 0.0, 3.5, 15.0, 1.25, 0.0, 0.0, 0.0, 0.0, 7.0, 0.0, 0.0}},  //Layer 2
-         {{0.7, 0.0, 0.0, 9.0, 0.0, 0.0, 0.0, 0.0, 0.0, 5.0, 0.0, 0.0}},    //Layer 3
-         {{3.0, 3.0, 0.0, 7.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}},    //Layer 4
-         {{3.0, 3.0, 8.0, 0.0, 0.0, 0.0, 0.0, 0.0, 4.5, 0.0, 0.0, 0.0}},    //Layer 5
-         {{4.0, 0.0, 9.5, 0.0, 0.0, 0.0, 0.0, 0.0, 4.5, 0.0, 0.0, 0.0}}}};  //Layer 6
+    std::map<unsigned int, std::array<double, N_LAYER>> zmatchcut_{
+        {Seed::L1L2, {{0.00, 0.00, 0.70, 3.00, 3.00, 4.00}}},     //L1L2
+        {Seed::L2L3, {{0.70, 0.00, 0.00, 3.00, 3.00, 0.00}}},     //L2L3
+        {Seed::L3L4, {{5.50, 3.50, 0.00, 0.00, 8.00, 9.50}}},     //L3L4
+        {Seed::L5L6, {{15.0, 15.0, 9.00, 7.00, 0.00, 0.00}}},     //L5L6
+        {Seed::D1D2, {{1.50, 1.25, 0.00, 0.00, 0.00, 0.00}}},     //D1D2
+        {Seed::D3D4, {{2.00, 0.00, 0.00, 0.00, 0.00, 0.00}}},     //D3D4
+        {Seed::L1D1, {{0.00, 0.00, 0.00, 0.00, 0.00, 0.00}}},     //L1D1
+        {Seed::L2D1, {{1.50, 0.00, 0.00, 0.00, 0.00, 0.00}}},     //L2D1
+        {Seed::L3L4L2, {{1.00, 0.00, 0.00, 0.00, 4.50, 4.50}}},   //L3L4L2
+        {Seed::L5L6L4, {{8.00, 7.00, 5.00, 0.00, 0.00, 0.00}}},   //L5L6L4
+        {Seed::L2L3D1, {{1.00, 0.00, 0.00, 0.00, 0.00, 0.00}}},   //L2L3D1
+        {Seed::D1D2L2, {{1.50, 0.00, 0.00, 0.00, 0.00, 0.00}}}};  //D1D2L2
 
     //rphi cuts for PS modules in disks - the column is the seedindex
-    std::array<std::array<double, N_SEED>, N_DISK> rphicutPS_{
-        {{{0.2, 0.2, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}},     //disk 1
-         {{0.2, 0.2, 0.0, 0.0, 0.0, 0.1, 0.1, 0.1, 0.0, 0.0, 0.15, 0.0}},    //disk 2
-         {{0.25, 0.2, 0.0, 0.0, 0.15, 0.0, 0.2, 0.15, 0.0, 0.0, 0.0, 0.2}},  //disk 3
-         {{0.5, 0.2, 0.0, 0.0, 0.2, 0.0, 0.3, 0.5, 0.0, 0.0, 0.0, 0.0}},     //disk 4
-         {{0.0, 0.0, 0.0, 0.0, 0.25, 0.1, 0.5, 0.0, 0.0, 0.0, 0.0, 0.0}}}};  //disk 5
+    std::map<unsigned int, std::array<double, N_DISK>> rphicutPS_{
+        {Seed::L1L2, {{0.20, 0.20, 0.25, 0.50, 0.00}}},     //L1L2
+        {Seed::L2L3, {{0.20, 0.20, 0.20, 0.20, 0.00}}},     //L2L3
+        {Seed::L3L4, {{0.00, 0.00, 0.00, 0.00, 0.00}}},     //L3L4
+        {Seed::L5L6, {{0.00, 0.00, 0.00, 0.00, 0.00}}},     //L5L6
+        {Seed::D1D2, {{0.00, 0.00, 0.15, 0.20, 0.25}}},     //D1D2
+        {Seed::D3D4, {{0.10, 0.10, 0.00, 0.00, 0.10}}},     //D3D4
+        {Seed::L1D1, {{0.00, 0.10, 0.20, 0.30, 0.50}}},     //L1D1
+        {Seed::L2D1, {{0.00, 0.10, 0.20, 0.50, 0.00}}},     //L2D1
+        {Seed::L3L4L2, {{0.00, 0.00, 0.00, 0.00, 0.00}}},   //L3L4L2
+        {Seed::L5L6L4, {{0.00, 0.00, 0.00, 0.00, 0.00}}},   //L5L6L4
+        {Seed::L2L3D1, {{0.00, 0.15, 0.00, 0.00, 0.00}}},   //L2L3D1
+        {Seed::D1D2L2, {{0.00, 0.00, 0.20, 0.00, 0.00}}}};  //D1D2L2
 
     //r cuts for PS modules in disks - the column is the seedindex
-    std::array<std::array<double, N_SEED>, N_DISK> rcutPS_{
-        {{{0.5, 0.5, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}},    //disk 1
-         {{0.5, 0.5, 0.0, 0.0, 0.0, 0.5, 0.5, 0.5, 0.0, 0.0, 0.5, 0.0}},    //disk 2
-         {{0.5, 0.5, 0.0, 0.0, 0.5, 0.0, 0.6, 0.8, 0.0, 0.0, 0.0, 0.4}},    //disk 3
-         {{0.5, 0.5, 0.0, 0.0, 0.8, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0}},    //disk 4
-         {{0.0, 0.0, 0.0, 0.0, 1.0, 0.5, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0}}}};  //disk 5
+    std::map<unsigned int, std::array<double, N_DISK>> rcutPS_{
+        {Seed::L1L2, {{0.50, 0.50, 0.50, 0.50, 0.00}}},     //L1L2
+        {Seed::L2L3, {{0.50, 0.50, 0.50, 0.50, 0.00}}},     //L2L3
+        {Seed::L3L4, {{0.00, 0.00, 0.00, 0.00, 0.00}}},     //L3L4
+        {Seed::L5L6, {{0.00, 0.00, 0.00, 0.00, 0.00}}},     //L5L6
+        {Seed::D1D2, {{0.00, 0.00, 0.50, 0.80, 1.00}}},     //D1D2
+        {Seed::D3D4, {{0.50, 0.50, 0.00, 0.00, 0.50}}},     //D3D4
+        {Seed::L1D1, {{0.00, 0.50, 0.60, 1.00, 2.00}}},     //L1D1
+        {Seed::L2D1, {{0.00, 0.50, 0.80, 1.00, 0.00}}},     //L2D1
+        {Seed::L3L4L2, {{0.00, 0.00, 0.00, 0.00, 0.00}}},   //L3L4L2
+        {Seed::L5L6L4, {{0.00, 0.00, 0.00, 0.00, 0.00}}},   //L5L6L4
+        {Seed::L2L3D1, {{0.00, 0.50, 0.00, 0.00, 0.00}}},   //L2L3D1
+        {Seed::D1D2L2, {{0.00, 0.00, 0.40, 0.00, 0.00}}}};  //D1D2L2
 
     //rphi cuts for 2S modules in disks = the column is the seedindex
-    std::array<std::array<double, N_SEED>, N_DISK> rphicut2S_{
-        {{{0.5, 0.5, 0.8, 0.0, 0.0, 0.0, 0.0, 0.0, 0.2, 0.0, 0.0, 0.0}},    //disk 1
-         {{0.5, 0.5, 0.8, 0.0, 0.0, 0.0, 0.5, 0.15, 0.3, 0.0, 0.68, 0.0}},  //disk 2
-         {{0.5, 0.5, 0.0, 0.0, 0.15, 0.0, 0.2, 0.25, 0.0, 0.0, 0.8, 0.1}},  //disk 3
-         {{0.5, 0.5, 0.0, 0.0, 0.2, 0.0, 0.25, 0.5, 0.0, 0.0, 0.6, 0.4}},   //disk 4
-         {{0.0, 0.0, 0.0, 0.0, 0.4, 0.2, 0.4, 0.0, 0.0, 0.0, 0.0, 0.8}}}};  //disk 5
+    std::map<unsigned int, std::array<double, N_DISK>> rphicut2S_{
+        {Seed::L1L2, {{0.50, 0.50, 0.50, 0.50, 0.00}}},     //L1L2
+        {Seed::L2L3, {{0.50, 0.50, 0.50, 0.50, 0.00}}},     //L2L3
+        {Seed::L3L4, {{0.80, 0.80, 0.00, 0.00, 0.00}}},     //L3L4
+        {Seed::L5L6, {{0.00, 0.00, 0.00, 0.00, 0.00}}},     //L5L6
+        {Seed::D1D2, {{0.00, 0.00, 0.15, 0.20, 0.40}}},     //D1D2
+        {Seed::D3D4, {{0.00, 0.00, 0.00, 0.00, 0.20}}},     //D3D4
+        {Seed::L1D1, {{0.00, 0.50, 0.20, 0.25, 0.40}}},     //L1D1
+        {Seed::L2D1, {{0.00, 0.15, 0.25, 0.50, 0.00}}},     //L2D1
+        {Seed::L3L4L2, {{0.20, 0.30, 0.00, 0.00, 0.00}}},   //L3L4L2
+        {Seed::L5L6L4, {{0.00, 0.00, 0.00, 0.00, 0.00}}},   //L5L6L4
+        {Seed::L2L3D1, {{0.00, 0.68, 0.80, 0.60, 0.00}}},   //L2L3D1
+        {Seed::D1D2L2, {{0.00, 0.00, 0.10, 0.40, 0.80}}}};  //D1D2L2
 
-    //r cuts for 2S modules in disks -the column is the seedindex
-    std::array<std::array<double, N_SEED>, N_DISK> rcut2S_{
-        {{{3.6, 3.6, 3.6, 0.0, 0.0, 0.0, 0.0, 0.0, 3.0, 0.0, 0.0, 0.0}},    //disk 1
-         {{3.6, 3.6, 3.6, 0.0, 0.0, 0.0, 3.6, 3.4, 3.0, 0.0, 3.0, 0.0}},    //disk 2
-         {{3.6, 3.6, 0.0, 0.0, 3.6, 0.0, 3.6, 3.6, 0.0, 0.0, 3.6, 3.0}},    //disk 3
-         {{3.6, 3.6, 0.0, 0.0, 3.6, 0.0, 3.5, 3.6, 0.0, 0.0, 3.0, 3.0}},    //disk 4
-         {{0.0, 0.0, 0.0, 0.0, 3.6, 3.4, 3.7, 0.0, 0.0, 0.0, 0.0, 3.0}}}};  //disk 5
+    //r cuts for 2S modules in disks -the column is the seedinde
+    std::map<unsigned int, std::array<double, N_DISK>> rcut2S_{
+        {Seed::L1L2, {{3.60, 3.60, 3.60, 3.60, 0.00}}},     //L1L2
+        {Seed::L2L3, {{3.60, 3.60, 3.60, 3.60, 0.00}}},     //L2L3
+        {Seed::L3L4, {{3.60, 3.60, 0.00, 0.00, 0.00}}},     //L3L4
+        {Seed::L5L6, {{0.00, 0.00, 0.00, 0.00, 0.00}}},     //L5L6
+        {Seed::D1D2, {{0.00, 0.00, 3.60, 3.60, 3.60}}},     //D1D2
+        {Seed::D3D4, {{0.00, 0.00, 0.00, 0.00, 3.40}}},     //D3D4
+        {Seed::L1D1, {{0.00, 3.60, 3.60, 3.50, 3.70}}},     //L1D1
+        {Seed::L2D1, {{0.00, 3.40, 3.60, 3.60, 0.00}}},     //L2D1
+        {Seed::L3L4L2, {{3.00, 3.00, 0.00, 0.00, 0.00}}},   //L3L4L2
+        {Seed::L5L6L4, {{0.00, 0.00, 0.00, 0.00, 0.00}}},   //L5L6L4
+        {Seed::L2L3D1, {{0.00, 3.00, 3.60, 3.00, 0.00}}},   //L2L3D1
+        {Seed::D1D2L2, {{0.00, 0.00, 3.00, 3.00, 3.00}}}};  //D1D2L2
 
     //returns the mean bend (in strips at a 1.8 mm separation) for bendcode
     std::array<std::array<double, 16>, 16> benddecode_{
