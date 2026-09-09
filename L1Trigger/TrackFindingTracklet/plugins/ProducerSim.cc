@@ -51,13 +51,11 @@ namespace trklet {
     //
     std::vector<int> nPer_;
     // bdt models for baseline and extended tracking
-    conifer::BDT<float, float> bdt4_;
-    conifer::BDT<float, float> bdt5_;
+    const edm::ParameterSet config_;
+    std::unique_ptr<conifer::BDT<float, float>> bdt_;
   };
 
-  ProducerSim::ProducerSim(const edm::ParameterSet& iConfig)
-      : bdt4_(iConfig.getParameter<edm::FileInPath>("BDT4ParSim").fullPath()),
-        bdt5_(iConfig.getParameter<edm::FileInPath>("BDT5ParSim").fullPath()) {
+  ProducerSim::ProducerSim(const edm::ParameterSet& iConfig) : config_(iConfig) {
     const edm::InputTag& inputTag = iConfig.getParameter<edm::InputTag>("InputTagTracklet");
     const std::string& branchTracks = iConfig.getParameter<std::string>("BranchTTTracks");
     // book in- and output ED products
@@ -82,6 +80,13 @@ namespace trklet {
     for (int i = setup_->kfMinLayers(); i <= setup_->kfNumLayers(); i++)
       for (int j = setup_->kfMinLayers(); j <= i; j++)
         nPer_[i - setup_->kfMinLayers()] += bc(i, j);
+    // load correct bdt model
+    std::string fbdtpath_ = "";
+    if (setup_->simNPar() == 4)
+      fbdtpath_ = config_.getParameter<edm::FileInPath>("BDT4ParSim").fullPath();
+    else if (setup_->simNPar() == 5)
+      fbdtpath_ = config_.getParameter<edm::FileInPath>("BDT5ParSim").fullPath();
+    (bdt_) = std::make_unique<conifer::BDT<float, float>>(fbdtpath_);
   }
 
   void ProducerSim::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
@@ -261,13 +266,8 @@ namespace trklet {
       const float hitpattern = ttTrack.hitPattern();
       float mva = 0;
       // bdt evaluation
-      if (setup_->simNPar() == 4) {
-        std::vector<float> inputs = {nstubs, z0, tanL, chi20, chi21, hitpattern};
-        mva = bdt4_.decision_function(inputs).at(0);
-      } else if (setup_->simNPar() == 5) {
-        std::vector<float> inputs = {nstubs, z0, tanL, chi20, chi21, hitpattern};
-        mva = bdt5_.decision_function(inputs).at(0);
-      }
+      std::vector<float> inputs = {nstubs, z0, tanL, chi20, chi21, hitpattern};
+      mva = bdt_->decision_function(inputs).at(0);
       // apply activation function to mva
       mva = 1. / (1. + exp(-mva));
       // set mva value
