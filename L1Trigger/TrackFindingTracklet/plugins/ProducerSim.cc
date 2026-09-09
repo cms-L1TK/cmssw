@@ -55,7 +55,8 @@ namespace trklet {
     conifer::BDT<float, float> bdt_;
   };
 
-  ProducerSim::ProducerSim(const edm::ParameterSet& iConfig) : config_(iConfig), bdt_(config_.getParameter<edm::FileInPath>("BDT4ParSim").fullPath()) {
+  ProducerSim::ProducerSim(const edm::ParameterSet& iConfig)
+      : config_(iConfig), bdt_(config_.getParameter<edm::FileInPath>("BDT4ParSim").fullPath()) {
     const edm::InputTag& inputTag = iConfig.getParameter<edm::InputTag>("InputTagTracklet");
     const std::string& branchTracks = iConfig.getParameter<std::string>("BranchTTTracks");
     // book in- and output ED products
