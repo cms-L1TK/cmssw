@@ -52,10 +52,10 @@ namespace trklet {
     std::vector<int> nPer_;
     // bdt models for baseline and extended tracking
     const edm::ParameterSet config_;
-    std::unique_ptr<conifer::BDT<float, float>> bdt_;
+    conifer::BDT<float, float> bdt_;
   };
 
-  ProducerSim::ProducerSim(const edm::ParameterSet& iConfig) : config_(iConfig) {
+  ProducerSim::ProducerSim(const edm::ParameterSet& iConfig) : config_(iConfig), bdt_(config_.getParameter<edm::FileInPath>("BDT4ParSim").fullPath()) {
     const edm::InputTag& inputTag = iConfig.getParameter<edm::InputTag>("InputTagTracklet");
     const std::string& branchTracks = iConfig.getParameter<std::string>("BranchTTTracks");
     // book in- and output ED products
@@ -86,7 +86,7 @@ namespace trklet {
       fbdtpath_ = config_.getParameter<edm::FileInPath>("BDT4ParSim").fullPath();
     else if (setup_->simNPar() == 5)
       fbdtpath_ = config_.getParameter<edm::FileInPath>("BDT5ParSim").fullPath();
-    (bdt_) = std::make_unique<conifer::BDT<float, float>>(fbdtpath_);
+    (bdt_) = conifer::BDT<float, float>(fbdtpath_);
   }
 
   void ProducerSim::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
@@ -267,7 +267,7 @@ namespace trklet {
       float mva = 0;
       // bdt evaluation
       std::vector<float> inputs = {nstubs, z0, tanL, chi20, chi21, hitpattern};
-      mva = bdt_->decision_function(inputs).at(0);
+      mva = bdt_.decision_function(inputs).at(0);
       // apply activation function to mva
       mva = 1. / (1. + exp(-mva));
       // set mva value
