@@ -556,13 +556,14 @@ void L1TrackSelectionProducer::produce(edm::StreamID, edm::Event& iEvent, const 
     const auto& track = l1TracksHandle->at(i);
 
     // Select tracks based on the floating point TTTrack
-    if (processSimulatedTracks_ && kinSel(track) && nPSStubsSel(track) && chi2Sel(track) && mvaSel(track) &&
-        chi2NstubSel(track)) {
+    // if (processSimulatedTracks_ && kinSel(track) && nPSStubsSel(track) && chi2Sel(track) && mvaSel(track) && chi2NstubSel(track)) {
+    if (processSimulatedTracks_) {
       vTTTrackOutput->push_back(TTTrackRef(l1TracksHandle, i));
     }
 
     // Select tracks based on the bitwise accurate TTTrack_TrackWord
-    if (processEmulatedTracks_ && kinSelEmu(track) && chi2SelEmu(track) && mvaSelEmu(track) && chi2NstubSelEmu(track)) {
+    // if (processEmulatedTracks_ && kinSelEmu(track) && chi2SelEmu(track) && mvaSelEmu(track) && chi2NstubSelEmu(track)) {
+    if (processEmulatedTracks_) {
       vTTTrackEmulationOutput->push_back(TTTrackRef(l1TracksHandle, i));
     }
   }

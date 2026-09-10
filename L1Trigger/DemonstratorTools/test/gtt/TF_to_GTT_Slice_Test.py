@@ -35,6 +35,7 @@ process.TrackProcessorEmulation = cms.Sequence (  process.ProducerDTC
 
 Samples = ["file:/vols/cms/am2023/Data/0f0bcfd3-dafe-4dda-8d39-9765f6eae68e.root"]
 
+# Samples = ["/store/mc/Phase2Spring24DIGIRECOMiniAOD/DoublePhoton_FlatPt-1To100-gun/GEN-SIM-DIGI-RAW-MINIAOD/PU200_Trk1GeV_140X_mcRun4_realistic_v4-v2/2560000/5690d41a-528a-4ef8-b1af-b99dc84378a0.root"]
 # 0f0bcfd3-dafe-4dda-8d39-9765f6eae68e.root
 # 8eb00500-1562-4ef0-bec0-d95ce1ce3c02.root
 
@@ -88,5 +89,5 @@ process.demo = cms.Path( process.TrackProcessorEmulation +
                          process.l1tTrackSelectionProducer + 
                          process.l1tVertexFinderEmulator + 
                          process.l1tTrackVertexAssociationProducer +
-                         process.l1tGTTFileWriter +
-                         process.TrackerTFPDemonstrator)
+                         process.l1tGTTFileWriter)
+                         #process.TrackerTFPDemonstrator)

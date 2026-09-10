@@ -239,8 +239,8 @@ namespace trklet {
       const double aTanLambda = it->cot_;
       const double az0 = it->z0_;
       const double ad0 = it->d0_;
-      const double aChi2xyfit = it->chi20_;
-      const double aChi2zfit = it->chi21_;
+      const double aChi2xyfit = 0; // it->chi20_;
+      const double aChi2zfit = 0; // it->chi21_;
       const double trkMVA1 = (TTTrack_TrackWord::tqMVABins[it->mva_]);
       static constexpr double trkMVA2 = 0.;
       static constexpr double trkMVA3 = 0.;
@@ -266,6 +266,7 @@ namespace trklet {
       ttTrack.setStubRefs(it->ttStubRefs_);
       ttTrack.setStubPtConsistency(StubPtConsistency::getConsistency(
           ttTrack, setup_->trackerGeometry(), setup_->trackerTopology(), bfield_, nPar));
+      ttTrack.setChi2BendRed(0);
       ttTrack.setTrackWordBits();
       // if (aTanLambda < 0)
       //   std::cout << " [DEBUG] L1Track @ " << &ttTrack << " with 96b Word " << ttTrack.getTrackWord().to_string(2) << std::endl;
