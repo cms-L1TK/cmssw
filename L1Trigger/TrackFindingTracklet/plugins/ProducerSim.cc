@@ -48,15 +48,17 @@ namespace trklet {
     edm::ESGetToken<Setup, trackerDTC::SetupRcd> esGetTokenSetup_;
     // helper class to store configurations
     const Setup* setup_;
-    //
+    // number of combinatorics for different amount of candidate stubs
     std::vector<int> nPer_;
     // bdt models for baseline and extended tracking
-    const edm::ParameterSet config_;
     conifer::BDT<float, float> bdt_;
+    // path to 5 parameter model
+    std::string path_;
   };
 
   ProducerSim::ProducerSim(const edm::ParameterSet& iConfig)
-      : config_(iConfig), bdt_(config_.getParameter<edm::FileInPath>("BDT4ParSim").fullPath()) {
+      : bdt_(iConfig.getParameter<edm::FileInPath>("BDT4ParSim").fullPath()),
+        path_(iConfig.getParameter<edm::FileInPath>("BDT5ParSim").fullPath()) {
     const edm::InputTag& inputTag = iConfig.getParameter<edm::InputTag>("InputTagTracklet");
     const std::string& branchTracks = iConfig.getParameter<std::string>("BranchTTTracks");
     // book in- and output ED products
@@ -69,6 +71,9 @@ namespace trklet {
   void ProducerSim::beginRun(const edm::Run& iEvent, const edm::EventSetup& iSetup) {
     // helper class to store configurations
     setup_ = &iSetup.getData(esGetTokenSetup_);
+    // load correct bdt model
+    if (setup_->simNPar() == 5)
+      bdt_ = conifer::BDT<float, float>(path_);
     // calc permutations for all found track sizes [4 - 7]
     auto fac = [](int n) {
       int f(1);
@@ -81,13 +86,6 @@ namespace trklet {
     for (int i = setup_->kfMinLayers(); i <= setup_->kfNumLayers(); i++)
       for (int j = setup_->kfMinLayers(); j <= i; j++)
         nPer_[i - setup_->kfMinLayers()] += bc(i, j);
-    // load correct bdt model
-    std::string fbdtpath_ = "";
-    if (setup_->simNPar() == 4)
-      fbdtpath_ = config_.getParameter<edm::FileInPath>("BDT4ParSim").fullPath();
-    else if (setup_->simNPar() == 5)
-      fbdtpath_ = config_.getParameter<edm::FileInPath>("BDT5ParSim").fullPath();
-    (bdt_) = conifer::BDT<float, float>(fbdtpath_);
   }
 
   void ProducerSim::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
@@ -98,7 +96,7 @@ namespace trklet {
     ttTrackRefs.reserve(handle->size());
     for (int iTrk = 0; iTrk < static_cast<int>(handle->size()); iTrk++)
       ttTrackRefs.emplace_back(handle, iTrk);
-    // perform track multiplexinf
+    // perform track multiplexer
     const std::vector<int>& muxOrder = setup_->tmMuxOrder();
     auto order = [&muxOrder](const TTTrackRef& lhs, TTTrackRef& rhs) {
       const auto l = std::find(muxOrder.begin(), muxOrder.end(), lhs->trackSeedType());
@@ -265,12 +263,11 @@ namespace trklet {
       const float chi20 = ttTrack.chi2XY();
       const float chi21 = ttTrack.chi2Z();
       const float hitpattern = ttTrack.hitPattern();
-      float mva = 0;
       // bdt evaluation
       std::vector<float> inputs = {nstubs, z0, tanL, chi20, chi21, hitpattern};
-      mva = bdt_.decision_function(inputs).at(0);
+      const float bdt = bdt_.decision_function(inputs).at(0);
       // apply activation function to mva
-      mva = 1. / (1. + exp(-mva));
+      const float mva = 1. / (1. + exp(-bdt));
       // set mva value
       ttTrack.settrkMVA1(mva);
       // finish TTTrack
