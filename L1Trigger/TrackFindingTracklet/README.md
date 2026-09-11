@@ -1,31 +1,43 @@
-To run the L1 tracking & create a TTree of tracking performance: 
+# L1 TRACKING
+
+To run the DTC emulation + L1 tracking & create a TTree & plots of L1 tracking performance: 
 
 cmsRun L1TrackNtupleMaker_cfg.py
 
-By setting variable L1TRKALGO inside this script, you can change which L1 tracking algo is used. It defaults to HYBRID, which runs Tracklet pattern reco followed by old floating point duplicate removal + Kalman track fit.
+By setting variable L1TRKALGO inside this script, you can change which L1 tracking algo is used. 
 
-The corresponding code for displaced tracking can be run by setting L1TRKALGO=HYBRID_DISPLACED. It uses displaced tracklet seeding + 5-param KF fit.
+  * **HYBRID** (used for MC production): runs Tracklet pattern reco emulation followed by old floating point duplicate removal (DR) (which uses a "merge" approach) + floating point Kalman track (KF) fit (based on an old algo, sometimes referred to as OLDKF).
+  * **HYBRID_DISPLACED** (used for MC production): Similar, but uses displaced tracklet seeding + 5-param KF fit.
 
-The version of the hybrid algorithm that corresponds to the current firmware, and includes the new bit-accurate duplicate track removal + Kalman track fit, can be run by changing L1TRKALGO=HYBRID_NEWKF. It is not yet the default for MC production, as it's tracking performance is not quite has good as HYBRID. e.g. Only a basic duplicate track removal is available for it.
+The firmware uses on a more recent DR + KF algos, known collectively as NEWKF. (Here the DR uses a "kill" approach). It is not the default for MC production as it has poor z0 resolution. It can be emulated with:
 
-The corresponding code for displaced tracking can be run by setting
-L1TRKALGO=HYBRID_SIM_DISPLACED. It uses displaced tracklet seeding + 5-param KF fit. As no bit-accurate emulation of the new duplicate removal + KF fit yet exists, this uses a new floating point version of it. (This is more recent, but less validated code than HYBRID_DISPLACED).
+  * **HYBRID_NEWKF**: Like HYBRID, but runs NEWKF versions of DR + KF.
+  * **HYBRID_NEWKF_DISPLACED**: Like HYBRID_DISPLACED, but will run NEWKF versions of DR + KF. -- DOESN'T EXIST YET!!!
 
-The ROOT macros L1TrackNtuplePlot.C & L1TrackQualityPlot.C make track performance & BDT track quality performance plots from the TTree. Both can be run via makeHists.csh .
+For tests, a simpler, floating point version of NEWKF exists (which also throws away the digitized stubs residuals from the Tracklet stage, and recalculates them from TTStubs). You can run this with:
 
-Note that for the HYBRID algorithm, the BDT model lives under the `TrackerTFP/data` directory, called from [this](https://github.com/cms-data/L1Trigger-TrackTrigger) repository (L1Trigger-TrackTrigger). For the HYBRID_NEWKF, the BDT model lives under `TrackFindingTracklet/data` directory, called from [this](https://github.com/cms-data/L1Trigger-TrackFindingTracklet) repository (L1Trigger-TrackFindingTracklet).
+  * **HYBRID_SIM**: Like HYBRID_NEWKF, but with floating point NEWKF DR + KF.
+  * **HYBRID_SIM_DISPLACED**: LIKE HYBRID_NEWKF_DISPLACED, but floating point NEWKF DR + KF, and actually exists. -- This is currently only available displaced tracking code that uses NEWKF.
+
+To make plots of L1 tracking & Track Quality BDT performance from the TTree produced by the above step, use respectively the ROOT macros L1TrackNtuplePlot.C & L1TrackQualityPlot.C . Both can be run via makeHists.csh .
+
+The Track Quality BDT algorithm can be trained as described [here](https://gitlab.cern.ch/cms-tracker-phase2-data-processing/BE_firmware/track-finder/l1-track-finding-track-quality/-/blob/master/README.md?ref_type=heads) . The resulting JSON files are in `TrackerTFP/data/`, filled from [this](https://github.com/cms-data/L1Trigger-TrackTrigger) repository, for the HYBRID* tracking; and in `TrackFindingTracklet/data`, filled from [this](https://github.com/cms-data/L1Trigger-TrackFindingTracklet) repository (L1Trigger-TrackFindingTracklet), for the HYBRID_NEWKF* tracking.
 
 If you need to modify the cfg params of the algorithm, then TrackFindingTracklet/interface/Settings.h configures the pattern reco stage, (although some parameters there are overridden by l1tTTTracksFromTrackletEmulation_cfi.py). The old KF fit is configured by the constructor of TrackFindingTMTT/src/Settings.cc. The DTC and new KF fit are configured via TrackTrigger/python/ProducerSetup_cfi.py.
 
-For experts
-============
+## FOR EXPERTS
 
-1) To make plots to monitor data rates assicuated to truncation after each step in the tracklet pattern reco algo, set writeMonitorData_ = true in Settings.h . This creates txt files, which the ROOT macros in https://github.com/cms-L1TK/TrackPerf/tree/master/PatternReco can then use to study truncation of individual algo steps within tracklet chain.
+1) Debugging poor HYBRID_NEWKF* z0 resolution.
 
+    a) If you are using HYBRID_NEWKF*, then L1TrackNtupleMaker_cfg.py currently sets cfg param TrackFindingTrackletSetup.DR.UseTTStubs = True. This option throws away the digitized stub residuals from the Tracklet stage, and recalculates them from the TTStub. This cheat improves the z0 resolution, as it bypasses digitization inaccuracies in Tracklet. It can be used to debug the z0 resolution issue.
+    
+    b) If you are using HYBRID_NEWKF*, the option TrackFindingTracklet_params.KF.UseSimulation, if enabled causes the OLDKF track fitter to be called in place of the NEWKF track fitter. It can be used to debug the z0 resolution.
+   
+2) To make plots to monitor data rates assicuated to truncation after each step in the tracklet pattern reco algo, set writeMonitorData_ = true in Settings.h . This creates txt files, which the ROOT macros in https://github.com/cms-L1TK/TrackPerf/tree/master/PatternReco can then use to study truncation of individual algo steps within tracklet chain.
 
+3) LUTs needed by the FW can be printed with: (1) Python cfg param TrackerDTCSetup.Print.Constants(geometry info for DTC); (2) Settings.h cfg params writeMem_, writeTable_, writeConfig_ (test data, LUTs & cabling for Tracklet).
 
-Firmware emulation
-============
+## FIRMWARE EMULATION
 
 === Run Instructions ===
 
