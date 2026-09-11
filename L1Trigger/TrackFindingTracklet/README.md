@@ -19,16 +19,19 @@ For tests, a simpler, floating point version of NEWKF exists (which also throws 
   * **HYBRID_SIM**: Like HYBRID_NEWKF, but with floating point NEWKF DR + KF.
   * **HYBRID_SIM_DISPLACED**: LIKE HYBRID_NEWKF_DISPLACED, but floating point NEWKF DR + KF, and actually exists. -- This is currently only available displaced tracking code that uses NEWKF.
 
-The ROOT macros L1TrackNtuplePlot.C & L1TrackQualityPlot.C make track performance & BDT track quality performance plots from the TTree. Both can be run via makeHists.csh .
+To make plots of L1 tracking & Track Quality BDT performance from the TTree produced by the above step, use respectively the ROOT macros L1TrackNtuplePlot.C & L1TrackQualityPlot.C . Both can be run via makeHists.csh .
 
-Note that for the HYBRID algorithm, the BDT model lives under the `TrackerTFP/data` directory, called from [this](https://github.com/cms-data/L1Trigger-TrackTrigger) repository (L1Trigger-TrackTrigger). For the HYBRID_NEWKF, the BDT model lives under `TrackFindingTracklet/data` directory, called from [this](https://github.com/cms-data/L1Trigger-TrackFindingTracklet) repository (L1Trigger-TrackFindingTracklet).
+The Track Quality BDT algorithm can be trained as described [here](https://gitlab.cern.ch/cms-tracker-phase2-data-processing/BE_firmware/track-finder/l1-track-finding-track-quality/-/blob/master/README.md?ref_type=heads) . The resulting JSON files are in `TrackerTFP/data/`, filled from [this](https://github.com/cms-data/L1Trigger-TrackTrigger) repository, for the HYBRID* tracking; and in `TrackFindingTracklet/data`, filled from [this](https://github.com/cms-data/L1Trigger-TrackFindingTracklet) repository (L1Trigger-TrackFindingTracklet), for the HYBRID_NEWKF* tracking.
 
 If you need to modify the cfg params of the algorithm, then TrackFindingTracklet/interface/Settings.h configures the pattern reco stage, (although some parameters there are overridden by l1tTTTracksFromTrackletEmulation_cfi.py). The old KF fit is configured by the constructor of TrackFindingTMTT/src/Settings.cc. The DTC and new KF fit are configured via TrackTrigger/python/ProducerSetup_cfi.py.
 
 ## FOR EXPERTS
 
-1) If you are using HYBRID_NEWKF*, then L1TrackNtupleMaker_cfg.py currently sets cfg param TrackFindingTrackletSetup.DR.UseTTStubs = True. This option throws away the digitized stub residuals from the Tracklet stage, and recalculates them from the TTStub. This cheat improves the z0 resolution, as it bypasses digitization inaccuracies in Tracklet. It can be used to debug the z0 resolution issue.
-   If you are using HYBRID_NEWKF*, the option TrackFindingTracklet_params.KF.UseSimulation, if enabled causes the OLDKF track fitter to be called in place of the NEWKF track fitter. It can be used to debug the z0 resolution.
+1) Debugging poor HYBRID_NEWKF* z0 resolution.
+
+    a) If you are using HYBRID_NEWKF*, then L1TrackNtupleMaker_cfg.py currently sets cfg param TrackFindingTrackletSetup.DR.UseTTStubs = True. This option throws away the digitized stub residuals from the Tracklet stage, and recalculates them from the TTStub. This cheat improves the z0 resolution, as it bypasses digitization inaccuracies in Tracklet. It can be used to debug the z0 resolution issue.
+    
+    b) If you are using HYBRID_NEWKF*, the option TrackFindingTracklet_params.KF.UseSimulation, if enabled causes the OLDKF track fitter to be called in place of the NEWKF track fitter. It can be used to debug the z0 resolution.
    
 2) To make plots to monitor data rates assicuated to truncation after each step in the tracklet pattern reco algo, set writeMonitorData_ = true in Settings.h . This creates txt files, which the ROOT macros in https://github.com/cms-L1TK/TrackPerf/tree/master/PatternReco can then use to study truncation of individual algo steps within tracklet chain.
 
