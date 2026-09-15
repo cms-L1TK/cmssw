@@ -6,18 +6,18 @@ cmsRun L1TrackNtupleMaker_cfg.py
 
 By setting variable L1TRKALGO inside this script, you can change which L1 tracking algo is used. 
 
-  * **HYBRID** (used for MC production): runs Tracklet pattern reco emulation followed by old floating point duplicate removal (DR) (which uses a "merge" approach) + floating point Kalman track (KF) fit (based on an old algo, sometimes referred to as OLDKF).
+  * **HYBRID** (used for MC production): Tracklet pattern reco simulation (which unlike FW allows multiple stubs per track per layer), followed by old floating point duplicate removal (DR) (which uses a "merge" approach) + floating point Kalman track (KF) fit (based on an old algo, sometimes referred to as OLDKF). The KF uses the stub positions of the TTStubs on the track.
   * **HYBRID_DISPLACED** (used for MC production): Similar, but uses displaced tracklet seeding + 5-param KF fit.
 
-The firmware uses on a more recent DR + KF algos, known collectively as NEWKF. (Here the DR uses a "kill" approach). It is not the default for MC production as it has poor z0 resolution. It can be emulated with:
+The firmware corresponds to a more recent DR + KF algo, known collectively as NEWKF. (Here the DR uses a "kill" approach). It is not the default for MC production as it has poor z0 resolution. It can be emulated with:
 
-  * **HYBRID_NEWKF**: Like HYBRID, but runs NEWKF versions of DR + KF.
-  * **HYBRID_NEWKF_DISPLACED**: Like HYBRID_DISPLACED, but will run NEWKF versions of DR + KF. -- DOESN'T EXIST YET!!!
+  * **HYBRID_NEWKF**: Tracklet bit-accurate emulation (allowing only one stub per track per layer), followed by NEWKF bit-accurate emulation DR + KF.
+  * **HYBRID_NEWKF_DISPLACED**: Similar, but will use displaced tracklet seeding and 5-param KF fit. -- DOESN'T EXIST YET!!!
 
-For tests, a simpler, floating point version of NEWKF exists (which also throws away the digitized stubs residuals from the Tracklet stage, and recalculates them from TTStubs). You can run this with:
+For tests, a simpler, floating point version of NEWKF exists. You can run this with:
 
-  * **HYBRID_SIM**: Like HYBRID_NEWKF, but with floating point NEWKF DR + KF.
-  * **HYBRID_SIM_DISPLACED**: LIKE HYBRID_NEWKF_DISPLACED, but floating point NEWKF DR + KF, and actually exists. -- This is currently only available displaced tracking code that uses NEWKF.
+  * **HYBRID_SIM**: Like HYBRID_NEWKF, but with floating point NEWKF DR + KF, where the KF uses the stub positions of the TTStubs on the track. (Although the DR & KF are logically the same as the emulation, they may do things in a different order, and no truncation is implemented).
+  * **HYBRID_SIM_DISPLACED**: Similar, but with displaced tracklet seeding and 5-param KF fit. -- This is currently only available displaced tracking code that uses NEWKF.
 
 To make plots of L1 tracking & Track Quality BDT performance from the TTree produced by the above step, use respectively the ROOT macros L1TrackNtuplePlot.C & L1TrackQualityPlot.C . Both can be run via makeHists.csh .
 
