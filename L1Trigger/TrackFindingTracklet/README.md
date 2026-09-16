@@ -29,9 +29,9 @@ If you need to modify the cfg params of the algorithm, then TrackFindingTracklet
 
 1) Debugging poor HYBRID_NEWKF* z0 resolution.
 
-    a) If you are using HYBRID_NEWKF*, then L1TrackNtupleMaker_cfg.py currently sets cfg param TrackFindingTrackletSetup.DR.UseTTStubs = True. This option throws away the digitized stub residuals from the Tracklet stage, and recalculates them from the TTStub. This cheat improves the z0 resolution, as it bypasses digitization inaccuracies in Tracklet. It can be used to debug the z0 resolution issue.
+    a) If you are using HYBRID_NEWKF*, then L1TrackNtupleMaker_cfg.py currently sets cfg param TrackFindingTrackletSetup.DR.UseTTStubs = True. This option throws away the digitized stub residuals from the Tracklet stage, and recalculates them from the TTStub. This cheat improves the z0 resolution, as it bypasses digitization inaccuracies in Tracklet. Turning this on/off helps debug the z0 resolution issue.
     
-    b) If you are using HYBRID_NEWKF*, the option TrackFindingTracklet_params.KF.UseSimulation, if enabled causes the OLDKF track fitter to be called in place of the NEWKF track fitter. It can be used to debug the z0 resolution.
+    b) If you are using HYBRID_NEWKF*, then L1TrackNtupleMaker_cfg.py has commented out call to oldKFConfig(process). If enabled, this line means the OLDKF version of KF fit will be used instead of NEWKF one. (The DR used remains the NEWKF one independent of this option). Turning this on/off helps debug the z0 resolution issue.
    
 2) To make plots to monitor data rates assicuated to truncation after each step in the tracklet pattern reco algo, set writeMonitorData_ = true in Settings.h . This creates txt files, which the ROOT macros in https://github.com/cms-L1TK/TrackPerf/tree/master/PatternReco can then use to study truncation of individual algo steps within tracklet chain.
 
