@@ -184,8 +184,10 @@ elif (L1TRKALGO == 'HYBRID_NEWKF' or L1TRKALGO == 'HYBRID_REDUCED'):
     from L1Trigger.TrackFindingTracklet.Customize_cff import *
     if (L1TRKALGO == 'HYBRID_NEWKF'):
         fwConfig( process )
-        # cheats to get good performance
+        # Cheat to improve z0 resolution (bypass issues in Tracklet digitisation by using TTStubs)
         process.TrackFindingTrackletSetup.DR.UseTTStubs = True
+        # Cheat to investigate z0 resolution (after NEWKF's DR, do KF fit with OLDKF instead of NEWKF)
+        # oldKFConfig( process )
     if (L1TRKALGO == 'HYBRID_REDUCED'):
         reducedConfig( process )
     # Needed by L1TrackNtupleMaker
