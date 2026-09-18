@@ -92,14 +92,15 @@ namespace trackerDTC {
     //const bool barrelYawFlipped = barrel_ && (signRow_ != flipped_);
     // TTStub col needs flip of sign
     //signCol_ = (!barrel_ && !side_) != barrelYawFlipped;
-    
+
     const auto& localY = plane.rotation().y();
     const double radial = pos0.x() * localY.x() + pos0.y() * localY.y();
     signCol_ = std::signbit(barrel_ ? localY.z() : radial);
     // Calculation of variable d in StubGL.cc assumes localY points radially
     // inwards in +ve endcap, (where sinTilt=-1), so flip sign there.
-    if (side_ && not barrel_) signCol_ = not signCol_;
-    
+    if (side_ && not barrel_)
+      signCol_ = not signCol_;
+
     signBend_ = signCol_;
     // determing sensor type
     if (barrel_ && psModule_)
