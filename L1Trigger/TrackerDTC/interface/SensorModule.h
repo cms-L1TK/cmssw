@@ -83,9 +83,9 @@ namespace trackerDTC {
     double pitchCol() const { return pitchCol_; }
     // module tilt angle measured w.r.t. beam axis (0=barrel), tk layout measures w.r.t. radial axis
     double tilt() const { return tilt_; }
-    // sinus of module tilt measured w.r.t. beam axis (0=barrel), tk layout measures w.r.t. radial axis
+    // sinus of module tilt measured w.r.t. beam axis (+-1=endcap), tk layout measures w.r.t. radial axis
     double sinTilt() const { return sinTilt_; }
-    // cosinus of module tilt measured w.r.t. beam axis (+-1=endcap), tk layout measures w.r.t. radial axis
+    // cosinus of module tilt measured w.r.t. beam axis (1=barrel), tk layout measures w.r.t. radial axis
     double cosTilt() const { return cosTilt_; }
     // stub radius offset for barrelPS, barrel2S, used in Hybrid
     double offsetR() const { return offsetR_; }
