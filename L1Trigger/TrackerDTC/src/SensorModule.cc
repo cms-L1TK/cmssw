@@ -85,14 +85,8 @@ namespace trackerDTC {
     if (layerIdReduced_ > 10)
       layerIdReduced_ -= 8;
     layerIdReduced_--;
-    // TTStub row needs flip of sign
+    // TTStub row & col need sign flips to help relate them to global coords.
     signRow_ = std::signbit(tt::deltaPhi(plane.rotation().x().phi() - pos0.phi()));
-    // Gabriel's original fix.
-    // A 180 deg in-plane (yaw) flip reverses local row and column
-    //const bool barrelYawFlipped = barrel_ && (signRow_ != flipped_);
-    // TTStub col needs flip of sign
-    //signCol_ = (!barrel_ && !side_) != barrelYawFlipped;
-
     const auto& localY = plane.rotation().y();
     const double radial = pos0.x() * localY.x() + pos0.y() * localY.y();
     signCol_ = std::signbit(barrel_ ? localY.z() : radial);
@@ -100,7 +94,7 @@ namespace trackerDTC {
     // inwards in +ve endcap, (where sinTilt=-1), so flip sign there.
     if (side_ && not barrel_)
       signCol_ = not signCol_;
-
+    // Same correction needed for bend.
     signBend_ = signCol_;
     // determing sensor type
     if (barrel_ && psModule_)
