@@ -193,7 +193,7 @@ void TrackletProcessor::addInput(MemoryBase* memory, string input) {
 }
 
 void TrackletProcessor::execute(unsigned int iSector, double phimin, double phimax) {
-  //bool print = (iSector == 3) && (getName() == "TP_D1D2C");
+  //bool print = (iSector == 1) && (getName() == "TP_L5L6C");
   bool print = false;
 
   phimin_ = phimin;
@@ -235,9 +235,11 @@ void TrackletProcessor::execute(unsigned int iSector, double phimin, double phim
   TEData tedata;
   TEData tedata__;
   TEData tedata___;
+  TEData tedata____;
   bool goodtedata = false;
   bool goodtedata__ = false;
   bool goodtedata___ = false;
+  bool goodtedata____ = false;
 
   bool tebuffernearfull;
 
@@ -260,7 +262,7 @@ void TrackletProcessor::execute(unsigned int iSector, double phimin, double phim
     }
 
     CircularBuffer<TEData>& tedatabuffer = std::get<0>(tebuffer_);
-    tebuffernearfull = tedatabuffer.nearfull();
+    tebuffernearfull = tedatabuffer.nearfull4();
 
     //
     // First block here checks if there is a teunit with data that should should be used
@@ -344,8 +346,8 @@ void TrackletProcessor::execute(unsigned int iSector, double phimin, double phim
     //
     //
 
-    if (goodtedata___)
-      tedatabuffer.store(tedata___);
+    if (goodtedata____)
+      tedatabuffer.store(tedata____);
 
     goodtedata = false;
 
@@ -464,9 +466,11 @@ void TrackletProcessor::execute(unsigned int iSector, double phimin, double phim
       imem++;
     }
 
+    goodtedata____ = goodtedata___;
     goodtedata___ = goodtedata__;
     goodtedata__ = goodtedata;
 
+    tedata____ = tedata___;
     tedata___ = tedata__;
     tedata__ = tedata;
 
@@ -490,7 +494,7 @@ void TrackletProcessor::execute(unsigned int iSector, double phimin, double phim
     }
 
     //FIXME This should be done cleaner... Not too hard, but need to check fully the TEBuffer and TEUnit buffer.
-    if (donecount > 4) {
+    if (donecount > 5) {
       break;
     }
   }
