@@ -39,6 +39,13 @@ namespace trklet {
     void produce(edm::Event&, const edm::EventSetup&) override;
     void beginRun(const edm::Run&, const edm::EventSetup&) override;
 
+    struct Stub {
+      double H_;
+      double m0_;
+      double m1_;
+      double v0_;
+      double v1_;
+    };
     // ED input token of TTTracks
     edm::EDGetTokenT<tt::TTTracks> edGetTokenTracks_;
     // ED output token of TTTracks
@@ -151,9 +158,22 @@ namespace trklet {
       }
       ttTracks.emplace_back(0., 0., 0., 0., 0., 9.e3, 9.e3, 0., 0., 0., 0, setup_->simNPar(), setup_->sysBField());
       TTTrack<Ref_Phase2TrackerDigi_>& ttTrack = ttTracks.back();
-      ttTrack.setStubRefs(ttStubRefs);
       // fit all permutations
       for (const std::vector<TTStubRef>& permutation : permutations) {
+        TTBV hitPattern(0, setup_->kfNumLayers());
+        std::vector<Stub> stubs;
+        stubs.reserve(permutation.size());
+        for (const TTStubRef& ttStubRef : permutation) {
+          const GlobalPoint gp = setup_->stubPosTT(ttStubRef);
+          const trackerDTC::SensorModule* sm = setup_->sensorModule(ttStubRef);
+          stubs.emplace_back();
+          stubs.back().m0_ = tt::deltaPhi(gp.phi() - phiR);
+          stubs.back().m1_ = gp.z();
+          stubs.back().v0_ = std::pow(sm->dPhi(gp.perp(), inv2R), 2) / 12.;
+          stubs.back().v1_ = std::pow(sm->dZ(cot), 2) / 12.;
+          stubs.back().H_ = gp.perp();
+          hitPattern.set(sm->layerIdReduced());
+        }
         double x0(0.);
         double x1(0.);
         double x2(0.);
@@ -170,47 +190,70 @@ namespace trklet {
         double C41(0.);
         double chi20(0.);
         double chi21(0.);
-        TTBV hitPattern(0, setup_->kfNumLayers());
-        // add all stubs using KF update maths
-        for (const TTStubRef& ttStubRef : permutation) {
-          const GlobalPoint gp = setup_->stubPosTT(ttStubRef);
-          const trackerDTC::SensorModule* sm = setup_->sensorModule(ttStubRef);
-          const double m0 = tt::deltaPhi(gp.phi() - phiR);
-          const double m1 = gp.z();
-          const double v0 = std::pow(sm->dPhi(gp.perp(), inv2R), 2) / 12.;
-          const double v1 = std::pow(sm->dZ(cot), 2) / 12.;
-          const double H = gp.perp();
-          const double r0 = m0 - x1 - x0 * H - x4 / H;
-          const double r1 = m1 - x3 - x2 * H;
-          const double S00 = C01 + H * C00 + C40 / H;
-          const double S01 = C11 + H * C01 + C41 / H;
-          const double S12 = C23 + H * C22;
-          const double S13 = C33 + H * C23;
-          const double S04 = C41 + H * C40 + C44 / H;
-          const double R00 = v0 + S01 + H * S00 + S04 / H;
-          const double R11 = v1 + S13 + H * S12;
-          const double K00 = S00 / R00;
-          const double K10 = S01 / R00;
-          const double K21 = S12 / R11;
-          const double K31 = S13 / R11;
-          const double K40 = S04 / R00;
-          x0 += r0 * K00;
-          x1 += r0 * K10;
-          x2 += r1 * K21;
-          x3 += r1 * K31;
-          x4 += r0 * K40;
-          C00 -= S00 * K00;
-          C01 -= S01 * K00;
-          C11 -= S01 * K10;
-          C22 -= S12 * K21;
-          C23 -= S13 * K21;
-          C33 -= S13 * K31;
-          C44 -= S04 * K40;
-          C40 -= S04 * K00;
-          C41 -= S04 * K10;
-          chi20 += r0 * r0 / R00;
-          chi21 += r1 * r1 / R11;
-          hitPattern.set(sm->layerIdReduced());
+        // fit twice, first fit without ho corrections, second with
+        for (int cor = 0; cor < 2; cor++) {
+          // apply ho corrections
+          if (cor == 1) {
+            const double R = .5 / x0;
+            const double R0 = R + x4;
+            for (Stub& stub : stubs) {
+              const double lin0 = x0 * stub.H_ + x4 / stub.H_;
+              const double lin1 = x2 * stub.H_;
+              const double nonLin0 = std::asin((stub.H_ * stub.H_ + R0 * R0 - R * R) / 2. / stub.H_ / R0);
+              const double nonLin1 = std::abs(R) * x2 * std::acos((R * R + R0 * R0 - stub.H_ * stub.H_) / 2. / R / R0);
+              stub.m0_ += lin0 - nonLin0;
+              stub.m1_ += lin1 - nonLin1;
+            }
+            x0 = 0;
+            x1 = 0;
+            x2 = 0;
+            x3 = 0;
+            x4 = 0;
+            C00 = 9.e3;
+            C01 = 0.;
+            C11 = 9.e3;
+            C22 = 9.e3;
+            C23 = 0.;
+            C33 = 9.e3;
+            C44 = setup_->simNPar() == 5 ? 9.e3 : 0.;
+            C40 = 0.;
+            C41 = 0.;
+            chi20 = 0.;
+            chi21 = 0.;
+          }
+          // add all stubs using KF update maths
+          for (const Stub& stub : stubs) {
+            const double r0 = stub.m0_ - x1 - x0 * stub.H_ - x4 / stub.H_;
+            const double r1 = stub.m1_ - x3 - x2 * stub.H_;
+            const double S00 = C01 + stub.H_ * C00 + C40 / stub.H_;
+            const double S01 = C11 + stub.H_ * C01 + C41 / stub.H_;
+            const double S12 = C23 + stub.H_ * C22;
+            const double S13 = C33 + stub.H_ * C23;
+            const double S04 = C41 + stub.H_ * C40 + C44 / stub.H_;
+            const double R00 = stub.v0_ + S01 + stub.H_ * S00 + S04 / stub.H_;
+            const double R11 = stub.v1_ + S13 + stub.H_ * S12;
+            const double K00 = S00 / R00;
+            const double K10 = S01 / R00;
+            const double K21 = S12 / R11;
+            const double K31 = S13 / R11;
+            const double K40 = S04 / R00;
+            x0 += r0 * K00;
+            x1 += r0 * K10;
+            x2 += r1 * K21;
+            x3 += r1 * K31;
+            x4 += r0 * K40;
+            C00 -= S00 * K00;
+            C01 -= S01 * K00;
+            C11 -= S01 * K10;
+            C22 -= S12 * K21;
+            C23 -= S13 * K21;
+            C33 -= S13 * K31;
+            C44 -= S04 * K40;
+            C40 -= S04 * K00;
+            C41 -= S04 * K10;
+            chi20 += r0 * r0 / R00;
+            chi21 += r1 * r1 / R11;
+          }
         }
         math::ErrorF<5>::type covMat;
         const std::array<std::array<double, 5>, 5> css{{{{C00, C01, 0., 0., C40}},

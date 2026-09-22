@@ -229,6 +229,13 @@ namespace trklet {
         stub->r_ = gp.perp();
         stub->phi_ = tt::deltaPhi(gp.phi() - region_ * setup_->regRangePhiT());
         stub->z_ = gp.z();
+        // apply ho corrections
+        const double trackPhiL = track.phi0_ + track.inv2R_ * stub->r_;
+        const double trackZL = track.z0_ + track.cot_ * stub->r_;
+        const double trackPhi = track.phi0_ + std::asin(stub->r_ * track.inv2R_);
+        const double trackZ = track.z0_ + track.cot_ * std::asin(stub->r_ * track.inv2R_) / track.inv2R_;
+        stub->phi_ += trackPhiL - trackPhi;
+        stub->z_ += trackZL - trackZ;
       }
     }
   }
