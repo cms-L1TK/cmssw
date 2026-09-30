@@ -15,6 +15,7 @@
 #include "L1Trigger/TrackFindingTracklet/interface/Setup.h"
 #include "L1Trigger/TrackTrigger/interface/StubPtConsistency.h"
 #include "DataFormats/L1TrackTrigger/interface/TTTypes.h"
+#include "conifer.h"
 
 #include <string>
 #include <vector>
@@ -47,11 +48,17 @@ namespace trklet {
     edm::ESGetToken<Setup, trackerDTC::SetupRcd> esGetTokenSetup_;
     // helper class to store configurations
     const Setup* setup_;
-    //
+    // number of combinatorics for different amount of candidate stubs
     std::vector<int> nPer_;
+    // bdt models for baseline and extended tracking
+    conifer::BDT<float, float> bdt_;
+    // path to 5 parameter model
+    std::string path_;
   };
 
-  ProducerSim::ProducerSim(const edm::ParameterSet& iConfig) {
+  ProducerSim::ProducerSim(const edm::ParameterSet& iConfig)
+      : bdt_(iConfig.getParameter<edm::FileInPath>("BDT4ParSim").fullPath()),
+        path_(iConfig.getParameter<edm::FileInPath>("BDT5ParSim").fullPath()) {
     const edm::InputTag& inputTag = iConfig.getParameter<edm::InputTag>("InputTagTracklet");
     const std::string& branchTracks = iConfig.getParameter<std::string>("BranchTTTracks");
     // book in- and output ED products
@@ -64,6 +71,9 @@ namespace trklet {
   void ProducerSim::beginRun(const edm::Run& iEvent, const edm::EventSetup& iSetup) {
     // helper class to store configurations
     setup_ = &iSetup.getData(esGetTokenSetup_);
+    // load correct bdt model
+    if (setup_->simNPar() == 5)
+      bdt_ = conifer::BDT<float, float>(path_);
     // calc permutations for all found track sizes [4 - 7]
     auto fac = [](int n) {
       int f(1);
@@ -86,7 +96,7 @@ namespace trklet {
     ttTrackRefs.reserve(handle->size());
     for (int iTrk = 0; iTrk < static_cast<int>(handle->size()); iTrk++)
       ttTrackRefs.emplace_back(handle, iTrk);
-    // perform track multiplexinf
+    // perform track multiplexer
     const std::vector<int>& muxOrder = setup_->tmMuxOrder();
     auto order = [&muxOrder](const TTTrackRef& lhs, TTTrackRef& rhs) {
       const auto l = std::find(muxOrder.begin(), muxOrder.end(), lhs->trackSeedType());
@@ -246,9 +256,24 @@ namespace trklet {
         ttTrack = comb;
         ttTrack.setStubRefs(permutation);
       }
+      // prepare attributes for mva evaluation
+      const float nstubs = ttTrack.getStubRefs().size();
+      const float z0 = ttTrack.z0();
+      const float tanL = ttTrack.tanL();
+      const float chi20 = ttTrack.chi2XY();
+      const float chi21 = ttTrack.chi2Z();
+      const float hitpattern = ttTrack.hitPattern();
+      // bdt evaluation
+      std::vector<float> inputs = {nstubs, z0, tanL, chi20, chi21, hitpattern};
+      const float bdt = bdt_.decision_function(inputs).at(0);
+      // apply activation function to mva
+      const float mva = 1. / (1. + exp(-bdt));
+      // set mva value
+      ttTrack.settrkMVA1(mva);
       // finish TTTrack
       ttTrack.setChi2BendRed(StubPtConsistency::getConsistency(
           ttTrack, setup_->trackerGeometry(), setup_->trackerTopology(), setup_->sysBField(), setup_->simNPar()));
+      // set track word bits
       ttTrack.setTrackWordBits();
     }
     // store products
