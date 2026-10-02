@@ -209,7 +209,7 @@ namespace trklet {
                              tt::deltaPhi(stubDR.phi() + phiR),
                              stubDR.z(),
                              sm->layerId(),
-                             sm->layerIdReduced(),
+                             sm->layerIdReduced() + 1,
                              sm->pitchRow(),
                              sm->pitchCol(),
                              sm->psModule(),
