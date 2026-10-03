@@ -1,5 +1,8 @@
 # this compares event by event the output of the C++ emulation with the ModelSim simulation of the firmware
 import FWCore.ParameterSet.Config as cms
+import FWCore.Utilities.FileUtils as FileUtils
+import FWCore.ParameterSet.VarParsing as VarParsing
+import os
 
 process = cms.Process("Demo")
 process.load( 'FWCore.MessageService.MessageLogger_cfi' )
@@ -32,9 +35,57 @@ process.TrackProcessorEmulation = cms.Sequence (  process.ProducerDTC
                                                 + process.ProducerTFP
                                                 )
 
+def get_input_mc_line(dataset_database, line_number):
+    with open(dataset_database, 'r') as file:
+        lines = file.readlines()
+        if line_number < 0 or line_number >= len(lines):
+            raise IndexError("Line number out of range")
+        return lines[line_number].strip()
 
-Samples = ["file:/vols/cms/am2023/Data/30f8edb9-b6a9-4596-a0ab-fccb07611910.root"] # Running 
-# Samples = ["file:/vols/cms/am2023/Data/0f0bcfd3-dafe-4dda-8d39-9765f6eae68e.root"] Done.
+# Set up VarParsing options
+options = VarParsing.VarParsing('analysis')
+
+# Add custom command-line arguments
+options.register('cluster',
+                 0, # default value
+                 VarParsing.VarParsing.multiplicity.singleton,
+                 VarParsing.VarParsing.varType.int,
+                 "Cluster ID from HTCondor")
+
+options.register('process',
+                 0, # default value
+                 VarParsing.VarParsing.multiplicity.singleton,
+                 VarParsing.VarParsing.varType.int,
+                 "Process ID from HTCondor")
+
+# Parse command-line arguments
+options.parseArguments()
+
+# Print the ClusterID and ProcessID
+print(f'~ Cluster ID: {options.cluster}')
+print(f'~ Process ID: {options.process}')
+
+DatasetDatabase = "/home/hep/am2023/new-investigation/CMSSW_15_1_0_pre4/src/Files.txt"
+
+try:
+    Samples = [get_input_mc_line(DatasetDatabase, options.process)]
+except Exception as e:
+    print(f"Error: {e}")
+    Samples = []
+
+for i in range(len(Samples)):
+    print(f"InputMC[{i}]: {Samples[i]}")
+
+# Samples = [
+#     "file:/vols/cms/am2023/Data/0f0bcfd3-dafe-4dda-8d39-9765f6eae68e.root",
+#     "file:/vols/cms/am2023/Data/30f8edb9-b6a9-4596-a0ab-fccb07611910.root",
+#     "file:/vols/cms/am2023/Data/33c9fb5a-93ea-4a29-abad-ec75900e7c55.root",
+#     "file:/vols/cms/am2023/Data/3be594c4-9067-4ee7-b2c7-39f8894328e2.root",
+#     "file:/vols/cms/am2023/Data/4f8965fd-fda6-414c-bc3e-92598ba7b251.root",
+#     "file:/vols/cms/am2023/Data/5ec71aac-41ad-4366-8229-f4b09aabd6a5.root",
+#     "file:/vols/cms/am2023/Data/612d219f-fc9c-4c05-b5f9-70649771f569.root",
+#     "file:/vols/cms/am2023/Data/6d36a59f-b984-493d-a750-dfeb6b2515c0.root",
+# ]
 
 # Samples = ["/store/mc/Phase2Spring24DIGIRECOMiniAOD/DoublePhoton_FlatPt-1To100-gun/GEN-SIM-DIGI-RAW-MINIAOD/PU200_Trk1GeV_140X_mcRun4_realistic_v4-v2/2560000/5690d41a-528a-4ef8-b1af-b99dc84378a0.root"]
 # 0f0bcfd3-dafe-4dda-8d39-9765f6eae68e.root
@@ -64,6 +115,8 @@ process.source = cms.Source(
   skipEvents = cms.untracked.uint32( 0 ),
 )
 process.Timing = cms.Service( "Timing", summaryOnly = cms.untracked.bool( True ) )
+process.TFileService = cms.Service("TFileService", fileName = cms.string('VertexWordsExpected_' + str(options.process) + '.root'), closeFileFast = cms.untracked.bool(True))
+
 L1TRK_NAME  = process.TrackFindingTrackletAnalyzer_params.OutputLabelTFP.value()
 L1TRK_LABEL = process.TrackFindingTrackletProducer_params.BranchTTTracks.value()
 process.load('L1Trigger.L1TTrackMatch.l1tGTTInputProducer_cfi')
@@ -83,12 +136,19 @@ process.l1tGTTFileWriter.format = cms.untracked.string("EMPv2")
 
 # Vertex Finder Emulator
 process.l1tVertexFinderEmulator.VertexReconstruction.VxMinTrackPt = cms.double(0.0)
-process.l1tVertexFinderEmulator.VertexReconstruction.Algorithm = cms.string("NNEmulation")
+process.l1tVertexFinderEmulator.VertexReconstruction.Algorithm = cms.string("fastHistoEmulation")
+
+process.vertexWordAnalyzer = cms.EDAnalyzer('VertexWordAnalyzer',
+    vertexTag = cms.InputTag('l1tVertexFinderEmulator', 'L1VerticesEmulation'),
+    simVertexTag = cms.InputTag("g4SimHits",""),
+)
 
 process.demo = cms.Path( process.TrackProcessorEmulation + 
                          process.l1tGTTInputProducer + 
                          process.l1tTrackSelectionProducer + 
                          process.l1tVertexFinderEmulator + 
                          process.l1tTrackVertexAssociationProducer +
-                         process.l1tGTTFileWriter +
-                         process.TrackerTFPDemonstrator)
+                         process.vertexWordAnalyzer
+                        )
+                         # process.l1tGTTFileWriter)
+                         #process.TrackerTFPDemonstrator)

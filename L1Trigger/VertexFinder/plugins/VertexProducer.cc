@@ -29,6 +29,7 @@ VertexProducer::VertexProducer(const edm::ParameterSet& iConfig)
     case Algorithm::fastHistoEmulation:
       edm::LogInfo("VertexProducer")
           << "VertexProducer::Finding vertices using the emulation version of the fastHisto binning algorithm";
+      std::cout << "[VertexProducer] " << "Fast Histo Emulation" << std::endl;
       break;
     case Algorithm::fastHistoLooseAssociation:
       edm::LogInfo("VertexProducer")
@@ -58,6 +59,7 @@ VertexProducer::VertexProducer(const edm::ParameterSet& iConfig)
       break;
     case Algorithm::NNEmulation:
       edm::LogInfo("VertexProducer") << "VertexProducer::Finding vertices using the Neural Network Emulation";
+      std::cout << "[VertexProducer] " << "NN Emulation" << std::endl;
       break;
   }
 
