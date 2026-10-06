@@ -125,6 +125,9 @@ namespace trklet {
     // replace stubs with TT stubs
     if (setup_->drUseTTStubs())
       tt();
+    // remove HO corrections from all stubs
+    if (setup_->kfUseSimulation())
+      sim();
     // calc stub uncertainties
     delta();
     // base transformation
@@ -215,6 +218,8 @@ namespace trklet {
         stub->r_ = gp.perp();
         stub->phi_ = tt::deltaPhi(gp.phi() - region_ * setup_->regRangePhiT());
         stub->z_ = gp.z();
+        // apply ho corrections
+        correct(track, stub);
       }
     }
   }
@@ -230,15 +235,36 @@ namespace trklet {
         stub->phi_ = tt::deltaPhi(gp.phi() - region_ * setup_->regRangePhiT());
         stub->z_ = gp.z();
         // apply ho corrections
-        if (track.inv2R_ == 0.)
-          continue;
-        const double trackPhiL = track.phi0_ + track.inv2R_ * stub->r_;
-        const double trackZL = track.z0_ + track.cot_ * stub->r_;
-        const double trackPhi = track.phi0_ + std::asin(stub->r_ * track.inv2R_);
-        const double trackZ = track.z0_ + track.cot_ * std::asin(stub->r_ * track.inv2R_) / track.inv2R_;
-        stub->phi_ += trackPhiL - trackPhi;
-        stub->z_ += trackZL - trackZ;
+        correct(track, stub);
       }
+    }
+  }
+
+  // remove HO corrections from all stubs
+  void DuplicateRemoval::sim() {
+    for (Track& track : tracks_) {
+      for (Stub*& stub : track.stubs_) {
+        if (!stub)
+          continue;
+        correct(track, stub, false);
+      }
+    }
+  }
+
+  // add (or remove) HO corrections from stub
+  void DuplicateRemoval::correct(const Track& track, Stub* stub, bool add) {
+    if (track.inv2R_ == 0.)
+      return;
+    const double trackPhiL = track.phi0_ + track.inv2R_ * stub->r_;
+    const double trackZL = track.z0_ + track.cot_ * stub->r_;
+    const double trackPhi = track.phi0_ + std::asin(stub->r_ * track.inv2R_);
+    const double trackZ = track.z0_ + track.cot_ * std::asin(stub->r_ * track.inv2R_) / track.inv2R_;
+    if (add) {
+      stub->phi_ += trackPhiL - trackPhi;
+      stub->z_ += trackZL - trackZ;
+    } else {
+      stub->phi_ -= trackPhiL - trackPhi;
+      stub->z_ -= trackZL - trackZ;
     }
   }
 
