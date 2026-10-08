@@ -156,9 +156,10 @@ namespace trklet {
               comb.push_back(ttStubRefs[i]);
         } while (std::prev_permutation(bitmask.begin(), bitmask.end()));
       }
-      ttTracks.emplace_back(0., 0., 0., 0., 0., 9.e3, 9.e3, 0., 0., 0., 0, setup_->simNPar(), setup_->sysBField());
+      ttTracks.emplace_back(0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0, setup_->simNPar(), setup_->sysBField());
       TTTrack<Ref_Phase2TrackerDigi_>& ttTrack = ttTracks.back();
       // fit all permutations
+      bool first(true);
       for (const std::vector<TTStubRef>& permutation : permutations) {
         TTBV hitPattern(0, setup_->kfNumLayers());
         std::vector<Stub> stubs;
@@ -194,6 +195,9 @@ namespace trklet {
         for (int cor = 0; cor < 2; cor++) {
           // apply ho corrections
           if (cor == 1) {
+            static constexpr double maxD0 = 10.;
+            if (x0 == 0. || std::abs(x4) > maxD0)
+              continue;
             const double R = .5 / x0;
             const double R0 = R + x4;
             for (Stub& stub : stubs) {
@@ -284,8 +288,9 @@ namespace trklet {
                                              ttTrackRef->trackSeedType(),
                                              covMat);
         // keep best combination
-        if (comb.chi2Red() > ttTrack.chi2Red())
+        if (comb.chi2Red() > ttTrack.chi2Red() && !first)
           continue;
+        first = false;
         ttTrack = comb;
         ttTrack.setStubRefs(permutation);
       }
