@@ -37,6 +37,8 @@ namespace trklet {
     void dtc();
     // replace stubs with TT stubs
     void tt();
+    // remove HO corrections from all stubs
+    void sim();
     // calc stub uncertainties
     void delta();
     // base transformation
@@ -63,6 +65,8 @@ namespace trklet {
       double z0_;
       std::vector<Stub*> stubs_;
     };
+    // add (or remove) HO corrections from stub
+    void correct(const Track&, Stub*, bool = true);
     // compares two tracks, returns true if those are considered duplicates
     bool equalEnough(Track* t0, Track* t1) const;
     // provides run-time constants
