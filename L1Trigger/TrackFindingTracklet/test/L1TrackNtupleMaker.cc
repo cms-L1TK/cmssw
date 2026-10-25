@@ -271,6 +271,7 @@ private:
   std::vector<float>* m_matchtrk_chi2rphi_beamCon;
   std::vector<float>* m_matchtrk_chi2rphi_dof_beamCon;
   std::vector<int>* m_matchtrk_nstub;
+  std::vector<int>* m_matchtrk_nPS;
   std::vector<int>* m_matchtrk_lhits;
   std::vector<int>* m_matchtrk_dhits;
   std::vector<int>* m_matchtrk_seed;
@@ -474,6 +475,7 @@ void L1TrackNtupleMaker::endJob() {
   delete m_matchtrk_chi2rphi_beamCon;
   delete m_matchtrk_chi2rphi_dof_beamCon;
   delete m_matchtrk_nstub;
+  delete m_matchtrk_nPS;
   delete m_matchtrk_dhits;
   delete m_matchtrk_lhits;
   delete m_matchtrk_seed;
@@ -622,6 +624,7 @@ void L1TrackNtupleMaker::beginJob() {
   m_matchtrk_chi2rphi_beamCon = new std::vector<float>;
   m_matchtrk_chi2rphi_dof_beamCon = new std::vector<float>;
   m_matchtrk_nstub = new std::vector<int>;
+  m_matchtrk_nPS = new std::vector<int>;
   m_matchtrk_dhits = new std::vector<int>;
   m_matchtrk_lhits = new std::vector<int>;
   m_matchtrk_seed = new std::vector<int>;
@@ -766,6 +769,7 @@ void L1TrackNtupleMaker::beginJob() {
   eventTree->Branch("matchtrk_chi2rphi_beamCon", &m_matchtrk_chi2rphi_beamCon);
   eventTree->Branch("matchtrk_chi2rphi_dof_beamCon", &m_matchtrk_chi2rphi_dof_beamCon);
   eventTree->Branch("matchtrk_nstub", &m_matchtrk_nstub);
+  eventTree->Branch("matchtrk_nPS", &m_matchtrk_nPS);
   eventTree->Branch("matchtrk_lhits", &m_matchtrk_lhits);
   eventTree->Branch("matchtrk_dhits", &m_matchtrk_dhits);
   eventTree->Branch("matchtrk_seed", &m_matchtrk_seed);
@@ -930,6 +934,7 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
   m_matchtrk_chi2rphi_beamCon->clear();
   m_matchtrk_chi2rphi_dof_beamCon->clear();
   m_matchtrk_nstub->clear();
+  m_matchtrk_nPS->clear();
   m_matchtrk_lhits->clear();
   m_matchtrk_dhits->clear();
   m_matchtrk_seed->clear();
@@ -1773,17 +1778,6 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
         if (tmp_trk_nstub < L1Tk_minNStub)
           continue;
 
-        /*
-	// PS stubs
-	int tmp_trk_nPSstub = 0;
-	for (int is=0; is<tmp_trk_nstub; is++) {
-	  DetId detIdStub = theTrackerGeom->idToDet( (stubRefs.at(is)->clusterRef(0))->getDetId() )->geographicalId();
-	  DetId stackDetid = tTopo->stack(detIdStub);
-	  bool isPS = (theTrackerGeom->getDetectorType(stackDetid)==TrackerGeometry::ModuleType::Ph2PSP);
-	  if (isPS) tmp_trk_nPSstub++;
-	}
-	*/
-
         float dmatch_pt = 999;
         float dmatch_eta = 999;
         float dmatch_phi = 999;
@@ -1833,6 +1827,7 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
     float tmp_matchtrk_chi2rphi_dof_beamCon = -999;
     int tmp_matchtrk_charge = -999;
     int tmp_matchtrk_nstub = -999;
+    int tmp_matchtrk_nPS = -999;
     int tmp_matchtrk_dhits = -999;
     int tmp_matchtrk_lhits = -999;
     int tmp_matchtrk_seed = -999;
@@ -1860,6 +1855,20 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
       tmp_matchtrk_bendchi2 = matchedTracks.at(i_track)->chi2BendRed();
       tmp_matchtrk_MVA1 = matchedTracks.at(i_track)->trkMVA1();
       tmp_matchtrk_nstub = (int)matchedTracks.at(i_track)->getStubRefs().size();
+
+      // PS stubs
+      std::vector<edm::Ref<edmNew::DetSetVector<TTStub<Ref_Phase2TrackerDigi_>>, TTStub<Ref_Phase2TrackerDigi_>>>
+          stubRefs_i = matchedTracks.at(i_track)->getStubRefs();
+
+      tmp_matchtrk_nPS = 0;
+      for (int is = 0; is < tmp_matchtrk_nstub; is++) {
+        DetId detIdStub = theTrackerGeom->idToDet((stubRefs_i.at(is)->clusterRef(0))->getDetId())->geographicalId();
+        DetId stackDetid = tTopo->stack(detIdStub);
+        bool isPS = (theTrackerGeom->getDetectorType(stackDetid) == TrackerGeometry::ModuleType::Ph2PSP);
+        if (isPS)
+          tmp_matchtrk_nPS++;
+      }
+
       tmp_matchtrk_seed = (int)matchedTracks.at(i_track)->trackSeedType();
       tmp_matchtrk_hitpattern = (int)matchedTracks.at(i_track)->hitPattern();
       tmp_matchtrk_chi2_dof = matchedTracks.at(i_track)->chi2Red();
@@ -1933,6 +1942,7 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
     m_matchtrk_chi2rphi_beamCon->push_back(tmp_matchtrk_chi2rphi_beamCon);
     m_matchtrk_chi2rphi_dof_beamCon->push_back(tmp_matchtrk_chi2rphi_dof_beamCon);
     m_matchtrk_nstub->push_back(tmp_matchtrk_nstub);
+    m_matchtrk_nPS->push_back(tmp_matchtrk_nPS);
     m_matchtrk_dhits->push_back(tmp_matchtrk_dhits);
     m_matchtrk_lhits->push_back(tmp_matchtrk_lhits);
     m_matchtrk_seed->push_back(tmp_matchtrk_seed);
