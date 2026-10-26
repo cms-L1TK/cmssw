@@ -24,7 +24,11 @@ on: # Controls when the action will run.
     
 env:
   mirror_repo: "https://gitlab.cern.ch/cms-l1tk/cmssw_CI" # gitlab mirror
-  current_branch: "unitialized"
+  current_branch: "uninitialized"
+
+concurrency:
+  group: pr-ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   trigger_gitlab_CI: # https://github.com/marketplace/actions/mirror-to-gitlab-and-run-gitlab-ci
