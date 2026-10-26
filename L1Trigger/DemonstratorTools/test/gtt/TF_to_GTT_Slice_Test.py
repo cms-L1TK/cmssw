@@ -93,5 +93,5 @@ process.demo = cms.Path( process.TrackProcessorEmulation +
                          process.l1tTrackSelectionProducer + 
                          process.l1tVertexFinderEmulator + 
                          process.l1tTrackVertexAssociationProducer +
-                         process.l1tGTTFileWriter )
-                         # process.TrackerTFPDemonstrator)
+                         process.l1tGTTFileWriter +
+                         process.TrackerTFPDemonstrator)
