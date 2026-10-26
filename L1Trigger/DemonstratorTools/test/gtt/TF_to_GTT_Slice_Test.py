@@ -32,9 +32,12 @@ process.TrackProcessorEmulation = cms.Sequence (  process.ProducerDTC
                                                 + process.ProducerTFP
                                                 )
 
-
-Samples = ["file:/vols/cms/am2023/Data/30f8edb9-b6a9-4596-a0ab-fccb07611910.root"] # Running 
-# Samples = ["file:/vols/cms/am2023/Data/0f0bcfd3-dafe-4dda-8d39-9765f6eae68e.root"] Done.
+# Samples = ["file:/vols/cms/am2023/Data/5ec71aac-41ad-4366-8229-f4b09aabd6a5.root"] # Running #4 (Run 5)
+# Samples = ["file:/vols/cms/am2023/Data/4f8965fd-fda6-414c-bc3e-92598ba7b251.root"] # Next #3 (Run 4)
+# Samples = ["file:/vols/cms/am2023/Data/3be594c4-9067-4ee7-b2c7-39f8894328e2.root"] # Next #2 (Run 3)
+# Samples = ["file:/vols/cms/am2023/Data/33c9fb5a-93ea-4a29-abad-ec75900e7c55.root"] # Next #1 (Run 2)
+# Samples = ["file:/vols/cms/am2023/Data/30f8edb9-b6a9-4596-a0ab-fccb07611910.root"] # Done    (Run 1) 100% Match. 
+Samples = ["file:/vols/cms/am2023/Data/0f0bcfd3-dafe-4dda-8d39-9765f6eae68e.root"]  # Done    (Run 0) 100% Match. 
 
 # Samples = ["/store/mc/Phase2Spring24DIGIRECOMiniAOD/DoublePhoton_FlatPt-1To100-gun/GEN-SIM-DIGI-RAW-MINIAOD/PU200_Trk1GeV_140X_mcRun4_realistic_v4-v2/2560000/5690d41a-528a-4ef8-b1af-b99dc84378a0.root"]
 # 0f0bcfd3-dafe-4dda-8d39-9765f6eae68e.root
@@ -83,12 +86,12 @@ process.l1tGTTFileWriter.format = cms.untracked.string("EMPv2")
 
 # Vertex Finder Emulator
 process.l1tVertexFinderEmulator.VertexReconstruction.VxMinTrackPt = cms.double(0.0)
-process.l1tVertexFinderEmulator.VertexReconstruction.Algorithm = cms.string("NNEmulation")
+process.l1tVertexFinderEmulator.VertexReconstruction.Algorithm = cms.string("fastHistoEmulation")
 
 process.demo = cms.Path( process.TrackProcessorEmulation + 
                          process.l1tGTTInputProducer + 
                          process.l1tTrackSelectionProducer + 
                          process.l1tVertexFinderEmulator + 
                          process.l1tTrackVertexAssociationProducer +
-                         process.l1tGTTFileWriter +
-                         process.TrackerTFPDemonstrator)
+                         process.l1tGTTFileWriter )
+                         # process.TrackerTFPDemonstrator)

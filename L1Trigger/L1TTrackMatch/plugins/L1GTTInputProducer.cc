@@ -363,8 +363,18 @@ bool L1GTTInputProducer::getPtBits(const L1Track& track,
   // Shift the value so that the index changes when the LSB of the output changes
   value = value >> (kPTInputSize - 1 - (kPTOutputSize));
 
+  // Special case:
+  // 15-bit minimum value 0b100000000000000 gives index 1024,
+  // but the LUT contains entries 0--1023.
+  // if (value.to_uint() == kPtLutSize) {
+  //   value = kPtLutSize - 1;
+  // }
+
+  const unsigned int lutIndex =
+      value.to_uint() & (kPtLutSize - 1);
+
   // Get the pt from the LUT
-  ptBits = pt_lut_[value];
+  ptBits = pt_lut_[lutIndex];
 
   // Set the charge bit
   chargeBit = sign;
