@@ -175,6 +175,7 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
   vector<float>* matchtrk_phi_beamCon;
   vector<float>* matchtrk_chi2rphi_dof_beamCon;
   vector<int>* matchtrk_nstub;
+  vector<int>* matchtrk_nPS;
   vector<int>* matchtrk_lhits;
   vector<int>* matchtrk_dhits;
   vector<int>* matchtrk_seed;
@@ -241,6 +242,7 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
   TBranch* b_matchtrk_phi_beamCon;
   TBranch* b_matchtrk_chi2rphi_dof_beamCon;
   TBranch* b_matchtrk_nstub;
+  TBranch* b_matchtrk_nPS;
   TBranch* b_matchtrk_lhits;
   TBranch* b_matchtrk_dhits;
   TBranch* b_matchtrk_seed;
@@ -306,6 +308,7 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
   matchtrk_phi_beamCon = 0;
   matchtrk_chi2rphi_dof_beamCon = 0;
   matchtrk_nstub = 0;
+  matchtrk_nPS = 0;
   matchtrk_lhits = 0;
   matchtrk_dhits = 0;
   matchtrk_seed = 0;
@@ -374,6 +377,7 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
   tree->SetBranchAddress(
       "matchtrk_chi2rphi_dof_beamCon", &matchtrk_chi2rphi_dof_beamCon, &b_matchtrk_chi2rphi_dof_beamCon);
   tree->SetBranchAddress("matchtrk_nstub", &matchtrk_nstub, &b_matchtrk_nstub);
+  tree->SetBranchAddress("matchtrk_nPS", &matchtrk_nPS, &b_matchtrk_nPS);
   tree->SetBranchAddress("matchtrk_lhits", &matchtrk_lhits, &b_matchtrk_lhits);
   tree->SetBranchAddress("matchtrk_dhits", &matchtrk_dhits, &b_matchtrk_dhits);
   tree->SetBranchAddress("matchtrk_seed", &matchtrk_seed, &b_matchtrk_seed);
@@ -415,7 +419,7 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
 
   // ----------------------------------------------------------------------------------------------------------------
   // histograms
-  // ----------------------------------------------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------------------------------------------
 
   /////////////////////////////////////////////////
   // HISTOGRAM NOTATION:                         //
@@ -428,6 +432,7 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
   /////////////////////////////////////////////////
 
   // ----------------------------------------------------------------------------------------------------------------
+
   // for efficiencies
 
   TH1F* h_tp_pt = new TH1F("tp_pt", ";Tracking particle p_{T} [GeV]; Tracking particles / 1.0 GeV", 100, 0, 100.0);
@@ -741,6 +746,10 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
   TH1F* h_match_tp_z0_H =
       new TH1F("match_tp_z0_H", ";Tracking particle z_{0} [cm]; Tracking particles / 1.0 cm", 50, -25.0, 25.0);
 
+  // Stubs per track
+  TProfile* h_match_ps3 =
+      new TProfile("match_trk_PSbelow3", "#eta; Fraction of tracks with < 3 PS stubs", 25, 0.0, 2.5, -9.9, 9.9);
+
   // ----------------------------------------------------------------------------------------------------------------
   //
   //       ******************   additional histograms drawn if using 'detailed' option   ******************
@@ -770,10 +779,11 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
   TH1F* h_match_tp_absd0_eta2_pt3 = new TH1F(
       "match_tp_absd0_eta2_pt3", ";Tracking particle d_{0} [cm]; Tracking particles / 0.04 cm", 50, 0, maxD0plot);
 
-  TH1F* h_match_trk_nstub = new TH1F("match_trk_nstub", ";Number of stubs; L1 tracks / 1.0", 15, 0, 15);
-  TH1F* h_match_trk_nstub_C = new TH1F("match_trk_nstub_C", ";Number of stubs; L1 tracks / 1.0", 15, 0, 15);
-  TH1F* h_match_trk_nstub_I = new TH1F("match_trk_nstub_I", ";Number of stubs; L1 tracks / 1.0", 15, 0, 15);
-  TH1F* h_match_trk_nstub_F = new TH1F("match_trk_nstub_F", ";Number of stubs; L1 tracks / 1.0", 15, 0, 15);
+  TH1F* h_match_trk_nstub = new TH1F("match_trk_nstub", ";Number of stubs; Fraction", 15, -0.5, 14.5);
+  TH1F* h_match_trk_nstub_C = new TH1F("match_trk_nstub_C", ";Number of stubs; Fraction", 15, -0.5, 14.5);
+  TH1F* h_match_trk_nstub_I = new TH1F("match_trk_nstub_I", ";Number of stubs; Fraction", 15, -0.5, 14.5);
+  TH1F* h_match_trk_nstub_F = new TH1F("match_trk_nstub_F", ";Number of stubs; Fraction", 15, -0.5, 14.5);
+  TH1F* h_match_trk_nPS = new TH1F("match_trk_nPS", ";Number of PS stubs; Fraction", 15, -0.5, 14.5);
 
   // note that we are only making the below chi2 histograms using the joint chi2, not the separate chi2rphi and chi2rz
 
@@ -1547,8 +1557,13 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
         h_match_trk_nstub_I->Fill(matchtrk_nstub->at(it));
       else if (std::abs(tp_eta->at(it)) >= 1.6)
         h_match_trk_nstub_F->Fill(matchtrk_nstub->at(it));
+      h_match_trk_nPS->Fill(matchtrk_nPS->at(it));
+
+      // Optionally apply extra cut for resolution plots.
+      //if (matchtrk_nPS->at(it) != 2) continue;
 
       // ----------------------------------------------------------------------------------------------------------------
+
       // fill resolution histograms
 
       h_res_pt->Fill(matchtrk_pt->at(it) - tp_pt->at(it));
@@ -2939,10 +2954,24 @@ void L1TrackNtuplePlot(TString inputRootFile = "L1TrkNtuple",
   // ----------------------------------------------------------------------------------------------------------------
 
   if (doDetailedPlots) {
+    // Normalize to unity
+    constexpr float ss = 1.0e-9;  // protect against divide by zero
+    h_match_trk_nstub->Scale(1. / (h_match_trk_nstub->Integral() + ss));
+    h_match_trk_nstub_C->Scale(1. / (h_match_trk_nstub_C->Integral() + ss));
+    h_match_trk_nstub_I->Scale(1. / (h_match_trk_nstub_I->Integral() + ss));
+    h_match_trk_nstub_F->Scale(1. / (h_match_trk_nstub_F->Integral() + ss));
+    h_match_trk_nPS->Scale(1. / (h_match_trk_nPS->Integral()));
+
     h_match_trk_nstub->Write();
     h_match_trk_nstub_C->Write();
     h_match_trk_nstub_I->Write();
     h_match_trk_nstub_F->Write();
+    h_match_trk_nPS->Write();
+
+    h_match_trk_nstub->Draw("p");
+    c.SaveAs(DIR + type + "_nstub.pdf");
+    h_match_trk_nPS->Draw("p");
+    c.SaveAs(DIR + type + "_nPS.pdf");
   }
 
   makeAllAndTruePDF(type, DIR, "trk_chi2", h_trk_chi2, h_match_trk_chi2);
