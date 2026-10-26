@@ -1,6 +1,6 @@
 # L1 TRACKING
 
-To run the DTC emulation + L1 tracking & create a TTree & plots of L1 tracking performance:  
+To run the DTC emulation + L1 tracking & create a TTree & plots of L1 tracking performance:   
 
 cmsRun L1TrackNtupleMaker_cfg.py
 
