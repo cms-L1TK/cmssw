@@ -1101,10 +1101,8 @@ namespace trklet {
 #endif
 
     // VALUE OVERRIDDEN BY PYTHON CFG
-    // When false, match calculator does not save multiple matches, even when doKF=true.
-    // This is a temporary fix for compatibilty with HLS. We will need to implement multiple match
-    // printing in emulator eventually, possibly after CMSSW-integration inspired rewrites
-    // Use false when generating HLS files, use true when doing full hybrid tracking
+    // When false, match calculator does not save multiple matches per layer per track, even when doKF=true.
+    // This corresponds to what the FW currently does.
     bool doMultipleMatches_{false};
 
     // NEXT 2 VALUES OVERRIDDEN BY PYTHON CFG
