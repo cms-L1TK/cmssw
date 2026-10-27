@@ -67,7 +67,7 @@ namespace trackerDTC {
     int layerIndexCombined() const { return layerIndexCombined_; }
     // layer id [1-6,11-15]
     int layerId() const { return layerId_; }
-    // layer id [0-6]
+    // reduced layer id [0-6] { 1, 2, 11 & 6, 12 & 5, 13 & 4, 14, 15 & 3 }
     int layerIdReduced() const { return layerIdReduced_; }
     // module radius in cm
     double r() const { return r_; }

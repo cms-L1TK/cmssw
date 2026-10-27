@@ -44,9 +44,10 @@ namespace trklet {
     config_.tbMinZ = pSetTB.getParameter<double>("MinZ");
     config_.tbMaxR = pSetTB.getParameter<double>("MaxR");
     config_.tbInnerRadius = pSetTB.getParameter<double>("InnerRadius");
+    config_.tbNumLayers = pSetTB.getParameter<int>("NumLayers");
+    config_.tbTiltedLayerLimitsZ = pSetTB.getParameter<std::vector<double>>("TiltedLayerLimitsZ");
     config_.tbNumSeedTypes = pSetTB.getParameter<int>("NumSeedTypes");
     config_.tbNumSeedingLayers = pSetTB.getParameter<int>("NumSeedingLayers");
-    config_.tbNumLayers = pSetTB.getParameter<int>("NumLayers");
     config_.tbSeedTypes = pSetTB.getParameter<std::vector<std::string>>("SeedTypes");
     config_.tbSeedTypesSeedLayers.reserve(config_.tbNumSeedTypes);
     const edm::ParameterSet& stsl = pSetTB.getParameter<edm::ParameterSet>("SeedTypesSeedLayers");
@@ -57,6 +58,11 @@ namespace trklet {
     for (const std::string& seedType : config_.tbSeedTypes)
       config_.tbSeedTypesProjectionLayers.emplace_back(stpl.getParameter<std::vector<int>>(seedType));
     config_.tbWidthsR = pSetTB.getParameter<std::vector<int>>("WidthsR");
+    config_.tbWidthsPhi = pSetTB.getParameter<std::vector<int>>("WidthsPhi");
+    config_.tbWidthsRZ = pSetTB.getParameter<std::vector<int>>("WidthsRZ");
+    config_.tbBaseShiftsR = pSetTB.getParameter<std::vector<int>>("BaseShiftsR");
+    config_.tbBaseShiftsPhi = pSetTB.getParameter<std::vector<int>>("BaseShiftsPhi");
+    config_.tbBaseShiftsRZ = pSetTB.getParameter<std::vector<int>>("BaseShiftsRZ");
     config_.tbWidthStubId = pSetTB.getParameter<int>("WidthStubId");
     config_.tbWidthInv2R = pSetTB.getParameter<int>("WidthInv2R");
     config_.tbWidthPhi0 = pSetTB.getParameter<int>("WidthPhi0");
@@ -69,9 +75,6 @@ namespace trklet {
     config_.drUseTTStubs = pSetDR.getParameter<bool>("UseTTStubs");
     config_.drNumComparisonModules = pSetDR.getParameter<int>("NumComparisonModules");
     config_.drMinIdenticalStubs = pSetDR.getParameter<int>("MinIdenticalStubs");
-    config_.drWidthR = pSetDR.getParameter<int>("WidthR");
-    config_.drWidthPhi = pSetDR.getParameter<int>("WidthPhi");
-    config_.drWidthZ = pSetDR.getParameter<int>("WidthZ");
     config_.drWidthDPhi = pSetDR.getParameter<int>("WidthDPhi");
     config_.drWidthDZ = pSetDR.getParameter<int>("WidthDZ");
     config_.drBaseShiftDPhi = pSetDR.getParameter<int>("BaseShiftDPhi");
@@ -79,10 +82,9 @@ namespace trklet {
     const edm::ParameterSet& pSetKF = iConfig.getParameter<edm::ParameterSet>("KF");
     config_.kfUseSimulation = pSetKF.getParameter<bool>("UseSimulation");
     config_.kfMaxTracks = pSetKF.getParameter<int>("MaxTracks");
-    config_.kfNumLayers = pSetKF.getParameter<int>("NumLayers");
+    config_.kfNumSeed = pSetKF.getParameter<int>("NumSeed");
+    config_.kfNumProj = pSetKF.getParameter<int>("NumProj");
     config_.kfMinLayers = pSetKF.getParameter<int>("MinLayers");
-    config_.kfBaseShiftPhi = pSetKF.getParameter<int>("BaseShiftPhi");
-    config_.kfBaseShiftZ = pSetKF.getParameter<int>("BaseShiftZ");
     const edm::ParameterSet& pSetTQ = iConfig.getParameter<edm::ParameterSet>("TQ");
     config_.tqNumChannel = pSetTQ.getParameter<int>("NumChannel");
     config_.tqWidthChi21 = pSetTQ.getParameter<int>("WidthChi21");
