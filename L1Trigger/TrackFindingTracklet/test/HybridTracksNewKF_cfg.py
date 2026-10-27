@@ -12,8 +12,8 @@ import FWCore.ParameterSet.Config as cms
 process = cms.Process( "Demo" )
 process.load( 'FWCore.MessageService.MessageLogger_cfi' )
 process.load( 'Configuration.EventContent.EventContent_cff' )
-process.load( 'Configuration.Geometry.GeometryExtendedRun4D110Reco_cff' ) 
-process.load( 'Configuration.Geometry.GeometryExtendedRun4D110_cff' )
+process.load( 'Configuration.Geometry.GeometryExtendedRun4D121Reco_cff' ) 
+process.load( 'Configuration.Geometry.GeometryExtendedRun4D121_cff' )
 process.load( 'Configuration.StandardSequences.MagneticField_cff' )
 process.load( 'Configuration.StandardSequences.FrontierConditions_GlobalTag_cff' )
 process.load( 'L1Trigger.TrackTrigger.TrackTrigger_cff' )
@@ -47,7 +47,7 @@ process.dr       = cms.Sequence( process.ProducerDR      + process.AnalyzerDR   
 process.kf       = cms.Sequence( process.ProducerKF      + process.AnalyzerKF       )
 process.tq       = cms.Sequence( process.ProducerTQ      + process.AnalyzerTQ       )
 process.tfp      = cms.Sequence( process.ProducerTFP     + process.AnalyzerTFP      )
-process.tt       = cms.Path( process.mc + process.dtc + process.tracklet + process.tm + process.dr + process.AnalyzerTB + process.kf + process.tq + process.tfp )
+process.tt       = cms.Path( process.mc + process.dtc + process.tracklet + process.tm + process.dr + process.kf + process.tq + process.tfp )
 process.schedule = cms.Schedule( process.tt )
 
 # create options
@@ -59,7 +59,7 @@ options = VarParsing.VarParsing( 'analysis' )
 #from MCsamples.RelVal_1260_D88.PU200_TTbar_14TeV_cfi import *
 #inputMC = getCMSdataFromCards()
 Samples = [
-  "/store/relval/CMSSW_15_1_0_pre5/RelValTTbar_14TeV_TuneCP5/GEN-SIM-DIGI-RAW/PU_150X_mcRun4_realistic_v1_RV269_Run4D110_PU-v2/2590000/0f0bcfd3-dafe-4dda-8d39-9765f6eae68e.root",
+  "/store/relval/CMSSW_20_0_0_pre1/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU_150X_mcRun4_realistic_v1_STD_D121_RegeneratedGS_PU-v1/2590000/0033230b-a131-453a-95c0-fe14d5027d1f.root",
 ]
 #Samples = ["/store/trimmed.root"]
 options.register( 'inputMC', Samples, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.string, "Files to be processed" )

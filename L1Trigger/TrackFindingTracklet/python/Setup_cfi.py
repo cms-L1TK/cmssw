@@ -31,9 +31,10 @@ TrackFindingTracklet_params = cms.PSet (
     MinZ = cms.double( 120.0 ), # smallest disk stub z position after TrackBuilder in cm
     MaxR = cms.double( 120.0 ), # biggest disk stub r position after TrackBuilder in cm
     InnerRadius = cms.double( 19.6 ), # smallest stub radius after TrackBuilder in cm
+    NumLayers = cms.int32( 11 ), # number of layers
+    TiltedLayerLimitsZ = cms.vdouble( 15.5, 24.9, 34.3 ), # barrel layer limit z value in cm to partition into tilted and untilted region
     NumSeedTypes = cms.int32( 8 ), # number of seed Types
     NumSeedingLayers = cms.int32( 2 ), # number of layers used to form a seed
-    NumLayers = cms.int32( 11 ), # number of layers
     SeedTypes = cms.vstring( "L1L2", "L2L3", "L3L4", "L5L6", "D1D2", "D3D4", "L1D1", "L2D1" ), # seed types used in tracklet algorithm (position gives int value)
     SeedTypesSeedLayers = cms.PSet ( # seeding layers of seed types using default layer id [barrel: 1-6, discs: 11-15]
       L1L2 = cms.vint32(  1,  2 ),
@@ -55,7 +56,14 @@ TrackFindingTracklet_params = cms.PSet (
       L1D1 = cms.vint32( 12, 13, 14, 15 ),
       L2D1 = cms.vint32(  1, 12, 13, 14 )
     ),
-    WidthsR = cms.vint32 ( 7, 7, 12, 12 ), # number of bits used for stub r w.r.t layer/disk centre for module types (barrelPS, barrel2S, diskPS, disk2S) at TB output
+
+    WidthsR       = cms.vint32(  7,  7, 12, 12 ), # number of bits used for stub r w.r.t layer/disk centre for module types (barrelPS, barrel2S, diskPS, disk2S) at TB output
+    WidthsPhi     = cms.vint32( 12, 12, 12, 12 ), # number of bits used for stub phi residual for module types (barrelPS, barrel2S, diskPS, disk2S) at TB output
+    WidthsRZ      = cms.vint32(  9,  9,  8,  8 ), # number of bits used for stub r (disk) or z (barrel) residual for module types (barrelPS, barrel2S, diskPS, disk2S) at TB output
+    BaseShiftsR   = cms.vint32(  1,  1,  0,  0 ), #
+    BaseShiftsPhi = cms.vint32(  3,  0,  3,  3 ), #
+    BaseShiftsRZ  = cms.vint32(  0,  4,  0,  0 ), #
+
     WidthStubId  = cms.int32( 10 ), # number of Bits used to represent stubId
     WidthInv2R   = cms.int32( 14 ), # number of Bits used to represent inv2R
     WidthPhi0    = cms.int32( 18 ), # number of Bits used to represent phi0
@@ -77,23 +85,19 @@ TrackFindingTracklet_params = cms.PSet (
     UseTTStubs           = cms.bool ( False ), # recalculates track parameter and stub residuals from TT stubs
     NumComparisonModules = cms.int32(    32 ), # number of comparison modules used in each DR node
     MinIdenticalStubs    = cms.int32(     3 ), # min number of shared stubs to identify duplicates
-    WidthR               = cms.int32(    14 ), # number of bits used for stub r - ChosenRofPhi
-    WidthPhi             = cms.int32(    16 ), # number of bits used for stub phi w.r.t. phi region centre
-    WidthZ               = cms.int32(    15 ), # number of bits used for stub z
-    WidthDPhi            = cms.int32(     9 ), # number of Bits used to represent stub phi uncertainty in rad
-    WidthDZ              = cms.int32(     9 ), # number of Bits used to represent stub z uncertainty in cm
-    BaseShiftDPhi        = cms.int32(     1 ), # precision difference in powers of 2 between dPhi and phi
-    BaseShiftDZ          = cms.int32(     1 ), # precision difference in powers of 2 between dZ and z
+    WidthDPhi            = cms.int32(     5 ), # number of Bits used to represent stub phi uncertainty in rad
+    WidthDZ              = cms.int32(     7 ), # number of Bits used to represent stub z uncertainty in cm
+    BaseShiftDPhi        = cms.int32(     4 ), # precision difference in powers of 2 between dPhi and phi
+    BaseShiftDZ          = cms.int32(     3 ), # precision difference in powers of 2 between dZ and z
   ),
 
   # Parmeter specifying KalmanFilter
   KF = cms.PSet (
     UseSimulation = cms.bool ( False ), # simulate KF instead of emulate
-    MaxTracks     = cms.int32(    63 ), # max number of tracks a kf worker can process
-    NumLayers     = cms.int32(     7 ), # number of layers a fitted track may cross
+    MaxTracks     = cms.int32(    64 ), # max number of tracks a kf worker can process
+    NumSeed       = cms.int32(     2 ), # number of layers to form a tracklet
+    NumProj       = cms.int32(     5 ), # number of layers a found tracklet may cross
     MinLayers     = cms.int32(     4 ), # required number of layers to form a track
-    BaseShiftPhi  = cms.int32(     2 ), # precision difference in powers of 2 between phi residual and phi position
-    BaseShiftZ    = cms.int32(     2 ), # precision difference in powers of 2 between z residual and z position
   ),
 
   # Parameter specifying Track Quality

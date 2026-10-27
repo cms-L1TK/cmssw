@@ -56,12 +56,18 @@ namespace trklet {
     //
     const Setup* setup_ = nullptr;
     //
-    const trackerTFP::Demonstrator* demonstrator_ = nullptr;
+    trackerTFP::Demonstrator::Config iConfig_;
+    //
+    trackerTFP::Demonstrator demonstrator_;
     //
     int nEvents_ = 0;
   };
 
   Demonstrator::Demonstrator(const edm::ParameterSet& iConfig) {
+    iConfig_.dirIPBB_ = iConfig.getParameter<std::string>("DirIPBB");
+    iConfig_.runTime_ = iConfig.getParameter<double>("RunTime");
+    iConfig_.linkMappingIn_ = iConfig.getParameter<std::vector<int>>("LinkMappingIn");
+    iConfig_.linkMappingOut_ = iConfig.getParameter<std::vector<int>>("LinkMappingOut");
     // book in- and output ED products
     const std::string& labelIn = iConfig.getParameter<std::string>("LabelIn");
     const std::string& labelOut = iConfig.getParameter<std::string>("LabelOut");
@@ -84,7 +90,7 @@ namespace trklet {
     //
     setup_ = &iSetup.getData(esGetTokenSetup_);
     //
-    demonstrator_ = &iSetup.getData(esGetTokenDemonstrator_);
+    demonstrator_ = trackerTFP::Demonstrator(iConfig_, setup_->dtc());
   }
 
   void Demonstrator::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
@@ -93,7 +99,7 @@ namespace trklet {
     std::vector<std::vector<tt::Frame>> output;
     convert(iEvent, edGetTokenTracksIn_, edGetTokenStubsIn_, input);
     convert(iEvent, edGetTokenTracksOut_, edGetTokenStubsOut_, output);
-    if (!demonstrator_->analyze(input, output))
+    if (!demonstrator_.analyze(input, output))
       throw cms::Exception("BitError.");
   }
 

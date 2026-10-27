@@ -12,13 +12,13 @@
 namespace trklet {
 
   constexpr auto variableKFstrs_ = {
-      "x0",           "x1",         "x2",         "x3",         "H",          "m0",       "m1",
-      "v0",           "v1",         "r0",         "r1",         "S00",        "S01",      "S12",
-      "S13",          "S00Shifted", "S01Shifted", "S12Shifted", "S13Shifted", "K00",      "K10",
-      "K21",          "K31",        "R00",        "R11",        "R00Rough",   "R11Rough", "invR00Approx",
-      "invR11Approx", "invR00Cor",  "invR11Cor",  "invR00",     "invR11",     "C00",      "C01",
-      "C11",          "C22",        "C23",        "C33",        "dH",         "invdH",    "invdH2",
-      "H2",           "Hm0",        "Hm1",        "Hv0",        "Hv1",        "H2v0",     "H2v1"};
+      "x0",        "x1",         "x2",         "x3",         "H",          "m0",           "m1",           "d0",
+      "d1",        "v0",         "v1",         "r0",         "r1",         "S00",          "S01",          "S12",
+      "S13",       "S00Shifted", "S01Shifted", "S12Shifted", "S13Shifted", "K00",          "K10",          "K21",
+      "K31",       "R00",        "R11",        "R00Rough",   "R11Rough",   "invR00Approx", "invR11Approx", "invR00Cor",
+      "invR11Cor", "invR00",     "invR11",     "C00",        "C01",        "C11",          "C22",          "C23",
+      "C33",       "dH",         "invdH",      "invdH2",     "H2",         "Hm0",          "Hm1",          "Hv0",
+      "Hv1",       "H2v0",       "H2v1"};
 
   void KalmanFilterFormats::endJob(std::stringstream& ss) {
     const int wName =
@@ -88,40 +88,40 @@ namespace trklet {
   template <>
   DataFormatKF makeDataFormat<VariableKF::x0>(const DataFormats* dataFormats, const ConfigKF& iConfig) {
     const DataFormat& input = dataFormats->format(Variable::inv2R, Process::kf);
-    const int baseShift = iConfig.baseShiftx0_;
+    const int width = iConfig.widthX0_;
+    const double range = 2. * input.range();
+    const int baseShift = input.width() - width + 1;
     const double base = std::pow(2, baseShift) * input.base();
-    const int width = dataFormats->setup()->widthDSPbb();
-    const double range = base * std::pow(2, width);
     return DataFormatKF(VariableKF::x0, true, iConfig.enableIntegerEmulation_, width, base, range);
   }
 
   template <>
   DataFormatKF makeDataFormat<VariableKF::x1>(const DataFormats* dataFormats, const ConfigKF& iConfig) {
     const DataFormat& input = dataFormats->format(Variable::phi0, Process::kf);
-    const int baseShift = iConfig.baseShiftx1_;
+    const int width = iConfig.widthX1_;
+    const double range = 2. * input.range();
+    const int baseShift = input.width() - width + 1;
     const double base = std::pow(2, baseShift) * input.base();
-    const int width = dataFormats->setup()->widthDSPbb();
-    const double range = base * std::pow(2, width);
     return DataFormatKF(VariableKF::x1, true, iConfig.enableIntegerEmulation_, width, base, range);
   }
 
   template <>
   DataFormatKF makeDataFormat<VariableKF::x2>(const DataFormats* dataFormats, const ConfigKF& iConfig) {
     const DataFormat& input = dataFormats->format(Variable::cot, Process::kf);
-    const int baseShift = iConfig.baseShiftx2_;
+    const int width = iConfig.widthX2_;
+    const double range = 2. * input.range();
+    const int baseShift = input.width() - width + 1;
     const double base = std::pow(2, baseShift) * input.base();
-    const int width = dataFormats->setup()->widthDSPbb();
-    const double range = base * std::pow(2, width);
     return DataFormatKF(VariableKF::x2, true, iConfig.enableIntegerEmulation_, width, base, range);
   }
 
   template <>
   DataFormatKF makeDataFormat<VariableKF::x3>(const DataFormats* dataFormats, const ConfigKF& iConfig) {
     const DataFormat& input = dataFormats->format(Variable::z0, Process::kf);
-    const int baseShift = iConfig.baseShiftx3_;
+    const int width = iConfig.widthX3_;
+    const double range = 2. * input.range();
+    const int baseShift = input.width() - width + 1;
     const double base = std::pow(2, baseShift) * input.base();
-    const int width = dataFormats->setup()->widthDSPbb();
-    const double range = base * std::pow(2, width);
     return DataFormatKF(VariableKF::x3, true, iConfig.enableIntegerEmulation_, width, base, range);
   }
 
@@ -131,7 +131,7 @@ namespace trklet {
     const double base = dr.base();
     const int width = dr.width();
     const double range = base * std::pow(2, width);
-    return DataFormatKF(VariableKF::H, true, iConfig.enableIntegerEmulation_, width, base, range);
+    return DataFormatKF(VariableKF::H, false, iConfig.enableIntegerEmulation_, width, base, range);
   }
 
   template <>
@@ -153,12 +153,33 @@ namespace trklet {
   }
 
   template <>
+  DataFormatKF makeDataFormat<VariableKF::d0>(const DataFormats* dataFormats, const ConfigKF& iConfig) {
+    const DataFormat& dr = dataFormats->format(Variable::dPhi, Process::dr);
+    const double base = dr.base();
+    const int width = dr.width();
+    const double range = base * std::pow(2, width);
+    return DataFormatKF(VariableKF::d0, false, iConfig.enableIntegerEmulation_, width, base, range);
+  }
+
+  template <>
+  DataFormatKF makeDataFormat<VariableKF::d1>(const DataFormats* dataFormats, const ConfigKF& iConfig) {
+    const DataFormat& dr = dataFormats->format(Variable::dZ, Process::dr);
+    const double base = dr.base();
+    const int width = dr.width();
+    const double range = base * std::pow(2, width);
+    return DataFormatKF(VariableKF::d1, false, iConfig.enableIntegerEmulation_, width, base, range);
+  }
+
+  template <>
   DataFormatKF makeDataFormat<VariableKF::v0>(const DataFormats* dataFormats, const ConfigKF& iConfig) {
     const DataFormat& dPhi = dataFormats->format(Variable::dPhi, Process::dr);
     const DataFormatKF S01 = makeDataFormat<VariableKF::S01>(dataFormats, iConfig);
-    const double range = dPhi.range() * dPhi.range() / 3.;
-    const double base = S01.base();
-    const int width = tt::ceil(std::log2(range / base));
+    const int width = dataFormats->setup()->widthDSPbu();
+    const double rangeMin = dPhi.range() * dPhi.range() / 3.;
+    const double baseShifted = S01.base();
+    const int baseShift = tt::ilog2(rangeMin / baseShifted) - width;
+    const double base = baseShifted * std::pow(2., baseShift);
+    const double range = base * std::pow(2., width);
     return DataFormatKF(VariableKF::v0, false, iConfig.enableIntegerEmulation_, width, base, range);
   }
 
@@ -166,18 +187,21 @@ namespace trklet {
   DataFormatKF makeDataFormat<VariableKF::v1>(const DataFormats* dataFormats, const ConfigKF& iConfig) {
     const DataFormat& dZ = dataFormats->format(Variable::dZ, Process::dr);
     const DataFormatKF S13 = makeDataFormat<VariableKF::S13>(dataFormats, iConfig);
-    const double range = dZ.range() * dZ.range() / 3.;
-    const double base = S13.base();
-    const int width = tt::ceil(std::log2(range / base));
+    const int width = dataFormats->setup()->widthDSPbu();
+    const double rangeMin = dZ.range() * dZ.range() / 3.;
+    const double baseShifted = S13.base();
+    const int baseShift = tt::ilog2(rangeMin / baseShifted) - width;
+    const double base = baseShifted * std::pow(2., baseShift);
+    const double range = base * std::pow(2., width);
     return DataFormatKF(VariableKF::v1, false, iConfig.enableIntegerEmulation_, width, base, range);
   }
 
   template <>
   DataFormatKF makeDataFormat<VariableKF::r0>(const DataFormats* dataFormats, const ConfigKF& iConfig) {
     const DataFormat& x1 = dataFormats->format(Variable::phi0, Process::kf);
+    const int width = dataFormats->setup()->widthDSPbb();
     const int baseShift = iConfig.baseShiftr0_;
     const double base = std::pow(2., baseShift) * x1.base();
-    const int width = dataFormats->setup()->widthDSPbb();
     const double range = base * std::pow(2, width);
     return DataFormatKF(VariableKF::r0, true, iConfig.enableIntegerEmulation_, width, base, range);
   }
@@ -341,7 +365,7 @@ namespace trklet {
     const DataFormatKF R00 = makeDataFormat<VariableKF::R00>(dataFormats, iConfig);
     const int width = dataFormats->setup()->widthAddrBRAM18();
     const double range = R00.range();
-    const int baseShift = R00.width() - width - 1;
+    const int baseShift = R00.width() - width;
     const double base = std::pow(2., baseShift) * R00.base();
     return DataFormatKF(VariableKF::R00Rough, false, iConfig.enableIntegerEmulation_, width, base, range);
   }
@@ -351,7 +375,7 @@ namespace trklet {
     const DataFormatKF R11 = makeDataFormat<VariableKF::R11>(dataFormats, iConfig);
     const int width = dataFormats->setup()->widthAddrBRAM18();
     const double range = R11.range();
-    const int baseShift = R11.width() - width - 1;
+    const int baseShift = R11.width() - width;
     const double base = std::pow(2., baseShift) * R11.base();
     return DataFormatKF(VariableKF::R11Rough, false, iConfig.enableIntegerEmulation_, width, base, range);
   }
@@ -480,8 +504,8 @@ namespace trklet {
   DataFormatKF makeDataFormat<VariableKF::dH>(const DataFormats* dataFormats, const ConfigKF& iConfig) {
     const DataFormatKF H = makeDataFormat<VariableKF::H>(dataFormats, iConfig);
     const int width = dataFormats->setup()->widthAddrBRAM18();
-    const double range = dataFormats->setup()->sysOuterRadius() - dataFormats->setup()->sysInnerRadius();
-    const double base = H.base() * std::pow(2, ceil(log2(range / H.base())) - width);
+    const double base = H.base() * std::pow(2, H.width() - width);
+    const double range = base * std::pow(2, width);
     return DataFormatKF(VariableKF::dH, false, iConfig.enableIntegerEmulation_, width, base, range);
   }
 

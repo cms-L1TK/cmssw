@@ -23,25 +23,37 @@ namespace trklet {
     tbBaseR_ = settings.kr();
     tbBasePhi_ = settings.kphi1();
     tbBaseZ_ = settings.kz();
-    tbBasePhis_.reserve(N_LAYER + N_DISK);
-    for (int id = 0; id < N_LAYER + N_DISK; id++)
-      tbBasePhis_.push_back(settings.kphi(id));
-    tbBaseZs_.reserve(N_LAYER);
-    for (int layer = 0; layer < N_LAYER; layer++)
-      tbBaseZs_.push_back(settings.kz(layer));
-    tbWidthZ_ = settings.zresidbits();
-    tbWidthR_ = settings.rresidbits();
-    tbWidthPhi_ = settings.phiresidbits();
+    tbBaseRs_.reserve(trackerDTC::SensorModule::Type::NumTypes);
+    tbBasePhis_.reserve(trackerDTC::SensorModule::Type::NumTypes);
+    tbBaseRZs_.reserve(trackerDTC::SensorModule::Type::NumTypes);
+    for (trackerDTC::SensorModule::Type type : {trackerDTC::SensorModule::Type::BarrelPS,
+                                                trackerDTC::SensorModule::Type::Barrel2S,
+                                                trackerDTC::SensorModule::Type::DiskPS})
+      tbBaseRs_.emplace_back(tbBaseR_ * std::pow(2, config_.tbBaseShiftsR[type]));
+    tbBaseRs_.push_back(1.0);
+    for (int baseShift : config_.tbBaseShiftsPhi)
+      tbBasePhis_.emplace_back(tbBasePhi_ * std::pow(2, baseShift));
+    for (trackerDTC::SensorModule::Type type :
+         {trackerDTC::SensorModule::Type::BarrelPS, trackerDTC::SensorModule::Type::Barrel2S})
+      tbBaseRZs_.emplace_back(tbBaseZ_ * std::pow(2, config_.tbBaseShiftsRZ[type]));
+    for (trackerDTC::SensorModule::Type type :
+         {trackerDTC::SensorModule::Type::DiskPS, trackerDTC::SensorModule::Type::Disk2S})
+      tbBaseRZs_.emplace_back(tbBaseR_ * std::pow(2, config_.tbBaseShiftsRZ[type]));
     tbWidthSeedType_ = tt::ilog2(config_.tbNumSeedTypes);
     tmNumLayers_ = config_.tbNumLayers;
     int maxProjLayers(0);
     for (const std::vector<int>& projLayers : config_.tbSeedTypesProjectionLayers)
       maxProjLayers = std::max(maxProjLayers, static_cast<int>(projLayers.size()));
-    drNumLayers_ = config_.tbNumSeedingLayers + maxProjLayers;
     const int baseShiftInvCot = tt::ilog2(config_.tbMaxR / config_.tbMinZ) - dtc_->widthDSPbu();
     drBaseInvCot_ = std::pow(2, baseShiftInvCot);
-    kfNumProj_ = config_.kfNumLayers - config_.tbNumSeedingLayers;
-    kfMinProj_ = config_.kfMinLayers - config_.tbNumSeedingLayers;
+    drBaseCot_ = tbBaseCot_ * std::pow(2, config_.tbWidthCot - setup->widthAddrBRAM18() - 1);
+    drBaseInv2R_ = tbBaseInv2R_ * std::pow(2, config_.tbWidthInv2R - setup->widthAddrBRAM18() - 1);
+    const int tbWidthR = tt::ilog2(dtc_->sysOuterRadius() / tbBaseR_);
+    drBaseR_ = tbBaseR_ * std::pow(2, tbWidthR - setup->widthAddrBRAM18());
+    drNumLayers_ = tmNumLayers_;
+    drWidthLayerId_ = tt::ilog2(drNumLayers_);
+    kfNumLayers_ = config_.kfNumSeed + config_.kfNumProj;
+    kfMinProj_ = config_.kfMinLayers - config_.kfNumSeed;
     tmMuxOrder_.reserve(config_.tmMuxOrder.size());
     for (const std::string& seedType : config_.tmMuxOrder) {
       const auto it = std::find(config_.tbSeedTypes.begin(), config_.tbSeedTypes.end(), seedType);
@@ -55,23 +67,17 @@ namespace trklet {
   GlobalPoint Setup::stubPosTB(const tt::FrameStub& frame, double cot) const {
     // sennsor module for this seed stub
     const trackerDTC::SensorModule* sm = dtc_->sensorModule(frame.first);
-    const trackerDTC::SensorModule::Type type = sm->type();
-    const int layerIndex = sm->layerIndex();
-    const bool barrel = sm->barrel();
-    const int widthR = config_.tbWidthsR[type];
-    const int widthRZ = barrel ? tbWidthZ_ : tbWidthR_;
-    const double baseR = dtc_->stubBaseR(type);
-    const double basePhi = barrel ? tbBasePhi_ : tbBasePhis_[sm->layerIndexCombined()];
-    const double baseRZ = barrel ? tbBaseZs_[layerIndex] : tbBaseZ_;
+    const trackerDTC::SensorModule::Type t = sm->type();
     // parse residuals from tt::Frame and take layerId from tt::TTStubRef
     TTBV bv(frame.second);
-    const double z = bv.val(widthRZ, 0, true) * baseRZ * (barrel ? 1. : -cot);
-    bv >>= widthRZ;
-    const double phi = bv.val(tbWidthPhi_, 0, true) * basePhi;
-    bv >>= tbWidthPhi_;
-    double r = bv.val(widthR, 0, barrel) * baseR + (barrel ? tt::digiR(dtc_->stubLayerR(layerIndex), tbBaseR_) : 0.0);
-    if (type == trackerDTC::SensorModule::Disk2S)
-      r = tt::digiR(dtc_->stubDiskR(layerIndex, r), tbBaseR_);
+    const double z = bv.val(tbWidthRZ(t), 0, true) * tbBaseRZ(t) * (sm->barrel() ? 1. : -cot);
+    bv >>= tbWidthRZ(t);
+    const double phi = bv.val(tbWidthPhi(t), 0, true) * tbBasePhi(t);
+    bv >>= tbWidthPhi(t);
+    double r = bv.val(tbWidthR(t), 0, sm->barrel()) * tbBaseR(t) +
+               (sm->barrel() ? tt::digiR(dtc_->stubLayerR(sm->layerIndex()), tbBaseR_) : 0.0);
+    if (t == trackerDTC::SensorModule::Disk2S)
+      r = tt::digiR(dtc_->stubDiskR(sm->layerIndex(), r), tbBaseR_);
     return GlobalPoint(GlobalPoint::Cylindrical(r, phi, z));
   }
 

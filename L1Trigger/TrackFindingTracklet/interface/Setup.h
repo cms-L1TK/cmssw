@@ -46,12 +46,14 @@ namespace trklet {
       double tbMaxR;
       // smallest stub radius after TrackBuilder in cm
       double tbInnerRadius;
+      // number of layers
+      int tbNumLayers;
+      // barrel layer limit z value in cm to partition into tilted and untilted region
+      std::vector<double> tbTiltedLayerLimitsZ;
       // number of seed Types
       int tbNumSeedTypes;
       // number of layers used to form a seed
       int tbNumSeedingLayers;
-      // number of layers
-      int tbNumLayers;
       // seed types used in tracklet algorithm (position gives int value)
       std::vector<std::string> tbSeedTypes;
       // seeding layers of seed types using default layer id [barrel: 1-6, discs: 11-15]
@@ -60,6 +62,16 @@ namespace trklet {
       std::vector<std::vector<int>> tbSeedTypesProjectionLayers;
       // number of bits used for stub r w.r.t layer/disk centre for module types (barrelPS, barrel2S, diskPS, disk2S) at TB output
       std::vector<int> tbWidthsR;
+      // number of bits used for stub phi residual for module types (barrelPS, barrel2S, diskPS, disk2S) at TB output
+      std::vector<int> tbWidthsPhi;
+      // number of bits used for stub r (disk) or z (barrel) resdiual for module types (barrelPS, barrel2S, diskPS, disk2S) at TB output
+      std::vector<int> tbWidthsRZ;
+      //
+      std::vector<int> tbBaseShiftsR;
+      //
+      std::vector<int> tbBaseShiftsPhi;
+      //
+      std::vector<int> tbBaseShiftsRZ;
       // number of Bits used to represent stubId
       int tbWidthStubId;
       // number of Bits used to represent inv2R
@@ -80,12 +92,6 @@ namespace trklet {
       int drNumComparisonModules;
       // min number of shared stubs to identify duplicates
       int drMinIdenticalStubs;
-      // number of bits used for stub r - ChosenRofPhi
-      int drWidthR;
-      // number of bits used for stub phi w.r.t. phi region centre
-      int drWidthPhi;
-      // number of bits used for stub z
-      int drWidthZ;
       // number of Bits used to represent stub phi uncertainty in rad
       int drWidthDPhi;
       // number of Bits used to represent stub z uncertainty in cm
@@ -98,14 +104,12 @@ namespace trklet {
       bool kfUseSimulation;
       // max number of tracks a kf worker can process
       int kfMaxTracks;
-      // number of layers a fitted track may cross
-      int kfNumLayers;
+      // number of layers to form a tracklet
+      int kfNumSeed;
+      // number of layers a found tracklet may cross
+      int kfNumProj;
       // required number of layers to form a track
       int kfMinLayers;
-      // precision difference in powers of 2 between phi residual and phi position
-      int kfBaseShiftPhi;
-      // precision difference in powers of 2 between z residual and z position
-      int kfBaseShiftZ;
       // number of output channel
       int tqNumChannel;
       // Number of bits used to represent chi2rphi
@@ -143,6 +147,8 @@ namespace trklet {
     Setup(const Config&, const trackerDTC::Setup*);
     ~Setup() = default;
 
+    // DTC setup
+    const trackerDTC::Setup* dtc() const { return dtc_; }
     // TrackerGeometry
     const TrackerGeometry* trackerGeometry() const { return dtc_->trackerGeometry(); }
     // TrackerTopology
@@ -197,9 +203,15 @@ namespace trklet {
     double regMinPt() const { return dtc_->regMinPt(); }
     // single region phiT range in rad [2pi/9]
     double regRangePhiT() const { return dtc_->regRangePhiT(); }
+    // "eta" cut
+    double regMaxZT() const { return dtc_->regMaxZT(); }
+    // single region phi0 range in rad
+    double regRangePhi0() const { return dtc_->regRangePhi0(); }
 
     // number of phi slices the outer tracker readout is organized in
     int sysNumRegion() const { return dtc_->sysNumRegion(); }
+    // number of barrel ps layer
+    int sysNumBarrelLayerPS() const { return dtc_->sysNumBarrelLayerPS(); }
     // number of detector layer a particle may cross
     int sysNumLayer() const { return dtc_->sysNumLayer(); }
     // in T
@@ -223,6 +235,12 @@ namespace trklet {
     int glWidthPhi() const { return dtc_->glWidthPhi(); }
     // number of bits used for stub z
     int glWidthZ() const { return dtc_->glWidthZ(); }
+    // global stub r precision in cm
+    double glBaseR() const { return dtc_->glBaseR(); }
+    // global stub phi precision in rad
+    double glBasePhi() const { return dtc_->glBasePhi(); }
+    // global stub z precision in cm
+    double glBaseZ() const { return dtc_->glBaseZ(); }
 
     // mean z of outer tracker endcap disks
     double stubDiskZ(int disk) const { return dtc_->stubDiskZ(disk); }
@@ -261,12 +279,14 @@ namespace trklet {
     double tbMinZ() const { return config_.tbMinZ; }
     // smallest stub radius after TrackBuilder in cm
     double tbInnerRadius() const { return config_.tbInnerRadius; }
+    // number of layers
+    int tbNumLayers() const { return config_.tbNumLayers; }
+    // barrel layer limit z value in cm to partition into tilted and untilted region
+    double tbTiltedLayerLimitsZ(int id) const { return config_.tbTiltedLayerLimitsZ[id]; }
     // largest possible cotTheta
     double tbMaxCot() const { return tbMaxCot_; }
     // number of layers used to form a seed
     int tbNumSeedingLayers() const { return config_.tbNumSeedingLayers; }
-    // number of layers
-    int tbNumLayers() const { return config_.tbNumLayers; }
     // layers a seed types can project to using default layer id [barrel: 1-6, discs: 11-15]
     int tbNumProjectionLayers(int seedType) const { return config_.tbSeedTypesProjectionLayers[seedType].size(); }
     // layers a seed types can project to using default layer id [barrel: 1-6, discs: 11-15]
@@ -276,7 +296,11 @@ namespace trklet {
     // seeding layers of seed types using default layer id [barrel: 1-6, discs: 11-15]
     const std::vector<int>& tbSeedLayers(int seedType) const { return config_.tbSeedTypesSeedLayers[seedType]; }
     // number of bits used for stub r w.r.t layer/disk centre for module types (barrelPS, barrel2S, diskPS, disk2S) after TrackBuilder
-    int tbWidthR(trackerDTC::SensorModule::Type type) const { return config_.tbWidthsR.at(type); }
+    int tbWidthR(trackerDTC::SensorModule::Type type) const { return config_.tbWidthsR[type]; }
+    // number of bits used for stub phi residual for module types (barrelPS, barrel2S, diskPS, disk2S) after TrackBuilder
+    int tbWidthPhi(trackerDTC::SensorModule::Type type) const { return config_.tbWidthsPhi[type]; }
+    // number of bits used for stub r (disk) or z (barrel) residual for module types (barrelPS, barrel2S, diskPS, disk2S) after TrackBuilder
+    int tbWidthRZ(trackerDTC::SensorModule::Type type) const { return config_.tbWidthsRZ[type]; }
     // number of Bits used to represent stubId
     int tbWidthStubId() const { return config_.tbWidthStubId; }
     // number of Bits used to represent inv2R
@@ -291,14 +315,12 @@ namespace trklet {
     double tbBasePhi0() const { return tbBasePhi0_; }
     double tbBaseCot() const { return tbBaseCot_; }
     double tbBaseZ0() const { return tbBaseZ0_; }
+    double tbBaseR(trackerDTC::SensorModule::Type type) const { return tbBaseRs_[type]; }
+    double tbBasePhi(trackerDTC::SensorModule::Type type) const { return tbBasePhis_[type]; }
+    double tbBaseRZ(trackerDTC::SensorModule::Type type) const { return tbBaseRZs_[type]; }
     double tbBaseR() const { return tbBaseR_; }
     double tbBasePhi() const { return tbBasePhi_; }
-    double tbBasePhi(int layer) const { return tbBasePhis_[layer]; }
     double tbBaseZ() const { return tbBaseZ_; }
-    double tbBaseZ(int layer) const { return tbBaseZs_[layer]; }
-    int tbWidthZ() const { return tbWidthZ_; }
-    int tbWidthR() const { return tbWidthR_; }
-    int tbWidthPhi() const { return tbWidthPhi_; }
     // number of bits used to represent seed type
     int tbWidthSeedType() const { return tbWidthSeedType_; }
 
@@ -313,12 +335,6 @@ namespace trklet {
     int drNumComparisonModules() const { return config_.drNumComparisonModules; }
     // min number of shared stubs to identify duplicates
     int drMinIdenticalStubs() const { return config_.drMinIdenticalStubs; }
-    // number of bits used for stub r - ChosenRofPhi
-    int drWidthR() const { return config_.drWidthR; }
-    // number of bits used for stub phi w.r.t. phi region centre
-    int drWidthPhi() const { return config_.drWidthPhi; }
-    // number of bits used for stub z
-    int drWidthZ() const { return config_.drWidthZ; }
     // number of Bits used to represent stub phi uncertainty in rad
     int drWidthDPhi() const { return config_.drWidthDPhi; }
     // number of Bits used to represent stub z uncertainty in cm
@@ -333,23 +349,29 @@ namespace trklet {
     bool drUseTTStubs() const { return config_.drUseTTStubs; }
     // number of layers per track
     int drNumLayers() const { return drNumLayers_; }
+    // number of bits used to represent layerId
+    int drWidthLayerId() const { return drWidthLayerId_; }
     // precision of internal inversere cot(theta)
     double drBaseInvCot() const { return drBaseInvCot_; }
+    // precision of internal cot(theta) to form inverse
+    double drBaseCot() const { return drBaseCot_; }
+    // precision of internal inv2R to form dPhi
+    double drBaseInv2R() const { return drBaseInv2R_; }
+    // precision of internal r to form dPhi
+    double drBaseR() const { return drBaseR_; }
 
     // simulate KF instead of emulate
     bool kfUseSimulation() const { return config_.kfUseSimulation; }
     // max number of tracks a kf worker can process
     int kfMaxTracks() const { return config_.kfMaxTracks; }
-    // number of layers a fitted track may cross
-    int kfNumLayers() const { return config_.kfNumLayers; }
     // required number of layers to form a track
     int kfMinLayers() const { return config_.kfMinLayers; }
-    // precision difference in powers of 2 between phi residual and phi position
-    int kfBaseShiftPhi() const { return config_.kfBaseShiftPhi; }
-    // precision difference in powers of 2 between z residual and z position
-    int kfBaseShiftZ() const { return config_.kfBaseShiftZ; }
+    // number of layers a found (by tracklet) track may cross
+    int kfNumLayers() const { return kfNumLayers_; }
+    // number of layers to form a tracklet
+    int kfNumSeed() const { return config_.kfNumSeed; }
     // number of projection layers per track
-    int kfNumProj() const { return kfNumProj_; }
+    int kfNumProj() const { return config_.kfNumProj; }
     // minimum number of projection layers to form a track
     int kfMinProj() const { return kfMinProj_; }
 
@@ -396,8 +418,6 @@ namespace trklet {
     int numFrames_;
     // largest possible cotTheta
     double tbMaxCot_;
-    // number of bits used for stub r w.r.t layer/disk centre for module types (barrelPS, barrel2S, diskPS, disk2S) after TrackBuilder
-    std::vector<int> tbWidthsR_;
     double tbBaseInv2R_;
     double tbBasePhi0_;
     double tbBaseCot_;
@@ -405,11 +425,9 @@ namespace trklet {
     double tbBaseR_;
     double tbBasePhi_;
     double tbBaseZ_;
+    std::vector<double> tbBaseRs_;
     std::vector<double> tbBasePhis_;
-    std::vector<double> tbBaseZs_;
-    int tbWidthZ_;
-    int tbWidthR_;
-    int tbWidthPhi_;
+    std::vector<double> tbBaseRZs_;
     // number of bits used to represent seed type
     int tbWidthSeedType_;
     // number of bits used to represent trackelt residual object
@@ -421,10 +439,18 @@ namespace trklet {
     int tmNumLayers_;
     // precision of internal inversere cot(theta)
     double drBaseInvCot_;
-    // number of layers per track
+    // precision of internal cot(theta) to form inverse
+    double drBaseCot_;
+    // precision of internal inv2R to form dPhi
+    double drBaseInv2R_;
+    // precision of internal r to form dPhi
+    double drBaseR_;
+    // number of detector layers [11]
     int drNumLayers_;
-    // number of projection layers per track
-    int kfNumProj_;
+    // number of bits used to represent layerId
+    int drWidthLayerId_;
+    // number of max layers per found track [7]
+    int kfNumLayers_;
     // minimum number of projection layers to form a track
     int kfMinProj_;
     // scale z0 by this factor for BDT

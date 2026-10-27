@@ -144,16 +144,18 @@ namespace trackerDTC {
   // stub z uncertainty in cm for given track cot
   double SensorModule::dZ(double cot) const {
     if (barrel_) {
-      return pitchCol_ + std::abs(cot) * dR_;
       if (tilted_)
         return pitchCol_ * (tiltCorrectionSlope_ * std::abs(cot) + tiltCorrectionIntercept_);
+      else
+        return pitchCol_;
     } else
-      return std::abs(cot) * dR_;
+      return pitchCol_ * std::abs(cot);
   }
 
   // stub phi uncertainty in rad for given stub radius and track inv2R
   double SensorModule::dPhi(double r, double inv2R) const {
-    return ((dR_ + scattering_) * std::abs(inv2R)) + clusterWidth_ * pitchRow_ / r + addPhiUncertainty_;
+    //return ((dR_ + scattering_) * std::abs(inv2R)) + clusterWidth_ * pitchRow_ / r + addPhiUncertainty_;
+    return scattering_ * std::abs(inv2R) + pitchRow_ / r;
   }
 
   // encode bend

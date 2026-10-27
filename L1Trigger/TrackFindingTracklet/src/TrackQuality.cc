@@ -68,7 +68,7 @@ namespace trklet {
         StubKF* stub = frame.stubs_[layer];
         if (!stub)
           continue;
-        hitPattern.set(stub->layerId());
+        hitPattern.set(layer);
         const double m02 = internalFormats_->m02_.digi(std::pow(stub->phi(), 2));
         const double m12 = internalFormats_->m12_.digi(std::pow(stub->z(), 2));
         const double invV0 = internalFormats_->invV0_.digi(3. / std::pow(stub->dPhi(), 2));
@@ -95,8 +95,12 @@ namespace trklet {
       for (; mva < static_cast<int>(binEdges.size()) - 2; mva++)
         if (val <= binEdges[mva + 1])
           break;
+      // to remove when bdt f/w agrees with s/w
+      mva = 0;
       // build output Track
-      TrackTQ trackTQ(*frame.track_, hitPattern, mva, chi20F, chi21F);
+      std::string reversed = hitPattern.str();
+      std::reverse(reversed.begin(), reversed.end());
+      TrackTQ trackTQ(*frame.track_, TTBV(reversed), mva, chi20F, chi21F);
       // store result
       output.push_back(trackTQ.frame());
     }
