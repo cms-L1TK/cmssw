@@ -35,7 +35,7 @@ namespace trklet {
     // convert bits into nice formats
     const Setup* setup = df->setup();
     const TrackKF trackKF(frameTrackKF, df);
-    invR_ = 2. * trackKF.inv2R();
+    invR_ = -2. * trackKF.inv2R();
     cot_ = trackKF.cot();
     d0_ = ttTrackRef_->d0();
     const TrackTQ trackTQ(frameTrackTQ, df);
