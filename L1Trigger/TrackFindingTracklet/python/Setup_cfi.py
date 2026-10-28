@@ -28,8 +28,8 @@ TrackFindingTracklet_params = cms.PSet (
   # Parameter specifying Track Builder
   TB = cms.PSet (
     Freq = cms.double( 240.0 ), # f/w frequency in MHz
-    MinZ = cms.double( 120.0 ), # smallest disk stub z position after TrackBuilder in cm
-    MaxR = cms.double( 120.0 ), # biggest disk stub r position after TrackBuilder in cm
+    MinZ = cms.double( 124.0 ), # smallest disk stub z position after TrackBuilder in cm
+    MaxR = cms.double( 124.0 ), # biggest disk stub r position after TrackBuilder in cm
     InnerRadius = cms.double( 19.6 ), # smallest stub radius after TrackBuilder in cm
     NumLayers = cms.int32( 11 ), # number of layers
     TiltedLayerLimitsZ = cms.vdouble( 15.5, 24.9, 34.3 ), # barrel layer limit z value in cm to partition into tilted and untilted region
@@ -81,14 +81,15 @@ TrackFindingTracklet_params = cms.PSet (
   # Parameter specifying Duplicate Removal
   DR = cms.PSet (
     # Next two options enable cheats that replace the tracklet digi output.
-    UseDTCStubs          = cms.bool ( False ), # recalculates track parameter and stub residuals from DTC stubs
-    UseTTStubs           = cms.bool ( False ), # recalculates track parameter and stub residuals from TT stubs
-    NumComparisonModules = cms.int32(    32 ), # number of comparison modules used in each DR node
-    MinIdenticalStubs    = cms.int32(     3 ), # min number of shared stubs to identify duplicates
-    WidthDPhi            = cms.int32(     5 ), # number of Bits used to represent stub phi uncertainty in rad
-    WidthDZ              = cms.int32(     7 ), # number of Bits used to represent stub z uncertainty in cm
-    BaseShiftDPhi        = cms.int32(     4 ), # precision difference in powers of 2 between dPhi and phi
-    BaseShiftDZ          = cms.int32(     3 ), # precision difference in powers of 2 between dZ and z
+    UseDTCStubs          = cms.bool  ( False  ), # recalculates track parameter and stub residuals from DTC stubs
+    UseTTStubs           = cms.bool  ( False  ), # recalculates track parameter and stub residuals from TT stubs
+    NumComparisonModules = cms.int32 (    32  ), # number of comparison modules used in each DR node
+    MinIdenticalStubs    = cms.int32 (     3  ), # min number of shared stubs to identify duplicates
+    WidthDPhi            = cms.int32 (     5  ), # number of Bits used to represent stub phi uncertainty in rad
+    WidthDZ              = cms.int32 (     7  ), # number of Bits used to represent stub z uncertainty in cm
+    BaseShiftDPhi        = cms.int32 (     4  ), # precision difference in powers of 2 between dPhi and phi
+    BaseShiftDZ          = cms.int32 (     3  ), # precision difference in powers of 2 between dZ and z
+    HalfLengthBarrel     = cms.double(   120. )  # half lengt of outer tracker barrel
   ),
 
   # Parmeter specifying KalmanFilter

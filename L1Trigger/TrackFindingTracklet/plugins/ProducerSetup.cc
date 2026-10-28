@@ -79,6 +79,7 @@ namespace trklet {
     config_.drWidthDZ = pSetDR.getParameter<int>("WidthDZ");
     config_.drBaseShiftDPhi = pSetDR.getParameter<int>("BaseShiftDPhi");
     config_.drBaseShiftDZ = pSetDR.getParameter<int>("BaseShiftDZ");
+    config_.drHalfLengthBarrel = pSetDR.getParameter<double>("HalfLengthBarrel");
     const edm::ParameterSet& pSetKF = iConfig.getParameter<edm::ParameterSet>("KF");
     config_.kfUseSimulation = pSetKF.getParameter<bool>("UseSimulation");
     config_.kfMaxTracks = pSetKF.getParameter<int>("MaxTracks");

@@ -166,7 +166,8 @@ namespace trklet {
           if (stub->sm_->barrel()) {
             stub->r_ = tt::digi(setup_->stubLayerR(stub->sm_->layerIndex()), setup_->tbBaseR());
             const double z = tt::digi(track->z0_ + stub->r_ * track->cot_, setup_->tbBaseZ0());
-            if (std::abs(z) > tt::digi(setup_->tbMinZ(), setup_->tbBaseZ0()) && stub->sm_->layerIndex() == 0)
+            if (std::abs(z) > tt::digi(setup_->drHalfLengthBarrel(), setup_->tbBaseZ0()) &&
+                stub->sm_->layerIndex() == 0)
               stub->r_ = tt::digi(setup_->tbInnerRadius(), setup_->tbBaseR());
           } else {
             const double z = tt::digi(setup_->stubDiskZ(stub->sm_->layerIndex()), setup_->tbBaseZ());
