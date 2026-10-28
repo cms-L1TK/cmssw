@@ -100,6 +100,8 @@ namespace trklet {
       int drBaseShiftDPhi;
       // precision difference in powers of 2 between dPhi and phi
       int drBaseShiftDZ;
+      // half lengt of outer tracker barrel
+      double drHalfLengthBarrel;
       // simulate KF instead of emulate
       bool kfUseSimulation;
       // max number of tracks a kf worker can process
@@ -343,6 +345,8 @@ namespace trklet {
     int drBaseShiftDPhi() const { return config_.drBaseShiftDPhi; }
     // precision difference in powers of 2 between dPhi and phi
     int drBaseShiftDZ() const { return config_.drBaseShiftDZ; }
+    // half lengt of outer tracker barrel
+    double drHalfLengthBarrel() const { return config_.drHalfLengthBarrel; }
     //recalculates track parameter and stub residuals from DTC stubs
     bool drUseDTCStubs() const { return config_.drUseDTCStubs; }
     //recalculates track parameter and stub residuals from DTC stubs
