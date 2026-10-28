@@ -242,8 +242,10 @@ namespace trklet {
 
   // remove HO corrections from all stubs
   void DuplicateRemoval::sim() {
-    for (Track& track : tracks_) {
-      for (Stub*& stub : track.stubs_) {
+    for (Track* track : stream_) {
+      if (!track)
+        continue;
+      for (Stub* stub : track->stubs_) {
         if (!stub)
           continue;
         correct(track, stub, false);
@@ -252,13 +254,13 @@ namespace trklet {
   }
 
   // add (or remove) HO corrections from stub
-  void DuplicateRemoval::correct(const Track& track, Stub* stub, bool add) {
-    if (track.inv2R_ == 0.)
+  void DuplicateRemoval::correct(Track* track, Stub* stub, bool add) {
+    if (track->inv2R_ == 0.)
       return;
-    const double trackPhiL = track.phi0_ + track.inv2R_ * stub->r_;
-    const double trackZL = track.z0_ + track.cot_ * stub->r_;
-    const double trackPhi = track.phi0_ + std::asin(stub->r_ * track.inv2R_);
-    const double trackZ = track.z0_ + track.cot_ * std::asin(stub->r_ * track.inv2R_) / track.inv2R_;
+    const double trackPhiL = track->phi0_ + track->inv2R_ * stub->r_;
+    const double trackZL = track->z0_ + track->cot_ * stub->r_;
+    const double trackPhi = track->phi0_ + std::asin(stub->r_ * track->inv2R_);
+    const double trackZ = track->z0_ + track->cot_ * std::asin(stub->r_ * track->inv2R_) / track->inv2R_;
     if (add) {
       stub->phi_ += trackPhiL - trackPhi;
       stub->z_ += trackZL - trackZ;

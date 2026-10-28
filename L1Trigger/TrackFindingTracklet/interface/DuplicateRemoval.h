@@ -66,7 +66,7 @@ namespace trklet {
       std::vector<Stub*> stubs_;
     };
     // add (or remove) HO corrections from stub
-    void correct(const Track&, Stub*, bool = true);
+    void correct(Track*, Stub*, bool = true);
     // compares two tracks, returns true if those are considered duplicates
     bool equalEnough(Track* t0, Track* t1) const;
     // provides run-time constants
