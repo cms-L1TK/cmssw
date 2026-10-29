@@ -13,10 +13,7 @@
 
 #include "DataFormats/L1TrackTrigger/interface/TTTypes.h"
 #include "L1Trigger/TrackFindingTracklet/interface/DataFormats.h"
-#include "L1Trigger/TrackFindingTracklet/interface/TrackMultiplexer.h"
 #include "SimDataFormats/Associations/interface/TTTypes.h"
-#include "SimDataFormats/Associations/interface/StubAssociation.h"
-#include "L1Trigger/TrackTrigger/interface/Associator.h"
 
 #include <TProfile2D.h>
 #include <TH1F.h>
@@ -47,12 +44,12 @@ namespace trklet {
 
   private:
     struct Track {
-      Track(const TTTrackRef& ttTrackRef, int region, const std::vector<StubDR*>& seed, const std::vector<StubDR*>& proj)
-          : ttTrackRef_(ttTrackRef), region_(region), seed_(seed), proj_(proj) {}
+      Track(const TTTrackRef& ttTrackRef, int region, int seedType, const std::vector<StubDR*>& stubs)
+          : ttTrackRef_(ttTrackRef), region_(region), seedType_(seedType), stubs_(stubs) {}
       TTTrackRef ttTrackRef_;
       int region_;
-      std::vector<StubDR*> seed_;
-      std::vector<StubDR*> proj_;
+      int seedType_;
+      std::vector<StubDR*> stubs_;
     };
     // read in tracks and stubs
     void consume(const tt::StreamsTrack&, const tt::StreamsStub&, std::vector<Track>&, std::vector<StubDR>&) const;
@@ -64,14 +61,10 @@ namespace trklet {
     edm::EDPutTokenT<tt::StreamsStub> edPutTokenStubs_;
     // ED output token for tracks
     edm::EDPutTokenT<tt::StreamsTrack> edPutTokenTracks_;
-    // ED output token for stub association for tracking efficiency
-    edm::EDGetTokenT<tt::StubAssociation> edGetTokenEff_;
     // Setup token
     edm::ESGetToken<Setup, trackerDTC::SetupRcd> esGetTokenSetup_;
     // DataFormats token
     edm::ESGetToken<DataFormats, trackerDTC::SetupRcd> esGetTokenDataFormats_;
-    // Associator token
-    edm::ESGetToken<tt::Associator, trackerDTC::SetupRcd> esGetTokenAssociator_;
     // helper class to store configurations
     const Setup* setup_;
     // helper class to read stubs
@@ -92,16 +85,12 @@ namespace trklet {
     const std::string& label = iConfig.getParameter<std::string>("InputLabelKF");
     const std::string& branchStubs = iConfig.getParameter<std::string>("BranchStubs");
     const std::string& branchTracks = iConfig.getParameter<std::string>("BranchTracks");
-    const std::string& labelMC = iConfig.getParameter<std::string>("LabelMC");
-    const std::string& branchEff = iConfig.getParameter<std::string>("BranchEff");
     // book in- and output ED products
     edGetTokenTracks_ = consumes(edm::InputTag(label, branchTracks));
     edGetTokenStubs_ = consumes(edm::InputTag(label, branchStubs));
-    edGetTokenEff_ = consumes(edm::InputTag(labelMC, branchEff));
     // book ES products
     esGetTokenSetup_ = esConsumes<edm::Transition::BeginRun>();
     esGetTokenDataFormats_ = esConsumes<edm::Transition::BeginRun>();
-    esGetTokenAssociator_ = esConsumes();
   }
 
   void AnalyzerTB::beginRun(const edm::Run& iEvent, const edm::EventSetup& iSetup) {
@@ -122,8 +111,6 @@ namespace trklet {
   }
 
   void AnalyzerTB::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
-    tt::Associator associator = iSetup.getData(esGetTokenAssociator_);
-    associator.consume(iEvent.get(edGetTokenEff_));
     // read in TBout Product and produce TM product
     const tt::StreamsStub& streamsStub = iEvent.get(edGetTokenStubs_);
     const tt::StreamsTrack& streamsTrack = iEvent.get(edGetTokenTracks_);
@@ -134,18 +121,15 @@ namespace trklet {
     consume(streamsTrack, streamsStub, tracks, stubs);
     // analyze in tracks and stubs
     for (const Track& track : tracks) {
-      // Do reco-truth matching.
-      std::vector<TTStubRef> ttStubRefs;
-      ttStubRefs.reserve(setup_->drNumLayers());
-      for (StubDR* stub : track.seed_)
-        ttStubRefs.push_back(stub->frame().first);
-      for (StubDR* stub : track.proj_)
-        if (stub)
-          ttStubRefs.push_back(stub->frame().first);
-      const std::vector<TPPtr>& tpPtrs = associator.associateFinal(ttStubRefs);
-      // analyze stub z residuals
-      for (StubDR* stub : track.proj_) {
-        if (!stub)
+      const std::vector<int>& seedLayers = setup_->tbSeedLayers(track.seedType_);
+      auto isSeed = [&seedLayers, this](StubDR* s) {
+        const trackerDTC::SensorModule* sm = setup_->sensorModule(s->frame().first);
+        const auto it = std::find(seedLayers.begin(), seedLayers.end(), sm->layerId());
+        return it != seedLayers.end();
+      };
+      // analyze stub residuals
+      for (StubDR* stub : track.stubs_) {
+        if (isSeed(stub))
           continue;
         const GlobalPoint gp = setup_->stubPosTT(stub->frame().first);
         const double r = gp.perp() - stub->r();
@@ -186,23 +170,18 @@ namespace trklet {
         const TTTrackRef& ttTrackRef = streamTrack[frame].first;
         if (ttTrackRef.isNull())
           continue;
+        const TrackDR trackDR(streamTrack[frame], dataFormats_);
         // convert stubs
-        std::vector<StubDR*> seed;
-        seed.reserve(setup_->tbNumSeedingLayers());
-        std::vector<StubDR*> proj(setup_->kfNumLayers(), nullptr);
-        for (int layer = 0; layer < setup_->tbNumSeedingLayers(); layer++) {
-          stubs.emplace_back(streamsStub[offset + layer][frame], dataFormats_);
-          seed.push_back(&stubs.back());
-        }
-        for (int layer = 0; layer < setup_->kfNumLayers(); layer++) {
-          const tt::FrameStub& frameStub = streamsStub[offset + setup_->tbNumSeedingLayers() + layer][frame];
-          if (frameStub.first.isNull())
+        std::vector<StubDR*> trackStubs;
+        trackStubs.reserve(setup_->drNumLayers());
+        for (int layer = 0; layer < setup_->drNumLayers(); layer++) {
+          if (streamsStub[offset + layer][frame].first.isNull())
             continue;
-          stubs.emplace_back(frameStub, dataFormats_);
-          proj[layer] = &stubs.back();
+          stubs.emplace_back(streamsStub[offset + layer][frame], dataFormats_);
+          trackStubs.push_back(&stubs.back());
         }
         // create track
-        tracks.emplace_back(ttTrackRef, region, seed, proj);
+        tracks.emplace_back(ttTrackRef, region, trackDR.seedType(), trackStubs);
       }
     }
   }

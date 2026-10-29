@@ -45,7 +45,7 @@ namespace trklet {
     z0_ = trackKF.z0();
     phi0_ = trackKF.phi0();
     // base transforms
-    invR_ = tt::redigi(invR_, 2. * df->format(Variable::inv2R, Process::kf).base(), baseInvR, setup->widthDSPbu());
+    invR_ = tt::redigi(invR_, df->format(Variable::inv2R, Process::kf).base(), baseInvR, setup->widthDSPbu());
     phi0_ = tt::redigi(phi0_, df->format(Variable::phi0, Process::kf).base(), basePhi0, setup->widthDSPbu());
     cot_ = tt::redigi(cot_, df->format(Variable::cot, Process::kf).base(), baseCot, setup->widthDSPbu());
     z0_ = tt::redigi(z0_, df->format(Variable::z0, Process::kf).base(), baseZ0, setup->widthDSPbu());
@@ -103,7 +103,6 @@ namespace trklet {
                                       tt::StreamsTrack& outputs) {
     // organize input tracks
     std::vector<std::deque<Track*>> streams(outputs.size());
-    ;
     consume(tracks, stubs, streams);
     // cycle event, remove all gaps
     for (std::deque<Track*>& stream : streams)
@@ -241,7 +240,6 @@ namespace trklet {
       static constexpr double trkMVA3 = 0.;
       const unsigned int aHitpattern = it->hitPattern_.val();
       const unsigned int nPar = ttTrackRef->nFitPars();
-      const float dummy = -99.;
       outputs.emplace_back(aRinv,
                            aphi,
                            aTanLambda,
@@ -257,16 +255,13 @@ namespace trklet {
                            bfield_,
                            region,
                            ttTrackRef->etaSector(),
-                           dummy,
+                           ttTrackRef->chi2BendRed(),
                            ttTrackRef->trackSeedType());
       TTTrack<Ref_Phase2TrackerDigi_>& ttTrack = outputs.back();
       ttTrack.setStubRefs(it->ttStubRefs_);
       ttTrack.setChi2BendRed(StubPtConsistency::getConsistency(
           ttTrack, setup_->trackerGeometry(), setup_->trackerTopology(), bfield_, nPar));
       ttTrack.setTrackWordBits();
-      constexpr bool debug = false;
-      if (debug)
-        edm::LogVerbatim("Tracklet") << ttTrack;  // Print track
     }
   }
 

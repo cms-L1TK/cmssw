@@ -73,16 +73,16 @@ namespace trklet {
     iConfig_.enableIntegerEmulation_ = iConfig.getParameter<bool>("EnableIntegerEmulation");
     iConfig_.widthR00_ = iConfig.getParameter<int>("WidthR00");
     iConfig_.widthR11_ = iConfig.getParameter<int>("WidthR11");
+    iConfig_.widthX0_ = iConfig.getParameter<int>("WidthX0");
+    iConfig_.widthX1_ = iConfig.getParameter<int>("WidthX1");
+    iConfig_.widthX2_ = iConfig.getParameter<int>("WidthX2");
+    iConfig_.widthX3_ = iConfig.getParameter<int>("WidthX3");
     iConfig_.widthC00_ = iConfig.getParameter<int>("WidthC00");
     iConfig_.widthC01_ = iConfig.getParameter<int>("WidthC01");
     iConfig_.widthC11_ = iConfig.getParameter<int>("WidthC11");
     iConfig_.widthC22_ = iConfig.getParameter<int>("WidthC22");
     iConfig_.widthC23_ = iConfig.getParameter<int>("WidthC23");
     iConfig_.widthC33_ = iConfig.getParameter<int>("WidthC33");
-    iConfig_.baseShiftx0_ = iConfig.getParameter<int>("BaseShiftx0");
-    iConfig_.baseShiftx1_ = iConfig.getParameter<int>("BaseShiftx1");
-    iConfig_.baseShiftx2_ = iConfig.getParameter<int>("BaseShiftx2");
-    iConfig_.baseShiftx3_ = iConfig.getParameter<int>("BaseShiftx3");
     iConfig_.baseShiftr0_ = iConfig.getParameter<int>("BaseShiftr0");
     iConfig_.baseShiftr1_ = iConfig.getParameter<int>("BaseShiftr1");
     iConfig_.baseShiftS00_ = iConfig.getParameter<int>("BaseShiftS00");
@@ -248,12 +248,11 @@ namespace trklet {
         stubsKF.reserve(sizeS);
         for (tmtt::Stub* stub : trackFitted.stubs()) {
           const TTStubRef& ttStubRef = stub->ttStubRef();
-          const trackerDTC::SensorModule* sm = setup_->sensorModule(ttStubRef);
           auto same = [&ttStubRef](const StubDR& s) { return s.frame().first == ttStubRef; };
           const auto it = std::find_if(stubsDR.begin(), stubsDR.end(), same);
           const double phi = it->phi() - it->r() * inv2R - phi0;
           const double z = it->z() - it->r() * cot - z0;
-          stubsKF.emplace_back(*it, sm->layerIdReduced(), it->r(), phi, z, it->dPhi(), it->dZ());
+          stubsKF.emplace_back(*it, it->r(), phi, z, it->dPhi(), it->dZ());
         }
         // store
         tracksOut[region].push_back(trackKF.frame());

@@ -15,7 +15,7 @@ namespace trklet {
   public:
     //
     struct Stub {
-      Stub(KalmanFilterFormats*, const tt::FrameStub&);
+      Stub(KalmanFilterFormats*, const tt::FrameStub&, int);
       // stub radius in cm
       double H() const { return stubDR_.r(); }
       // stub phi coordinate in rad
@@ -33,6 +33,7 @@ namespace trklet {
       StubDR stubDR_;
       double v0_;
       double v1_;
+      int layer_;
     };
     // copy constructor
     State(State*);

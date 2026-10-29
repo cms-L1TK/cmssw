@@ -50,6 +50,8 @@ namespace trklet {
     H,
     m0,
     m1,
+    d0,
+    d1,
     v0,
     v1,
     r0,
@@ -102,16 +104,16 @@ namespace trklet {
     bool enableIntegerEmulation_;
     int widthR00_;
     int widthR11_;
+    int widthX0_;
+    int widthX1_;
+    int widthX2_;
+    int widthX3_;
     int widthC00_;
     int widthC01_;
     int widthC11_;
     int widthC22_;
     int widthC23_;
     int widthC33_;
-    int baseShiftx0_;
-    int baseShiftx1_;
-    int baseShiftx2_;
-    int baseShiftx3_;
     int baseShiftr0_;
     int baseShiftr1_;
     int baseShiftS00_;
@@ -213,6 +215,10 @@ namespace trklet {
   DataFormatKF makeDataFormat<VariableKF::m0>(const DataFormats* dataFormats, const ConfigKF& iConfig);
   template <>
   DataFormatKF makeDataFormat<VariableKF::m1>(const DataFormats* dataFormats, const ConfigKF& iConfig);
+  template <>
+  DataFormatKF makeDataFormat<VariableKF::d0>(const DataFormats* dataFormats, const ConfigKF& iConfig);
+  template <>
+  DataFormatKF makeDataFormat<VariableKF::d1>(const DataFormats* dataFormats, const ConfigKF& iConfig);
   template <>
   DataFormatKF makeDataFormat<VariableKF::v0>(const DataFormats* dataFormats, const ConfigKF& iConfig);
   template <>
