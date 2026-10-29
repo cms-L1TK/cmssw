@@ -27,7 +27,7 @@ GEOMETRY = "D121"
 # 'HYBRID_SIM' prompt tracklet reco + (NEWKF) Track Processing simulation (4 param fit)
 # 'HYBRID_SIM_DISPLACED' displaced tracklet reco + (NEWKF) Track Processing simulation (5 param fit)
 # (Or legacy algos 'TMTT' or 'TRACKLET').
-L1TRKALGO = 'HYBRID_NEWKF'
+L1TRKALGO = 'HYBRID'
 
 # Write output dataset?
 WRITE_DATA = False
@@ -184,12 +184,6 @@ elif (L1TRKALGO == 'HYBRID_NEWKF' or L1TRKALGO == 'HYBRID_REDUCED'):
     from L1Trigger.TrackFindingTracklet.Customize_cff import *
     if (L1TRKALGO == 'HYBRID_NEWKF'):
         swConfig( process )
-        # Cheat to improve z0 resolution (bypass issues in Tracklet digitisation by using TTStubs)
-        process.TrackFindingTrackletSetup.DR.UseTTStubs = True
-        # Alternatively use stubs from output of DTC emulation.
-        #process.TrackFindingTrackletSetup.DR.UseDTCStubs = True
-        # Cheat to investigate z0 resolution (after NEWKF's DR, do KF fit with OLDKF instead of NEWKF)
-        # oldKFConfig( process )
     if (L1TRKALGO == 'HYBRID_REDUCED'):
         reducedConfig( process )
     # Needed by L1TrackNtupleMaker
