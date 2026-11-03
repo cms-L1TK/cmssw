@@ -13,6 +13,7 @@ TrackFindingTrackletProducer_params = cms.PSet (
   InputLabelDR     = cms.string( "ProducerTM"      ),                  #
   InputLabelTM     = cms.string( "l1tTTTracksFromTrackletEmulation" ), #
   BranchStubs      = cms.string( "StubAccepted"    ),                  #
+  BranchAllStubs   = cms.string( "AllStubAccepted" ),                  #
   BranchTracks     = cms.string( "TrackAccepted"   ),                  #
   BranchTTTracks   = cms.string( "TTTrackAccepted" ),                  #
   BranchTruncated  = cms.string( "Truncated"       ),                  #
