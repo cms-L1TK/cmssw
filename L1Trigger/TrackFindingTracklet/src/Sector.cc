@@ -220,6 +220,15 @@ void Sector::writeAS(bool first) {
   }
 }
 
+void Sector::writeAS(std::vector<std::vector<StubStreamData>>& streamsAllStubRaw) {
+  int id(isector_ * streamsAllStubRaw.size() / trklet::N_SECTOR);
+  for (auto& i : AS_) {
+    if (i->getName().substr(i->getName().size() - 2, 2) != "n1")
+      continue;
+    i->writeStubs(streamsAllStubRaw[id++]);
+  }
+}
+
 void Sector::writeAIS(bool first) {
   for (auto& i : AIS_) {
     i->writeStubs(first, isector_);
