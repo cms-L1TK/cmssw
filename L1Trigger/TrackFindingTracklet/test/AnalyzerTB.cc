@@ -76,25 +76,27 @@ namespace trklet {
     TFileDirectory dir;
     dir = fs->mkdir("in");
     constexpr int numChanIn = 48;
-    constexpr int maxOcc = 180;
+    constexpr int maxOccIn = 110;
     hisIn_ = std::vector<TH1F*>(numChanIn);
     for (int i = 0; i < numChanIn; i++)
-      hisIn_[i] =
-          dir.make<TH1F>(("His Channel " + std::to_string(i) + " Occupancy").c_str(), ";", maxOcc, -.5, maxOcc - .5);
+      hisIn_[i] = dir.make<TH1F>(
+          ("His Channel " + std::to_string(i) + " Occupancy").c_str(), ";", maxOccIn, -.5, maxOccIn - .5);
     profIn_ = dir.make<TProfile>("Prof Channel Occupancy", ";", numChanIn, -.5, numChanIn - .5);
     dir = fs->mkdir("mid");
     constexpr int numChanMid = 12;
+    constexpr int maxOccMid = 490;
     hisMid_ = std::vector<TH1F*>(numChanMid);
     for (int i = 0; i < numChanMid; i++)
       hisMid_[i] = dir.make<TH1F>(
-          ("His Channel " + std::to_string(i) + " Occupancy").c_str(), ";", maxOcc * 4, -.5, maxOcc * 4 - .5);
+          ("His Channel " + std::to_string(i) + " Occupancy").c_str(), ";", maxOccMid, -.5, maxOccMid - .5);
     profMid_ = dir.make<TProfile>("Prof Channel Occupancy", ";", numChanMid, -.5, numChanMid - .5);
     dir = fs->mkdir("out");
-    constexpr int numChanOut = 24;
+    const int numChanOut = setup_->asMux().size();
+    constexpr int maxOccOut = 170;
     hisOut_ = std::vector<TH1F*>(numChanOut);
     for (int i = 0; i < numChanOut; i++)
-      hisOut_[i] =
-          dir.make<TH1F>(("His Channel " + std::to_string(i) + " Occupancy").c_str(), ";", maxOcc, -.5, maxOcc - .5);
+      hisOut_[i] = dir.make<TH1F>(
+          ("His Channel " + std::to_string(i) + " Occupancy").c_str(), ";", maxOccOut, -.5, maxOccOut - .5);
     profOut_ = dir.make<TProfile>("Prof Channel Occupancy", ";", numChanOut, -.5, numChanOut - .5);
   }
 
@@ -122,12 +124,15 @@ namespace trklet {
         profMid_->Fill(i, num);
       }
       // out
-      for (int i = 0; i < 24; i++) {
+      int i(0);
+      for (const std::vector<int>& mux : setup_->asMux()) {
         int num(0);
-        for (int j = 0; j < 2; j++)
-          num += nums[i % 2 + i / 2 * 4 + 2 * j];
+        for (int j : mux)
+          num += nums[j];
+        if (num > 161)
+          num = 161;
         hisOut_[i]->Fill(num);
-        profOut_->Fill(i, num);
+        profOut_->Fill(i++, num);
       }
     }
   }
