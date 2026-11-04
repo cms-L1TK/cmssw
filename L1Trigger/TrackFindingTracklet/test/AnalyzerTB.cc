@@ -79,19 +79,22 @@ namespace trklet {
     constexpr int maxOcc = 180;
     hisIn_ = std::vector<TH1F*>(numChanIn);
     for (int i = 0; i < numChanIn; i++)
-      hisIn_[i] = dir.make<TH1F>(("His Channel " + std::to_string(i) + " Occupancy" ).c_str(), ";", maxOcc, -.5, maxOcc - .5);
+      hisIn_[i] =
+          dir.make<TH1F>(("His Channel " + std::to_string(i) + " Occupancy").c_str(), ";", maxOcc, -.5, maxOcc - .5);
     profIn_ = dir.make<TProfile>("Prof Channel Occupancy", ";", numChanIn, -.5, numChanIn - .5);
     dir = fs->mkdir("mid");
     constexpr int numChanMid = 12;
     hisMid_ = std::vector<TH1F*>(numChanMid);
     for (int i = 0; i < numChanMid; i++)
-      hisMid_[i] = dir.make<TH1F>(("His Channel " + std::to_string(i) + " Occupancy" ).c_str(), ";", maxOcc*4, -.5, maxOcc*4 - .5);
+      hisMid_[i] = dir.make<TH1F>(
+          ("His Channel " + std::to_string(i) + " Occupancy").c_str(), ";", maxOcc * 4, -.5, maxOcc * 4 - .5);
     profMid_ = dir.make<TProfile>("Prof Channel Occupancy", ";", numChanMid, -.5, numChanMid - .5);
     dir = fs->mkdir("out");
     constexpr int numChanOut = 24;
     hisOut_ = std::vector<TH1F*>(numChanOut);
     for (int i = 0; i < numChanOut; i++)
-      hisOut_[i] = dir.make<TH1F>(("His Channel " + std::to_string(i) + " Occupancy" ).c_str(), ";", maxOcc, -.5, maxOcc - .5);
+      hisOut_[i] =
+          dir.make<TH1F>(("His Channel " + std::to_string(i) + " Occupancy").c_str(), ";", maxOcc, -.5, maxOcc - .5);
     profOut_ = dir.make<TProfile>("Prof Channel Occupancy", ";", numChanOut, -.5, numChanOut - .5);
   }
 
