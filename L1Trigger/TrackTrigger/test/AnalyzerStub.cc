@@ -71,17 +71,16 @@ struct StubHistos {
 
 class AnalyzerStub : public edm::one::EDAnalyzer<edm::one::WatchRuns, edm::one::SharedResources> {
 public:
-
   explicit AnalyzerStub(const edm::ParameterSet&);
   ~AnalyzerStub() override;
   void beginJob() override;
   void beginRun(const edm::Run& iEvent, const edm::EventSetup& iSetup) override;
-  void endRun(const edm::Run& iEvent, const edm::EventSetup& iSetup) override {}  
+  void endRun(const edm::Run& iEvent, const edm::EventSetup& iSetup) override {}
   void analyze(const edm::Event&, const edm::EventSetup&) override;
 
 private:
   std::map<unsigned int, StubHistos>::iterator createLayerHistograms(unsigned int);
-  
+
   const edm::ESGetToken<TrackerGeometry, TrackerDigiGeometryRecord> esTokenGeom_;
   const edm::ESGetToken<TrackerTopology, TrackerTopologyRcd> esTokenTopo_;
   const edm::ESGetToken<MagneticField, IdealMagneticFieldRecord> esTokenBfield_;
@@ -109,17 +108,16 @@ private:
 AnalyzerStub::AnalyzerStub(const edm::ParameterSet& conf)
     : esTokenGeom_(esConsumes()),
       esTokenTopo_(esConsumes()),
-      esTokenBfield_(esConsumes<edm::Transition::BeginRun>()),      
+      esTokenBfield_(esConsumes<edm::Transition::BeginRun>()),
       tpToken_(consumes<std::vector<TrackingParticle>>(conf.getParameter<edm::InputTag>("trackingParticles"))),
-      tokenStubs_(consumes<edmNew::DetSetVector<TTStub<Ref_Phase2TrackerDigi_>>>(
-          conf.getParameter<edm::InputTag>("ttstubs"))),
-      tokenStubAssoc_(consumes<TTStubAssociationMap<Ref_Phase2TrackerDigi_>>(
-                                                                             conf.getParameter<edm::InputTag>("ttstubassoc"))),
+      tokenStubs_(
+          consumes<edmNew::DetSetVector<TTStub<Ref_Phase2TrackerDigi_>>>(conf.getParameter<edm::InputTag>("ttstubs"))),
+      tokenStubAssoc_(
+          consumes<TTStubAssociationMap<Ref_Phase2TrackerDigi_>>(conf.getParameter<edm::InputTag>("ttstubassoc"))),
       catECasRings_(conf.getParameter<bool>("ECasRings")),
       tpSel_(
-             minPt_, 9.9e9, -maxEta_, maxEta_, maxVertR_, maxVertZ_, 0, useSignal_, useIntime_, useCharged_, useStable_),
-      bField_(0.)
-{
+          minPt_, 9.9e9, -maxEta_, maxEta_, maxVertR_, maxVertZ_, 0, useSignal_, useIntime_, useCharged_, useStable_),
+      bField_(0.) {
   usesResource(TFileService::kSharedResource);
 }
 
@@ -154,7 +152,7 @@ void AnalyzerStub::analyze(const edm::Event& event, const edm::EventSetup& event
   // Get association map
   edm::Handle<TTStubAssociationMap<Ref_Phase2TrackerDigi_>> stubsAssoc;
   event.getByToken(tokenStubAssoc_, stubsAssoc);
-  
+
   // Get the geometry
   const TrackerGeometry* tkGeom = &eventSetup.getData(esTokenGeom_);
   const TrackerTopology* tkTopo = &eventSetup.getData(esTokenTopo_);
@@ -203,9 +201,8 @@ void AnalyzerStub::analyze(const edm::Event& event, const edm::EventSetup& event
 
     // Loop over the stubs in the detector unit
     for (auto stubIt = DSViter->begin(); stubIt != DSViter->end(); ++stubIt) {
-      
       TTStubRef ttStubRef = edmNew::makeRefTo(stubs, stubIt);
-      
+
       // MC truth association
       bool genuine = stubsAssoc->isGenuine(ttStubRef);
 
@@ -232,7 +229,7 @@ void AnalyzerStub::analyze(const edm::Event& event, const edm::EventSetup& event
       } else {
         trackerLayoutXYEC_->Fill(posStub.x(), posStub.y());
       }
-      
+
       if (genuine) {
         const TrackingParticlePtr& tp = stubsAssoc->findTrackingParticlePtr(ttStubRef);
         if (tpSel_(*tp)) {
@@ -241,31 +238,31 @@ void AnalyzerStub::analyze(const edm::Event& event, const edm::EventSetup& event
           auto histogramLayer(histograms_.find(layer));
           if (histogramLayer == histograms_.end())
             throw cms::Exception("LogicError") << "No histo for an existing thing! This should not happen!";
-          
+
           // Plot stub bend & bend resolution
           // First calculate true bend (based on code in SensorModule.cc & StubGL.cc).
-          const float cSpeed = 1.0e8 * CLHEP::c_light; // units of cm/s
-          const float invPtToDphi = bField_*cSpeed/2.0e13;
+          const float cSpeed = 1.0e8 * CLHEP::c_light;  // units of cm/s
+          const float invPtToDphi = bField_ * cSpeed / 2.0e13;
           // Info about tracker module & two sensors in it.
           const GlobalPoint pos1 = GlobalPoint(detUnit1->position());
           const GeomDetUnit* detUnit2 = tkGeom->idToDetUnit(tkTopo->partnerDetId(detId1));
           const GlobalPoint pos2 = GlobalPoint(detUnit2->position());
           const float sensorSep = (pos2 - pos1).mag();
           const float pitch = pixTopo->pitch().first;
-          const float pitchOverSep = pitch/sensorSep;
+          const float pitchOverSep = pitch / sensorSep;
           const float deltaR = pos2.perp() - pos1.perp();
           const float deltaZ = pos2.z() - pos1.z();
           bool flipped = pos1.mag() > pos2.mag();
-          // Module tilt angle w.r.t. beam axis (0=barrel,-+pi/2=+-ve endcap). 
+          // Module tilt angle w.r.t. beam axis (0=barrel,-+pi/2=+-ve endcap).
           const float tiltAngle = flipped ? atan2(deltaZ, -deltaR) : atan2(-deltaZ, deltaR);
-          float dphi = asin(invPtToDphi*posStub.perp()*tp->charge()/tp->pt());
+          float dphi = asin(invPtToDphi * posStub.perp() * tp->charge() / tp->pt());
           float lambda = atan2(posStub.z(), posStub.perp());
-          float dphiOverBend = pitchOverSep*(cos(tiltAngle) - sin(tiltAngle)*tan(lambda));
-          float tpBend = dphi / dphiOverBend; // Bend of TrackingParticle at stub position
+          float dphiOverBend = pitchOverSep * (cos(tiltAngle) - sin(tiltAngle) * tan(lambda));
+          float tpBend = dphi / dphiOverBend;  // Bend of TrackingParticle at stub position
 
           // +ve charges bend towards -ve phi, so flip sign.
           tpBend = -tpBend;
-          
+
           // Some modules dont have increasing strip number in direction of increasing phi.
           const auto& localY = plane.rotation().y();
           const double radial = pos1.x() * localY.x() + pos1.y() * localY.y();
@@ -273,12 +270,14 @@ void AnalyzerStub::analyze(const edm::Event& event, const edm::EventSetup& event
           // Calculation of variable d in StubGL.cc assumes localY points radially
           // inwards in +ve endcap, (where sinTilt=-1), so flip sign there.
           bool side = pos1.z() >= 0;
-          if (side && not barrel) signCol = not signCol;
+          if (side && not barrel)
+            signCol = not signCol;
           bool signBend = signCol;
-          
-          if (signBend) tpBend = -tpBend;
 
-          histogramLayer->second.bend[det]->Fill(ttStubRef->bendFE());    
+          if (signBend)
+            tpBend = -tpBend;
+
+          histogramLayer->second.bend[det]->Fill(ttStubRef->bendFE());
           histogramLayer->second.bendRes[det]->Fill(ttStubRef->bendFE() - tpBend);
         }
       }
