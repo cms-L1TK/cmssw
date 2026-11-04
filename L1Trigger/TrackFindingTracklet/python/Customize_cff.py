@@ -6,7 +6,6 @@ import FWCore.ParameterSet.Config as cms
 def fwConfig(process):
   process.l1tTTTracksFromTrackletEmulation.Fakefit = True
   process.l1tTTTracksFromTrackletEmulation.RemovalType = ""
-  process.l1tTTTracksFromTrackletEmulation.DoMultipleMatches = False
   process.l1tTTTracksFromTrackletEmulation.StoreTrackBuilderOutput = True
   process.TrackFindingTrackletSetup.DR.UseDTCStubs = False
   process.TrackFindingTrackletSetup.DR.UseTTStubs = False
