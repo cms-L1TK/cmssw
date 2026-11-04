@@ -87,6 +87,7 @@ namespace trklet {
     config_.kfNumProj = pSetKF.getParameter<int>("NumProj");
     config_.kfMinLayers = pSetKF.getParameter<int>("MinLayers");
     const edm::ParameterSet& pSetTQ = iConfig.getParameter<edm::ParameterSet>("TQ");
+    config_.tqEnable = pSetTQ.getParameter<bool>("Enable");
     config_.tqNumChannel = pSetTQ.getParameter<int>("NumChannel");
     config_.tqWidthChi21 = pSetTQ.getParameter<int>("WidthChi21");
     config_.tqWidthChi20 = pSetTQ.getParameter<int>("WidthChi20");

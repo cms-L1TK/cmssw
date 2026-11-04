@@ -11,6 +11,7 @@ def swConfig(process):
   process.TrackFindingTrackletSetup.DR.UseDTCStubs = True
   process.TrackFindingTrackletSetup.DR.UseTTStubs = False
   process.ProducerKF.EnableIntegerEmulation = False
+  process.TrackFindingTrackletSetup.TQ.Enable = True
 
 # configures track finding s/w to behave as track finding f/w
 def fwConfig(process):
@@ -20,6 +21,7 @@ def fwConfig(process):
   process.TrackFindingTrackletSetup.DR.UseDTCStubs = False
   process.TrackFindingTrackletSetup.DR.UseTTStubs = False
   process.ProducerKF.EnableIntegerEmulation = True
+  process.TrackFindingTrackletSetup.TQ.Enable = False
 
 # configures track finding s/w to behave as a subchain of processing steps
 def reducedConfig(process):
