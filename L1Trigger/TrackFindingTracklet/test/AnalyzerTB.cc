@@ -50,8 +50,12 @@ namespace trklet {
     // helper class to store configurations
     const Setup* setup_;
     //
-    std::vector<TH1F*> his_;
-    TProfile* prof_;
+    std::vector<TH1F*> hisIn_;
+    std::vector<TH1F*> hisMid_;
+    std::vector<TH1F*> hisOut_;
+    TProfile* profIn_;
+    TProfile* profMid_;
+    TProfile* profOut_;
   };
 
   AnalyzerTB::AnalyzerTB(const edm::ParameterSet& iConfig) {
@@ -70,14 +74,25 @@ namespace trklet {
     // book histograms
     edm::Service<TFileService> fs;
     TFileDirectory dir;
-    // stub z postion from tracklet residuals plus tracklet seed parameter vs stub z psotion from TTStubs projected to stub radius from tracklet using tracklet seed parameter
-    dir = fs->mkdir("");
-    constexpr int numChan = 48;
+    dir = fs->mkdir("in");
+    constexpr int numChanIn = 48;
     constexpr int maxOcc = 180;
-    his_ = std::vector<TH1F*>(numChan);
-    for (int i = 0; i < numChan; i++)
-      his_[i] = dir.make<TH1F>(("His Channel Occupancy " + std::to_string(i)).c_str(), ";", maxOcc, -.5, maxOcc - .5);
-    prof_ = dir.make<TProfile>("Prof Channel Occupancy", ";", numChan, -.5, numChan - .5);
+    hisIn_ = std::vector<TH1F*>(numChanIn);
+    for (int i = 0; i < numChanIn; i++)
+      hisIn_[i] = dir.make<TH1F>(("His Channel " + std::to_string(i) + " Occupancy" ).c_str(), ";", maxOcc, -.5, maxOcc - .5);
+    profIn_ = dir.make<TProfile>("Prof Channel Occupancy", ";", numChanIn, -.5, numChanIn - .5);
+    dir = fs->mkdir("mid");
+    constexpr int numChanMid = 12;
+    hisMid_ = std::vector<TH1F*>(numChanMid);
+    for (int i = 0; i < numChanMid; i++)
+      hisMid_[i] = dir.make<TH1F>(("His Channel " + std::to_string(i) + " Occupancy" ).c_str(), ";", maxOcc*4, -.5, maxOcc*4 - .5);
+    profMid_ = dir.make<TProfile>("Prof Channel Occupancy", ";", numChanMid, -.5, numChanMid - .5);
+    dir = fs->mkdir("out");
+    constexpr int numChanOut = 24;
+    hisOut_ = std::vector<TH1F*>(numChanOut);
+    for (int i = 0; i < numChanOut; i++)
+      hisOut_[i] = dir.make<TH1F>(("His Channel " + std::to_string(i) + " Occupancy" ).c_str(), ";", maxOcc, -.5, maxOcc - .5);
+    profOut_ = dir.make<TProfile>("Prof Channel Occupancy", ";", numChanOut, -.5, numChanOut - .5);
   }
 
   void AnalyzerTB::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
@@ -86,13 +101,30 @@ namespace trklet {
     // count stubs
     for (int iRegion = 0; iRegion < setup_->sysNumRegion(); iRegion++) {
       const int offset = iRegion * 48;
+      std::vector<int> nums(48, 0);
       for (int iChan = 0; iChan < 48; iChan++) {
-        int num(0);
+        int& num = nums[iChan];
         for (const tt::FrameStub& frame : streams[offset + iChan])
           if (frame.first.isNonnull())
             num++;
-        his_[iChan]->Fill(num);
-        prof_->Fill(iChan, num);
+        hisIn_[iChan]->Fill(num);
+        profIn_->Fill(iChan, num);
+      }
+      // mid
+      for (int i = 0; i < 12; i++) {
+        int num(0);
+        for (int j = 0; j < 4; j++)
+          num += nums[4 * i + j];
+        hisMid_[i]->Fill(num);
+        profMid_->Fill(i, num);
+      }
+      // out
+      for (int i = 0; i < 24; i++) {
+        int num(0);
+        for (int j = 0; j < 2; j++)
+          num += nums[i % 2 + i / 2 * 4 + 2 * j];
+        hisOut_[i]->Fill(num);
+        profOut_->Fill(i, num);
       }
     }
   }

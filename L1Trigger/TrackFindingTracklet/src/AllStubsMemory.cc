@@ -28,13 +28,14 @@ void AllStubsMemory::writeStubs(std::vector<StubStreamData>& streamsAllStubRaw) 
       continue;
     }
     std::string s;
-    s += stub->negdisk().str();
+    if (stub->negdisk().nbits() > 0)
+      s += stub->negdisk().str();
     s += stub->r().str();
     s += stub->z().str();
     s += stub->phi().str();
-    s += stub->alpha().str();
+    if (stub->alpha().nbits() > 0)
+      s += stub->alpha().str();
     s += stub->bend().str();
-    s.erase(std::remove(s.begin(), s.end(), '?'), s.end());
     streamsAllStubRaw.emplace_back(0, *(stub->l1tstub()), s);
   }
 }

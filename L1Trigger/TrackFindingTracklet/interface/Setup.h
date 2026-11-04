@@ -112,6 +112,8 @@ namespace trklet {
       int kfNumProj;
       // required number of layers to form a track
       int kfMinLayers;
+      // enables MVA
+      bool tqEnable;
       // number of output channel
       int tqNumChannel;
       // Number of bits used to represent chi2rphi
@@ -379,6 +381,8 @@ namespace trklet {
     // minimum number of projection layers to form a track
     int kfMinProj() const { return kfMinProj_; }
 
+    // enables MVA
+    bool tqEnable() const { return config_.tqEnable; }
     // number of output channel
     int tqNumChannel() const { return config_.tqNumChannel; }
     // Number of bits used to represent chi2rphi
