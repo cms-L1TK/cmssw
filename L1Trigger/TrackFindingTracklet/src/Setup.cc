@@ -14,6 +14,7 @@ namespace trklet {
 
   Setup::Setup(const Config& config, const trackerDTC::Setup* setup) : dtc_(setup), config_(config) {
     numFrames_ = dtc_->sysNumFrames() + dtc_->sysNumFramesInfra() - 1;
+    numDTCsPerTFP_ = dtc_->regNumDTC() * dtc_->sysNumOverlap();
     tbMaxCot_ = std::sinh(dtc_->regMaxEta());
     const Settings settings;
     tbBaseInv2R_ = .5 * settings.krinvpars();

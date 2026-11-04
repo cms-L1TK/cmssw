@@ -38,6 +38,8 @@ namespace trklet {
       std::vector<double> otLimitsPSDiskR;
       // vector of DTC id indexed by connected IR module id
       std::vector<int> irChannelsIn;
+      // AS input mux map [48 to 31 channel]
+      std::vector<std::vector<int>> asMux;
       // f/w frequency in MHz
       double tbFreq;
       // smallest disk stub z position after TrackBuilder in cm
@@ -192,6 +194,8 @@ namespace trklet {
     double smTiltApproxSlope() const { return dtc_->smTiltApproxSlope(); }
     // In tilted barrel, grad*|z|/r + int approximates |cosTilt| + |sinTilt * cotTheta|
     double smTiltApproxIntercept() const { return dtc_->smTiltApproxIntercept(); }
+    // number of DTC boards connected to one TFP
+    int numDTCsPerTFP() const { return numDTCsPerTFP_; }
 
     // critical radius in cm defining r-phi Region shape
     double regChosenRofPhi() const { return dtc_->regChosenRofPhi(); }
@@ -276,6 +280,9 @@ namespace trklet {
 
     // use either 4 or 5 parameter fit in simulation
     int simNPar() const { return config_.simNPar; }
+
+    // AS input mux map [48 to 31 channel]
+    const std::vector<std::vector<int>>& asMux() const { return config_.asMux; }
 
     // number of seed Types
     int tbNumSeedTypes() const { return config_.tbNumSeedTypes; }
@@ -424,6 +431,8 @@ namespace trklet {
     Config config_;
     // number of frames betwen 2 resets of 18 BX packets
     int numFrames_;
+    // number of DTC boards connected to one TFP
+    int numDTCsPerTFP_;
     // largest possible cotTheta
     double tbMaxCot_;
     double tbBaseInv2R_;

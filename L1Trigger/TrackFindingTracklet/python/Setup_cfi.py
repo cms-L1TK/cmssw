@@ -71,6 +71,43 @@ TrackFindingTracklet_params = cms.PSet (
     WidthCot     = cms.int32( 15 ), # number of Bits used to represent cot
   ),
 
+  # Parameter specifying All Stub processing
+  AS = cms.PSet (
+    Mux = cms.VPSet (
+      cms.PSet( Chan = cms.vint32(  0,  1) ),
+      cms.PSet( Chan = cms.vint32(      2) ),
+      cms.PSet( Chan = cms.vint32(      3) ),
+      cms.PSet( Chan = cms.vint32(      4) ),
+      cms.PSet( Chan = cms.vint32(      5) ),
+      cms.PSet( Chan = cms.vint32(  6,  7) ), # L1
+      cms.PSet( Chan = cms.vint32(  8, 11) ),
+      cms.PSet( Chan = cms.vint32(      9) ),
+      cms.PSet( Chan = cms.vint32(     10) ), # L2
+      cms.PSet( Chan = cms.vint32( 12, 15) ),
+      cms.PSet( Chan = cms.vint32(     13) ),
+      cms.PSet( Chan = cms.vint32(     14) ), # L3
+      cms.PSet( Chan = cms.vint32( 16, 19) ),
+      cms.PSet( Chan = cms.vint32(     17) ),
+      cms.PSet( Chan = cms.vint32(     18) ), # L4
+      cms.PSet( Chan = cms.vint32( 20, 23) ),
+      cms.PSet( Chan = cms.vint32(     21) ),
+      cms.PSet( Chan = cms.vint32(     22) ), # L5
+      cms.PSet( Chan = cms.vint32( 24, 26) ),
+      cms.PSet( Chan = cms.vint32( 25, 27) ), # L6
+      cms.PSet( Chan = cms.vint32( 28, 30) ),
+      cms.PSet( Chan = cms.vint32( 29, 31) ), # D1
+      cms.PSet( Chan = cms.vint32( 32, 35) ),
+      cms.PSet( Chan = cms.vint32(     33) ),
+      cms.PSet( Chan = cms.vint32(     34) ), # D2
+      cms.PSet( Chan = cms.vint32( 36, 38) ),
+      cms.PSet( Chan = cms.vint32( 37, 39) ), # D3
+      cms.PSet( Chan = cms.vint32( 40, 42) ),
+      cms.PSet( Chan = cms.vint32( 41, 43) ), # D4
+      cms.PSet( Chan = cms.vint32( 44, 46) ),
+      cms.PSet( Chan = cms.vint32( 45, 47) )  # D5
+    ),
+  ),
+
   # Parameter specifying Track Multiplexer
   TM = cms.PSet (
     # The order here approximately dictates the order in which tracks enter the DR,

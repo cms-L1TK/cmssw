@@ -27,6 +27,7 @@ fwConfig( process )
 
 # build schedule
 process.emu = cms.Sequence (  process.ProducerDTC
+                            + process.ProducerPP
                             + process.L1THybridTracks
                             + process.ProducerTM
                             + process.ProducerDR

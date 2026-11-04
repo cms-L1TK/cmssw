@@ -77,9 +77,9 @@ namespace trklet {
       edGetTokenStubsIn_ = consumes<tt::StreamsStub>(edm::InputTag(labelIn, branchStubs));
     if (labelOut != "ProducerTQ" && labelOut != "ProducerTFP")
       edGetTokenStubsOut_ = consumes<tt::StreamsStub>(edm::InputTag(labelOut, branchStubs));
-    if (labelIn != "ProducerIRin")
+    if (labelIn != "ProducerPP")
       edGetTokenTracksIn_ = consumes<tt::StreamsTrack>(edm::InputTag(labelIn, branchTracks));
-    if (labelOut != "ProducerIRin")
+    if (labelOut != "ProducerPP")
       edGetTokenTracksOut_ = consumes<tt::StreamsTrack>(edm::InputTag(labelOut, branchTracks));
     // book ES products
     esGetTokenSetup_ = esConsumes<edm::Transition::BeginRun>();
