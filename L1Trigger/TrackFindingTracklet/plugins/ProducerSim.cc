@@ -22,6 +22,7 @@
 #include <iterator>
 #include <cmath>
 #include <numeric>
+#include "conifer.h"
 
 namespace trklet {
 
@@ -56,9 +57,13 @@ namespace trklet {
     const Setup* setup_;
     //
     std::vector<int> nPer_;
+    // BDT models for baseline and extended tracking
+    const edm::ParameterSet config_;
+    conifer::BDT<float, float> bdt_;
   };
 
-  ProducerSim::ProducerSim(const edm::ParameterSet& iConfig) {
+  ProducerSim::ProducerSim(const edm::ParameterSet& iConfig)
+      : config_(iConfig), bdt_(config_.getParameter<edm::FileInPath>("BDT4ParSim").fullPath()) {
     const edm::InputTag& inputTag = iConfig.getParameter<edm::InputTag>("InputTagTracklet");
     const std::string& branchTracks = iConfig.getParameter<std::string>("BranchTTTracks");
     // book in- and output ED products
@@ -83,6 +88,16 @@ namespace trklet {
     for (int i = setup_->kfMinLayers(); i <= setup_->kfNumLayers(); i++)
       for (int j = setup_->kfMinLayers(); j <= i; j++)
         nPer_[i - setup_->kfMinLayers()] += bc(i, j);
+
+    // Load correct BDT model
+    std::string fbdtpath_ = "";
+
+    if (setup_->simNPar() == 4)
+      fbdtpath_ = config_.getParameter<edm::FileInPath>("BDT4ParSim").fullPath();
+    else if (setup_->simNPar() == 5)
+      fbdtpath_ = config_.getParameter<edm::FileInPath>("BDT5ParSim").fullPath();
+
+    bdt_ = conifer::BDT<float, float>(fbdtpath_);
   }
 
   void ProducerSim::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
@@ -297,6 +312,26 @@ namespace trklet {
       // finish TTTrack
       ttTrack.setChi2BendRed(StubPtConsistency::getConsistency(
           ttTrack, setup_->trackerGeometry(), setup_->trackerTopology(), setup_->sysBField(), setup_->simNPar()));
+
+      // Prepare attributes for MVA evaluation
+      const float nstubs = ttTrack.getStubRefs().size();
+      const float z0 = ttTrack.z0();
+      const float tanL = ttTrack.tanL();
+      const float chi20 = ttTrack.chi2XY();
+      const float chi21 = ttTrack.chi2Z();
+      const float hitpattern = ttTrack.hitPattern();
+
+      // BDT evaluation
+      std::vector<float> inputs = {nstubs, z0, tanL, chi20, chi21, hitpattern};
+
+      float mva = bdt_.decision_function(inputs).at(0);
+
+      // Apply sigmoid activation
+      mva = 1.f / (1.f + std::exp(-mva));
+
+      // Store MVA score
+      ttTrack.settrkMVA1(mva);
+
       ttTrack.setTrackWordBits();
     }
     // store products
