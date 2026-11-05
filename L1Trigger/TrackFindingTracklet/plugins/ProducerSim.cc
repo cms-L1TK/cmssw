@@ -63,8 +63,7 @@ namespace trklet {
   };
 
   ProducerSim::ProducerSim(const edm::ParameterSet& iConfig)
-      : config_(iConfig),
-        bdt_(config_.getParameter<edm::FileInPath>("BDT4ParSim").fullPath()) {
+      : config_(iConfig), bdt_(config_.getParameter<edm::FileInPath>("BDT4ParSim").fullPath()) {
     const edm::InputTag& inputTag = iConfig.getParameter<edm::InputTag>("InputTagTracklet");
     const std::string& branchTracks = iConfig.getParameter<std::string>("BranchTTTracks");
     // book in- and output ED products
@@ -323,14 +322,7 @@ namespace trklet {
       const float hitpattern = ttTrack.hitPattern();
 
       // BDT evaluation
-      std::vector<float> inputs = {
-          nstubs,
-          z0,
-          tanL,
-          chi20,
-          chi21,
-          hitpattern
-      };
+      std::vector<float> inputs = {nstubs, z0, tanL, chi20, chi21, hitpattern};
 
       float mva = bdt_.decision_function(inputs).at(0);
 
@@ -339,7 +331,7 @@ namespace trklet {
 
       // Store MVA score
       ttTrack.settrkMVA1(mva);
-      
+
       ttTrack.setTrackWordBits();
     }
     // store products
