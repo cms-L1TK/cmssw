@@ -35,7 +35,7 @@ namespace trklet {
    */
   class AnalyzerAS : public edm::one::EDAnalyzer<edm::one::WatchRuns, edm::one::SharedResources> {
   public:
-    AnalyzerTB(const edm::ParameterSet& iConfig);
+    AnalyzerAS(const edm::ParameterSet& iConfig);
     void beginJob() override {}
     void beginRun(const edm::Run& iEvent, const edm::EventSetup& iSetup) override;
     void analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) override;
