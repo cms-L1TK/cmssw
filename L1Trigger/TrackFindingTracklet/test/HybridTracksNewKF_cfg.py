@@ -41,7 +41,7 @@ fwConfig( process )
 # build schedule
 process.mc       = cms.Sequence( process.StubAssociator  + process.AnalyzerMC       )
 process.dtc      = cms.Sequence( process.ProducerDTC     + process.AnalyzerDTC      )
-process.tracklet = cms.Sequence( process.L1THybridTracks + process.AnalyzerTracklet )
+process.tracklet = cms.Sequence( process.L1THybridTracks + process.AnalyzerTracklet + process.AnalyzerAS )
 process.tm       = cms.Sequence( process.ProducerTM      + process.AnalyzerTM       )
 process.dr       = cms.Sequence( process.ProducerDR      + process.AnalyzerDR       )
 process.kf       = cms.Sequence( process.ProducerKF      + process.AnalyzerKF       )

@@ -8,7 +8,7 @@ from L1Trigger.TrackFindingTracklet.Setup_cfi import TrackFindingTracklet_params
 from SimTracker.TrackTriggerAssociation.StubAssociator_cfi import StubAssociator_params
 
 AnalyzerTQ = cms.EDAnalyzer( 'trklet::AnalyzerTQ', TrackFindingTrackletAnalyzer_params, TrackFindingTrackletProducer_params, StubAssociator_params )
-AnalyzerTB = cms.EDAnalyzer( 'trklet::AnalyzerTB', TrackFindingTrackletAnalyzer_params, TrackFindingTrackletProducer_params, StubAssociator_params )
+AnalyzerAS = cms.EDAnalyzer( 'trklet::AnalyzerAS', TrackFindingTrackletAnalyzer_params, TrackFindingTrackletProducer_params, StubAssociator_params )
 
 AnalyzerStream  = cms.EDAnalyzer( 'tt::AnalyzerStreamTrack',  TrackFindingTrackletAnalyzer_params, TrackFindingTrackletProducer_params, StubAssociator_params )
 AnalyzerTTTrack = cms.EDAnalyzer( 'tt::AnalyzerTTTrack',      TrackFindingTrackletAnalyzer_params, TrackFindingTrackletProducer_params, StubAssociator_params )
@@ -21,3 +21,5 @@ AnalyzerTracklet = AnalyzerTTTrack.clone( InputTag = cms.InputTag( "l1tTTTracksF
 AnalyzerTFP      = AnalyzerTTTrack.clone( InputTag = cms.InputTag( "ProducerTFP",                      "TTTrackAccepted" ), Process = "TFP"      )
 
 AnalyzerSim = AnalyzerTTTrack.clone( InputTag = cms.InputTag( "ProducerSim", "TTTrackAccepted" ), Process = "Sim" )
+
+NtupleMakerTQ = cms.EDAnalyzer( 'trklet::NtupleMakerTQ', TrackFindingTrackletAnalyzer_params, TrackFindingTrackletProducer_params, StubAssociator_params )

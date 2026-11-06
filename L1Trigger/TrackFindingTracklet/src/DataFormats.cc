@@ -116,6 +116,12 @@ namespace trklet {
   }
 
   template <>
+  DataFormat makeDataFormat<Variable::stubId, Process::asp>(const Setup* setup) {
+    const int width = setup->aspWidthStubId();
+    return DataFormat(false, width);
+  }
+
+  template <>
   DataFormat makeDataFormat<Variable::r, Process::dr>(const Setup* setup) {
     const DataFormat phi0 = makeDataFormat<Variable::phi0, Process::kf>(setup);
     const DataFormat inv2R = makeDataFormat<Variable::inv2R, Process::kf>(setup);

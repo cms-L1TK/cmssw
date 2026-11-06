@@ -28,12 +28,12 @@
 
 namespace trklet {
 
-  /*! \class  trklet::AnalyzerTB
+  /*! \class  trklet::AnalyzerAS
    *  \brief  Class to analyze emulated All Stubs
    *  \author Thomas Schuh
    *  \date   2025, Nov
    */
-  class AnalyzerTB : public edm::one::EDAnalyzer<edm::one::WatchRuns, edm::one::SharedResources> {
+  class AnalyzerAS : public edm::one::EDAnalyzer<edm::one::WatchRuns, edm::one::SharedResources> {
   public:
     AnalyzerTB(const edm::ParameterSet& iConfig);
     void beginJob() override {}
@@ -53,12 +53,13 @@ namespace trklet {
     std::vector<TH1F*> hisIn_;
     std::vector<TH1F*> hisMid_;
     std::vector<TH1F*> hisOut_;
+    TH1F* his_;
     TProfile* profIn_;
     TProfile* profMid_;
     TProfile* profOut_;
   };
 
-  AnalyzerTB::AnalyzerTB(const edm::ParameterSet& iConfig) {
+  AnalyzerAS::AnalyzerAS(const edm::ParameterSet& iConfig) {
     usesResource("TFileService");
     const std::string& label = iConfig.getParameter<std::string>("InputLabelTM");
     const std::string& branch = iConfig.getParameter<std::string>("BranchAllStubs");
@@ -68,7 +69,7 @@ namespace trklet {
     esGetToken_ = esConsumes<edm::Transition::BeginRun>();
   }
 
-  void AnalyzerTB::beginRun(const edm::Run& iEvent, const edm::EventSetup& iSetup) {
+  void AnalyzerAS::beginRun(const edm::Run& iEvent, const edm::EventSetup& iSetup) {
     // helper class to store configurations
     setup_ = &iSetup.getData(esGetToken_);
     // book histograms
@@ -91,16 +92,19 @@ namespace trklet {
           ("His Channel " + std::to_string(i) + " Occupancy").c_str(), ";", maxOccMid, -.5, maxOccMid - .5);
     profMid_ = dir.make<TProfile>("Prof Channel Occupancy", ";", numChanMid, -.5, numChanMid - .5);
     dir = fs->mkdir("out");
-    const int numChanOut = setup_->asMux().size();
+    const int numChanOut = setup_->aspMux().size();
     constexpr int maxOccOut = 170;
     hisOut_ = std::vector<TH1F*>(numChanOut);
     for (int i = 0; i < numChanOut; i++)
       hisOut_[i] = dir.make<TH1F>(
           ("His Channel " + std::to_string(i) + " Occupancy").c_str(), ";", maxOccOut, -.5, maxOccOut - .5);
     profOut_ = dir.make<TProfile>("Prof Channel Occupancy", ";", numChanOut, -.5, numChanOut - .5);
+    dir = fs->mkdir("L2");
+    constexpr int maxOccAll = 160;
+    his_ = dir.make<TH1F>("His Channel Occupancy", ";", maxOccAll, -.5, maxOccAll - .5);
   }
 
-  void AnalyzerTB::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
+  void AnalyzerAS::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
     // read in All Stubs
     const tt::StreamsStub& streams = iEvent.get(edGetToken_);
     // count stubs
@@ -114,6 +118,8 @@ namespace trklet {
             num++;
         hisIn_[iChan]->Fill(num);
         profIn_->Fill(iChan, num);
+        if (iChan >= 8 && iChan < 12)
+          his_->Fill(num);
       }
       // mid
       for (int i = 0; i < 12; i++) {
@@ -125,7 +131,7 @@ namespace trklet {
       }
       // out
       int i(0);
-      for (const std::vector<int>& mux : setup_->asMux()) {
+      for (const std::vector<int>& mux : setup_->aspMux()) {
         int num(0);
         for (int j : mux)
           num += nums[j];
@@ -139,4 +145,4 @@ namespace trklet {
 
 }  // namespace trklet
 
-DEFINE_FWK_MODULE(trklet::AnalyzerTB);
+DEFINE_FWK_MODULE(trklet::AnalyzerAS);
