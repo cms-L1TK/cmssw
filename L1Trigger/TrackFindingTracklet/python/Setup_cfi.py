@@ -72,7 +72,11 @@ TrackFindingTracklet_params = cms.PSet (
   ),
 
   # Parameter specifying All Stub processing
-  AS = cms.PSet (
+  ASP = cms.PSet (
+    NumInput           = cms.int32( 48 ),
+    WidthStubId        = cms.int32(  7 ), # number of Bits used to represent stubId
+    NumLayers          = cms.int32( 12 ), # 
+    NumChannelPerLayer = cms.int32(  4 ), # 
     Mux = cms.VPSet (
       cms.PSet( Chan = cms.vint32(  0,  1) ),
       cms.PSet( Chan = cms.vint32(      2) ),

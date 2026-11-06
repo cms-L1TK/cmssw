@@ -68,11 +68,15 @@ namespace trklet {
     config_.tbWidthPhi0 = pSetTB.getParameter<int>("WidthPhi0");
     config_.tbWidthZ0 = pSetTB.getParameter<int>("WidthZ0");
     config_.tbWidthCot = pSetTB.getParameter<int>("WidthCot");
-    const edm::ParameterSet& pSetAS = iConfig.getParameter<edm::ParameterSet>("AS");
-    const std::vector<edm::ParameterSet>& mux = pSetAS.getParameter<std::vector<edm::ParameterSet>>("Mux");
-    config_.asMux.reserve(mux.size());
+    const edm::ParameterSet& pSetASP = iConfig.getParameter<edm::ParameterSet>("ASP");
+    config_.aspNumInput = pSetASP.getParameter<int>("NumInput");
+    config_.aspWidthStubId = pSetASP.getParameter<int>("WidthStubId");
+    config_.aspNumLayers = pSetASP.getParameter<int>("NumLayers");
+    config_.aspNumChannelPerLayer = pSetASP.getParameter<int>("NumChannelPerLayer");
+    const std::vector<edm::ParameterSet>& mux = pSetASP.getParameter<std::vector<edm::ParameterSet>>("Mux");
+    config_.aspMux.reserve(mux.size());
     for (const edm::ParameterSet& ps : mux)
-      config_.asMux.emplace_back(ps.getParameter<std::vector<int>>("Chan"));
+      config_.aspMux.emplace_back(ps.getParameter<std::vector<int>>("Chan"));
     const edm::ParameterSet& pSetTM = iConfig.getParameter<edm::ParameterSet>("TM");
     config_.tmMuxOrder = pSetTM.getParameter<std::vector<std::string>>("MuxOrder");
     const edm::ParameterSet& pSetDR = iConfig.getParameter<edm::ParameterSet>("DR");

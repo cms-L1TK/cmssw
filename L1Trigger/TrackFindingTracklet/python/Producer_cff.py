@@ -9,6 +9,7 @@ from L1Trigger.TrackFindingTracklet.Producer_cfi import TrackFindingTrackletProd
 from L1Trigger.TrackFindingTMTT.TMTrackProducer_Defaults_cfi import TMTrackProducer_params
 
 ProducerPP = cms.EDProducer( 'trklet::ProducerPP', TrackFindingTrackletProducer_params )
+ProducerASP = cms.EDProducer( 'trklet::ProducerASP', TrackFindingTrackletProducer_params )
 ProducerTM = cms.EDProducer( 'trklet::ProducerTM', TrackFindingTrackletProducer_params )
 ProducerDR = cms.EDProducer( 'trklet::ProducerDR', TrackFindingTrackletProducer_params )
 ProducerKF = cms.EDProducer( 'trklet::ProducerKF', TrackFindingTrackletProducer_params, HybridKalmanFilterFormats_params, TMTrackProducer_params )

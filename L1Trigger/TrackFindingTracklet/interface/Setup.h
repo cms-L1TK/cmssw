@@ -38,8 +38,16 @@ namespace trklet {
       std::vector<double> otLimitsPSDiskR;
       // vector of DTC id indexed by connected IR module id
       std::vector<int> irChannelsIn;
-      // AS input mux map [48 to 31 channel]
-      std::vector<std::vector<int>> asMux;
+      // ASP num input channel
+      int aspNumInput;
+      // number of Bits used to represent stubId
+      int aspWidthStubId;
+      //
+      int aspNumLayers;
+      //
+      int aspNumChannelPerLayer;
+      // ASP input mux map [48 to 31 channel]
+      std::vector<std::vector<int>> aspMux;
       // f/w frequency in MHz
       double tbFreq;
       // smallest disk stub z position after TrackBuilder in cm
@@ -250,6 +258,31 @@ namespace trklet {
     // global stub z precision in cm
     double glBaseZ() const { return dtc_->glBaseZ(); }
 
+    // number of bits used for stub r w.r.t layer/disk centre for module types (barrelPS, barrel2S, diskPS, disk2S)
+    int stubWidthR(trackerDTC::SensorModule::Type type) const { return dtc_->stubWidthR(type); }
+    // number of bits used for stub z w.r.t layer/disk centre for module types (barrelPS, barrel2S, diskPS, disk2S)
+    int stubWidthZ(trackerDTC::SensorModule::Type type) const {
+      return dtc_->stubWidthZ(type);
+      ;
+    }
+    // number of bits used for stub phi w.r.t. region centre for module types (barrelPS, barrel2S, diskPS, disk2S)
+    int stubWidthPhi(trackerDTC::SensorModule::Type type) const {
+      return dtc_->stubWidthPhi(type);
+      ;
+    }
+    // number of bits used for stub row number for module types (barrelPS, barrel2S, diskPS, disk2S)
+    int stubWidthAlpha(trackerDTC::SensorModule::Type type) const { return dtc_->stubWidthAlpha(type); }
+    // number of bits used for stub bend number for module types (barrelPS, barrel2S, diskPS, disk2S)
+    int stubWidthBend(trackerDTC::SensorModule::Type type) const { return dtc_->stubWidthBend(type); }
+    // precision or r in cm for (barrelPS, barrel2S, diskPS, disk2S)
+    double stubBaseR(trackerDTC::SensorModule::Type type) const { return dtc_->stubBaseR(type); }
+    // precision or z in cm for (barrelPS, barrel2S, diskPS, disk2S)
+    double stubBaseZ(trackerDTC::SensorModule::Type type) const { return dtc_->stubBaseZ(type); }
+    // precision or phi in rad for (barrelPS, barrel2S, diskPS, disk2S)
+    double stubBasePhi(trackerDTC::SensorModule::Type type) const { return dtc_->stubBasePhi(type); }
+    // precision or alpha in pitch units for (barrelPS, barrel2S, diskPS, disk2S)
+    double stubBaseAlpha(trackerDTC::SensorModule::Type type) const { return dtc_->stubBaseAlpha(type); }
+
     // mean z of outer tracker endcap disks
     double stubDiskZ(int disk) const { return dtc_->stubDiskZ(disk); }
     // mean r of outer tracker endcap disk
@@ -258,8 +291,6 @@ namespace trklet {
     double stubRangePhi() const { return dtc_->stubRangePhi(); }
     // center radius of outer tracker endcap 2S diks strips
     double stubDiskR(int layerId, int r) const { return dtc_->stubDiskR(layerId, r); }
-    // precision or r in cm for (barrelPS, barrel2S, diskPS, disk2S)
-    double stubBaseR(trackerDTC::SensorModule::Type type) const { return dtc_->stubBaseR(type); }
     // mean radius of outer tracker barrel layer
     double stubLayerR(int layer) const { return dtc_->stubLayerR(layer); }
 
@@ -281,8 +312,16 @@ namespace trklet {
     // use either 4 or 5 parameter fit in simulation
     int simNPar() const { return config_.simNPar; }
 
+    // ASP num input channel
+    int aspNumInput() const { return config_.aspNumInput; }
+    // number of Bits used to represent stubId
+    int aspWidthStubId() const { return config_.aspWidthStubId; }
+    //
+    int aspNumLayers() const { return config_.aspNumLayers; }
+    //
+    int aspNumChannelPerLayer() const { return config_.aspNumChannelPerLayer; }
     // AS input mux map [48 to 31 channel]
-    const std::vector<std::vector<int>>& asMux() const { return config_.asMux; }
+    const std::vector<std::vector<int>>& aspMux() const { return config_.aspMux; }
 
     // number of seed Types
     int tbNumSeedTypes() const { return config_.tbNumSeedTypes; }
