@@ -222,6 +222,7 @@ namespace trklet {
     }};
     // track word assembly, shows which track variables are used by each process
     static constexpr std::array<std::initializer_list<Variable>, +Process::end> tracks_ = {{
+        {},                                                                       // Process::asp
         {Variable::seedType},                                                     // Process::dr
         {Variable::inv2R, Variable::phi0, Variable::cot, Variable::z0},           // Process::kf
         {Variable::hitPattern, Variable::mva, Variable::chi20, Variable::chi21},  // Process::tq
