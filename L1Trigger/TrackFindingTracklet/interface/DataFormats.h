@@ -23,16 +23,16 @@ and in undigitized format in an std::tuple. (This saves CPU)
 namespace trklet {
 
   // hybrid processes
-  enum class Process { begin, dr = begin, kf, tq, tfp, end, x };
+  enum class Process { begin, asp = begin, dr, kf, tq, tfp, end, x };
   // hybrid variables
   enum class Variable {
     begin,
     r = begin,
     phi,
     z,
+    stubId,
     dPhi,
     dZ,
-    layerId,
     seedType,
     inv2R,
     phi0,
@@ -59,18 +59,13 @@ namespace trklet {
   //Base class representing format of a variable
   class DataFormat {
   public:
-    DataFormat(bool twos, int width)
-        : twos_(twos), width_(width), base_(1.), range_(std::pow(2, width)), coverage_(range_) {}
+    DataFormat(bool twos, int width) : twos_(twos), width_(width), base_(1.), range_(std::pow(2, width)) {}
     DataFormat(bool twos, int width, double base, double range)
-        : twos_(twos), width_(width), base_(base), range_(range), coverage_(base * std::pow(2, width)) {}
+        : twos_(twos), width_(width), base_(base), range_(range) {}
     DataFormat(bool twos, int width, double range)
-        : twos_(twos), width_(width), base_(range * std::pow(2, -width)), range_(range), coverage_(range_) {}
+        : twos_(twos), width_(width), base_(range * std::pow(2, -width)), range_(range) {}
     DataFormat(bool twos, double base, double range)
-        : twos_(twos),
-          width_(std::ceil(std::log2(range / base))),
-          base_(base),
-          range_(range),
-          coverage_(base * std::pow(2, width_)) {}
+        : twos_(twos), width_(tt::ilog2(range / base)), base_(base), range_(range) {}
     DataFormat() {}
     ~DataFormat() = default;
     // converts int to bitvector
@@ -105,7 +100,7 @@ namespace trklet {
     int toUnsigned(double d) const { return this->integer(d) + std::pow(2, width_) / 2; }
     // limit to biggest representable floating point value
     double limit(double d) const {
-      if (this->isCovered(d))
+      if (this->inRange(d))
         return d;
       if (twos_) {
         if (d < 0.)
@@ -114,25 +109,11 @@ namespace trklet {
       }
       return range_ - base_ / 2.;
     }
-    // scales value from 0 to 1 (unsigned) or from -1 to 1 (signed)
-    double scale(double d) const { return d / coverage_; }
-    // scales absolute values from 0 to 1
-    double scaleABS(double d) const {
-      if (twos_)
-        return 2. * std::abs(d) / coverage_;
-      return this->scale(d);
-    }
     // returns false if data outside expected range
     bool inRange(double d) const {
       if (twos_)
         return d >= -range_ / 2. && d < range_ / 2.;
       return d < range_;
-    }
-    // returns false if data outside representable range
-    bool isCovered(double d) const {
-      if (twos_)
-        return d >= -coverage_ / 2. && d < coverage_ / 2.;
-      return d < coverage_;
     }
     // true if twos'complement or false if binary representation is chosen
     bool twos() const { return twos_; }
@@ -142,8 +123,6 @@ namespace trklet {
     double base() const { return base_; }
     // needed range
     double range() const { return range_; }
-    // covered range
-    double coverage() const { return coverage_; }
 
   protected:
     // true if twos'complement or false if binary representation is chosen
@@ -154,8 +133,6 @@ namespace trklet {
     double base_;
     // needed range
     double range_;
-    // covered range
-    double coverage_;
   };
 
   // function template for DataFormat generation
@@ -170,6 +147,17 @@ namespace trklet {
   DataFormat makeDataFormat<Variable::cot, Process::tfp>(const Setup* setup);
   template <>
   DataFormat makeDataFormat<Variable::z0, Process::tfp>(const Setup* setup);
+  template <>
+  DataFormat makeDataFormat<Variable::chi20, Process::tfp>(const Setup* setup);
+  template <>
+  DataFormat makeDataFormat<Variable::chi21, Process::tfp>(const Setup* setup);
+  template <>
+  DataFormat makeDataFormat<Variable::mva, Process::tfp>(const Setup* setup);
+  template <>
+  DataFormat makeDataFormat<Variable::hitPattern, Process::tfp>(const Setup* setup);
+
+  template <>
+  DataFormat makeDataFormat<Variable::stubId, Process::asp>(const Setup* setup);
 
   template <>
   DataFormat makeDataFormat<Variable::r, Process::dr>(const Setup* setup);
@@ -192,21 +180,11 @@ namespace trklet {
   DataFormat makeDataFormat<Variable::cot, Process::kf>(const Setup* setup);
   template <>
   DataFormat makeDataFormat<Variable::z0, Process::kf>(const Setup* setup);
-  template <>
-  DataFormat makeDataFormat<Variable::phi, Process::dr>(const Setup* setup);
-  template <>
-  DataFormat makeDataFormat<Variable::z, Process::dr>(const Setup* setup);
-  template <>
-  DataFormat makeDataFormat<Variable::layerId, Process::kf>(const Setup* setup);
 
   template <>
   DataFormat makeDataFormat<Variable::chi20, Process::tq>(const Setup* setup);
   template <>
   DataFormat makeDataFormat<Variable::chi21, Process::tq>(const Setup* setup);
-  template <>
-  DataFormat makeDataFormat<Variable::mva, Process::tq>(const Setup* setup);
-  template <>
-  DataFormat makeDataFormat<Variable::hitPattern, Process::tq>(const Setup* setup);
 
   /*! \class  trklet::DataFormats
    *  \brief  Class to calculate and provide dataformats used by Hybrid emulator
@@ -217,32 +195,34 @@ namespace trklet {
   private:
     // variable flavour mapping, Each row below declares which processing steps use the variable named in the comment at the end of the row
     static constexpr std::array<std::array<Process, +Process::end>, +Variable::end> config_ = {{
-        // Process::dr Process::kf Process::tq Process::tfp
-        {{Process::dr, Process::dr, Process::dr, Process::x}},   // Variable::r
-        {{Process::dr, Process::kf, Process::kf, Process::x}},   // Variable::phi
-        {{Process::dr, Process::kf, Process::kf, Process::x}},   // Variable::z
-        {{Process::dr, Process::dr, Process::dr, Process::x}},   // Variable::dPhi
-        {{Process::dr, Process::dr, Process::dr, Process::x}},   // Variable::dZ
-        {{Process::x, Process::kf, Process::x, Process::x}},     // Variable::layerId
-        {{Process::dr, Process::x, Process::x, Process::x}},     // Variable::seedType
-        {{Process::x, Process::kf, Process::kf, Process::tfp}},  // Variable::inv2R
-        {{Process::x, Process::kf, Process::kf, Process::tfp}},  // Variable::phi0
-        {{Process::x, Process::kf, Process::kf, Process::tfp}},  // Variable::cot
-        {{Process::x, Process::kf, Process::kf, Process::tfp}},  // Variable::z0
-        {{Process::x, Process::x, Process::tq, Process::x}},     // Variable::chi20
-        {{Process::x, Process::x, Process::tq, Process::x}},     // Variable::chi21
-        {{Process::x, Process::x, Process::tq, Process::x}},     // Variable::mva
-        {{Process::x, Process::x, Process::tq, Process::x}}      // Variable::hitPattern
+        // Process::asp Process::dr Process::kf Process::tq Process::tfp
+        {{Process::dr, Process::dr, Process::dr, Process::dr, Process::x}},  // Variable::r
+        {{Process::dr, Process::dr, Process::dr, Process::dr, Process::x}},  // Variable::phi
+        {{Process::dr, Process::dr, Process::dr, Process::dr, Process::x}},  // Variable::z
+        {{Process::asp, Process::x, Process::x, Process::x, Process::x}},    // Variable::stubId
+        {{Process::x, Process::dr, Process::dr, Process::dr, Process::x}},   // Variable::dPhi
+        {{Process::x, Process::dr, Process::dr, Process::dr, Process::x}},   // Variable::dZ
+        {{Process::x, Process::dr, Process::x, Process::x, Process::x}},     // Variable::seedType
+        {{Process::x, Process::x, Process::kf, Process::kf, Process::tfp}},  // Variable::inv2R
+        {{Process::x, Process::x, Process::kf, Process::kf, Process::tfp}},  // Variable::phi0
+        {{Process::x, Process::x, Process::kf, Process::kf, Process::tfp}},  // Variable::cot
+        {{Process::x, Process::x, Process::kf, Process::kf, Process::tfp}},  // Variable::z0
+        {{Process::x, Process::x, Process::x, Process::tq, Process::tfp}},   // Variable::chi20
+        {{Process::x, Process::x, Process::x, Process::tq, Process::tfp}},   // Variable::chi21
+        {{Process::x, Process::x, Process::x, Process::tfp, Process::tfp}},  // Variable::mva
+        {{Process::x, Process::x, Process::x, Process::tfp, Process::tfp}}   // Variable::hitPattern
     }};
     // stub word assembly, shows which stub variables are used by each process
     static constexpr std::array<std::initializer_list<Variable>, +Process::end> stubs_ = {{
-        {Variable::r, Variable::phi, Variable::z, Variable::dPhi, Variable::dZ},                     // Process::dr
-        {Variable::layerId, Variable::r, Variable::phi, Variable::z, Variable::dPhi, Variable::dZ},  // Process::kf
-        {},                                                                                          // Process::tq
-        {}                                                                                           // Process::tfp
+        {Variable::r, Variable::phi, Variable::z, Variable::stubId},              // Process::asp
+        {Variable::r, Variable::phi, Variable::z, Variable::dPhi, Variable::dZ},  // Process::dr
+        {Variable::r, Variable::phi, Variable::z, Variable::dPhi, Variable::dZ},  // Process::kf
+        {},                                                                       // Process::tq
+        {}                                                                        // Process::tfp
     }};
     // track word assembly, shows which track variables are used by each process
     static constexpr std::array<std::initializer_list<Variable>, +Process::end> tracks_ = {{
+        {},                                                                       // Process::asp
         {Variable::seedType},                                                     // Process::dr
         {Variable::inv2R, Variable::phi0, Variable::cot, Variable::z0},           // Process::kf
         {Variable::hitPattern, Variable::mva, Variable::chi20, Variable::chi21},  // Process::tq
@@ -387,6 +367,25 @@ namespace trklet {
     std::tuple<Ts...> data_;
   };
 
+  // class to represent stubs generated by process AllStubProcessor
+  class StubASP : public BaseStub<double, double, double, int> {
+  public:
+    // construct StubASP from Frame
+    StubASP(const tt::FrameStub& fs, const DataFormats* df) : BaseStub(fs, df, Process::asp) {}
+    // construct StubASP from TTStubRef
+    StubASP(const TTStubRef& ttStubRef, const DataFormats* df, double r, double phi, double z, int stubId)
+        : BaseStub(ttStubRef, df, Process::dr, r, phi, z, stubId) {}
+    ~StubASP() override = default;
+    // stub radius in cm wrt chosenRofPhi
+    double r() const { return std::get<0>(data_); }
+    // stub phi residual in rad
+    double phi() const { return std::get<1>(data_); }
+    // stub z residual in cm
+    double z() const { return std::get<2>(data_); }
+    // stub id
+    int stubId() const { return std::get<3>(data_); }
+  };
+
   // class to represent stubs generated by process DuplicateRemoval
   class StubDR : public BaseStub<double, double, double, double, double> {
   public:
@@ -409,26 +408,24 @@ namespace trklet {
   };
 
   // class to represent stubs generated by process KalmanFilter
-  class StubKF : public BaseStub<int, double, double, double, double, double> {
+  class StubKF : public BaseStub<double, double, double, double, double> {
   public:
     // construct StubKF from Frame
     StubKF(const tt::FrameStub& fs, const DataFormats* df) : BaseStub(fs, df, Process::kf) {}
     // construct StubKF from StubDR
-    StubKF(const StubDR& stub, int layerId, double r, double phi, double z, double dPhi, double dZ)
-        : BaseStub(stub, layerId, r, phi, z, dPhi, dZ) {}
+    StubKF(const StubDR& stub, double r, double phi, double z, double dPhi, double dZ)
+        : BaseStub(stub, r, phi, z, dPhi, dZ) {}
     ~StubKF() override = default;
-    // reduced 7 bit layer id [0 = {1}, 1 = {2}, 2 = {11 or 6}, 3 = {12 or 5}, 4 = {13 or 4}, 5 = {14}, 6 = {15 or 3}]
-    int layerId() const { return std::get<0>(data_); };
     // stub radius in cm wrt chosenRofPhi
-    double r() const { return std::get<1>(data_); };
+    double r() const { return std::get<0>(data_); };
     // stub phi residual in rad
-    double phi() const { return std::get<2>(data_); };
+    double phi() const { return std::get<1>(data_); };
     // stub z residual in cm
-    double z() const { return std::get<3>(data_); };
+    double z() const { return std::get<2>(data_); };
     // stub phi uncertainty in rad
-    double dPhi() const { return std::get<4>(data_); }
+    double dPhi() const { return std::get<3>(data_); }
     // stub z uncertainty in cm
-    double dZ() const { return std::get<5>(data_); }
+    double dZ() const { return std::get<4>(data_); }
   };
 
   // base class to represent tracks
@@ -482,7 +479,7 @@ namespace trklet {
         : BaseTrack(ttTrackRef, df, Process::dr, seedType) {}
     TrackDR() {}
     ~TrackDR() override = default;
-    // seed type
+    // layer Id of given stub id
     int seedType() const { return std::get<0>(data_); }
   };
 

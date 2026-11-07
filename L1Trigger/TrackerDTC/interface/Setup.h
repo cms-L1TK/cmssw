@@ -316,6 +316,8 @@ namespace trackerDTC {
     double regMaxZT() const { return regMaxZT_; }
     // single region phiT range in rad [2pi/9]
     double regRangePhiT() const { return regRangePhiT_; }
+    // single region phi0 range in rad
+    double regRangePhi0() const { return regRangePhi0_; }
     // in T
     double sysBField() const { return config_.sysBField; }
     // outer radius of outer tracker in cm
@@ -332,6 +334,8 @@ namespace trackerDTC {
     int sysNumATCASlot() const { return config_.sysNumATCASlot; }
     // slot number changing from PS to 2S
     int sysSlotLimitPS() const { return config_.sysSlotLimitPS; }
+    // number of barrel ps layer
+    int sysNumBarrelLayerPS() const { return config_.sysNumBarrelLayerPS; }
     // number of detector layer a particle may cross
     int sysNumLayer() const { return config_.sysNumLayer; }
     // total number of dtcs
@@ -506,6 +510,8 @@ namespace trackerDTC {
     double regMaxZT_;
     // single region phiT range in rad [2pi/9]
     double regRangePhiT_;
+    // single region phi0 range in rad
+    double regRangePhi0_;
     // total number of dtcs
     int sysNumDTC_;
     // converts GeV in 1/cm

@@ -2,6 +2,7 @@
 #define L1Trigger_TrackFindingTracklet_interface_AllStubsMemory_h
 
 #include "L1Trigger/TrackFindingTracklet/interface/MemoryBase.h"
+#include "L1Trigger/TrackFindingTracklet/interface/StubStreamData.h"
 
 #include <utility>
 #include <string>
@@ -28,6 +29,8 @@ namespace trklet {
     void clean() override { stubs_.clear(); }
 
     void writeStubs(bool first, unsigned int iSector);
+
+    void writeStubs(std::vector<StubStreamData>& streamAllStubRaw);
 
   private:
     std::vector<const Stub*> stubs_;

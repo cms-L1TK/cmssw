@@ -19,3 +19,23 @@ void AllStubsMemory::writeStubs(bool first, unsigned int iSector) {
   }
   out_.close();
 }
+
+void AllStubsMemory::writeStubs(std::vector<StubStreamData>& streamsAllStubRaw) {
+  streamsAllStubRaw.reserve(stubs_.size());
+  for (const Stub* stub : stubs_) {
+    if (!stub) {
+      streamsAllStubRaw.emplace_back();
+      continue;
+    }
+    std::string s;
+    if (stub->negdisk().nbits() > 0)
+      s += stub->negdisk().str();
+    s += stub->r().str();
+    s += stub->z().str();
+    s += stub->phi().str();
+    if (stub->alpha().nbits() > 0)
+      s += stub->alpha().str();
+    s += stub->bend().str();
+    streamsAllStubRaw.emplace_back(0, *(stub->l1tstub()), s);
+  }
+}

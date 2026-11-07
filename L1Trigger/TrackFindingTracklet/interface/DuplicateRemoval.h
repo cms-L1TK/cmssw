@@ -49,7 +49,7 @@ namespace trklet {
       Stub(const TTStubRef& ttStubRef) : ttStubRef_(ttStubRef), r_(0.), phi_(0.), z_(0.) {}
       TTStubRef ttStubRef_;
       const trackerDTC::SensorModule* sm_;
-      int layer_;
+      bool seed_;
       int stubId_;
       double r_;
       double phi_;
@@ -66,7 +66,7 @@ namespace trklet {
       std::vector<Stub*> stubs_;
     };
     // add (or remove) HO corrections from stub
-    void correct(const Track&, Stub*, bool = true);
+    void correct(Track*, Stub*, bool = true);
     // compares two tracks, returns true if those are considered duplicates
     bool equalEnough(Track* t0, Track* t1) const;
     // provides run-time constants
@@ -83,10 +83,6 @@ namespace trklet {
     std::vector<Track*> stream_;
     // DTC stubs
     std::vector<tt::FrameStub> dtc_;
-    // internal used bases
-    double baseR_;
-    double basePhi_;
-    double baseZ_;
   };
 
 }  // namespace trklet

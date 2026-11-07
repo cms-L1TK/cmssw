@@ -68,7 +68,7 @@ namespace trklet {
         StubKF* stub = frame.stubs_[layer];
         if (!stub)
           continue;
-        hitPattern.set(stub->layerId());
+        hitPattern.set(layer);
         const double m02 = internalFormats_->m02_.digi(std::pow(stub->phi(), 2));
         const double m12 = internalFormats_->m12_.digi(std::pow(stub->z(), 2));
         const double invV0 = internalFormats_->invV0_.digi(3. / std::pow(stub->dPhi(), 2));
@@ -79,24 +79,28 @@ namespace trklet {
       // Accumulating all BDT Attributes
       chi20F = dfChi20.limit(chi20F);
       chi21F = dfChi21.limit(chi21F);
-      const double nStubs = hitPattern.count();
-      const double z0 = dfZ0.integer(frame.track_->z0()) / setup_->tqScaleFactorZ0();
-      const double cot = dfCot.integer(frame.track_->cot()) / setup_->tqScaleFactorCot();
-      const double chi20I = dfChi20.integer(chi20F);
-      const double chi21I = dfChi21.integer(chi21F);
-      const double nGaps = hitPattern.count(hitPattern.plEncode(), hitPattern.pmEncode(), false);
-      const std::vector<Fixed> features({nStubs, z0, cot, chi20I, chi21I, nGaps});
-      // Run the Track Quality BDT calculation
-      const Fixed fixed = bdt_->decision_function(features).at(0);
-      const Int val = fixed.range(fixed.width - 1, 0);
-      // bin mva
-      const std::vector<int>& binEdges = setup_->tqBinEdges();
       int mva(0);
-      for (; mva < static_cast<int>(binEdges.size()) - 2; mva++)
-        if (val <= binEdges[mva + 1])
-          break;
+      if (setup_->tqEnable()) {
+        const double nStubs = hitPattern.count();
+        const double z0 = dfZ0.integer(frame.track_->z0()) / setup_->tqScaleFactorZ0();
+        const double cot = dfCot.integer(frame.track_->cot()) / setup_->tqScaleFactorCot();
+        const double chi20I = dfChi20.integer(chi20F);
+        const double chi21I = dfChi21.integer(chi21F);
+        const double nGaps = hitPattern.count(hitPattern.plEncode(), hitPattern.pmEncode(), false);
+        const std::vector<Fixed> features({nStubs, z0, cot, chi20I, chi21I, nGaps});
+        // Run the Track Quality BDT calculation
+        const Fixed fixed = bdt_->decision_function(features).at(0);
+        const Int val = fixed.range(fixed.width - 1, 0);
+        // bin mva
+        const std::vector<int>& binEdges = setup_->tqBinEdges();
+        for (; mva < static_cast<int>(binEdges.size()) - 2; mva++)
+          if (val <= binEdges[mva + 1])
+            break;
+      }
       // build output Track
-      TrackTQ trackTQ(*frame.track_, hitPattern, mva, chi20F, chi21F);
+      std::string reversed = hitPattern.str();
+      std::reverse(reversed.begin(), reversed.end());
+      TrackTQ trackTQ(*frame.track_, TTBV(reversed), mva, chi20F, chi21F);
       // store result
       output.push_back(trackTQ.frame());
     }

@@ -31,7 +31,8 @@ namespace trklet {
 
     void event(SLHCEvent& ev,
                std::vector<std::vector<std::string>>& streamsTrackRaw,
-               std::vector<std::vector<StubStreamData>>& streamsStubRaw);
+               std::vector<std::vector<StubStreamData>>& streamsStubRaw,
+               std::vector<std::vector<trklet::StubStreamData>>& streamsAllStubRaw);
 
     void printSummary();
 

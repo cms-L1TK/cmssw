@@ -158,7 +158,8 @@ void TrackletEventProcessor::configure(istream& inwire, istream& inmem, istream&
 
 void TrackletEventProcessor::event(SLHCEvent& ev,
                                    vector<vector<string>>& streamsTrackRaw,
-                                   vector<vector<StubStreamData>>& streamsStubRaw) {
+                                   vector<vector<StubStreamData>>& streamsStubRaw,
+                                   vector<vector<StubStreamData>>& streamsAllStubRaw) {
   globals_->event() = &ev;
 
   tracks_.clear();
@@ -305,6 +306,8 @@ void TrackletEventProcessor::event(SLHCEvent& ev,
       sector_->writeVMSME(first);
       sector_->writeAS(first);
     }
+    // store All stubs for output
+    sector_->writeAS(streamsAllStubRaw);
 
     // match processor (alternative to ME+MC)
     MPTimer_.start();

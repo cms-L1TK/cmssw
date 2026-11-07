@@ -2,7 +2,6 @@
 #define L1Trigger_TrackFindingTracklet_TrackMultiplexer_h
 
 #include "L1Trigger/TrackFindingTracklet/interface/Setup.h"
-#include "L1Trigger/TrackFindingTracklet/interface/DataFormats.h"
 
 #include <vector>
 #include <deque>

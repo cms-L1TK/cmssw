@@ -89,10 +89,11 @@ namespace trackerDTC {
     regRangePhiT_ = 2. * M_PI / config_.sysNumRegion;
     glWidthInv2R_ = config_.fwWidthDSPb - 1;
     glBaseInv2R_ = rangeInv2R * std::pow(2, -glWidthInv2R_);
-    const double maxRphi = std::max(std::abs(config_.sysOuterRadius - config_.regChosenRofPhi),
-                                    std::abs(config_.sysInnerRadius - config_.regChosenRofPhi));
-    const double rangeR = 2. * maxRphi;
-    const double rangePhi = regRangePhiT_ + rangeInv2R * maxRphi;
+    const double maxRphi_ = std::max(std::abs(config_.sysOuterRadius - config_.regChosenRofPhi),
+                                     std::abs(config_.sysInnerRadius - config_.regChosenRofPhi));
+    regRangePhi0_ = regRangePhiT_ + maxRphi_ * rangeInv2R;
+    const double rangeR = 2. * maxRphi_;
+    const double rangePhi = regRangePhi0_;
     const double rangeZ = 2. * config_.sysHalfLength;
     const double significantR = regRangePhiT_ / rangeInv2R;
     const double significantPhi = regRangePhiT_;
@@ -111,7 +112,7 @@ namespace trackerDTC {
     glBasePhiC_ = .5 * glBasePhi_;
     glBasePhiM_ = glBasePhi_ * std::pow(2, tt::ilog2(rangePhiM / glBasePhi_) - widthPhiM);
     const double stubRangeInv2R = 2. * sysInvPtToDphi_ / config_.stubMinPt;
-    stubRangePhi_ = regRangePhiT_ + stubRangeInv2R * maxRphi;
+    stubRangePhi_ = regRangePhiT_ + stubRangeInv2R * maxRphi_;
     stubWidthLayerId_ = tt::ilog2(config_.dtcNumLayer);
     stubBasesZ_.reserve(SensorModule::NumTypes);
     for (int type = 0; type < SensorModule::NumTypes; type++)
