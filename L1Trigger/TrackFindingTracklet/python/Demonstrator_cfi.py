@@ -7,9 +7,9 @@ from L1Trigger.TrackFindingTracklet.Analyzer_cfi import TrackFindingTrackletAnal
 # these parameters a for ModelSim runs of FW
 TrackTriggerDemonstrator_params = cms.PSet (
 
-  LabelIn  = TrackFindingTrackletAnalyzer_params.OutputLabelPP,  #
-  LabelOut = TrackFindingTrackletAnalyzer_params.OutputLabelTFP, #
-  DirIPBB  = cms.string( "/data/tschuh/work/proj/pptfp/" ), # path to ipbb proj area
+  LabelIn  = TrackFindingTrackletAnalyzer_params.OutputLabelKF,  #
+  LabelOut = TrackFindingTrackletAnalyzer_params.OutputLabelTQ, #
+  DirIPBB  = cms.string( "/home/hep/am2023/tschuh_new_pr_nov_2026/CMSSW_20_1_0_pre1/src/" ), # path to ipbb proj area
   RunTime  = cms.double( 6. ),                                   # runtime in us
 
   LinkMappingIn  = cms.vint32(  ),
