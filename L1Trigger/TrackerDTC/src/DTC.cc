@@ -164,14 +164,19 @@ namespace trackerDTC {
         // write one line per frame for all channel
         for (int iFrame = 0; iFrame < static_cast<int>(streams.front().size()); iFrame++) {
           const int lFrame = iFrame % (numFrames + setup_->sysNumFramesInfra());
+          const int lFrameNext = (iFrame + 1) % (numFrames + setup_->sysNumFramesInfra());
           // frame number
           ss << "Frame " << std::setfill('0') << std::setw(4) << std::dec << iFrame << "  ";
           for (const tt::Stream& stream : streams) {
             // channel frame header (start of orbit, start of packet, end of packet, valid)
             if (iFrame == setup_->sysNumFramesInfra())
-              ss << "  1001 ";
+              ss << "  1101 ";
             else if (lFrame < setup_->sysNumFramesInfra())
               ss << "  0000 ";
+            else if (lFrame == setup_->sysNumFramesInfra())
+              ss << "  0101 ";
+            else if (lFrameNext == 0)
+              ss << "  0011 ";
             else
               ss << "  0001 ";
             // channel frame data
