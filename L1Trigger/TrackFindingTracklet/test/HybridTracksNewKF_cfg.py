@@ -41,13 +41,14 @@ fwConfig( process )
 # build schedule
 process.mc       = cms.Sequence( process.StubAssociator  + process.AnalyzerMC       )
 process.dtc      = cms.Sequence( process.ProducerDTC     + process.AnalyzerDTC      )
-process.tracklet = cms.Sequence( process.L1THybridTracks + process.AnalyzerTracklet + process.AnalyzerAS )
+process.tracklet = cms.Sequence( process.L1THybridTracks + process.AnalyzerTracklet )
+process.asp      = cms.Sequence( process.ProducerASP     + process.AnalyzerAS       )
 process.tm       = cms.Sequence( process.ProducerTM      + process.AnalyzerTM       )
 process.dr       = cms.Sequence( process.ProducerDR      + process.AnalyzerDR       )
 process.kf       = cms.Sequence( process.ProducerKF      + process.AnalyzerKF       )
 process.tq       = cms.Sequence( process.ProducerTQ      + process.AnalyzerTQ       )
 process.tfp      = cms.Sequence( process.ProducerTFP     + process.AnalyzerTFP      )
-process.tt       = cms.Path( process.mc + process.dtc + process.tracklet + process.tm + process.dr + process.kf + process.tq + process.tfp )
+process.tt       = cms.Path( process.mc + process.dtc + process.tracklet + process.asp + process.tm + process.dr + process.kf + process.tq + process.tfp )
 process.schedule = cms.Schedule( process.tt )
 
 # create options
@@ -59,7 +60,8 @@ options = VarParsing.VarParsing( 'analysis' )
 #from MCsamples.RelVal_1260_D88.PU200_TTbar_14TeV_cfi import *
 #inputMC = getCMSdataFromCards()
 Samples = [
-  "/store/relval/CMSSW_20_0_0_pre1/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU_150X_mcRun4_realistic_v1_STD_D121_RegeneratedGS_PU-v1/2590000/0033230b-a131-453a-95c0-fe14d5027d1f.root",
+  #"/store/relval/CMSSW_20_0_0_pre1/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU_150X_mcRun4_realistic_v1_STD_D121_RegeneratedGS_PU-v1/2590000/0033230b-a131-453a-95c0-fe14d5027d1f.root",
+  "file:/data/store/CMSSW_20_0_0_pre1_RelValTTbar_14TeV_GEN-SIM-DIGI-RAW_PU_150X_mcRun4_realistic_v1_STD_D121_RegeneratedGS_PU-v1_2590000.root"
 ]
 #Samples = ["/store/trimmed.root"]
 options.register( 'inputMC', Samples, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.string, "Files to be processed" )

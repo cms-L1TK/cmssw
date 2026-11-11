@@ -6,26 +6,54 @@
 
 namespace trklet {
 
-  DuplicateRemoval::DuplicateRemoval(const Setup* setup, const DataFormats* dataFormats, int region, const TTDTC& ttDTC)
-      : setup_(setup), dataFormats_(dataFormats), region_(region) {
-    if (setup_->drUseDTCStubs()) {
-      // prep dtc stub container
-      int size(0);
-      for (int channel : ttDTC.tfpChannels())
-        for (const tt::FrameStub& frame : ttDTC.stream(region, channel))
-          if (frame.first.isNonnull())
-            size++;
-      dtc_.reserve(size);
-      // fill dtc stub container
-      for (int channel : ttDTC.tfpChannels())
-        for (const tt::FrameStub& frame : ttDTC.stream(region, channel))
-          if (frame.first.isNonnull())
-            dtc_.push_back(frame);
+  DuplicateRemoval::DuplicateRemoval(const Setup* setup, const DataFormats* dataFormats, int region, const tt::StreamsStub& as)
+      : setup_(setup), dataFormats_(dataFormats), region_(region), as_(setup->aspNumLayers()) {
+    if (!setup_->drUseASStubs())
+      return;
+    // prep all stubs container
+    const int numChan = setup->aspMux().size();
+    const int offset = region * numChan;
+    int num(0);
+    for (int chan = 0; chan < numChan; chan++)
+      for (const tt::FrameStub& fs : as[offset + chan])
+        if (fs.first.isNonnull())
+          num++;
+    stubsASP_.reserve(num);
+    // fill all stubs container, prep all stub memories
+    std::vector<int> nums(setup->aspNumLayers(), 0);
+    for (int chan = 0; chan < numChan; chan++) {
+      int layer(0);
+      for (int i = 0; i < chan; i++)
+        layer += setup_->aspMux()[i].size();
+      layer = layer / setup_->aspNumChannelPerLayer();
+      for (const tt::FrameStub& fs : as[offset + chan]) {
+        if (fs.first.isNull())
+          continue;
+        stubsASP_.emplace_back(fs, dataFormats_);
+        nums[layer]++;
+      }
+    }
+    for (int layer = 0; layer < setup->aspNumLayers(); layer++)
+      as_[layer] = std::vector<const StubASP*>(nums[layer], nullptr);
+    // fill all stup memories
+    int global(0);
+    for (int chan = 0; chan < numChan; chan++) {
+      int layer(0);
+      for (int i = 0; i < chan; i++)
+        layer += setup_->aspMux()[i].size();
+      layer = layer / setup_->aspNumChannelPerLayer();
+      for (const tt::FrameStub& fs : as[offset + chan]) {
+        if (fs.first.isNull())
+          continue;
+        const StubASP& stub = stubsASP_[global++];
+        as_[layer][stub.stubId()] = &stub;
+      }
     }
   }
 
   // read in and organize input tracks and stubs
   void DuplicateRemoval::consume(const tt::StreamsTrack& streamsTrack, const tt::StreamsStub& streamsStub) {
+    const int maxStubId = setup_->aspNumChannelPerLayer() * std::pow(2, setup_->aspWidthStubId());
     auto nonNullTrack = [](int sum, const tt::FrameTrack& frame) { return sum + (frame.first.isNonnull() ? 1 : 0); };
     auto nonNullStub = [](int sum, const tt::FrameStub& frame) { return sum + (frame.first.isNonnull() ? 1 : 0); };
     // count tracks and stubs and reserve corresponding vectors
@@ -91,6 +119,11 @@ namespace trklet {
           stub.stubId_ = TTBV(frameStub.second).val(setup_->tbWidthStubId());
           stub.seed_ = true;
         }
+        stub.layer_ = layer + 1;
+        if (layer == 0 && stub.stubId_ >= maxStubId) {
+          stub.layer_--;
+          stub.stubId_ -= maxStubId;
+        }
         track.stubs_[layer] = &stubs_.back();
       }
       // store output track
@@ -110,9 +143,9 @@ namespace trklet {
     unify();
     // calc stub position and uncertainties
     pos();
-    // replace stubs with DTC stubs
-    if (setup_->drUseDTCStubs())
-      dtc();
+    // replace stubs with all stubs
+    if (setup_->drUseASStubs())
+      as();
     // replace stubs with TT stubs
     if (setup_->drUseTTStubs())
       tt();
@@ -203,20 +236,20 @@ namespace trklet {
     }
   }
 
-  // replace stubs with DTC stubs
-  void DuplicateRemoval::dtc() {
+  // replace stubs with all stubs
+  void DuplicateRemoval::as() {
     for (Track* track : stream_) {
       if (!track)
         continue;
       for (Stub* stub : track->stubs_) {
         if (!stub)
           continue;
-        auto via = [stub](const tt::FrameStub& fs) { return fs.first == stub->ttStubRef_; };
-        const tt::FrameStub& fs = *std::find_if(dtc_.begin(), dtc_.end(), via);
-        const GlobalPoint gp = setup_->stubPosDTC(fs, region_);
-        stub->r_ = gp.perp();
-        stub->phi_ = tt::deltaPhi(gp.phi() - region_ * setup_->regRangePhiT());
-        stub->z_ = gp.z();
+        const StubASP* stubASP = as_[stub->layer_][stub->stubId_];
+        if (!stubASP)
+          throw cms::Exception("...");
+        stub->r_ = stubASP->r();
+        stub->phi_ = stubASP->phi();
+        stub->z_ = stubASP->z();
         // apply ho corrections
         correct(track, stub);
       }

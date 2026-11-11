@@ -8,7 +8,7 @@ def swConfig(process):
   process.l1tTTTracksFromTrackletEmulation.RemovalType = ""
   process.l1tTTTracksFromTrackletEmulation.DoMultipleMatches = False
   process.l1tTTTracksFromTrackletEmulation.StoreTrackBuilderOutput = True
-  process.TrackFindingTrackletSetup.DR.UseDTCStubs = True
+  process.TrackFindingTrackletSetup.DR.UseASStubs = True
   process.TrackFindingTrackletSetup.DR.UseTTStubs = False
   process.ProducerKF.EnableIntegerEmulation = False
   process.TrackFindingTrackletSetup.TQ.Enable = True
@@ -18,7 +18,7 @@ def fwConfig(process):
   process.l1tTTTracksFromTrackletEmulation.Fakefit = True
   process.l1tTTTracksFromTrackletEmulation.RemovalType = ""
   process.l1tTTTracksFromTrackletEmulation.StoreTrackBuilderOutput = True
-  process.TrackFindingTrackletSetup.DR.UseDTCStubs = False
+  process.TrackFindingTrackletSetup.DR.UseASStubs = True
   process.TrackFindingTrackletSetup.DR.UseTTStubs = False
   process.ProducerKF.EnableIntegerEmulation = True
   process.TrackFindingTrackletSetup.TQ.Enable = False

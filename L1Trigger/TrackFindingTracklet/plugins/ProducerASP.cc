@@ -48,7 +48,7 @@ namespace trklet {
 
   ProducerASP::ProducerASP(const edm::ParameterSet& iConfig) {
     const std::string& label = iConfig.getParameter<std::string>("InputLabelASP");
-    const std::string& branch = iConfig.getParameter<std::string>("BranchStubs");
+    const std::string& branch = iConfig.getParameter<std::string>("BranchAllStubs");
     // book in- and output ED products
     edGetToken_ = consumes(edm::InputTag(label, branch));
     edPutToken_ = produces(branch);

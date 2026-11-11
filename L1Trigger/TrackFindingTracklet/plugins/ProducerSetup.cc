@@ -80,7 +80,7 @@ namespace trklet {
     const edm::ParameterSet& pSetTM = iConfig.getParameter<edm::ParameterSet>("TM");
     config_.tmMuxOrder = pSetTM.getParameter<std::vector<std::string>>("MuxOrder");
     const edm::ParameterSet& pSetDR = iConfig.getParameter<edm::ParameterSet>("DR");
-    config_.drUseDTCStubs = pSetDR.getParameter<bool>("UseDTCStubs");
+    config_.drUseASStubs = pSetDR.getParameter<bool>("UseASStubs");
     config_.drUseTTStubs = pSetDR.getParameter<bool>("UseTTStubs");
     config_.drNumComparisonModules = pSetDR.getParameter<int>("NumComparisonModules");
     config_.drMinIdenticalStubs = pSetDR.getParameter<int>("MinIdenticalStubs");

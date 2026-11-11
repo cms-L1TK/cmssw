@@ -374,7 +374,7 @@ namespace trklet {
     StubASP(const tt::FrameStub& fs, const DataFormats* df) : BaseStub(fs, df, Process::asp) {}
     // construct StubASP from TTStubRef
     StubASP(const TTStubRef& ttStubRef, const DataFormats* df, double r, double phi, double z, int stubId)
-        : BaseStub(ttStubRef, df, Process::dr, r, phi, z, stubId) {}
+        : BaseStub(ttStubRef, df, Process::asp, r, phi, z, stubId) {}
     ~StubASP() override = default;
     // stub radius in cm wrt chosenRofPhi
     double r() const { return std::get<0>(data_); }

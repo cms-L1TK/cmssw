@@ -122,7 +122,7 @@ TrackFindingTracklet_params = cms.PSet (
   # Parameter specifying Duplicate Removal
   DR = cms.PSet (
     # Next two options enable cheats that replace the tracklet digi output.
-    UseDTCStubs          = cms.bool  ( False  ), # recalculates track parameter and stub residuals from DTC stubs
+    UseASStubs           = cms.bool  ( False  ), # recalculates track parameter and stub residuals from AS stubs
     UseTTStubs           = cms.bool  ( False  ), # recalculates track parameter and stub residuals from TT stubs
     NumComparisonModules = cms.int32 (    32  ), # number of comparison modules used in each DR node
     MinIdenticalStubs    = cms.int32 (     3  ), # min number of shared stubs to identify duplicates

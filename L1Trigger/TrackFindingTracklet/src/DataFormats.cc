@@ -118,7 +118,8 @@ namespace trklet {
   template <>
   DataFormat makeDataFormat<Variable::stubId, Process::asp>(const Setup* setup) {
     const int width = setup->aspWidthStubId();
-    return DataFormat(false, width);
+    const int num = setup->aspNumChannelPerLayer();
+    return DataFormat(false, width + tt::ilog2(num));
   }
 
   template <>

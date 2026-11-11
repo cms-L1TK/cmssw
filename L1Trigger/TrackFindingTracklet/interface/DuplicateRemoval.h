@@ -3,7 +3,6 @@
 
 #include "L1Trigger/TrackFindingTracklet/interface/Setup.h"
 #include "L1Trigger/TrackFindingTracklet/interface/DataFormats.h"
-#include "DataFormats/L1TrackTrigger/interface/TTDTC.h"
 
 #include <vector>
 
@@ -19,7 +18,7 @@ namespace trklet {
    */
   class DuplicateRemoval {
   public:
-    DuplicateRemoval(const Setup*, const DataFormats*, int, const TTDTC&);
+    DuplicateRemoval(const Setup*, const DataFormats*, int, const tt::StreamsStub&);
     ~DuplicateRemoval() = default;
     // read in and organize input tracks and stubs
     void consume(const tt::StreamsTrack&, const tt::StreamsStub&);
@@ -33,8 +32,8 @@ namespace trklet {
     void unify();
     // calc stub position
     void pos();
-    // replace stubs with DTC stubs
-    void dtc();
+    // replace stubs with All stubs
+    void as();
     // replace stubs with TT stubs
     void tt();
     // remove HO corrections from all stubs
@@ -51,6 +50,7 @@ namespace trklet {
       const trackerDTC::SensorModule* sm_;
       bool seed_;
       int stubId_;
+      int layer_;
       double r_;
       double phi_;
       double z_;
@@ -81,8 +81,10 @@ namespace trklet {
     std::vector<Stub> stubs_;
     // h/w liked organized pointer to input tracks
     std::vector<Track*> stream_;
-    // DTC stubs
-    std::vector<tt::FrameStub> dtc_;
+    // All stubs
+    std::vector<StubASP> stubsASP_;
+    // all stub memories
+    std::vector<std::vector<const StubASP*>> as_;
   };
 
 }  // namespace trklet

@@ -94,8 +94,8 @@ namespace trklet {
       int tbWidthCot;
       // seed priority during merge
       std::vector<std::string> tmMuxOrder;
-      // recalculates track parameter and stub residuals from DTC stubs
-      bool drUseDTCStubs;
+      // recalculates track parameter and stub residuals from all stubs
+      bool drUseASStubs;
       // recalculates track parameter and stub residuals from TT stubs
       bool drUseTTStubs;
       // number of comparison modules used in each DR node
@@ -395,9 +395,9 @@ namespace trklet {
     int drBaseShiftDZ() const { return config_.drBaseShiftDZ; }
     // half lengt of outer tracker barrel
     double drHalfLengthBarrel() const { return config_.drHalfLengthBarrel; }
-    //recalculates track parameter and stub residuals from DTC stubs
-    bool drUseDTCStubs() const { return config_.drUseDTCStubs; }
-    //recalculates track parameter and stub residuals from DTC stubs
+    //recalculates track parameter and stub residuals from AS stubs
+    bool drUseASStubs() const { return config_.drUseASStubs; }
+    //recalculates track parameter and stub residuals from TT stubs
     bool drUseTTStubs() const { return config_.drUseTTStubs; }
     // number of layers per track
     int drNumLayers() const { return drNumLayers_; }
