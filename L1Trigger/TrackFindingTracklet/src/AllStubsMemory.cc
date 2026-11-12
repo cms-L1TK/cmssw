@@ -1,6 +1,7 @@
 #include "L1Trigger/TrackFindingTracklet/interface/AllStubsMemory.h"
 #include "L1Trigger/TrackFindingTracklet/interface/Stub.h"
 #include "L1Trigger/TrackFindingTracklet/interface/Settings.h"
+#include "DataFormats/L1TrackTrigger/interface/TTBV.h"
 #include <iomanip>
 
 using namespace std;
@@ -27,10 +28,17 @@ void AllStubsMemory::writeStubs(std::vector<StubStreamData>& streamsAllStubRaw) 
       streamsAllStubRaw.emplace_back();
       continue;
     }
+    static constexpr int widthDisk2Sidentifier = 3;
+    static constexpr int widthDiskPSradius = 12;
+    string r = stub->r().str();
+    if (!stub->isBarrel()) {
+      if (stub->isPSmodule())
+        r = FPGAWord(stub->rvalue(), widthDiskPSradius).str();
+      else
+        r = string(widthDisk2Sidentifier, '0') + r;
+    }
     std::string s;
-    if (stub->negdisk().nbits() > 0)
-      s += stub->negdisk().str();
-    s += stub->r().str();
+    s += r;
     s += stub->z().str();
     s += stub->phi().str();
     if (stub->alpha().nbits() > 0)

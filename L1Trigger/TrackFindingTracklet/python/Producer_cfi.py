@@ -6,8 +6,8 @@ TrackFindingTrackletProducer_params = cms.PSet (
 
   BDT              = cms.FileInPath( "L1Trigger/TrackFindingTracklet/data/HYBRID_NEW_KF_TQ_XGBOOST_v0.json" ), #
   InputTagTTDTC    = cms.InputTag  ( "ProducerDTC", "StubAccepted" ),
-  InputTagAS       = cms.InputTag  ( "l1tTTTracksFromTrackletEmulation", "AllStubAccepted" ),
   InputTagTracklet = cms.InputTag  ( "l1tTTTracksFromTrackletEmulation", "Level1TTTracks" ), # Tracklet TTTracks
+  InputTagAS       = cms.InputTag  ( "ProducerASP", "AllStubAccepted" ), #
   InputLabelTFP    = cms.string( "ProducerTQ"      ),                  #
   InputLabelTQ     = cms.string( "ProducerKF"      ),                  #
   InputLabelKF     = cms.string( "ProducerDR"      ),                  #

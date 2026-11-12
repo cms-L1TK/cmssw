@@ -6,7 +6,10 @@
 
 namespace trklet {
 
-  DuplicateRemoval::DuplicateRemoval(const Setup* setup, const DataFormats* dataFormats, int region, const tt::StreamsStub& as)
+  DuplicateRemoval::DuplicateRemoval(const Setup* setup,
+                                     const DataFormats* dataFormats,
+                                     int region,
+                                     const tt::StreamsStub& as)
       : setup_(setup), dataFormats_(dataFormats), region_(region), as_(setup->aspNumLayers()) {
     if (!setup_->drUseASStubs())
       return;
@@ -20,28 +23,26 @@ namespace trklet {
           num++;
     stubsASP_.reserve(num);
     // fill all stubs container, prep all stub memories
-    std::vector<int> nums(setup->aspNumLayers(), 0);
+    std::vector<int> maxs(setup->aspNumLayers(), 0);
+    int id(0);
     for (int chan = 0; chan < numChan; chan++) {
-      int layer(0);
-      for (int i = 0; i < chan; i++)
-        layer += setup_->aspMux()[i].size();
-      layer = layer / setup_->aspNumChannelPerLayer();
+      id += setup_->aspMux()[chan].size();
+      const int layer = (id - 1) / setup_->aspNumChannelPerLayer();
       for (const tt::FrameStub& fs : as[offset + chan]) {
         if (fs.first.isNull())
           continue;
         stubsASP_.emplace_back(fs, dataFormats_);
-        nums[layer]++;
+        maxs[layer] = std::max(maxs[layer], stubsASP_.back().stubId());
       }
     }
     for (int layer = 0; layer < setup->aspNumLayers(); layer++)
-      as_[layer] = std::vector<const StubASP*>(nums[layer], nullptr);
+      as_[layer] = std::vector<const StubASP*>(maxs[layer] + 1, nullptr);
     // fill all stup memories
+    id = 0;
     int global(0);
     for (int chan = 0; chan < numChan; chan++) {
-      int layer(0);
-      for (int i = 0; i < chan; i++)
-        layer += setup_->aspMux()[i].size();
-      layer = layer / setup_->aspNumChannelPerLayer();
+      id += setup_->aspMux()[chan].size();
+      const int layer = (id - 1) / setup_->aspNumChannelPerLayer();
       for (const tt::FrameStub& fs : as[offset + chan]) {
         if (fs.first.isNull())
           continue;
@@ -120,9 +121,11 @@ namespace trklet {
           stub.seed_ = true;
         }
         stub.layer_ = layer + 1;
-        if (layer == 0 && stub.stubId_ >= maxStubId) {
-          stub.layer_--;
-          stub.stubId_ -= maxStubId;
+        if (layer == 0) {
+          if (stub.stubId_ < maxStubId)
+            stub.layer_--;
+          else
+            stub.stubId_ -= maxStubId;
         }
         track.stubs_[layer] = &stubs_.back();
       }
@@ -245,8 +248,6 @@ namespace trklet {
         if (!stub)
           continue;
         const StubASP* stubASP = as_[stub->layer_][stub->stubId_];
-        if (!stubASP)
-          throw cms::Exception("...");
         stub->r_ = stubASP->r();
         stub->phi_ = stubASP->phi();
         stub->z_ = stubASP->z();

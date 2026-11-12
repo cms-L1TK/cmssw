@@ -46,6 +46,16 @@ namespace trklet {
       int aspNumLayers;
       //
       int aspNumChannelPerLayer;
+      // number of bits used for stub r w.r.t layer/disk centre for module types (barrelPS, barrel2S, diskPS, disk2S)
+      std::vector<int> aspWidthsR;
+      // number of bits used for stub z w.r.t layer/disk centre for module types (barrelPS, barrel2S, diskPS, disk2S)
+      std::vector<int> aspWidthsZ;
+      // number of bits used for stub phi w.r.t. region centre for module types (barrelPS, barrel2S, diskPS, disk2S)
+      std::vector<int> aspWidthsPhi;
+      // number of bits used for stub row number for module types (barrelPS, barrel2S, diskPS, disk2S)
+      std::vector<int> aspWidthsAlpha;
+      // number of bits used for stub bend number for module types (barrelPS, barrel2S, diskPS, disk2S)
+      std::vector<int> aspWidthsBend;
       // ASP input mux map [48 to 31 channel]
       std::vector<std::vector<int>> aspMux;
       // f/w frequency in MHz
@@ -320,6 +330,16 @@ namespace trklet {
     int aspNumLayers() const { return config_.aspNumLayers; }
     //
     int aspNumChannelPerLayer() const { return config_.aspNumChannelPerLayer; }
+    // number of bits used for stub r w.r.t layer/disk centre for module types (barrelPS, barrel2S, diskPS, disk2S)
+    int aspWidthR(trackerDTC::SensorModule::Type type) const { return config_.aspWidthsR[type]; }
+    // number of bits used for stub z w.r.t layer/disk centre for module types (barrelPS, barrel2S, diskPS, disk2S)
+    int aspWidthZ(trackerDTC::SensorModule::Type type) const { return config_.aspWidthsZ[type]; }
+    // number of bits used for stub phi w.r.t. region centre for module types (barrelPS, barrel2S, diskPS, disk2S)
+    int aspWidthPhi(trackerDTC::SensorModule::Type type) const { return config_.aspWidthsPhi[type]; }
+    // number of bits used for stub row number for module types (barrelPS, barrel2S, diskPS, disk2S)
+    int aspWidthAlpha(trackerDTC::SensorModule::Type type) const { return config_.aspWidthsAlpha[type]; }
+    // number of bits used for stub bend number for module types (barrelPS, barrel2S, diskPS, disk2S)
+    int aspWidthBend(trackerDTC::SensorModule::Type type) const { return config_.aspWidthsBend[type]; }
     // AS input mux map [48 to 31 channel]
     const std::vector<std::vector<int>>& aspMux() const { return config_.aspMux; }
 

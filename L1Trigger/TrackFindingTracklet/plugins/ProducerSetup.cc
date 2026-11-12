@@ -73,6 +73,11 @@ namespace trklet {
     config_.aspWidthStubId = pSetASP.getParameter<int>("WidthStubId");
     config_.aspNumLayers = pSetASP.getParameter<int>("NumLayers");
     config_.aspNumChannelPerLayer = pSetASP.getParameter<int>("NumChannelPerLayer");
+    config_.aspWidthsR = pSetASP.getParameter<std::vector<int>>("WidthsR");
+    config_.aspWidthsZ = pSetASP.getParameter<std::vector<int>>("WidthsZ");
+    config_.aspWidthsPhi = pSetASP.getParameter<std::vector<int>>("WidthsPhi");
+    config_.aspWidthsAlpha = pSetASP.getParameter<std::vector<int>>("WidthsAlpha");
+    config_.aspWidthsBend = pSetASP.getParameter<std::vector<int>>("WidthsBend");
     const std::vector<edm::ParameterSet>& mux = pSetASP.getParameter<std::vector<edm::ParameterSet>>("Mux");
     config_.aspMux.reserve(mux.size());
     for (const edm::ParameterSet& ps : mux)

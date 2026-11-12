@@ -8,17 +8,15 @@ def swConfig(process):
   process.l1tTTTracksFromTrackletEmulation.RemovalType = ""
   process.l1tTTTracksFromTrackletEmulation.DoMultipleMatches = False
   process.l1tTTTracksFromTrackletEmulation.StoreTrackBuilderOutput = True
-  process.TrackFindingTrackletSetup.DR.UseASStubs = True
-  process.TrackFindingTrackletSetup.DR.UseTTStubs = False
+  process.TrackFindingTrackletSetup.DR.UseASStubs = False
+  process.TrackFindingTrackletSetup.DR.UseTTStubs = True
   process.ProducerKF.EnableIntegerEmulation = False
   process.TrackFindingTrackletSetup.TQ.Enable = True
 
 # configures track finding s/w to behave as track finding f/w
 def fwConfig(process):
-  process.l1tTTTracksFromTrackletEmulation.Fakefit = True
-  process.l1tTTTracksFromTrackletEmulation.RemovalType = ""
-  process.l1tTTTracksFromTrackletEmulation.StoreTrackBuilderOutput = True
-  process.TrackFindingTrackletSetup.DR.UseASStubs = True
+  swConfig(process)
+  process.TrackFindingTrackletSetup.DR.UseASStubs = False
   process.TrackFindingTrackletSetup.DR.UseTTStubs = False
   process.ProducerKF.EnableIntegerEmulation = True
   process.TrackFindingTrackletSetup.TQ.Enable = False

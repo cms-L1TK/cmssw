@@ -73,17 +73,22 @@ TrackFindingTracklet_params = cms.PSet (
 
   # Parameter specifying All Stub processing
   ASP = cms.PSet (
-    NumInput           = cms.int32( 48 ),
+    NumInput           = cms.int32( 48 ), #
     WidthStubId        = cms.int32(  7 ), # number of Bits used to represent stubId
-    NumLayers          = cms.int32( 12 ), # 
-    NumChannelPerLayer = cms.int32(  4 ), # 
+    NumLayers          = cms.int32( 12 ), #
+    NumChannelPerLayer = cms.int32(  4 ), #
+    WidthsR     = cms.vint32 (  7,  7, 12,  7 ), # number of bits used for stub r w.r.t layer/disk centre for module types (barrelPS, barrel2S, diskPS, disk2S)
+    WidthsZ     = cms.vint32 ( 12,  8,  7,  7 ), # number of bits used for stub z w.r.t layer/disk centre for module types (barrelPS, barrel2S, diskPS, disk2S)
+    WidthsPhi   = cms.vint32 ( 14, 17, 14, 14 ), # number of bits used for stub phi w.r.t. region centre for module types (barrelPS, barrel2S, diskPS, disk2S)
+    WidthsAlpha = cms.vint32 (  0,  0,  0,  4 ), # number of bits used for stub row number for module types (barrelPS, barrel2S, diskPS, disk2S)
+    WidthsBend  = cms.vint32 (  3,  4,  3,  4 ), # number of bits used for stub bend number for module types (barrelPS, barrel2S, diskPS, disk2S)
     Mux = cms.VPSet (
       cms.PSet( Chan = cms.vint32(  0,  1) ),
       cms.PSet( Chan = cms.vint32(      2) ),
-      cms.PSet( Chan = cms.vint32(      3) ),
+      cms.PSet( Chan = cms.vint32(      3) ), # L1A
       cms.PSet( Chan = cms.vint32(      4) ),
       cms.PSet( Chan = cms.vint32(      5) ),
-      cms.PSet( Chan = cms.vint32(  6,  7) ), # L1
+      cms.PSet( Chan = cms.vint32(  6,  7) ), # L1B
       cms.PSet( Chan = cms.vint32(  8, 11) ),
       cms.PSet( Chan = cms.vint32(      9) ),
       cms.PSet( Chan = cms.vint32(     10) ), # L2
