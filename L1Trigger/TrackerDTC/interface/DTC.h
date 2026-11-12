@@ -27,10 +27,10 @@ namespace trackerDTC {
   public:
     // configuration
     struct Config {
-      // enables writing txt files
-      bool writeTxt;
-      // enables comparison of s/w with f/w
+      // enables comparison of s/w with f/w and writing out of txt files
       bool enable;
+      // only disable comparison of s/w with f/w
+      bool dontCompare;
       // modelsim simulation time in us
       double runTime;
       // number of 8 bx boxcars played in one test
