@@ -43,13 +43,16 @@ namespace trackerDTC {
     const LocalVector lbfield = plane.toLocal(setup->magneticField()->inTesla(pos0));
     const LocalVector driftDirection(-lorentzAngle * lbfield.y(), lorentzAngle * lbfield.x(), 1.);
     const double thickness = geomDetUnit->specificSurface().bounds().thickness();
-    dPhi_ = barrel ? (driftDirection * thickness).x() / pos0.perp() : 0.;
+    dX_ = (driftDirection * thickness).x();
     // detector region [0-8]
     const int region = dtcId_ / setup->regNumDTC();
     // module radius in cm
     r_ = pos0.perp();
     // module phi w.r.t. detector region_ centre in rad
     phi_ = tt::deltaPhi(pos0.phi() - (region + .5) * setup->regRangePhiT());
+    // apply lorentz drift if wanted
+    if (setup->smApplyLorentz())
+      phi_ -= dX_ / pos0.perp();
     // module z in cm
     z_ = pos0.z();
     // sensor separation in cm

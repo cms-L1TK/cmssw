@@ -85,6 +85,8 @@ namespace trackerDTC {
       int cicNumStub10g;
       // number of MPAs/CBCs read out
       int cicNumFEC;
+      // apply lorentz drift correction
+      bool smApplyLorentz;
       // number of CICs per sensor module
       int smNumCIC;
       // In tilted barrel, grad*|z|/r + int approximates |cosTilt| + |sinTilt * cotTheta|
@@ -280,6 +282,8 @@ namespace trackerDTC {
     int cicNumStub10g() const { return config_.cicNumStub10g; }
     // number of MPAs/CBCs read out
     int cicNumFEC() const { return config_.cicNumFEC; }
+    // apply lorentz drift correction
+    bool smApplyLorentz() const { return config_.smApplyLorentz; }
     // number of CICs per sensor module
     int smNumCIC() const { return config_.smNumCIC; }
     // In tilted barrel, constant assumed stub radial uncertainty * sqrt(12) in cm

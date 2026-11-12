@@ -262,8 +262,8 @@ namespace trackerDTC {
     prof_->Fill(3, tpPtrs.size());
     if (nEvents_ == 0) {
       for (const SensorModule& sm : setup_->sensorModules()) {
-        hisL_->Fill(sm.dPhi());
-        profL_->Fill(sm.tilt(), std::abs(sm.dPhi()));
+        hisL_->Fill(sm.dX() / sm.r());
+        profL_->Fill(sm.tilt(), std::abs(sm.dX() / sm.r()));
       }
     }
     nEvents_++;

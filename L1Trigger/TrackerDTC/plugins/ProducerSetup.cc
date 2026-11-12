@@ -67,6 +67,7 @@ namespace trackerDTC {
     config_.cicNumStub10g = cic.getParameter<int>("NumStub10g");
     config_.cicNumFEC = cic.getParameter<int>("NumFEC");
     const edm::ParameterSet& sm = iConfig.getParameter<edm::ParameterSet>("SensorModule");
+    config_.smApplyLorentz = sm.getParameter<bool>("ApplyLorentz");
     config_.smNumCIC = sm.getParameter<int>("NumCIC");
     config_.smTiltApproxSlope = sm.getParameter<double>("TiltApproxSlope");
     config_.smTiltApproxIntercept = sm.getParameter<double>("TiltApproxIntercept");

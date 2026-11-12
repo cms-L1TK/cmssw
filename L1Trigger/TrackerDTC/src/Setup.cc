@@ -299,8 +299,12 @@ namespace trackerDTC {
     const Plane& plane = dynamic_cast<const PixelGeomDetUnit*>(det)->surface();
     const std::vector<int>& rows = ttStubRef->clusterRef(0)->getRows();
     const std::vector<int>& cols = ttStubRef->clusterRef(0)->getCols();
-    const double row = (rows.front() + rows.back()) / 2. + .5;
     const double col = *std::min_element(cols.begin(), cols.end()) + .5;
+    double row = (rows.front() + rows.back()) / 2. + .5;
+    if (config_.smApplyLorentz) {
+      const SensorModule* sm = sensorModule(detId);
+      row -= sm->dX();
+    }
     MeasurementPoint fe(row, col);
     return plane.toGlobal(topol->localPosition(fe));
   }
