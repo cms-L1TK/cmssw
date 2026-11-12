@@ -191,20 +191,22 @@ namespace trackerDTC {
       // convert output data to txt
       convert(headerPre_, streamsOut_, pathPre_, setup_->sysNumFrames());
       // run modelsim and linux diff
-      std::system(cmd_.str().c_str());
-      // read diff output
-      fs.open(pathDiff_, std::fstream::in);
-      ss << fs.rdbuf();
-      fs.close();
-      // count lines, 4 are expected
-      int n(0);
-      std::string token;
-      while (getline(ss, token))
-        n++;
-      if (n != 4)
-        throw cms::Exception("BitError.") << "In DTC # " << dtcId_ << ".";
-      else
-        std::cout << "." << std::flush;
+      if (!config_->dontCompare) {
+        std::system(cmd_.str().c_str());
+        // read diff output
+        fs.open(pathDiff_, std::fstream::in);
+        ss << fs.rdbuf();
+        fs.close();
+        // count lines, 4 are expected
+        int n(0);
+        std::string token;
+        while (getline(ss, token))
+          n++;
+        if (n != 4)
+          throw cms::Exception("BitError.") << "In DTC # " << dtcId_ << ".";
+        else
+          std::cout << "." << std::flush;
+      }
     }
     // prep for next round
     for (tt::Stream& stream : streamsIn_)
