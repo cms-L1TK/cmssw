@@ -27,7 +27,7 @@ namespace trackerDTC {
   public:
     // configuration
     struct Config {
-      // enables writing txt files 
+      // enables writing txt files
       bool writeTxt;
       // enables comparison of s/w with f/w
       bool enable;
