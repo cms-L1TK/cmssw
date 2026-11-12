@@ -27,6 +27,8 @@ namespace trackerDTC {
   public:
     // configuration
     struct Config {
+      // enables writing txt files 
+      bool writeTxt;
       // enables comparison of s/w with f/w
       bool enable;
       // modelsim simulation time in us

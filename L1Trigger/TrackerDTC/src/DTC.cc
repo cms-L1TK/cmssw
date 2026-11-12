@@ -39,7 +39,7 @@ namespace trackerDTC {
     for (tt::Stream streamOut : streamsOut_)
       streamOut.reserve(config_->num18BX * (setup_->sysNumFramesInfra() + setup_->sysNumFrames()));
     // create header
-    if (config_->enable) {
+    if (config_->writeTxt || config_->enable) {
       auto header = [this](std::stringstream& ss, int nLinks) {
         static constexpr int nQuad = 4;
         // file header
@@ -117,7 +117,7 @@ namespace trackerDTC {
       stream.reserve(setup_->feNumFrames());
     produce(input);
     // store input
-    if (config_->enable) {
+    if (config_->writeTxt || config_->enable) {
       for (int channel = 0; channel < setup_->dtcNumModule(); channel++) {
         const tt::Stream& boxcar = input[channel];
         tt::Stream& testFile = streamsIn_[channel];
@@ -132,7 +132,7 @@ namespace trackerDTC {
       stream.reserve(setup_->sysNumFrames());
     produce(input, output);
     // store output
-    if (config_->enable) {
+    if (config_->writeTxt || config_->enable) {
       const int offset = (bx - setup_->cicNumBX()) * setup_->sysNumOverlap();
       for (int channel8BX = 0; channel8BX < numOut8BX; channel8BX++) {
         const int channel18BX = (offset + channel8BX) % numOut18BX;
@@ -152,7 +152,7 @@ namespace trackerDTC {
 
   // compare s/w with f/w
   void DTC::analyze() {
-    if (config_->enable) {
+    if (config_->writeTxt || config_->enable) {
       std::fstream fs;
       std::stringstream ss;
       auto convert = [&fs, &ss, this](const std::stringstream& header,
@@ -191,20 +191,22 @@ namespace trackerDTC {
       // convert output data to txt
       convert(headerPre_, streamsOut_, pathPre_, setup_->sysNumFrames());
       // run modelsim and linux diff
-//       std::system(cmd_.str().c_str());
-//       // read diff output
-//       fs.open(pathDiff_, std::fstream::in);
-//       ss << fs.rdbuf();
-//       fs.close();
-//       // count lines, 4 are expected
-//       int n(0);
-//       std::string token;
-//       while (getline(ss, token))
-//         n++;
-//       if (n != 4)
-//         throw cms::Exception("BitError.") << "In DTC # " << dtcId_ << ".";
-//       else
-//         std::cout << "." << std::flush;
+      if (config_->enable) {
+        std::system(cmd_.str().c_str());
+        // read diff output
+        fs.open(pathDiff_, std::fstream::in);
+        ss << fs.rdbuf();
+        fs.close();
+        // count lines, 4 are expected
+        int n(0);
+        std::string token;
+        while (getline(ss, token))
+          n++;
+        if (n != 4)
+          throw cms::Exception("BitError.") << "In DTC # " << dtcId_ << ".";
+        else
+          std::cout << "." << std::flush;
+      }
     }
     // prep for next round
     for (tt::Stream& stream : streamsIn_)

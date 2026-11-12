@@ -4,6 +4,7 @@ import FWCore.ParameterSet.Config as cms
 
 TrackerDTCDemonstrator_params = cms.PSet (
 
+  WriteTxt = cms.bool  (  True ), # enables writing out the s/w output
   Enable   = cms.bool  (  True ), # enables comparison of s/w with f/w
   IDs      = cms.vint32(       ), # DTC ids [0-215] under test, empty means all beeing tested
   RunTime  = cms.double(    6. ), # runtime in us
