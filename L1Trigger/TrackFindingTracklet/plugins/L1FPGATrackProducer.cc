@@ -651,7 +651,7 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
     numAS += std::pow(2, settings_.nbitsallstubs(i));
 
   // number of track channels
-  const int numStreamsTrack = trklet::N_SECTOR * setup_->tbNumSeedTypes();
+  const int numStreamsTrack = trklet::N_SECTOR * setup_->tbNumChannel();
   // number of stub channels if all seed types streams padded to have same number of stub channels (for coding simplicity)
   const int numStreamsStub = numStreamsTrack * setup_->tbNumLayers();
   // number of all stub streams
@@ -799,9 +799,9 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
   tt::StreamsTrack streamsTrack(numStreamsTrack);
   tt::StreamsStub streamsStub(numStreamsStub);
   for (int region = 0; region < setup_->sysNumRegion(); region++) {
-    const int offsetTrack = region * setup_->tbNumSeedTypes();
-    for (int seedType = 0; seedType < setup_->tbNumSeedTypes(); seedType++) {
-      const int channelTrack = offsetTrack + seedType;
+    const int offsetTrack = region * setup_->tbNumChannel();
+    for (int chan = 0; chan < setup_->tbNumChannel(); chan++) {
+      const int channelTrack = offsetTrack + chan;
       const int offsetStub = channelTrack * setup_->tbNumLayers();
       const std::vector<std::string>& tracks = streamsTrackRaw[channelTrack];
       const int numTracks = tracks.size();

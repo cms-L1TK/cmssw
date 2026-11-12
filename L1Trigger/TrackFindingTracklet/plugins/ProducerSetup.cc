@@ -44,6 +44,7 @@ namespace trklet {
     config_.tbMinZ = pSetTB.getParameter<double>("MinZ");
     config_.tbMaxR = pSetTB.getParameter<double>("MaxR");
     config_.tbInnerRadius = pSetTB.getParameter<double>("InnerRadius");
+    config_.tbNumChannel = pSetTB.getParameter<int>("NumChannel");
     config_.tbNumLayers = pSetTB.getParameter<int>("NumLayers");
     config_.tbTiltedLayerLimitsZ = pSetTB.getParameter<std::vector<double>>("TiltedLayerLimitsZ");
     config_.tbNumSeedTypes = pSetTB.getParameter<int>("NumSeedTypes");
@@ -83,7 +84,7 @@ namespace trklet {
     for (const edm::ParameterSet& ps : mux)
       config_.aspMux.emplace_back(ps.getParameter<std::vector<int>>("Chan"));
     const edm::ParameterSet& pSetTM = iConfig.getParameter<edm::ParameterSet>("TM");
-    config_.tmMuxOrder = pSetTM.getParameter<std::vector<std::string>>("MuxOrder");
+    config_.tmMuxOrder = pSetTM.getParameter<std::vector<int>>("MuxOrder");
     const edm::ParameterSet& pSetDR = iConfig.getParameter<edm::ParameterSet>("DR");
     config_.drUseASStubs = pSetDR.getParameter<bool>("UseASStubs");
     config_.drUseTTStubs = pSetDR.getParameter<bool>("UseTTStubs");

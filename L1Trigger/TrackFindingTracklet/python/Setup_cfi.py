@@ -31,6 +31,7 @@ TrackFindingTracklet_params = cms.PSet (
     MinZ = cms.double( 124.0 ), # smallest disk stub z position after TrackBuilder in cm
     MaxR = cms.double( 124.0 ), # biggest disk stub r position after TrackBuilder in cm
     InnerRadius = cms.double( 19.6 ), # smallest stub radius after TrackBuilder in cm
+    NumChannel = cms.int32( 2 ), # number of output channel
     NumLayers = cms.int32( 11 ), # number of layers
     TiltedLayerLimitsZ = cms.vdouble( 15.5, 24.9, 34.3 ), # barrel layer limit z value in cm to partition into tilted and untilted region
     NumSeedTypes = cms.int32( 8 ), # number of seed Types
@@ -56,19 +57,17 @@ TrackFindingTracklet_params = cms.PSet (
       L1D1 = cms.vint32( 12, 13, 14, 15 ),
       L2D1 = cms.vint32(  1, 12, 13, 14 )
     ),
-
     WidthsR       = cms.vint32(  7,  7, 12, 12 ), # number of bits used for stub r w.r.t layer/disk centre for module types (barrelPS, barrel2S, diskPS, disk2S) at TB output
     WidthsPhi     = cms.vint32( 12, 12, 12, 12 ), # number of bits used for stub phi residual for module types (barrelPS, barrel2S, diskPS, disk2S) at TB output
     WidthsRZ      = cms.vint32(  9,  9,  8,  8 ), # number of bits used for stub r (disk) or z (barrel) residual for module types (barrelPS, barrel2S, diskPS, disk2S) at TB output
     BaseShiftsR   = cms.vint32(  1,  1,  0,  0 ), #
     BaseShiftsPhi = cms.vint32(  3,  0,  3,  3 ), #
     BaseShiftsRZ  = cms.vint32(  0,  4,  0,  0 ), #
-
-    WidthStubId  = cms.int32( 10 ), # number of Bits used to represent stubId
-    WidthInv2R   = cms.int32( 14 ), # number of Bits used to represent inv2R
-    WidthPhi0    = cms.int32( 18 ), # number of Bits used to represent phi0
-    WidthZ0      = cms.int32( 11 ), # number of Bits used to represent z0
-    WidthCot     = cms.int32( 15 ), # number of Bits used to represent cot
+    WidthStubId   = cms.int32( 10 ), # number of Bits used to represent stubId
+    WidthInv2R    = cms.int32( 14 ), # number of Bits used to represent inv2R
+    WidthPhi0     = cms.int32( 18 ), # number of Bits used to represent phi0
+    WidthZ0       = cms.int32( 11 ), # number of Bits used to represent z0
+    WidthCot      = cms.int32( 15 ), # number of Bits used to represent cot
   ),
 
   # Parameter specifying All Stub processing
@@ -121,7 +120,7 @@ TrackFindingTracklet_params = cms.PSet (
   TM = cms.PSet (
     # The order here approximately dictates the order in which tracks enter the DR,
     # with DR keeping 1st track to arrive, in case two tracks are duplicate.
-    MuxOrder = cms.vstring( "L1L2", "L2L3", "L1D1", "L2D1", "D1D2", "D3D4", "L3L4", "L5L6" ), # seed priority during merge
+    MuxOrder = cms.vint32( 0, 1 ), # channel priority during merge
   ),
 
   # Parameter specifying Duplicate Removal

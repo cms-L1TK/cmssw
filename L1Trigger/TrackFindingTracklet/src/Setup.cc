@@ -55,11 +55,6 @@ namespace trklet {
     drWidthLayerId_ = tt::ilog2(drNumLayers_);
     kfNumLayers_ = config_.kfNumSeed + config_.kfNumProj;
     kfMinProj_ = config_.kfMinLayers - config_.kfNumSeed;
-    tmMuxOrder_.reserve(config_.tmMuxOrder.size());
-    for (const std::string& seedType : config_.tmMuxOrder) {
-      const auto it = std::find(config_.tbSeedTypes.begin(), config_.tbSeedTypes.end(), seedType);
-      tmMuxOrder_.push_back(std::distance(config_.tbSeedTypes.begin(), it));
-    }
     tqScaleFactorZ0_ = std::pow(2, config_.tqScalePowZ0);
     tqScaleFactorCot_ = std::pow(2, config_.tqScalePowCot);
   }

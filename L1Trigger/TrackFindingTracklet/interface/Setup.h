@@ -66,6 +66,8 @@ namespace trklet {
       double tbMaxR;
       // smallest stub radius after TrackBuilder in cm
       double tbInnerRadius;
+      // number of output channel
+      int tbNumChannel;
       // number of layers
       int tbNumLayers;
       // barrel layer limit z value in cm to partition into tilted and untilted region
@@ -103,7 +105,7 @@ namespace trklet {
       // number of Bits used to represent cot
       int tbWidthCot;
       // seed priority during merge
-      std::vector<std::string> tmMuxOrder;
+      std::vector<int> tmMuxOrder;
       // recalculates track parameter and stub residuals from all stubs
       bool drUseASStubs;
       // recalculates track parameter and stub residuals from TT stubs
@@ -349,6 +351,8 @@ namespace trklet {
     double tbMinZ() const { return config_.tbMinZ; }
     // smallest stub radius after TrackBuilder in cm
     double tbInnerRadius() const { return config_.tbInnerRadius; }
+    // number of output channel
+    int tbNumChannel() const { return config_.tbNumChannel; }
     // number of layers
     int tbNumLayers() const { return config_.tbNumLayers; }
     // barrel layer limit z value in cm to partition into tilted and untilted region
@@ -395,7 +399,7 @@ namespace trklet {
     int tbWidthSeedType() const { return tbWidthSeedType_; }
 
     // mux order of seed types
-    const std::vector<int>& tmMuxOrder() const { return tmMuxOrder_; }
+    const std::vector<int>& tmMuxOrder() const { return config_.tmMuxOrder; }
     // number of layers per track
     int tmNumLayers() const { return tmNumLayers_; }
     // number of bits used to represent trackelt residual object
@@ -509,8 +513,6 @@ namespace trklet {
     // number of bits used to represent trackelt residual object
     int tmWidthResid_;
     double tmBaseCot_;
-    // mux order of seed types
-    std::vector<int> tmMuxOrder_;
     // number of layers per track
     int tmNumLayers_;
     // precision of internal inversere cot(theta)
