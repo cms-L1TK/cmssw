@@ -8,8 +8,10 @@
 #include "DataFormats/SiStripDetId/interface/StripSubdetector.h"
 #include "Geometry/CommonTopologies/interface/PixelGeomDetUnit.h"
 #include "Geometry/TrackerGeometryBuilder/interface/TrackerGeometry.h"
+#include "MagneticField/Engine/interface/MagneticField.h"
 #include "L1Trigger/TrackTrigger/interface/TTStubAlgorithm_official.h"
 #include "CondFormats/SiPhase2TrackerObjects/interface/TrackerDetToDTCELinkCablingMap.h"
+#include "CondFormats/SiPhase2TrackerObjects/interface/SiPhase2OuterTrackerLorentzAngle.h"
 
 #include "DataFormats/L1TrackTrigger/interface/TTTypes.h"
 #include "L1Trigger/TrackerDTC/interface/SensorModule.h"
@@ -220,6 +222,8 @@ namespace trackerDTC {
     Setup(const Config&,
           const TrackerGeometry&,
           const TrackerTopology&,
+          const MagneticField&,
+          const SiPhase2OuterTrackerLorentzAngle&,
           const TrackerDetToDTCELinkCablingMap&,
           const StubAlgorithmOfficial&,
           const ConfigTTStubAlgorithm&);
@@ -242,6 +246,8 @@ namespace trackerDTC {
     const TrackerGeometry* trackerGeometry() const { return trackerGeometry_; }
     // TrackerTopology
     const TrackerTopology* trackerTopology() const { return trackerTopology_; }
+    // MagneticField
+    const MagneticField* magneticField() const { return magneticField_; }
     // number of tilted layer rings for given layer
     int numTiltedLayerRing(int layer) const { return nTiltedRings_[layer]; }
     // number of rows read out
@@ -488,6 +494,8 @@ namespace trackerDTC {
     const TrackerGeometry* trackerGeometry_;
     // TrackerTopology
     const TrackerTopology* trackerTopology_;
+    // MagneticField
+    const MagneticField* magneticField_;
     // number of tilted layer rings per layer
     std::vector<double> nTiltedRings_;
     // Configuration

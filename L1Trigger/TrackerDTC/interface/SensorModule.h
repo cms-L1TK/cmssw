@@ -24,6 +24,7 @@ namespace trackerDTC {
                  int,
                  bool,
                  bool,
+                 double,
                  int,
                  int,
                  const std::vector<double>&,
@@ -87,6 +88,8 @@ namespace trackerDTC {
     double sinTilt() const { return sinTilt_; }
     // cosinus of module tilt measured w.r.t. beam axis (1=barrel), tk layout measures w.r.t. radial axis
     double cosTilt() const { return cosTilt_; }
+    // lorentz phi correction
+    double dPhi() const { return dPhi_; }
     // stub radius offset for barrelPS, barrel2S, used in Hybrid
     double offsetR() const { return offsetR_; }
     // stub z offset for diskPS, disk2S, used in Hybrid
@@ -167,6 +170,8 @@ namespace trackerDTC {
     double sinTilt_;
     // cosinus of module tilt measured w.r.t. beam axis (+-1=endcap), tk layout measures w.r.t. radial axis
     double cosTilt_;
+    // lorentz phi correction
+    double dPhi_;
     // module type (barrelPS, barrel2S, diskPS, disk2S)
     Type type_;
     // stub radius offset for barrelPS, barrel2S, used in Hybrid

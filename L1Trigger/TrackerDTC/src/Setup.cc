@@ -14,11 +14,14 @@ namespace trackerDTC {
   Setup::Setup(const Config& config,
                const TrackerGeometry& trackerGeometry,
                const TrackerTopology& trackerTopology,
+               const MagneticField& magneticField,
+               const SiPhase2OuterTrackerLorentzAngle& lorentzAngle,
                const TrackerDetToDTCELinkCablingMap& cablingMap,
                const StubAlgorithmOfficial& stubAlgorithm,
                const ConfigTTStubAlgorithm& configTTStubAlgorithm)
       : trackerGeometry_(&trackerGeometry),
         trackerTopology_(&trackerTopology),
+        magneticField_(&magneticField),
         nTiltedRings_(configTTStubAlgorithm.nTiltedRings),
         config_(config),
         printIDs_(config.printIDs) {
@@ -210,9 +213,11 @@ namespace trackerDTC {
       const bool psModule = trackerGeometry.getDetectorType(detId) == TrackerGeometry::ModuleType::Ph2PSP;
       const std::vector<double>& encodingBend = psModule ? encodingsBendPS_[ws] : encodingsBend2S_[ws];
       const std::vector<double>& degradedBend = psModule ? degradedBendPS_[ws] : degradedBend2S_[ws];
+      // calc lorentz drift direction
+      const double lAngle = lorentzAngle.getLorentzAngle(detId);
       // construct sendor module
       sensorModules_.emplace_back(
-          this, detId, dtcId, modId, barrel, psModule, index, ws, encodingBend, degradedBend, encodingLayer);
+          this, detId, dtcId, modId, barrel, psModule, lAngle, index, ws, encodingBend, degradedBend, encodingLayer);
       // store connection between dtc and sensor module
       dtcModules_[dtcId][modId] = &sensorModules_.back();
       // store connection between detId and sensor module
