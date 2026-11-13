@@ -13,8 +13,10 @@
 #include "DataFormats/Math/interface/Error.h"
 
 #include "L1Trigger/TrackFindingTracklet/interface/Setup.h"
+#include "L1Trigger/TrackFindingTracklet/interface/DataFormats.h"
 #include "L1Trigger/TrackTrigger/interface/StubPtConsistency.h"
 #include "DataFormats/L1TrackTrigger/interface/TTTypes.h"
+#include "L1Trigger/TrackFindingTracklet/interface/TrackQuality.h"
 
 #include <string>
 #include <vector>
@@ -39,6 +41,7 @@ namespace trklet {
   private:
     void produce(edm::Event&, const edm::EventSetup&) override;
     void beginRun(const edm::Run&, const edm::EventSetup&) override;
+    const std::vector<trklet::TrackQuality::Fixed> convertFeatures(const DataFormats* dataFormats_, const float& z0, const float& tanL, const float& chi20, const float& chi21, const float& hitpattern);
 
     struct Stub {
       double H_;
@@ -51,31 +54,37 @@ namespace trklet {
     edm::EDGetTokenT<tt::TTTracks> edGetTokenTracks_;
     // ED output token of TTTracks
     edm::EDPutTokenT<tt::TTTracks> edPutTokenTracks_;
+    // DataFormats token
+    edm::ESGetToken<DataFormats, trackerDTC::SetupRcd> esGetTokenDataFormats_;
     // Setup token
     edm::ESGetToken<Setup, trackerDTC::SetupRcd> esGetTokenSetup_;
     // helper class to store configurations
     const Setup* setup_;
+    // helper class to extract structured data from tt::Frames
+    const DataFormats* dataFormats_ = nullptr;
     //
     std::vector<int> nPer_;
     // BDT models for baseline and extended tracking
     const edm::ParameterSet config_;
-    conifer::BDT<float, float> bdt_;
+    conifer::BDT<trklet::TrackQuality::Fixed, trklet::TrackQuality::Fixed> bdt_;
   };
 
   ProducerSim::ProducerSim(const edm::ParameterSet& iConfig)
-      : config_(iConfig), bdt_(config_.getParameter<edm::FileInPath>("BDT4ParSim").fullPath()) {
+      : config_(iConfig), bdt_(config_.getParameter<edm::FileInPath>("BDT").fullPath()) {
     const edm::InputTag& inputTag = iConfig.getParameter<edm::InputTag>("InputTagTracklet");
     const std::string& branchTracks = iConfig.getParameter<std::string>("BranchTTTracks");
     // book in- and output ED products
     edGetTokenTracks_ = consumes(inputTag);
     edPutTokenTracks_ = produces(branchTracks);
     // book ES products
+    esGetTokenDataFormats_ = esConsumes<edm::Transition::BeginRun>();
     esGetTokenSetup_ = esConsumes<edm::Transition::BeginRun>();
   }
 
   void ProducerSim::beginRun(const edm::Run& iEvent, const edm::EventSetup& iSetup) {
     // helper class to store configurations
     setup_ = &iSetup.getData(esGetTokenSetup_);
+    dataFormats_ = &iSetup.getData(esGetTokenDataFormats_);
     // calc permutations for all found track sizes [4 - 7]
     auto fac = [](int n) {
       int f(1);
@@ -93,11 +102,28 @@ namespace trklet {
     std::string fbdtpath_ = "";
 
     if (setup_->simNPar() == 4)
-      fbdtpath_ = config_.getParameter<edm::FileInPath>("BDT4ParSim").fullPath();
+      fbdtpath_ = config_.getParameter<edm::FileInPath>("BDT").fullPath();
     else if (setup_->simNPar() == 5)
       fbdtpath_ = config_.getParameter<edm::FileInPath>("BDT5ParSim").fullPath();
 
-    bdt_ = conifer::BDT<float, float>(fbdtpath_);
+    bdt_ = conifer::BDT<trklet::TrackQuality::Fixed, trklet::TrackQuality::Fixed>(fbdtpath_);
+  }
+
+  const std::vector<trklet::TrackQuality::Fixed> ProducerSim::convertFeatures(const DataFormats* dataFormats_, const float& z0, const float& tanL, const float& chi20, const float& chi21, const float& hitpattern) {
+    const DataFormat& dfChi20 = dataFormats_->format(Variable::chi20, Process::tq);
+    const DataFormat& dfChi21 = dataFormats_->format(Variable::chi21, Process::tq);
+    const DataFormat& dfZ0 = dataFormats_->format(Variable::z0, Process::tq);
+    const DataFormat& dfCot = dataFormats_->format(Variable::cot, Process::tq);
+    auto toFixed = [](double v) {
+      trklet::TrackQuality::Fixed f;
+      f.range(f.width - 1, 0) = v;
+      return f;
+    };
+    const trklet::TrackQuality::Fixed chi20F_fixed = toFixed(dfChi20.integer(chi20));
+    const trklet::TrackQuality::Fixed chi21F_fixed = toFixed(dfChi21.integer(chi21));
+    const trklet::TrackQuality::Fixed z0_fixed = toFixed(dfZ0.integer(z0));
+    const trklet::TrackQuality::Fixed cot_fixed = toFixed(dfCot.integer(tanL));
+    return {z0_fixed, cot_fixed, chi20F_fixed, chi21F_fixed, hitpattern};
   }
 
   void ProducerSim::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
@@ -314,7 +340,6 @@ namespace trklet {
           ttTrack, setup_->trackerGeometry(), setup_->trackerTopology(), setup_->sysBField(), setup_->simNPar()));
 
       // Prepare attributes for MVA evaluation
-      const float nstubs = ttTrack.getStubRefs().size();
       const float z0 = ttTrack.z0();
       const float tanL = ttTrack.tanL();
       const float chi20 = ttTrack.chi2XY();
@@ -322,7 +347,7 @@ namespace trklet {
       const float hitpattern = ttTrack.hitPattern();
 
       // BDT evaluation
-      std::vector<float> inputs = {nstubs, z0, tanL, chi20, chi21, hitpattern};
+      const std::vector<trklet::TrackQuality::Fixed> inputs = convertFeatures(dataFormats_, z0, tanL, chi20, chi21, hitpattern);
 
       float mva = bdt_.decision_function(inputs).at(0);
 
