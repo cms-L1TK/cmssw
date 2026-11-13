@@ -80,12 +80,36 @@ namespace trklet {
       chi20F = dfChi20.limit(chi20F);
       chi21F = dfChi21.limit(chi21F);
       const double nStubs = hitPattern.count();
-      const double z0 = dfZ0.integer(frame.track_->z0()) / setup_->tqScaleFactorZ0();
-      const double cot = dfCot.integer(frame.track_->cot()) / setup_->tqScaleFactorCot();
+      const double z0 = dfZ0.integer(frame.track_->z0());
+      const double cot = dfCot.integer(frame.track_->cot());
       const double chi20I = dfChi20.integer(chi20F);
       const double chi21I = dfChi21.integer(chi21F);
-      const double nGaps = hitPattern.count(hitPattern.plEncode(), hitPattern.pmEncode(), false);
-      const std::vector<Fixed> features({nStubs, z0, cot, chi20I, chi21I, nGaps});
+      // const double nGaps = hitPattern.count(hitPattern.plEncode(), hitPattern.pmEncode(), false);
+      std::bitset<64> hitPattern_bits = hitPattern.bs();
+      std::bitset<7> reversed;
+      for (size_t i = 0; i < 7; i++) {
+          reversed[i] = hitPattern_bits[7 - 1 - i];
+      }
+      const double hitPatternInt = reversed.to_ulong();
+
+      const Fixed fixed_nStubs (nStubs);
+      const Fixed fixed_nGaps (hitPatternInt);
+
+      const Fixed chi20F_fixed; 
+      chi20F_fixed.range(chi20F_fixed.width - 1, 0) = chi20I;
+      const Fixed chi21F_fixed;
+      chi21F_fixed.range(chi21F_fixed.width - 1, 0) = chi21I;
+      const Fixed z0_fixed;
+      z0_fixed.range(z0_fixed.width - 1, 0) = z0;
+      const Fixed cot_fixed;
+      cot_fixed.range(cot_fixed.width - 1, 0) = cot;
+      const Int int_z0 (z0_fixed.range(z0_fixed.width - 1, 0));
+      const Int int_cot (cot_fixed.range(cot_fixed.width - 1, 0));
+      const Int int_chi20I (chi20F_fixed.range(chi20F_fixed.width - 1, 0));
+      const Int int_chi21I (chi21F_fixed.range(chi21F_fixed.width - 1, 0));
+      const Int int_nStubs (fixed_nStubs.range(fixed_nStubs.width - 1, 0));
+      const Int int_nGaps (fixed_nGaps.range(fixed_nGaps.width - 1, 0));
+      const std::vector<Fixed> features({nStubs, z0_fixed, cot_fixed, chi20F_fixed, chi21F_fixed, hitPatternInt});
       // Run the Track Quality BDT calculation
       const Fixed fixed = bdt_->decision_function(features).at(0);
       const Int val = fixed.range(fixed.width - 1, 0);
