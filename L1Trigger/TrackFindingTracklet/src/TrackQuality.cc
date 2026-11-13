@@ -79,12 +79,6 @@ namespace trklet {
       // Accumulating all BDT Attributes
       chi20F = dfChi20.limit(chi20F);
       chi21F = dfChi21.limit(chi21F);
-      // conversion function for bdt input features
-      auto toFixed = [](double v) {
-        Fixed f;
-        f.range(f.width - 1, 0) = v;
-        return f;
-      };
       // reverse hitpattern
       std::string reversed = hitPattern.str();
       std::reverse(reversed.begin(), reversed.end());

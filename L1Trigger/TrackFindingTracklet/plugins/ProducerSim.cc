@@ -124,15 +124,10 @@ namespace trklet {
     const DataFormat& dfChi21 = dataFormats_->format(Variable::chi21, Process::tq);
     const DataFormat& dfZ0 = dataFormats_->format(Variable::z0, Process::tq);
     const DataFormat& dfCot = dataFormats_->format(Variable::cot, Process::tq);
-    auto toFixed = [](double v) {
-      trklet::TrackQuality::Fixed f;
-      f.range(f.width - 1, 0) = v;
-      return f;
-    };
-    const float chi20F_fixed = toFixed(dfChi20.integer(chi20));
-    const float chi21F_fixed = toFixed(dfChi21.integer(chi21));
-    const float z0_fixed = toFixed(dfZ0.integer(z0));
-    const float cot_fixed = toFixed(dfCot.integer(tanL));
+    const float chi20F_fixed = trklet::TrackQuality::toFixed(dfChi20.integer(chi20));
+    const float chi21F_fixed = trklet::TrackQuality::toFixed(dfChi21.integer(chi21));
+    const float z0_fixed = trklet::TrackQuality::toFixed(dfZ0.integer(z0));
+    const float cot_fixed = trklet::TrackQuality::toFixed(dfCot.integer(tanL));
     return {z0_fixed, cot_fixed, chi20F_fixed, chi21F_fixed, hitpattern};
   }
 

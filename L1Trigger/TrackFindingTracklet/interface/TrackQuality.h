@@ -25,6 +25,11 @@ namespace trklet {
     typedef ap_int<TQ_TOTAL_BITS> Int;
     typedef ap_fixed<TQ_TOTAL_BITS, TQ_TOTAL_BITS - TQ_FRACTIONAL_BITS> Fixed;
     typedef conifer::BDT<Fixed, Fixed> BDT;
+    static inline const auto toFixed = [](double v) {
+      Fixed f;
+      f.range(f.width - 1, 0) = v;
+      return f;
+    };
     // various internal dataformats
     struct InternalFormats {
       DataFormat m02_;
