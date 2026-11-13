@@ -82,15 +82,11 @@ namespace trklet {
       int mva(0);
       if (true) {
         const double nStubs = hitPattern.count();
+        const double hitPatternInt = hitPattern.bs().to_ulong();
         const double z0 = dfZ0.integer(frame.track_->z0());
         const double cot = dfCot.integer(frame.track_->cot());
         const double chi20I = dfChi20.integer(chi20F);
         const double chi21I = dfChi21.integer(chi21F);
-        const double nGaps = hitPattern.count(hitPattern.plEncode(), hitPattern.pmEncode(), false);
-
-        const Fixed fixed_nStubs (nStubs);
-        const Fixed fixed_nGaps (nGaps);
-
         const Fixed chi20F_fixed; 
         chi20F_fixed.range(chi20F_fixed.width - 1, 0) = chi20I;
         const Fixed chi21F_fixed;
@@ -99,22 +95,24 @@ namespace trklet {
         z0_fixed.range(z0_fixed.width - 1, 0) = z0;
         const Fixed cot_fixed;
         cot_fixed.range(cot_fixed.width - 1, 0) = cot;
-
-        const Int int_z0 (z0_fixed.range(z0_fixed.width - 1, 0));
-        const Int int_cot (cot_fixed.range(cot_fixed.width - 1, 0));
-        const Int int_chi20I (chi20F_fixed.range(chi20F_fixed.width - 1, 0));
-        const Int int_chi21I (chi21F_fixed.range(chi21F_fixed.width - 1, 0));
-        const Int int_nStubs (fixed_nStubs.range(fixed_nStubs.width - 1, 0));
-        const Int int_nGaps (fixed_nGaps.range(fixed_nGaps.width - 1, 0));
-
-        const std::vector<Fixed> features({nStubs, z0_fixed, cot_fixed, chi20F_fixed, chi21F_fixed, nGaps});
+        const std::vector<Fixed> features({nStubs, z0_fixed, cot_fixed, chi20F_fixed, chi21F_fixed, hitPatternInt});
         // Run the Track Quality BDT calculation
         const Fixed fixed = bdt_->decision_function(features).at(0);
         const Int val = fixed.range(fixed.width - 1, 0);
         // bin mva
         const std::vector<int>& binEdges = setup_->tqBinEdges();
         // print inputs and output
-        std::cout << int_nStubs << " " << int_z0 << " " << int_cot << " " << int_chi20I << " " << int_chi21I << " " << int_nGaps << " -> " << val << std::endl;
+
+        // const Fixed fixed_nStubs (nStubs);
+        // const Fixed fixed_nGaps (hitPatternInt);
+        // const Int int_z0 (z0_fixed.range(z0_fixed.width - 1, 0));
+        // const Int int_cot (cot_fixed.range(cot_fixed.width - 1, 0));
+        // const Int int_chi20I (chi20F_fixed.range(chi20F_fixed.width - 1, 0));
+        // const Int int_chi21I (chi21F_fixed.range(chi21F_fixed.width - 1, 0));
+        // const Int int_nStubs (fixed_nStubs.range(fixed_nStubs.width - 1, 0));
+        // const Int int_nGaps (fixed_nGaps.range(fixed_nGaps.width - 1, 0));
+        // std::cout << int_nStubs << " " << int_z0 << " " << int_cot << " " << int_chi20I << " " << int_chi21I << " " << int_nGaps << " -> " << val << std::endl;
+        
         for (; mva < static_cast<int>(binEdges.size()) - 2; mva++)
           if (val <= binEdges[mva + 1])
             break;
