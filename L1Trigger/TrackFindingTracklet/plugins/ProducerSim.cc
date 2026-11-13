@@ -324,7 +324,7 @@ namespace trklet {
         std::string reversed = hitPattern.str();
         std::reverse(reversed.begin(), reversed.end());
         hitPattern = TTBV(reversed);
-        
+
         // TTTrack conversion
         TTTrack<Ref_Phase2TrackerDigi_> comb(-2. * x0,
                                              tt::deltaPhi(x1 + phiR),
