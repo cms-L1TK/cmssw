@@ -95,8 +95,7 @@ namespace trklet {
       const Fixed z0_fixed = toFixed(dfZ0.integer(frame.track_->z0()));
       const Fixed cot_fixed = toFixed(dfCot.integer(frame.track_->cot()));
       // prepare bdt input list
-      const std::vector<Fixed> features(
-          {z0_fixed, cot_fixed, chi20F_fixed, chi21F_fixed, hitPattern.bs().to_ulong()});
+      const std::vector<Fixed> features({z0_fixed, cot_fixed, chi20F_fixed, chi21F_fixed, hitPattern.bs().to_ulong()});
       // Run the Track Quality BDT calculation
       const Fixed fixed = bdt_->decision_function(features).at(0);
       const Int val = fixed.range(fixed.width - 1, 0);

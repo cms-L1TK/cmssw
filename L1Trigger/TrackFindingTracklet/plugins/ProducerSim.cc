@@ -41,7 +41,12 @@ namespace trklet {
   private:
     void produce(edm::Event&, const edm::EventSetup&) override;
     void beginRun(const edm::Run&, const edm::EventSetup&) override;
-    const std::vector<trklet::TrackQuality::Fixed> convertFeatures(const DataFormats* dataFormats_, const float& z0, const float& tanL, const float& chi20, const float& chi21, const float& hitpattern);
+    const std::vector<trklet::TrackQuality::Fixed> convertFeatures(const DataFormats* dataFormats_,
+                                                                   const float& z0,
+                                                                   const float& tanL,
+                                                                   const float& chi20,
+                                                                   const float& chi21,
+                                                                   const float& hitpattern);
 
     struct Stub {
       double H_;
@@ -109,7 +114,12 @@ namespace trklet {
     bdt_ = conifer::BDT<trklet::TrackQuality::Fixed, trklet::TrackQuality::Fixed>(fbdtpath_);
   }
 
-  const std::vector<trklet::TrackQuality::Fixed> ProducerSim::convertFeatures(const DataFormats* dataFormats_, const float& z0, const float& tanL, const float& chi20, const float& chi21, const float& hitpattern) {
+  const std::vector<trklet::TrackQuality::Fixed> ProducerSim::convertFeatures(const DataFormats* dataFormats_,
+                                                                              const float& z0,
+                                                                              const float& tanL,
+                                                                              const float& chi20,
+                                                                              const float& chi21,
+                                                                              const float& hitpattern) {
     const DataFormat& dfChi20 = dataFormats_->format(Variable::chi20, Process::tq);
     const DataFormat& dfChi21 = dataFormats_->format(Variable::chi21, Process::tq);
     const DataFormat& dfZ0 = dataFormats_->format(Variable::z0, Process::tq);
@@ -347,7 +357,8 @@ namespace trklet {
       const float hitpattern = ttTrack.hitPattern();
 
       // BDT evaluation
-      const std::vector<trklet::TrackQuality::Fixed> inputs = convertFeatures(dataFormats_, z0, tanL, chi20, chi21, hitpattern);
+      const std::vector<trklet::TrackQuality::Fixed> inputs =
+          convertFeatures(dataFormats_, z0, tanL, chi20, chi21, hitpattern);
 
       float mva = bdt_.decision_function(inputs).at(0);
 
