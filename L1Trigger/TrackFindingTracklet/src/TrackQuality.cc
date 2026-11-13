@@ -81,6 +81,9 @@ namespace trklet {
       chi21F = dfChi21.limit(chi21F);
       int mva(0);
       if (true) {
+        std::string reversed = hitPattern.str();
+        std::reverse(reversed.begin(), reversed.end());
+        hitPattern = TTBV(reversed);
         const double nStubs = hitPattern.count();
         const double hitPatternInt = hitPattern.bs().to_ulong();
         const double z0 = dfZ0.integer(frame.track_->z0());
@@ -100,29 +103,26 @@ namespace trklet {
         const Fixed fixed = bdt_->decision_function(features).at(0);
         const Int val = fixed.range(fixed.width - 1, 0);
         // bin mva
-        const std::vector<int>& binEdges = setup_->tqBinEdges();
-        // print inputs and output
-
-        // const Fixed fixed_nStubs (nStubs);
-        // const Fixed fixed_nGaps (hitPatternInt);
-        // const Int int_z0 (z0_fixed.range(z0_fixed.width - 1, 0));
-        // const Int int_cot (cot_fixed.range(cot_fixed.width - 1, 0));
-        // const Int int_chi20I (chi20F_fixed.range(chi20F_fixed.width - 1, 0));
-        // const Int int_chi21I (chi21F_fixed.range(chi21F_fixed.width - 1, 0));
-        // const Int int_nStubs (fixed_nStubs.range(fixed_nStubs.width - 1, 0));
-        // const Int int_nGaps (fixed_nGaps.range(fixed_nGaps.width - 1, 0));
-        // std::cout << int_nStubs << " " << int_z0 << " " << int_cot << " " << int_chi20I << " " << int_chi21I << " " << int_nGaps << " -> " << val << std::endl;
-        
+        const std::vector<int>& binEdges = setup_->tqBinEdges();      
         for (; mva < static_cast<int>(binEdges.size()) - 2; mva++)
           if (val <= binEdges[mva + 1])
             break;
       }
       // build output Track
-      std::string reversed = hitPattern.str();
-      std::reverse(reversed.begin(), reversed.end());
-      TrackTQ trackTQ(*frame.track_, TTBV(reversed), mva, chi20F, chi21F);
+      TrackTQ trackTQ(*frame.track_, hitPattern, mva, chi20F, chi21F);
       // store result
       output.push_back(trackTQ.frame());
+
+      // debug for vivado firmware sim, ignore
+      // const Fixed fixed_nStubs (nStubs);
+      // const Fixed fixed_nGaps (hitPatternInt);
+      // const Int int_z0 (z0_fixed.range(z0_fixed.width - 1, 0));
+      // const Int int_cot (cot_fixed.range(cot_fixed.width - 1, 0));
+      // const Int int_chi20I (chi20F_fixed.range(chi20F_fixed.width - 1, 0));
+      // const Int int_chi21I (chi21F_fixed.range(chi21F_fixed.width - 1, 0));
+      // const Int int_nStubs (fixed_nStubs.range(fixed_nStubs.width - 1, 0));
+      // const Int int_nGaps (fixed_nGaps.range(fixed_nGaps.width - 1, 0));
+      // std::cout << int_nStubs << " " << int_z0 << " " << int_cot << " " << int_chi20I << " " << int_chi21I << " " << int_nGaps << " -> " << val << std::endl;
     }
   }
 
