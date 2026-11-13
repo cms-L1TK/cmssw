@@ -19,9 +19,17 @@ namespace trklet {
    */
   class TrackQuality {
   public:
-    typedef ap_int<20> Int;
-    typedef ap_fixed<20, 10> Fixed;
+    // Fixed-point configuration of the track quality BDT
+    static constexpr int TQ_TOTAL_BITS = 20;
+    static constexpr int TQ_FRACTIONAL_BITS = 10;
+    typedef ap_int<TQ_TOTAL_BITS> Int;
+    typedef ap_fixed<TQ_TOTAL_BITS, TQ_TOTAL_BITS - TQ_FRACTIONAL_BITS> Fixed;
     typedef conifer::BDT<Fixed, Fixed> BDT;
+    static inline const auto toFixed = [](double v) {
+      Fixed f;
+      f.range(f.width - 1, 0) = v;
+      return f;
+    };
     // various internal dataformats
     struct InternalFormats {
       DataFormat m02_;
