@@ -177,7 +177,7 @@ elif (L1TRKALGO == 'HYBRID_NEWKF' or L1TRKALGO == 'HYBRID_REDUCED'):
     L1TRK_LABEL = process.TrackFindingTrackletProducer_params.BranchTTTracks.value()
     L1TRUTH_NAME = "TTTrackAssociatorFromPixelDigis"
     process.TTTrackAssociatorFromPixelDigis.TTTracks = cms.VInputTag( cms.InputTag(L1TRK_NAME, L1TRK_LABEL) )
-    process.HybridNewKF = cms.Sequence(process.L1THybridTracks + process.ProducerTM + process.ProducerDR + process.ProducerKF + process.ProducerTQ + process.ProducerTFP)
+    process.HybridNewKF = cms.Sequence(process.L1THybridTracks + process.ProducerASP + process.ProducerTM + process.ProducerDR + process.ProducerKF + process.ProducerTQ + process.ProducerTFP)
     process.TTTracksEmulation = cms.Path(process.HybridNewKF)
     # Optionally include code producing performance plots & end-of-job summary.
     process.TTTracksEmulationWithTruth = cms.Path(process.HybridNewKF + process.TrackTriggerAssociatorTracks + process.AnalyzerTracklet + process.AnalyzerTM + process.AnalyzerDR + process.AnalyzerKF + process.AnalyzerTFP )
