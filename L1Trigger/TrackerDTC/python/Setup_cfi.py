@@ -43,7 +43,6 @@ TrackerDTCSetup_params = cms.PSet (
 
   # Parameter specifying Sensor Modules
   SensorModule = cms.PSet (
-    ApplyLorentz        = cms.bool  ( False  ), # shift sensormodule in phi to compensate lorentz drift
     NumCIC              = cms.int32 ( 2      ), # number of CICs per sensor module
     TiltApproxSlope     = cms.double( 0.884  ), # In tilted barrel, grad*|z|/r + int approximates |cosTilt| + |sinTilt * cotTheta|
     TiltApproxIntercept = cms.double( 0.507  ), # In tilted barrel, grad*|z|/r + int approximates |cosTilt| + |sinTilt * cotTheta|

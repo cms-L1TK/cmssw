@@ -39,7 +39,7 @@ namespace trackerDTC {
     const GlobalPoint pos0 = GlobalPoint(geomDetUnit->position());
     const GlobalPoint pos1 =
         GlobalPoint(trackerGeometry->idToDetUnit(trackerTopology->partnerDetId(detId))->position());
-    // calc lorentz shift
+    // calc lorentz drift in local x
     const LocalVector lbfield = plane.toLocal(setup->magneticField()->inTesla(pos0));
     const LocalVector driftDirection(-lorentzAngle * lbfield.y(), lorentzAngle * lbfield.x(), 1.);
     const double thickness = geomDetUnit->specificSurface().bounds().thickness();
@@ -50,9 +50,6 @@ namespace trackerDTC {
     r_ = pos0.perp();
     // module phi w.r.t. detector region_ centre in rad
     phi_ = tt::deltaPhi(pos0.phi() - (region + .5) * setup->regRangePhiT());
-    // apply lorentz drift if wanted
-    if (setup->smApplyLorentz())
-      phi_ -= dX_ / pos0.perp();
     // module z in cm
     z_ = pos0.z();
     // sensor separation in cm
@@ -104,6 +101,8 @@ namespace trackerDTC {
       signCol_ = not signCol_;
     // Same correction needed for bend.
     signBend_ = signCol_;
+    // apply lorentz drift correction
+    phi_ -= std::pow(-1, signRow_) * dX_ / pos0.perp();
     // determing sensor type
     if (barrel_ && psModule_)
       type_ = BarrelPS;
