@@ -41,12 +41,12 @@ namespace trklet {
   private:
     void produce(edm::Event&, const edm::EventSetup&) override;
     void beginRun(const edm::Run&, const edm::EventSetup&) override;
-    const std::vector<trklet::TrackQuality::Fixed> convertFeatures(const DataFormats* dataFormats_,
-                                                                   const float& z0,
-                                                                   const float& tanL,
-                                                                   const float& chi20,
-                                                                   const float& chi21,
-                                                                   const float& hitpattern);
+    const std::vector<float> convertFeatures(const DataFormats* dataFormats_,
+                                             const float& z0,
+                                             const float& tanL,
+                                             const float& chi20,
+                                             const float& chi21,
+                                             const float& hitpattern);
 
     struct Stub {
       double H_;
@@ -71,7 +71,7 @@ namespace trklet {
     std::vector<int> nPer_;
     // BDT models for baseline and extended tracking
     const edm::ParameterSet config_;
-    conifer::BDT<trklet::TrackQuality::Fixed, trklet::TrackQuality::Fixed> bdt_;
+    conifer::BDT<float, float> bdt_;
   };
 
   ProducerSim::ProducerSim(const edm::ParameterSet& iConfig)
@@ -111,15 +111,15 @@ namespace trklet {
     else if (setup_->simNPar() == 5)
       fbdtpath_ = config_.getParameter<edm::FileInPath>("BDT5ParSim").fullPath();
 
-    bdt_ = conifer::BDT<trklet::TrackQuality::Fixed, trklet::TrackQuality::Fixed>(fbdtpath_);
+    bdt_ = conifer::BDT<float, float>(fbdtpath_);
   }
 
-  const std::vector<trklet::TrackQuality::Fixed> ProducerSim::convertFeatures(const DataFormats* dataFormats_,
-                                                                              const float& z0,
-                                                                              const float& tanL,
-                                                                              const float& chi20,
-                                                                              const float& chi21,
-                                                                              const float& hitpattern) {
+  const std::vector<float> ProducerSim::convertFeatures(const DataFormats* dataFormats_,
+                                                        const float& z0,
+                                                        const float& tanL,
+                                                        const float& chi20,
+                                                        const float& chi21,
+                                                        const float& hitpattern) {
     const DataFormat& dfChi20 = dataFormats_->format(Variable::chi20, Process::tq);
     const DataFormat& dfChi21 = dataFormats_->format(Variable::chi21, Process::tq);
     const DataFormat& dfZ0 = dataFormats_->format(Variable::z0, Process::tq);
@@ -129,10 +129,10 @@ namespace trklet {
       f.range(f.width - 1, 0) = v;
       return f;
     };
-    const trklet::TrackQuality::Fixed chi20F_fixed = toFixed(dfChi20.integer(chi20));
-    const trklet::TrackQuality::Fixed chi21F_fixed = toFixed(dfChi21.integer(chi21));
-    const trklet::TrackQuality::Fixed z0_fixed = toFixed(dfZ0.integer(z0));
-    const trklet::TrackQuality::Fixed cot_fixed = toFixed(dfCot.integer(tanL));
+    const float chi20F_fixed = toFixed(dfChi20.integer(chi20));
+    const float chi21F_fixed = toFixed(dfChi21.integer(chi21));
+    const float z0_fixed = toFixed(dfZ0.integer(z0));
+    const float cot_fixed = toFixed(dfCot.integer(tanL));
     return {z0_fixed, cot_fixed, chi20F_fixed, chi21F_fixed, hitpattern};
   }
 
@@ -319,6 +319,12 @@ namespace trklet {
         for (int i = 0; i < 5; i++)
           for (int j = 0; j < 5; j++)
             covMat[i][j] = css[i][j];
+
+        // reverse hitpattern
+        std::string reversed = hitPattern.str();
+        std::reverse(reversed.begin(), reversed.end());
+        hitPattern = TTBV(reversed);
+        
         // TTTrack conversion
         TTTrack<Ref_Phase2TrackerDigi_> comb(-2. * x0,
                                              tt::deltaPhi(x1 + phiR),
@@ -357,8 +363,7 @@ namespace trklet {
       const float hitpattern = ttTrack.hitPattern();
 
       // BDT evaluation
-      const std::vector<trklet::TrackQuality::Fixed> inputs =
-          convertFeatures(dataFormats_, z0, tanL, chi20, chi21, hitpattern);
+      const std::vector<float> inputs = convertFeatures(dataFormats_, z0, tanL, chi20, chi21, hitpattern);
 
       float mva = bdt_.decision_function(inputs).at(0);
 
