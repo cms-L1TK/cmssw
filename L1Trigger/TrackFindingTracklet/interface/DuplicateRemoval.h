@@ -3,7 +3,6 @@
 
 #include "L1Trigger/TrackFindingTracklet/interface/Setup.h"
 #include "L1Trigger/TrackFindingTracklet/interface/DataFormats.h"
-#include "DataFormats/L1TrackTrigger/interface/TTDTC.h"
 
 #include <vector>
 
@@ -19,7 +18,7 @@ namespace trklet {
    */
   class DuplicateRemoval {
   public:
-    DuplicateRemoval(const Setup*, const DataFormats*, int, const TTDTC&);
+    DuplicateRemoval(const Setup*, const DataFormats*, int, const tt::StreamsStub&);
     ~DuplicateRemoval() = default;
     // read in and organize input tracks and stubs
     void consume(const tt::StreamsTrack&, const tt::StreamsStub&);
@@ -33,8 +32,8 @@ namespace trklet {
     void unify();
     // calc stub position
     void pos();
-    // replace stubs with DTC stubs
-    void dtc();
+    // replace stubs with All stubs
+    void as();
     // replace stubs with TT stubs
     void tt();
     // remove HO corrections from all stubs
@@ -49,8 +48,9 @@ namespace trklet {
       Stub(const TTStubRef& ttStubRef) : ttStubRef_(ttStubRef), r_(0.), phi_(0.), z_(0.) {}
       TTStubRef ttStubRef_;
       const trackerDTC::SensorModule* sm_;
-      int layer_;
+      bool seed_;
       int stubId_;
+      int layer_;
       double r_;
       double phi_;
       double z_;
@@ -66,7 +66,7 @@ namespace trklet {
       std::vector<Stub*> stubs_;
     };
     // add (or remove) HO corrections from stub
-    void correct(const Track&, Stub*, bool = true);
+    void correct(Track*, Stub*, bool = true);
     // compares two tracks, returns true if those are considered duplicates
     bool equalEnough(Track* t0, Track* t1) const;
     // provides run-time constants
@@ -81,12 +81,10 @@ namespace trklet {
     std::vector<Stub> stubs_;
     // h/w liked organized pointer to input tracks
     std::vector<Track*> stream_;
-    // DTC stubs
-    std::vector<tt::FrameStub> dtc_;
-    // internal used bases
-    double baseR_;
-    double basePhi_;
-    double baseZ_;
+    // All stubs
+    std::vector<StubASP> stubsASP_;
+    // all stub memories
+    std::vector<std::vector<const StubASP*>> as_;
   };
 
 }  // namespace trklet

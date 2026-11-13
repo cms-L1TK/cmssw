@@ -220,6 +220,15 @@ void Sector::writeAS(bool first) {
   }
 }
 
+void Sector::writeAS(std::vector<std::vector<StubStreamData>>& streamsAllStubRaw) {
+  int id(isector_ * streamsAllStubRaw.size() / trklet::N_SECTOR);
+  for (auto& i : AS_) {
+    if (i->getName().substr(i->getName().size() - 2, 2) != "n1")
+      continue;
+    i->writeStubs(streamsAllStubRaw[id++]);
+  }
+}
+
 void Sector::writeAIS(bool first) {
   for (auto& i : AIS_) {
     i->writeStubs(first, isector_);
@@ -352,30 +361,19 @@ void Sector::executeMP() {
 
 void Sector::executeFT(vector<vector<string>>& streamsTrackRaw, vector<vector<StubStreamData>>& streamsStubRaw) {
   const int numChannels = streamsTrackRaw.size() / N_SECTOR;
-  const int maxNumProjectionLayers = streamsStubRaw.size() / streamsTrackRaw.size();
-  const int offsetTrack = isector_ * numChannels;
-
+  const int numLayer = streamsStubRaw.size() / streamsTrackRaw.size();
+  int channelTrack(isector_ * numChannels);
+  int channelStub(channelTrack * numLayer);
   for (auto& i : FT_) {
     // Temporary streams for a single TrackBuilder (i.e. seed type)
     deque<string> streamTrackTmp;
-    vector<deque<StubStreamData>> streamsStubTmp(maxNumProjectionLayers);
+    vector<deque<StubStreamData>> streamsStubTmp(numLayer);
     i->execute(streamTrackTmp, streamsStubTmp, isector_);
-
     if (!settings_.storeTrackBuilderOutput())
       continue;
-
-    for (unsigned int i = 0; i < streamTrackTmp.size(); i++) {
-      std::string seedstr = streamTrackTmp[i].substr(1, settings_.nbitsseed());
-      unsigned int channelTrack = 0;
-      if (seedstr.size() == settings_.nbitsseed()) {
-        channelTrack = std::stoi(seedstr, nullptr, 2);
-      }
-      streamsTrackRaw[offsetTrack + channelTrack].push_back(streamTrackTmp[i]);
-      const int offsetStub = (offsetTrack + channelTrack) * maxNumProjectionLayers;
-      for (unsigned int j = 0; j < streamsStubTmp.size(); j++) {
-        streamsStubRaw[offsetStub + j].push_back(streamsStubTmp[j][i]);
-      }
-    }
+    streamsTrackRaw[channelTrack++] = vector<string>(streamTrackTmp.begin(), streamTrackTmp.end());
+    for (const deque<StubStreamData>& stream : streamsStubTmp)
+      streamsStubRaw[channelStub++] = vector<StubStreamData>(stream.begin(), stream.end());
   }
 }
 

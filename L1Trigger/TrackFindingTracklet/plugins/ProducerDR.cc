@@ -42,8 +42,8 @@ namespace trklet {
     edm::EDGetTokenT<tt::StreamsTrack> edGetTokenTracks_;
     // ED input token of Stubs
     edm::EDGetTokenT<tt::StreamsStub> edGetTokenStubs_;
-    // ED input token of TTDTC
-    edm::EDGetTokenT<TTDTC> edGetTokenDTC_;
+    // ED input token of AS
+    edm::EDGetTokenT<tt::StreamsStub> edGetTokenAS_;
     // ED output token for stubs
     edm::EDPutTokenT<tt::StreamsStub> edPutTokenStubs_;
     // ED output token for tracks
@@ -58,11 +58,11 @@ namespace trklet {
     const std::string& label = iConfig.getParameter<std::string>("InputLabelDR");
     const std::string& branchStubs = iConfig.getParameter<std::string>("BranchStubs");
     const std::string& branchTracks = iConfig.getParameter<std::string>("BranchTracks");
-    const edm::InputTag& inputTagDTC = iConfig.getParameter<edm::InputTag>("InputTagTTDTC");
+    const edm::InputTag& inputTagAS = iConfig.getParameter<edm::InputTag>("InputTagAS");
     // book in- and output ED products
     edGetTokenTracks_ = consumes(edm::InputTag(label, branchTracks));
     edGetTokenStubs_ = consumes(edm::InputTag(label, branchStubs));
-    edGetTokenDTC_ = consumes(inputTagDTC);
+    edGetTokenAS_ = consumes(inputTagAS);
     edPutTokenTracks_ = produces(branchTracks);
     edPutTokenStubs_ = produces(branchStubs);
     // book ES products
@@ -81,10 +81,10 @@ namespace trklet {
     // read in TBout Product and produce KFin product
     const tt::StreamsStub& stubs = iEvent.get(edGetTokenStubs_);
     const tt::StreamsTrack& tracks = iEvent.get(edGetTokenTracks_);
-    const TTDTC& ttDTC = iEvent.get(edGetTokenDTC_);
+    const tt::StreamsStub& as = iEvent.get(edGetTokenAS_);
     for (int region = 0; region < setup->sysNumRegion(); region++) {
       // object to remove duplicated tracks in a processing region
-      DuplicateRemoval dr(setup, dataFormats, region, ttDTC);
+      DuplicateRemoval dr(setup, dataFormats, region, as);
       // read in and organize input tracks and stubs
       dr.consume(tracks, stubs);
       // fill output products

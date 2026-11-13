@@ -14,11 +14,14 @@ namespace trackerDTC {
   Setup::Setup(const Config& config,
                const TrackerGeometry& trackerGeometry,
                const TrackerTopology& trackerTopology,
+               const MagneticField& magneticField,
+               const SiPhase2OuterTrackerLorentzAngle& lorentzAngle,
                const TrackerDetToDTCELinkCablingMap& cablingMap,
                const StubAlgorithmOfficial& stubAlgorithm,
                const ConfigTTStubAlgorithm& configTTStubAlgorithm)
       : trackerGeometry_(&trackerGeometry),
         trackerTopology_(&trackerTopology),
+        magneticField_(&magneticField),
         nTiltedRings_(configTTStubAlgorithm.nTiltedRings),
         config_(config),
         printIDs_(config.printIDs) {
@@ -89,10 +92,11 @@ namespace trackerDTC {
     regRangePhiT_ = 2. * M_PI / config_.sysNumRegion;
     glWidthInv2R_ = config_.fwWidthDSPb - 1;
     glBaseInv2R_ = rangeInv2R * std::pow(2, -glWidthInv2R_);
-    const double maxRphi = std::max(std::abs(config_.sysOuterRadius - config_.regChosenRofPhi),
-                                    std::abs(config_.sysInnerRadius - config_.regChosenRofPhi));
-    const double rangeR = 2. * maxRphi;
-    const double rangePhi = regRangePhiT_ + rangeInv2R * maxRphi;
+    const double maxRphi_ = std::max(std::abs(config_.sysOuterRadius - config_.regChosenRofPhi),
+                                     std::abs(config_.sysInnerRadius - config_.regChosenRofPhi));
+    regRangePhi0_ = regRangePhiT_ + maxRphi_ * rangeInv2R;
+    const double rangeR = 2. * maxRphi_;
+    const double rangePhi = regRangePhi0_;
     const double rangeZ = 2. * config_.sysHalfLength;
     const double significantR = regRangePhiT_ / rangeInv2R;
     const double significantPhi = regRangePhiT_;
@@ -111,7 +115,7 @@ namespace trackerDTC {
     glBasePhiC_ = .5 * glBasePhi_;
     glBasePhiM_ = glBasePhi_ * std::pow(2, tt::ilog2(rangePhiM / glBasePhi_) - widthPhiM);
     const double stubRangeInv2R = 2. * sysInvPtToDphi_ / config_.stubMinPt;
-    stubRangePhi_ = regRangePhiT_ + stubRangeInv2R * maxRphi;
+    stubRangePhi_ = regRangePhiT_ + stubRangeInv2R * maxRphi_;
     stubWidthLayerId_ = tt::ilog2(config_.dtcNumLayer);
     stubBasesZ_.reserve(SensorModule::NumTypes);
     for (int type = 0; type < SensorModule::NumTypes; type++)
@@ -209,9 +213,11 @@ namespace trackerDTC {
       const bool psModule = trackerGeometry.getDetectorType(detId) == TrackerGeometry::ModuleType::Ph2PSP;
       const std::vector<double>& encodingBend = psModule ? encodingsBendPS_[ws] : encodingsBend2S_[ws];
       const std::vector<double>& degradedBend = psModule ? degradedBendPS_[ws] : degradedBend2S_[ws];
+      // calc lorentz drift direction
+      const double lAngle = lorentzAngle.getLorentzAngle(detId);
       // construct sendor module
       sensorModules_.emplace_back(
-          this, detId, dtcId, modId, barrel, psModule, index, ws, encodingBend, degradedBend, encodingLayer);
+          this, detId, dtcId, modId, barrel, psModule, lAngle, index, ws, encodingBend, degradedBend, encodingLayer);
       // store connection between dtc and sensor module
       dtcModules_[dtcId][modId] = &sensorModules_.back();
       // store connection between detId and sensor module
@@ -291,10 +297,11 @@ namespace trackerDTC {
     const PixelTopology* topol =
         dynamic_cast<const PixelTopology*>(&(dynamic_cast<const PixelGeomDetUnit*>(det)->specificTopology()));
     const Plane& plane = dynamic_cast<const PixelGeomDetUnit*>(det)->surface();
+    const SensorModule* sm = sensorModule(detId);
     const std::vector<int>& rows = ttStubRef->clusterRef(0)->getRows();
     const std::vector<int>& cols = ttStubRef->clusterRef(0)->getCols();
-    const double row = (rows.front() + rows.back()) / 2. + .5;
     const double col = *std::min_element(cols.begin(), cols.end()) + .5;
+    const double row = (rows.front() + rows.back()) / 2. + .5 - sm->dX();
     MeasurementPoint fe(row, col);
     return plane.toGlobal(topol->localPosition(fe));
   }

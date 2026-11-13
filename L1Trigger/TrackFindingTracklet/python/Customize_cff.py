@@ -2,13 +2,24 @@
 
 import FWCore.ParameterSet.Config as cms
 
-# configures track finding s/w to behave as track finding f/w
-def fwConfig(process):
+# configures track finding s/w to behave a little as track finding f/w
+def swConfig(process):
   process.l1tTTTracksFromTrackletEmulation.Fakefit = True
   process.l1tTTTracksFromTrackletEmulation.RemovalType = ""
+  process.l1tTTTracksFromTrackletEmulation.DoMultipleMatches = False
   process.l1tTTTracksFromTrackletEmulation.StoreTrackBuilderOutput = True
-  process.TrackFindingTrackletSetup.DR.UseDTCStubs = False
+  process.TrackFindingTrackletSetup.DR.UseASStubs = False
+  process.TrackFindingTrackletSetup.DR.UseTTStubs = True
+  process.ProducerKF.EnableIntegerEmulation = False
+  process.TrackFindingTrackletSetup.TQ.Enable = True
+
+# configures track finding s/w to behave as track finding f/w
+def fwConfig(process):
+  swConfig(process)
+  process.TrackFindingTrackletSetup.DR.UseASStubs = False
   process.TrackFindingTrackletSetup.DR.UseTTStubs = False
+  process.ProducerKF.EnableIntegerEmulation = True
+  process.TrackFindingTrackletSetup.TQ.Enable = False
 
 # configures track finding s/w to behave as a subchain of processing steps
 def reducedConfig(process):
@@ -65,7 +76,7 @@ def sim5Config(process):
       L2L3D1 = cms.vint32(  1, 12, 13, 14 ),
       D1D2L2 = cms.vint32(  1, 13, 14 )
   )
-  process.TrackFindingTrackletSetup.TM.MuxOrder = ( "L1L2", "L2L3", "L1D1", "D1D2", "D3D4", "L2D1", "L2L3D1", "D1D2L2", "L3L4", "L2L3L4", "L5L6", "L4L5L6" )
+  process.TrackFindingTrackletSetup.TM.MuxOrder = ( 0, 1, 6, 4, 5, 7, 10, 11, 2, 8, 3, 9 )
 
 # configures prompt track finding followed by Track Processing sim w 4 param fit
 def sim4Config(process):

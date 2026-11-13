@@ -77,6 +77,7 @@ namespace trklet {
     void writeVMSTE(bool first);
     void writeVMSME(bool first);
     void writeAS(bool first);
+    void writeAS(std::vector<std::vector<StubStreamData>>& streamsAllStubRaw);
     void writeAIS(bool first);
     void writeTPAR(bool first);
     void writeTPROJ(bool first);

@@ -9,21 +9,21 @@
 namespace trklet {
 
   TrackMultiplexer::TrackMultiplexer(const Setup* setup, int region)
-      : setup_(setup), region_(region), input_(setup_->tbNumSeedTypes()) {
-    streamsTrack_.reserve(setup_->tbNumSeedTypes());
-    streamsStub_.reserve(setup_->tbNumSeedTypes() * setup_->tbNumLayers());
+      : setup_(setup), region_(region), input_(setup_->tbNumChannel()) {
+    streamsTrack_.reserve(setup_->tbNumChannel());
+    streamsStub_.reserve(setup_->tbNumChannel() * setup_->tbNumLayers());
   }
 
   // read in and organize input tracks and stubs
   void TrackMultiplexer::consume(const tt::StreamsTrack& streamsTrack, const tt::StreamsStub& streamsStub) {
-    const int offsetTrack = region_ * setup_->tbNumSeedTypes();
+    const int offsetTrack = region_ * setup_->tbNumChannel();
     // prep input container
     int nTracks(0);
-    for (int seedType = 0; seedType < setup_->tbNumSeedTypes(); seedType++) {
-      const int channelTrack = offsetTrack + seedType;
+    for (int chan = 0; chan < setup_->tbNumChannel(); chan++) {
+      const int channelTrack = offsetTrack + chan;
       const int offsetStub = channelTrack * setup_->tbNumLayers();
       const tt::StreamTrack& stream = streamsTrack[channelTrack];
-      input_[seedType].reserve(stream.size());
+      input_[chan].reserve(stream.size());
       nTracks += std::accumulate(stream.begin(), stream.end(), 0, [](int sum, const tt::FrameTrack f) {
         return sum += (f.first.isNull() ? 0 : 1);
       });
@@ -33,7 +33,7 @@ namespace trklet {
     }
     tracks_.reserve(nTracks);
     // store tracks
-    for (int channel = 0; channel < setup_->tbNumSeedTypes(); channel++) {
+    for (int channel = 0; channel < setup_->tbNumChannel(); channel++) {
       const int channelTrack = offsetTrack + channel;
       std::vector<Track*>& input = input_[channel];
       const tt::StreamTrack& streamTrack = streamsTrack[channelTrack];
@@ -54,11 +54,11 @@ namespace trklet {
     // emualte clock domain crossing
     static constexpr int ticksPerGap = 3;
     static constexpr int gapPos = 1;
-    std::vector<std::deque<Track*>> streams(setup_->tbNumSeedTypes());
-    for (int seedType = 0; seedType < setup_->tbNumSeedTypes(); seedType++) {
+    std::vector<std::deque<Track*>> streams(setup_->tbNumChannel());
+    for (int chan = 0; chan < setup_->tbNumChannel(); chan++) {
       int iTrack(0);
-      std::deque<Track*>& stream = streams[seedType];
-      const std::vector<Track*>& intput = input_[seedType];
+      std::deque<Track*>& stream = streams[chan];
+      const std::vector<Track*>& intput = input_[chan];
       for (int tick = 0; iTrack < (int)intput.size(); tick++)
         stream.push_back(tick % ticksPerGap != gapPos ? intput[iTrack++] : nullptr);
     }
@@ -68,20 +68,20 @@ namespace trklet {
         it = (*--it) ? stream.begin() : stream.erase(it);
     // route into single channel
     std::deque<Track*> accepted;
-    std::vector<std::deque<Track*>> stacks(setup_->tbNumSeedTypes());
+    std::vector<std::deque<Track*>> stacks(setup_->tbNumChannel());
     // clock accurate firmware emulation, each while trip describes one clock tick, one stub in and one stub out per tick
     auto empty = [](const std::deque<Track*>& tracks) { return tracks.empty(); };
     while (!std::all_of(streams.begin(), streams.end(), empty) || !std::all_of(stacks.begin(), stacks.end(), empty)) {
       // fill input fifos
-      for (int seedType = 0; seedType < setup_->tbNumSeedTypes(); seedType++) {
-        Track* track = pop_front(streams[seedType]);
+      for (int chan = 0; chan < setup_->tbNumChannel(); chan++) {
+        Track* track = pop_front(streams[chan]);
         if (track)
-          stacks[seedType].push_back(track);
+          stacks[chan].push_back(track);
       }
       // merge input fifos to one stream, prioritizing lower input channel over higher channel, affects DR
       bool nothingToRoute(true);
-      for (int seedType : setup_->tmMuxOrder()) {
-        Track* track = pop_front(stacks[seedType]);
+      for (int chan : setup_->tmMuxOrder()) {
+        Track* track = pop_front(stacks[chan]);
         if (track) {
           nothingToRoute = false;
           accepted.push_back(track);

@@ -450,14 +450,15 @@ namespace tt {
   inline double digi(double val, double base) { return (tt::floor(val / base) + .5) * base; }
   // round based digitization
   inline double digiR(double val, double base) { return tt::round(val / base) * base; }
+  // number of bits needed to represent d
+  inline int ilog2(double d) { return tt::ceil(std::log2(d)); }
   // basetransformation of val from baseHigh into baseLow using widthMultiplier bit multiplication
   inline double redigi(double val, double baseHigh, double baseLow, int widthMultiplier) {
-    const double base = std::pow(2, -widthMultiplier);
+    const int baseShift = tt::ilog2(baseHigh / baseLow);
+    const double base = std::pow(2, baseShift - widthMultiplier);
     const double transform = (tt::floor(baseHigh / baseLow / base) + .5) * base;
     return (tt::floor(val * transform / baseHigh / base) + .5) * baseLow * base;
   }
-  // number of bits needed to represent d
-  inline int ilog2(double d) { return tt::ceil(std::log2(d)); }
 
 }  // namespace tt
 

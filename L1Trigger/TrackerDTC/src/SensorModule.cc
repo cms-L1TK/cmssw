@@ -16,6 +16,7 @@ namespace trackerDTC {
                              int modId,
                              bool barrel,
                              bool psModule,
+                             double lorentzAngle,
                              int index,
                              int ws,
                              const std::vector<double>& encodingBend,
@@ -32,13 +33,17 @@ namespace trackerDTC {
         degradedBend_(degradedBend) {
     const TrackerGeometry* trackerGeometry = setup->trackerGeometry();
     const TrackerTopology* trackerTopology = setup->trackerTopology();
-    const GeomDetUnit* geomDetUnit = trackerGeometry->idToDetUnit(detId);
-    const PixelTopology* pixelTopology =
-        dynamic_cast<const PixelTopology*>(&(dynamic_cast<const PixelGeomDetUnit*>(geomDetUnit)->specificTopology()));
-    const Plane& plane = dynamic_cast<const PixelGeomDetUnit*>(geomDetUnit)->surface();
+    const PixelGeomDetUnit* geomDetUnit = dynamic_cast<const PixelGeomDetUnit*>(trackerGeometry->idToDetUnit(detId));
+    const PixelTopology& pixelTopology = geomDetUnit->specificTopology();
+    const Plane& plane = geomDetUnit->surface();
     const GlobalPoint pos0 = GlobalPoint(geomDetUnit->position());
     const GlobalPoint pos1 =
         GlobalPoint(trackerGeometry->idToDetUnit(trackerTopology->partnerDetId(detId))->position());
+    // calc lorentz drift in local x
+    const LocalVector lbfield = plane.toLocal(setup->magneticField()->inTesla(pos0));
+    const LocalVector driftDirection(-lorentzAngle * lbfield.y(), lorentzAngle * lbfield.x(), 1.);
+    const double thickness = geomDetUnit->specificSurface().bounds().thickness();
+    dX_ = (driftDirection * thickness).x();
     // detector region [0-8]
     const int region = dtcId_ / setup->regNumDTC();
     // module radius in cm
@@ -50,9 +55,9 @@ namespace trackerDTC {
     // sensor separation in cm
     sep_ = (pos1 - pos0).mag();
     // number of columns [2S=2*1,PS=2*16]
-    numColumns_ = pixelTopology->ncolumns();
+    numColumns_ = pixelTopology.ncolumns();
     // number of rows [2S=8*127,PS=8*120]
-    numRows_ = pixelTopology->nrows();
+    numRows_ = pixelTopology.nrows();
     // +z or -z
     side_ = pos0.z() >= 0.;
     // main sensor inside or outside
@@ -96,6 +101,8 @@ namespace trackerDTC {
       signCol_ = not signCol_;
     // Same correction needed for bend.
     signBend_ = signCol_;
+    // apply lorentz drift correction
+    phi_ -= std::pow(-1, signRow_) * dX_ / pos0.perp();
     // determing sensor type
     if (barrel_ && psModule_)
       type_ = BarrelPS;
@@ -144,16 +151,18 @@ namespace trackerDTC {
   // stub z uncertainty in cm for given track cot
   double SensorModule::dZ(double cot) const {
     if (barrel_) {
-      return pitchCol_ + std::abs(cot) * dR_;
       if (tilted_)
         return pitchCol_ * (tiltCorrectionSlope_ * std::abs(cot) + tiltCorrectionIntercept_);
+      else
+        return pitchCol_;
     } else
-      return std::abs(cot) * dR_;
+      return pitchCol_ * std::abs(cot);
   }
 
   // stub phi uncertainty in rad for given stub radius and track inv2R
   double SensorModule::dPhi(double r, double inv2R) const {
-    return ((dR_ + scattering_) * std::abs(inv2R)) + clusterWidth_ * pitchRow_ / r + addPhiUncertainty_;
+    //return ((dR_ + scattering_) * std::abs(inv2R)) + clusterWidth_ * pitchRow_ / r + addPhiUncertainty_;
+    return scattering_ * std::abs(inv2R) + pitchRow_ / r;
   }
 
   // encode bend
