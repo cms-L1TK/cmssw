@@ -3,9 +3,9 @@
 import FWCore.ParameterSet.Config as cms
 
 TrackFindingTrackletProducer_params = cms.PSet (
-
-  BDT              = cms.FileInPath( "L1Trigger/TrackFindingTracklet/data/HYBRID_NEW_KF_TQ_XGBOOST_v0.json" ), #
-  BDT5ParSim       = cms.FileInPath( "L1Trigger/TrackFindingTracklet/data/HYBRID_NEW_KF_TQ_XGBOOST_v0.json"),
+                   # L1Trigger/TrackFindingTracklet/data/HYBRID_NEW_KF_TQ_XGBOOST_ELECTRON_v0.json for an electron tune.
+  BDT              = cms.FileInPath( "L1Trigger/TrackFindingTracklet/data/HYBRID_NEW_KF_TQ_XGBOOST_ELECTRON_v0.json" ), #
+  BDT5ParSim       = cms.FileInPath( "L1Trigger/TrackFindingTracklet/data/HYBRID_SIM_DISPLACED_TQ_XGBOOST_v0.json"),
   InputTagTTDTC    = cms.InputTag  ( "ProducerDTC", "StubAccepted" ),
   InputTagTracklet = cms.InputTag  ( "l1tTTTracksFromExtendedTrackletEmulation", "Level1TTTracks" ), # Tracklet TTTracks
   InputLabelTFP    = cms.string( "ProducerTQ"      ),                  #

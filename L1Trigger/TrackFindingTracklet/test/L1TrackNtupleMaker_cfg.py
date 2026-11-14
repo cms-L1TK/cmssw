@@ -9,8 +9,51 @@
 
 import FWCore.ParameterSet.Config as cms
 import FWCore.Utilities.FileUtils as FileUtils
+import FWCore.ParameterSet.VarParsing as VarParsing
 import os
 process = cms.Process("L1TrackNtuple")
+
+############################################################
+
+def get_input_mc_line(dataset_database, line_number):
+    with open(dataset_database, 'r') as file:
+        lines = file.readlines()
+        if line_number < 0 or line_number >= len(lines):
+            raise IndexError("Line number out of range")
+        return lines[line_number].strip()
+
+# Set up VarParsing options
+options = VarParsing.VarParsing('analysis')
+
+# Add custom command-line arguments
+options.register('cluster',
+                 0, # default value
+                 VarParsing.VarParsing.multiplicity.singleton,
+                 VarParsing.VarParsing.varType.int,
+                 "Cluster ID from HTCondor")
+
+options.register('process',
+                 0, # default value
+                 VarParsing.VarParsing.multiplicity.singleton,
+                 VarParsing.VarParsing.varType.int,
+                 "Process ID from HTCondor")
+
+# Parse command-line arguments
+options.parseArguments()
+
+# Print the ClusterID and ProcessID
+print(f'~ Cluster ID: {options.cluster}')
+print(f'~ Process ID: {options.process}')
+
+DatasetDatabase = "/home/hep/am2023/tschuh_new_pr_nov_2026/CMSSW_20_1_0_pre1/src/CMSSW_20_1_0_pre1_RelValTTbar_14TeV_v3.txt"
+
+try:
+    Samples = [get_input_mc_line(DatasetDatabase, options.process)]
+except Exception as e:
+    print(f"Error: {e}")
+    Samples = []
+
+print(Samples[0])
 
 ############################################################
 # edit options here
@@ -27,7 +70,9 @@ GEOMETRY = "D121"
 # 'HYBRID_SIM' prompt tracklet reco + (NEWKF) Track Processing simulation (4 param fit)
 # 'HYBRID_SIM_DISPLACED' displaced tracklet reco + (NEWKF) Track Processing simulation (5 param fit)
 # (Or legacy algos 'TMTT' or 'TRACKLET').
-L1TRKALGO = 'HYBRID'
+L1TRKALGO = 'HYBRID_NEWKF'
+
+print("Algorithm: " + L1TRKALGO + " (geometry " + GEOMETRY + ")")
 
 # Write output dataset?
 WRITE_DATA = False
@@ -60,7 +105,7 @@ process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 # input and output
 ############################################################
 
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(100))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 
 #--- To use MCsamples scripts, defining functions get*data*() for easy MC access,
 #--- follow instructions in https://github.com/cms-L1TK/MCsamples
@@ -68,36 +113,7 @@ process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(100))
 #from MCsamples.Scripts.getCMSdata_cfi import *
 #from MCsamples.Scripts.getCMSlocaldata_cfi import *
 
-if GEOMETRY == "D110":
-
-  # Read data from card files (defines getCMSdataFromCards()):
-  #from MCsamples.RelVal_1510_D110.PU200_TTbar_14TeV_cfi import *
-  #inputMC = getCMSdataFromCards()
-
-  # Or read .root files from directory on local computer:
-  #dirName = "$scratchmc/MCsamples1510_D110/RelVal/TTbar/PU0/"
-  #inputMC=getCMSlocaldata(dirName)  
-
-  # Or read specified dataset (accesses CMS DB, so use this method only occasionally):
-  #dataName="/RelValTTbar_14TeV_TuneCP5/CMSSW_15_1_0_pre5-PU_150X_mcRun4_realistic_v1_RV269_Run4D110_PU-v2/GEN-SIM-DIGI-RAW"
-  #inputMC=getCMSdata(dataName)
-  
-  # ttbar + 200PU
-  inputMC = ["/store/relval/CMSSW_15_1_0_pre5/RelValTTbar_14TeV_TuneCP5/GEN-SIM-DIGI-RAW/PU_150X_mcRun4_realistic_v1_RV269_Run4D110_PU-v2/2590000/0f0bcfd3-dafe-4dda-8d39-9765f6eae68e.root"]
-
-elif GEOMETRY == "D121":
-
-  # ttbar + 200PU
-  inputMC = ['/store/relval/CMSSW_20_0_0_pre1/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU_150X_mcRun4_realistic_v1_STD_D121_RegeneratedGS_PU-v1/2590000/0033230b-a131-453a-95c0-fe14d5027d1f.root']
-  
-  # ttbar + 0PU
-  #inputMC = ['/store/relval/CMSSW_20_0_0_pre1/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/150X_mcRun4_realistic_v1_STD_RegeneratedGS_D121_noPU-v1/2590000/0a33391d-2eb7-45fe-98fe-ca7b70a785c4.root']  
-  
-else:
-
-  print("this is not a valid geometry!!!")
-
-process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring(*inputMC))
+process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring(*Samples))
 
 # To avoid confusion, drop previously reconstructed L1 tracks + their truth association.
 process.source.dropDescendantsOfDroppedBranches = cms.untracked.bool(False)
@@ -108,7 +124,7 @@ process.source.inputCommands.append('drop  *_*TTTrack*_*_*')
 # Use skipEvents to select particular single events for test vectors
 #process.source.skipEvents = cms.untracked.uint32(11)
 
-process.TFileService = cms.Service("TFileService", fileName = cms.string('L1TrkNtuple.root'), closeFileFast = cms.untracked.bool(True))
+process.TFileService = cms.Service("TFileService", fileName = cms.string('/vols/cms/am2023/HYBRID_NEWKF_PROMPT_TQ_TEST/L1TrkNtuple' + str(options.process) + '.root'), closeFileFast = cms.untracked.bool(True))
 process.Timing = cms.Service("Timing", summaryOnly = cms.untracked.bool(True))
 
 ############################################################
@@ -205,6 +221,7 @@ elif (L1TRKALGO == 'HYBRID_SIM'):
     L1TRK_NAME  = "ProducerSim"
     L1TRK_LABEL = process.TrackFindingTrackletProducer_params.BranchTTTracks.value()
     L1TRUTH_NAME = "TTTrackAssociatorFromPixelDigis"
+    print(process.TrackFindingTrackletProducer_params.BDT.value())
     process.TTTrackAssociatorFromPixelDigis.TTTracks = cms.VInputTag( cms.InputTag(L1TRK_NAME, L1TRK_LABEL) )
     from L1Trigger.TrackFindingTracklet.Customize_cff import *
     sim4Config( process )
@@ -280,8 +297,6 @@ process.L1TrackNtuple = L1TrackNtupleMaker.clone(
 )
 
 process.ana = cms.Path(process.L1TrackNtuple)
-
-
 ############################################################
 # final schedule of what is to be run
 ############################################################
