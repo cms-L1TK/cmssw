@@ -58,6 +58,7 @@
 #include "L1Trigger/TrackFindingTracklet/interface/Setup.h"
 #include "L1Trigger/TrackFindingTracklet/interface/DataFormats.h"
 #include "L1Trigger/TrackFindingTracklet/interface/HitPatternHelper.h"
+#include "L1Trigger/TrackFindingTracklet/interface/TrackQuality.h"
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 #include "CLHEP/Units/PhysicalConstants.h"
 #include "DataFormats/Math/interface/deltaPhi.h"
@@ -1453,11 +1454,11 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
 
       const TTBV tqbdt_hp(tmp_trk_hitpattern, TTTrack_TrackWord::TrackBitWidths::kHitPatternSize);
       m_tqbdt_nStubs_->push_back(tqbdt_hp.count());
-      m_tqbdt_z0_->push_back(dfZ0.integer(iterL1Track->z0()) / setup->tqScaleFactorZ0());
-      m_tqbdt_cot_->push_back(dfCot.integer(iterL1Track->tanL()) / setup->tqScaleFactorCot());
-      m_tqbdt_chi20_->push_back(dfChi20.integer(iterL1Track->chi2XY()));
-      m_tqbdt_chi21_->push_back(dfChi21.integer(iterL1Track->chi2Z()));
-      m_tqbdt_nGaps_->push_back(tqbdt_hp.count(tqbdt_hp.plEncode(), tqbdt_hp.pmEncode(), false));
+      m_tqbdt_z0_->push_back(trklet::TrackQuality::toFixed(dfZ0.integer(iterL1Track->z0())));
+      m_tqbdt_cot_->push_back(trklet::TrackQuality::toFixed(dfCot.integer(iterL1Track->tanL())));
+      m_tqbdt_chi20_->push_back(trklet::TrackQuality::toFixed(dfChi20.integer(iterL1Track->chi2XY())));
+      m_tqbdt_chi21_->push_back(trklet::TrackQuality::toFixed(dfChi21.integer(iterL1Track->chi2Z())));
+      m_tqbdt_nGaps_->push_back(tqbdt_hp.bs().to_ulong());
       m_tqbdt_true_->push_back(tmp_trk_genuine);
 
       // ----------------------------------------------------------------------------------------------

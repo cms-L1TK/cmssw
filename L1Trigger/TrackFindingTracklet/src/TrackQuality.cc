@@ -79,13 +79,17 @@ namespace trklet {
       // Accumulating all BDT Attributes
       chi20F = dfChi20.limit(chi20F);
       chi21F = dfChi21.limit(chi21F);
-      const double nStubs = hitPattern.count();
-      const double z0 = dfZ0.integer(frame.track_->z0()) / setup_->tqScaleFactorZ0();
-      const double cot = dfCot.integer(frame.track_->cot()) / setup_->tqScaleFactorCot();
-      const double chi20I = dfChi20.integer(chi20F);
-      const double chi21I = dfChi21.integer(chi21F);
-      const double nGaps = hitPattern.count(hitPattern.plEncode(), hitPattern.pmEncode(), false);
-      const std::vector<Fixed> features({nStubs, z0, cot, chi20I, chi21I, nGaps});
+      // reverse hitpattern
+      std::string reversed = hitPattern.str();
+      std::reverse(reversed.begin(), reversed.end());
+      hitPattern = TTBV(reversed);
+      // convert attributes to fixed
+      const Fixed chi20F_fixed = toFixed(dfChi20.integer(chi20F));
+      const Fixed chi21F_fixed = toFixed(dfChi21.integer(chi21F));
+      const Fixed z0_fixed = toFixed(dfZ0.integer(frame.track_->z0()));
+      const Fixed cot_fixed = toFixed(dfCot.integer(frame.track_->cot()));
+      // prepare bdt input list
+      const std::vector<Fixed> features({z0_fixed, cot_fixed, chi20F_fixed, chi21F_fixed, hitPattern.bs().to_ulong()});
       // Run the Track Quality BDT calculation
       const Fixed fixed = bdt_->decision_function(features).at(0);
       const Int val = fixed.range(fixed.width - 1, 0);

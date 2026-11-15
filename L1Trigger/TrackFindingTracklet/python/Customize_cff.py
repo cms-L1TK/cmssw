@@ -73,9 +73,9 @@ def sim4Config(process):
   process.AnalyzerTracklet.InputTag = ( "l1tTTTracksFromTrackletEmulation", "Level1TTTracks" )
   process.ProducerSim.InputTagTracklet = ( "l1tTTTracksFromTrackletEmulation", "Level1TTTracks" )
   process.tracklet = cms.Sequence( process.L1THybridTracks + process.AnalyzerTracklet )
-  process.l1tTTTracksFromExtendedTrackletEmulation.Fakefit = True
-  process.l1tTTTracksFromExtendedTrackletEmulation.RemovalType = ""
-  process.l1tTTTracksFromExtendedTrackletEmulation.DoMultipleMatches = False
+  process.l1tTTTracksFromTrackletEmulation.Fakefit = True
+  process.l1tTTTracksFromTrackletEmulation.RemovalType = ""
+  process.l1tTTTracksFromTrackletEmulation.DoMultipleMatches = False
 
 # configures pure tracklet algorithm (as opposed to Hybrid algorithm)
 def trackletConfig(process):
