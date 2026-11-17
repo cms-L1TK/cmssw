@@ -3,6 +3,7 @@
 # (P2 objects used for L1 tracking)                #
 # using either AnalyzerClusterStub.cc,             #
 # or AnalyzerCluster.cc.                           #
+# or AnalyzerStub.cc.                              #
 # (Edit this file to decide which to run)          #
 ####################################################
 
@@ -13,7 +14,7 @@ import FWCore.ParameterSet.Config as cms
 
 process = cms.Process('AnalyzerClusterStub')
 
-GEOMETRY = "D110"
+GEOMETRY = "D121"
 
 ################################################################################
 # global tag
@@ -37,14 +38,11 @@ process.load('Configuration.StandardSequences.MagneticField_cff')
 # define the source and maximum number of events to generate and simulate
 ################################################################################
 process.source = cms.Source("PoolSource",
-    #fileNames = cms.untracked.vstring('/store/relval/CMSSW_15_1_0_pre5/RelValDoubleMuFlatPt1p5To8/GEN-SIM-DIGI-RAW/150X_mcRun4_realistic_v1_RV269_Run4D110_noPU-v1/2590000/1172421f-823f-420f-8ec9-3de20dd6dda4.root')
-    #fileNames = cms.untracked.vstring('/store/relval/CMSSW_15_1_0_pre5/RelValTTbar_14TeV_TuneCP5/GEN-SIM-DIGI-RAW/150X_mcRun4_realistic_v1_RV269_Run4D110_noPU-v1/2590000/02a7204c-3f1c-4858-9350-2f506d729bbc.root')
-    #fileNames = cms.untracked.vstring('/store/relval/CMSSW_15_1_0_pre5/RelValTTbar_14TeV_TuneCP5/GEN-SIM-DIGI-RAW/PU_150X_mcRun4_realistic_v1_RV269_Run4D110_PU-v2/2590000/0f0bcfd3-dafe-4dda-8d39-9765f6eae68e.root')
-    fileNames = cms.untracked.vstring('file:/opt/ppd/data/cms/L1TrkMC/MCsamples1510_D110/RelVal/TTbar/PU0/02a7204c-3f1c-4858-9350-2f506d729bbc.root')
+    fileNames = cms.untracked.vstring('/store/relval/CMSSW_20_0_0_patch1/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/150X_mcRun4_realistic_v1_Run4_D121_pp_noPU_STD_Reference_20260903_192421_RV19-v1/2830000/0c820980-7257-49d8-b9b4-1fcae28a2f2a.root')
 )
 
 process.maxEvents = cms.untracked.PSet(
-  input = cms.untracked.int32(100)
+  input = cms.untracked.int32(-1)
 )
 
 ################################################################################
@@ -71,7 +69,14 @@ process.AnalyzerCluster = cms.EDAnalyzer("AnalyzerCluster",
   simtracks = cms.InputTag("g4SimHits"),
   ECasRings = cms.bool(True),
   SimTrackMinPt = cms.double(2.)
-                                        
+)
+
+# New analyzer for stub (bend resolution etc.)
+process.AnalyzerStub = cms.EDAnalyzer("AnalyzerStub",
+  trackingParticles= cms.InputTag("mix","MergedTrackTruth"),
+  ttstubs = cms.InputTag("TTStubsFromPhase2TrackerDigis", "StubAccepted"),
+  ttstubassoc = cms.InputTag("TTStubAssociatorFromPixelDigis", "StubAccepted"),
+  ECasRings = cms.bool(True)
 )
 
 #################################################################################################
@@ -91,8 +96,11 @@ process.TFileService = cms.Service("TFileService",
 # This is the old one for both clusters & stubs.
 #process.p = cms.Path( process.AnalyzerClusterStub )
 
-# This is the new one for clusters alone (includes resolution plots unlike old one)
-process.p = cms.Path( process.AnalyzerCluster )
+# This is the new one for clusters alone (includes resolution plots)
+#process.p = cms.Path( process.AnalyzerCluster )
+
+# This is the new one for stubs alone (includes resolution plots)
+process.p = cms.Path( process.AnalyzerStub )
 
 
 
