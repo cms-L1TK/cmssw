@@ -14,6 +14,7 @@ TrackFindingTrackletAnalyzer_params = cms.PSet (
 
   LabelMC    = cms.string( "StubAssociator" ),
 
+  OutputLabelPP  = cms.string( "ProducerPP"  ), #
   OutputLabelTM  = cms.string( "ProducerTM"  ), #
   OutputLabelDR  = cms.string( "ProducerDR"  ), #
   OutputLabelKF  = cms.string( "ProducerKF"  ), #

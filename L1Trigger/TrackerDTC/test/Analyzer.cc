@@ -114,6 +114,9 @@ namespace trackerDTC {
     std::vector<std::vector<TH1F*>> hisUncertainties_;
     std::vector<TProfile2D*> profUncertainties_;
 
+    TH1F* hisL_;
+    TProfile* profL_;
+
     // printout
     std::stringstream log_;
   };
@@ -202,6 +205,9 @@ namespace trackerDTC {
     for (Module m : AllModule)
       hisClusterWidth_.emplace_back(dir.make<TH1F>(("His " + name(m)).c_str(), ";", 5, 0, 5));
     profClusterWidth_ = dir.make<TProfile2D>("Prof RZ Cluster Width", ";;", bins, -maxZ, maxZ, bins, 0., maxR);
+    dir = fs->mkdir("DTC/LorentzDrift");
+    profL_ = dir.make<TProfile>("Lorentz absolute phi correction in rad over tilt", ";", 256, -.5 * M_PI, .5 * M_PI);
+    hisL_ = dir.make<TH1F>("Lorentz phi correction in rad", ";", 1024, -0.0004, 0.);
   }
 
   void Analyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
@@ -254,6 +260,12 @@ namespace trackerDTC {
     for (const TPPtr& tpPtr : tpPtrs)
       fill(tpPtr, hisEff_);
     prof_->Fill(3, tpPtrs.size());
+    if (nEvents_ == 0) {
+      for (const SensorModule& sm : setup_->sensorModules()) {
+        hisL_->Fill(sm.dX() / sm.r());
+        profL_->Fill(sm.tilt(), std::abs(sm.dX() / sm.r()));
+      }
+    }
     nEvents_++;
   }
 

@@ -19,6 +19,9 @@ namespace trackerDTC {
     double r = tt::redigi(stubGL.r(), setup->glBaseR(), setup->stubBaseR(), setup->widthDSPbu());
     double phi = tt::redigi(stubGL.phi(), setup->glBasePhi(), setup->stubBasePhi(), setup->widthDSPbu());
     double z = tt::redigi(stubGL.z(), setup->glBaseZ(), setup->stubBaseZ(), setup->widthDSPbu());
+    // stub phi w.r.t. processing region border in rad
+    phi = tt::digi(phi, setup->stubBasePhi()) -
+          tt::digi((overlap - .5) * setup->regRangePhiT() - setup->stubRangePhi() / 2., setup->stubBasePhi());
     // stub z w.r.t. an offset in cm
     z -= tt::digiR(sm->offsetZ(), setup->stubBaseZ());
     // stub r w.r.t. an offset in cm
@@ -30,9 +33,6 @@ namespace trackerDTC {
     const int bend = sm->signBend() ? stubFE->bend() : -stubFE->bend();
     // encode layer
     const int layer = sm->encodedLayer();
-    // stub phi w.r.t. processing region border in rad
-    phi = tt::digiR(phi, setup->stubBasePhi()) -
-          tt::digiR((overlap - .5) * setup->regRangePhiT() - setup->stubRangePhi() / 2., setup->stubBasePhi());
     // move to type specific bases
     r = tt::digiR(r, setup->stubBaseR(type));
     phi = tt::digiR(phi, setup->stubBasePhi(type));

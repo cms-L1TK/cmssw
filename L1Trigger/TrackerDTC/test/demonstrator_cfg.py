@@ -30,7 +30,7 @@ import FWCore.ParameterSet.VarParsing as VarParsing
 options = VarParsing.VarParsing( 'analysis' )
 # specify input MC
 Samples = [
-  "file:/data/store/CMSSW_15_1_0_pre5_RelValTTbar_14TeV_TuneCP5_GEN-SIM-DIGI-RAW_PU_150X_mcRun4_realistic_v1_RV269_Run4D110_PU-v2_2590000.root"
+  "file:/data/store/CMSSW_20_0_0_pre1_RelValTTbar_14TeV_GEN-SIM-DIGI-RAW_PU_150X_mcRun4_realistic_v1_STD_D121_RegeneratedGS_PU-v1_2590000.root"
 ]
 options.register( 'inputMC', Samples, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.string, "Files to be processed" )
 # specify number of events to process.
