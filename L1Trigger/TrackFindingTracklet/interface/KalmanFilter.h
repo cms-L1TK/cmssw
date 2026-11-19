@@ -59,26 +59,28 @@ namespace trklet {
       Track(int trackId,
             int numConsistent,
             int numConsistentPS,
-            double d0,
-            const TrackKF& trackKF,
-            const std::vector<StubKF>& stubsKF)
+            const TrackKF& track,
+            const std::vector<StubKF>& stubsKF,
+            const std::vector<StubKF*>& stubs)
           : trackId_(trackId),
             numConsistent_(numConsistent),
             numConsistentPS_(numConsistentPS),
-            d0_(d0),
-            trackKF_(trackKF),
-            stubsKF_(stubsKF) {}
+            trackKF_(track),
+            stubsKF_(stubsKF),
+            stubs_(stubs) {}
       int trackId_;
       int numConsistent_;
       int numConsistentPS_;
-      double d0_;
       TrackKF trackKF_;
       std::vector<StubKF> stubsKF_;
+      std::vector<StubKF*> stubs_;
     };
     // constraints double precision
     double digi(VariableKF var, double val) { return kalmanFilterFormats_->format(var).digi(val); }
     //
     int integer(VariableKF var, double val) { return kalmanFilterFormats_->format(var).integer(val); }
+    //
+    bool inRange(VariableKF var, double val) { return kalmanFilterFormats_->format(var).inRange(val); }
     //
     void updateRangeActual(VariableKF var, double val) {
       return kalmanFilterFormats_->format(var).updateRangeActual(val);
@@ -87,21 +89,23 @@ namespace trklet {
     double base(VariableKF var) { return kalmanFilterFormats_->format(var).base(); }
     //
     int width(VariableKF var) { return kalmanFilterFormats_->format(var).width(); }
+    //
+    int range(VariableKF var) { return kalmanFilterFormats_->format(var).range(); }
     // remove and return first element of deque, returns nullptr if empty
     template <class T>
-    T* pop_front(std::deque<T*>& ts) const;
+    T* pop_front(std::deque<T*>&) const;
     // calculates the helix params & their cov. matrix from a pair of stubs
     void calcSeeds();
     // Transform States into output products
-    void conv(tt::StreamsStub& streamsStub, tt::StreamsTrack& streamsTrack);
+    void conv(tt::StreamsStub&, tt::StreamsTrack&);
     // adds a layer to states
-    void addLayer(std::deque<State*>& stream);
+    void addLayer(std::deque<State*>&);
     // apply final cuts
-    void finalize();
+    void finalize(const std::deque<State*>&);
     // best state selection
     void accumulator();
     // updates state using 4 paramter fit
-    void update(State*& state);
+    void update(State*&);
 
     // provides run-time constants
     const Setup* setup_;
@@ -112,15 +116,17 @@ namespace trklet {
     // processing region
     int region_;
     // container of tracks
-    std::vector<TrackDR> tracks_;
+    std::vector<TrackDR> tracksDR_;
     // container of stubs
     std::vector<Stub> stubs_;
     // container of all Kalman Filter states
     std::deque<State> states_;
     // processing stream
     std::deque<State*> stream_;
-    //
-    std::vector<Track> finals_;
+    // multi final state channel
+    std::vector<std::deque<Track>> finals_;
+    // output tracks
+    std::vector<Track*> tracks_;
     // current layer used during state propagation
     int layer_;
   };

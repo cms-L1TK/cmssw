@@ -25,6 +25,8 @@ namespace trackerDTC {
   private:
     edm::ESGetToken<TrackerGeometry, TrackerDigiGeometryRecord> getTokenTrackerGeometry_;
     edm::ESGetToken<TrackerTopology, TrackerTopologyRcd> getTokenTrackerTopology_;
+    edm::ESGetToken<MagneticField, IdealMagneticFieldRecord> getTokenMagneticField_;
+    edm::ESGetToken<SiPhase2OuterTrackerLorentzAngle, SiPhase2OuterTrackerLorentzAngleRcd> getTokenLorentzAngle_;
     edm::ESGetToken<TrackerDetToDTCELinkCablingMap, TrackerDetToDTCELinkCablingMapRcd> getTokenCablingMap_;
     edm::ESGetToken<StubAlgorithm, TTStubAlgorithmRecord> getTokenTTStubAlgorithm_;
     Setup::Config config_;
@@ -34,6 +36,8 @@ namespace trackerDTC {
     auto cc = setWhatProduced(this);
     getTokenTrackerGeometry_ = cc.consumes();
     getTokenTrackerTopology_ = cc.consumes();
+    getTokenMagneticField_ = cc.consumes();
+    getTokenLorentzAngle_ = cc.consumes();
     getTokenCablingMap_ = cc.consumes();
     getTokenTTStubAlgorithm_ = cc.consumes();
     const edm::ParameterSet& print = iConfig.getParameter<edm::ParameterSet>("Print");
@@ -146,6 +150,8 @@ namespace trackerDTC {
   std::unique_ptr<Setup> ProducerSetup::produce(const SetupRcd& rcd) {
     const TrackerGeometry& trackerGeometry = rcd.get(getTokenTrackerGeometry_);
     const TrackerTopology& trackerTopology = rcd.get(getTokenTrackerTopology_);
+    const MagneticField& magneticField = rcd.get(getTokenMagneticField_);
+    const SiPhase2OuterTrackerLorentzAngle& lorentzAngle = rcd.get(getTokenLorentzAngle_);
     const TrackerDetToDTCELinkCablingMap& cablingMap = rcd.get(getTokenCablingMap_);
     const edm::ESHandle<StubAlgorithm> handleStubAlgorithm = rcd.getHandle(getTokenTTStubAlgorithm_);
     const StubAlgorithmOfficial& stubAlgoritm =
@@ -162,8 +168,14 @@ namespace trackerDTC {
     configTTStubAlgorithm.endcapCutSet.reserve(pSetsEncapDisks.size());
     for (const auto& pSet : pSetsEncapDisks)
       configTTStubAlgorithm.endcapCutSet.emplace_back(pSet.getParameter<std::vector<double>>("EndcapCut"));
-    return std::make_unique<Setup>(
-        config_, trackerGeometry, trackerTopology, cablingMap, stubAlgoritm, configTTStubAlgorithm);
+    return std::make_unique<Setup>(config_,
+                                   trackerGeometry,
+                                   trackerTopology,
+                                   magneticField,
+                                   lorentzAngle,
+                                   cablingMap,
+                                   stubAlgoritm,
+                                   configTTStubAlgorithm);
   }
 
 }  // namespace trackerDTC
