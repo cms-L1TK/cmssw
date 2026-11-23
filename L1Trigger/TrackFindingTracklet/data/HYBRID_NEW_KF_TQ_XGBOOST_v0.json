@@ -11204,6 +11204,8 @@
           -2,
           -2,
           -2,
+          -2,
+          -2,
           -2
         ],
         "weight": [
@@ -11312,7 +11314,9 @@
           0.0,
           0.0,
           0.0,
-          0.0
+          0.0,
+          -2.0,
+          -2.0
         ],
         "value": [
           47.902847,
@@ -11327,16 +11331,20 @@
           0.33367032,
           -0.20409365,
           0.011294614,
-          -0.008982435
+          -0.008982435,
+          -0.57579976,
+          -0.57579976
         ],
         "children_left": [
           1,
           3,
           5,
           7,
-          -1,
+          13,
           9,
           11,
+          -1,
+          -1,
           -1,
           -1,
           -1,
@@ -11349,9 +11357,11 @@
           4,
           6,
           8,
-          -1,
+          14,
           10,
           12,
+          -1,
+          -1,
           -1,
           -1,
           -1,
@@ -19597,18 +19607,19 @@
   "config": {
     "output_dir": "/home/am2023/save/phdthesis/results/TQ/projects/baseline_hybrid_new_kf_emulation_example",
     "project_name": "my_prj",
-    "backend": "cpp",
+    "backend": "vhdl",
     "input_precision": "ap_fixed<20,10>",
     "threshold_precision": "ap_fixed<20,10>",
     "weight_precision": "ap_fixed<20,10>",
-    "score_precision": "ap_fixed<20,10>"
+    "score_precision": "ap_fixed<20,10>",
+    "xilinx_part": "xcvu9p-flgb2104-2L-e"
   },
   "metadata": [
     {
       "version": "1.11",
       "host": "am2023",
       "user": "am2023",
-      "time": 1794584239.559888
+      "time": 1795447312.941906
     }
   ]
 }
