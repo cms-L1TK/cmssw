@@ -102,7 +102,7 @@ TrackerDTCSetup_params = cms.PSet (
   # Parameter specifying global Stubs
   StubGL = cms.PSet (
     WidthR   = cms.int32( 14 ), # number of bits used for stub r - ChosenRofPhi
-    WidthPhi = cms.int32( 19 ), # number of bits used for stub phi w.r.t. phi region centre
+    WidthPhi = cms.int32( 16 ), # number of bits used for stub phi w.r.t. phi region centre
     WidthZ   = cms.int32( 15 ), # number of bits used for stub z
   ),
 

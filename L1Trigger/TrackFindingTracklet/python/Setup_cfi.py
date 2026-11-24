@@ -136,9 +136,9 @@ TrackFindingTracklet_params = cms.PSet (
     NumComparisonModules = cms.int32 (    32  ), # number of comparison modules used in each DR node
     MinIdenticalStubs    = cms.int32 (     3  ), # min number of shared stubs to identify duplicates
     WidthDPhi            = cms.int32 (     5  ), # number of Bits used to represent stub phi uncertainty in rad
-    WidthDZ              = cms.int32 (     7  ), # number of Bits used to represent stub z uncertainty in cm
+    WidthDZ              = cms.int32 (    10  ), # number of Bits used to represent stub z uncertainty in cm
     BaseShiftDPhi        = cms.int32 (     4  ), # precision difference in powers of 2 between dPhi and phi
-    BaseShiftDZ          = cms.int32 (     3  ), # precision difference in powers of 2 between dZ and z
+    BaseShiftDZ          = cms.int32 (     0  ), # precision difference in powers of 2 between dZ and z
     HalfLengthBarrel     = cms.double(   120. )  # half lengt of outer tracker barrel
   ),
 
