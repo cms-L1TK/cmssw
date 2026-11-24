@@ -17,7 +17,7 @@ def swConfig(process):
 def fwConfig(process):
   swConfig(process)
   process.TrackFindingTrackletSetup.DR.UseASStubs = False
-  process.TrackFindingTrackletSetup.DR.UseTTStubs = False
+  process.TrackFindingTrackletSetup.DR.UseTTStubs = True
   process.ProducerKF.EnableIntegerEmulation = True
   process.TrackFindingTrackletSetup.TQ.Enable = False
 
@@ -77,7 +77,7 @@ def sim5Config(process):
       L2L3D1 = cms.vint32(  1, 12, 13, 14 ),
       D1D2L2 = cms.vint32(  1, 13, 14 )
   )
-  process.TrackFindingTrackletSetup.TM.MuxOrder = ( 0, 1, 6, 4, 5, 7, 10, 11, 2, 8, 3, 9 )
+  process.TrackFindingTrackletSetup.Sim.SeedTypeOrder = ( 0, 1, 6, 4, 5, 7, 10, 11, 2, 8, 3, 9 )
   process.TrackFindingTrackletSetup.KF.NumSeed = 3
 
 # configures prompt track finding followed by Track Processing sim w 4 param fit
