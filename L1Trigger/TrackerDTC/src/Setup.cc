@@ -301,7 +301,7 @@ namespace trackerDTC {
     const std::vector<int>& cols = ttStubRef->clusterRef(0)->getCols();
     const double col = *std::min_element(cols.begin(), cols.end()) + .5;
     const double row = (rows.front() + rows.back()) / 2. + .5 - sm->dX();
-    MeasurementPoint fe(row, col);
+    const MeasurementPoint fe(row, col);
     return plane.toGlobal(pixelTopology.localPosition(fe));
   }
 

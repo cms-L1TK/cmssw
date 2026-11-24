@@ -37,7 +37,8 @@ namespace trklet {
     tracksDR_.reserve(numTracks);
     stubs_.reserve(numStubs);
     int trackId(0);
-    for (int frame = 0; frame < static_cast<int>(streamTrack.size()); frame++) {
+    const int size = streamTrack.size();
+    for (int frame = 0; frame < size; frame++) {
       const tt::FrameTrack& frameTrack = streamTrack[frame];
       if (frameTrack.first.isNull()) {
         stream_.push_back(nullptr);
@@ -52,7 +53,8 @@ namespace trklet {
       for (int layer : layersSeed) {
         const int index = toIndex(layer);
         const tt::FrameStub& frameStub = streamsStub[offset + index][frame];
-        const int reduced = setup_->sensorModule(frameStub.first)->layerIdReduced();
+        const trackerDTC::SensorModule* sm = setup_->sensorModule(frameStub.first);
+        const int reduced = sm->layerIdReduced();
         stubs_.emplace_back(kalmanFilterFormats_, frameStub, reduced);
         seed.push_back(&stubs_.back());
       }
@@ -63,7 +65,8 @@ namespace trklet {
         const tt::FrameStub& frameStub = streamsStub[offset + index][frame];
         if (frameStub.first.isNull())
           continue;
-        const int reduced = setup_->sensorModule(frameStub.first)->layerIdReduced();
+        const trackerDTC::SensorModule* sm = setup_->sensorModule(frameStub.first);
+        const int reduced = sm->layerIdReduced();
         stubs_.emplace_back(kalmanFilterFormats_, frameStub, reduced);
         proj.push_back(&stubs_.back());
       }
@@ -144,6 +147,8 @@ namespace trklet {
     // create container of pointer to make sorts less CPU intense
     auto acc = [](int sum, const std::deque<Track>& tracks) { return sum += tracks.size(); };
     const int size = std::accumulate(finals_.begin(), finals_.end(), 0, acc);
+    if (size == 0)
+      return;
     tracks_.reserve(size);
     for (std::deque<Track>& chan : finals_)
       std::transform(chan.begin(), chan.end(), std::back_inserter(tracks_), [](Track& track) { return &track; });

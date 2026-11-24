@@ -8,7 +8,12 @@ TrackFindingTracklet_params = cms.PSet (
 
   # Parameter specifying simuation
   Sim = cms.PSet (
-    NPar = cms.int32 ( 5 ), # use either 4 or 5 parameter fit in simulation
+    NPar = cms.int32 ( 4 ), # use either 4 or 5 parameter fit in simulation
+    DontFit = cms.bool( False ), # produces found tracks w recalculated paramater + cov matrix + chi2s + mva after DR
+    KFStartsFromSeed = cms.bool( True ), # KF only tests projective combinatorics, no fake seed stup removal
+    Chi2sWithTrackUncertainty = cms.bool( False ), # take track uncertainties into account when calculating chi2s
+    SortByChi2 = cms.bool( False ), # sorts found tracks by chi2 over ndof before DR which keeps first unique track
+    SeedTypeOrder = cms.vint32( 0, 1, 6, 7, 4, 5, 2, 3 ), # sort found tracks by seed type before DR which keeps first unique track
   ),
 
   # Parameter specifying outer tracker

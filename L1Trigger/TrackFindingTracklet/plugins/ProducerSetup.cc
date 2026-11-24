@@ -31,6 +31,11 @@ namespace trklet {
     config_.enableTruncation = iConfig.getParameter<bool>("EnableTruncation");
     const edm::ParameterSet& pSetSim = iConfig.getParameter<edm::ParameterSet>("Sim");
     config_.simNPar = pSetSim.getParameter<int>("NPar");
+    config_.simDontFit = pSetSim.getParameter<bool>("DontFit");
+    config_.simKFStartsFromSeed = pSetSim.getParameter<bool>("KFStartsFromSeed");
+    config_.simChi2sWithTrackUncertainty = pSetSim.getParameter<bool>("Chi2sWithTrackUncertainty");
+    config_.simSortByChi2 = pSetSim.getParameter<bool>("SortByChi2");
+    config_.simSeedTypeOrder = pSetSim.getParameter<std::vector<int>>("SeedTypeOrder");
     const edm::ParameterSet& pSetOT = iConfig.getParameter<edm::ParameterSet>("OT");
     config_.otLimitPSBarrel = pSetOT.getParameter<double>("LimitPSBarrel");
     config_.otLimitsTiltedR = pSetOT.getParameter<std::vector<double>>("LimitsTiltedR");

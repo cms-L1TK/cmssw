@@ -54,25 +54,30 @@ namespace trklet {
 
     struct Track;
     struct Stub {
-      Stub(const TTStubRef&, const Setup*, Track*);
+      Stub(const TTStubRef&, const L1Track&, const Setup*);
       int layerId() const { return sm_->layerId(); }
       int layerIdReduced() const { return sm_->layerIdReduced(); }
-      TTStubRef ttStubRef_;
+      const Setup* setup_;
       const trackerDTC::SensorModule* sm_;
+      TTStubRef ttStubRef_;
       double H_;
       double m0_;
       double m1_;
+      double d0_;
+      double d1_;
       double v0_;
       double v1_;
     };
     struct Track {
       Track() {}
       Track(const L1Track&, const Setup*);
+      bool operator<(const Track&) const;
       double chi2Red() const { return (chi20_ + chi21_) / proj_.size(); }
       // recalc seed parameter, cov & chi2
       void calcSeed();
-      // add all stubs using KF update maths
-      void add(const std::vector<const Stub*>&);
+      // add projs to seed using KF update maths
+      void calcProj();
+      const Setup* setup_;
       const L1Track* l1Track_;
       double x0_ = 0.;
       double x1_ = 0.;
@@ -97,6 +102,7 @@ namespace trklet {
       TTBV hitPattern_;
       std::deque<const Stub*> seed_;
       std::deque<const Stub*> proj_;
+      std::array<int, 3> quali_{{0, 0, 0}};
     };
     // ED input token of TTTracks
     edm::EDGetTokenT<L1TrackCollection> edGetTokenTracks_;
@@ -110,7 +116,11 @@ namespace trklet {
     conifer::BDT<float, float> bdt_;
     // path to model extended tracking
     std::string pathExtended_;
-    // number of permutations for number of projections
+    // number of seed permutations for track sizes
+    std::vector<int> nPerSeed_;
+    // number of proj permutations for track sizes
+    std::vector<int> nPerProj_;
+    // number of permutations for track sizes when re-seeding
     std::vector<int> nPer_;
     // stub container
     std::vector<Stub> stubs_;
@@ -143,10 +153,17 @@ namespace trklet {
       return f;
     };
     auto bc = [fac](int n, int k) { return fac(n) / fac(k) / fac(n - k); };
-    nPer_ = std::vector<int>(setup_->kfNumProj() - setup_->kfMinProj() + 1, 0);
-    for (int i = setup_->kfMinProj(); i <= setup_->kfNumProj(); i++)
-      for (int j = setup_->kfMinProj(); j <= i; j++)
-        nPer_[i - setup_->kfMinProj()] += bc(i, j);
+    // number of seed / proj permutations for track sizes
+    nPerSeed_ = std::vector<int>(setup_->kfNumLayers() + 1, 0);
+    nPerProj_ = std::vector<int>(setup_->kfNumLayers() + 1, 0);
+    nPer_ = std::vector<int>(setup_->kfNumLayers() + 1, 0);
+    for (int i = setup_->kfMinLayers(); i <= setup_->kfNumLayers(); i++) {
+      for (int j = setup_->kfMinLayers(); j <= i; j++) {
+        nPerSeed_[i] += bc(setup_->kfNumSeed(), j);
+        nPerProj_[i] += bc(i - setup_->kfNumSeed(), j);
+      }
+      nPer_[i] = nPerSeed_[i] * nPerProj_[i];
+    }
     // Load extended BDT model
     if (setup_->simNPar() == 5)
       bdt_ = conifer::BDT<float, float>(pathExtended_);
@@ -167,7 +184,8 @@ namespace trklet {
       // perform duplicate removal
       dr();
       // perform KF
-      kf();
+      if (!setup_->simDontFit())
+        kf();
       // perform TQ
       tq();
       // perform tfp
@@ -202,15 +220,13 @@ namespace trklet {
       Track* track = &tracks_.back();
       stream_.push_back(track);
       for (const TTStubRef& ttStubRef : l1Track.getStubRefs()) {
-        stubs_.emplace_back(ttStubRef, setup_, track);
+        stubs_.emplace_back(ttStubRef, l1Track, setup_);
         const Stub* stub = &stubs_.back();
         const auto it = std::find(seedLayers.begin(), seedLayers.end(), stub->layerId());
         if (it == seedLayers.end())
           track->proj_.push_back(stub);
-        else {
-          track->hitPattern_.set(stub->layerIdReduced());
+        else
           track->seed_.push_back(stub);
-        }
       }
       // recalc seed parameter, cov & chi2
       track->calcSeed();
@@ -219,12 +235,17 @@ namespace trklet {
 
   // perform track multiplexer
   void ProducerSim::tm() {
-    const std::vector<int>& muxOrder = setup_->tmMuxOrder();
-    auto order = [&muxOrder](const Track* lhs, const Track* rhs) {
-      const auto l = std::find(muxOrder.begin(), muxOrder.end(), lhs->l1Track_->trackSeedType());
-      const auto r = std::find(muxOrder.begin(), muxOrder.end(), rhs->l1Track_->trackSeedType());
-      return l < r;
-    };
+    std::function<bool(const Track*, const Track*)> order;
+    if (setup_->simSortByChi2()) {  // proper sort after mux by chi2
+      order = [](const Track* lhs, const Track* rhs) { return lhs->chi2Red() < rhs->chi2Red(); };
+    } else {  // mux by channel priority
+      const std::vector<int>& muxOrder = setup_->simSeedTypeOrder();
+      order = [&muxOrder](const Track* lhs, const Track* rhs) {
+        const auto l = std::find(muxOrder.begin(), muxOrder.end(), lhs->l1Track_->trackSeedType());
+        const auto r = std::find(muxOrder.begin(), muxOrder.end(), rhs->l1Track_->trackSeedType());
+        return l < r;
+      };
+    }
     std::sort(stream_.begin(), stream_.end(), order);
   }
 
@@ -257,38 +278,67 @@ namespace trklet {
 
   // perform KF
   void ProducerSim::kf() {
+    // form all num permuations out of pool
+    auto permutate = [](const std::deque<const Stub*>& pool, int num, std::vector<std::deque<const Stub*>>& perm) {
+      const int size = pool.size();
+      std::string bitmask(num, 1);
+      bitmask.resize(size, 0);
+      do {
+        perm.emplace_back();
+        std::deque<const Stub*>& comb = perm.back();
+        for (int i = 0; i < size; ++i)
+          if (bitmask[i])
+            comb.push_back(pool[i]);
+      } while (std::prev_permutation(bitmask.begin(), bitmask.end()));
+    };
     for (Track*& track : stream_) {
       if (!track)
         continue;
-      const int size = track->proj_.size();
-      // get all permutations
-      std::vector<std::vector<const Stub*>> permutations;
-      permutations.reserve(nPer_[size - setup_->kfMinProj()]);
-      for (int nStubs = setup_->kfMinProj(); nStubs <= size; nStubs++) {
-        // form all nStubs out of size combinations
-        std::string bitmask(nStubs, 1);
-        bitmask.resize(size, 0);
-        do {
-          permutations.emplace_back();
-          std::vector<const Stub*>& comb = permutations.back();
-          comb.reserve(nStubs);
-          for (int i = 0; i < size; ++i)
-            if (bitmask[i])
-              comb.push_back(track->proj_[i]);
-        } while (std::prev_permutation(bitmask.begin(), bitmask.end()));
-      }
       bool first(true);
       Track best;
-      // fit all permutations and keep best
-      for (const std::vector<const Stub*>& permutation : permutations) {
-        Track comb = *track;
-        // add all stubs using KF update maths
-        comb.add(permutation);
-        // keep best combination
-        if (!first && (best.chi2Red() < comb.chi2Red()))
-          continue;
-        first = false;
-        best = comb;
+      auto fit = [&best, &first, permutate, this](const Track& track, const std::deque<const Stub*>& proj) {
+        const int size = proj.size();
+        // get all permutations
+        std::vector<std::deque<const Stub*>> permutations;
+        permutations.reserve(nPerProj_[size + setup_->kfNumSeed()]);
+        for (int nStubs = setup_->kfMinProj(); nStubs <= size; nStubs++)
+          permutate(proj, nStubs, permutations);
+        // fit all permutations and keep best
+        for (const std::deque<const Stub*>& permutation : permutations) {
+          Track comb = track;
+          comb.proj_ = permutation;
+          // add all projs to seed using KF update maths
+          comb.calcProj();
+          // keep best combination
+          if (!first && (best < comb))
+            continue;
+          first = false;
+          best = comb;
+        }
+      };
+      if (setup_->simKFStartsFromSeed())
+        fit(*track, track->proj_);
+      else {
+        // get all stubs
+        std::deque<const Stub*> stubs;
+        for (const std::deque<const Stub*>& part : {track->seed_, track->proj_})
+          stubs.insert(stubs.end(), part.begin(), part.end());
+        // get all seeds
+        std::vector<std::deque<const Stub*>> seeds;
+        seeds.reserve(nPerSeed_[stubs.size()]);
+        permutate(stubs, setup_->kfNumSeed(), seeds);
+        // fit all seeds
+        for (const std::deque<const Stub*>& seed : seeds) {
+          Track proto(*track->l1Track_, setup_);
+          proto.seed_ = seed;
+          // calc seed parameter
+          proto.calcSeed();
+          // get all proj stubs
+          std::deque<const Stub*> proj = stubs;
+          for (const Stub* stub : seed)
+            proj.erase(remove(proj.begin(), proj.end(), stub), proj.end());
+          fit(proto, proj);
+        }
       }
       *track = best;
     }
@@ -333,13 +383,15 @@ namespace trklet {
           covMat[i][j++] = d;
         i++;
       }
+      const double chi20 = setup_->simDontFit() ? track->chi20Seed_ : track->chi20_;
+      const double chi21 = setup_->simDontFit() ? track->chi21Seed_ : track->chi21_;
       l1TrackCollection.emplace_back(-2. * track->x0_,
                                      tt::deltaPhi(track->x1_ + track->phiR_),
                                      track->x2_,
                                      track->x3_,
                                      -track->x4_,
-                                     track->chi20_,
-                                     track->chi21_,
+                                     chi20,
+                                     chi21,
                                      track->mva_,
                                      0.,
                                      0.,
@@ -362,21 +414,27 @@ namespace trklet {
   }
 
   ProducerSim::Track::Track(const L1Track& l1Track, const Setup* setup)
-      : l1Track_(&l1Track), phiR_(l1Track.phiSector() * setup->regRangePhiT()), hitPattern_(0, setup->kfNumLayers()) {}
+      : setup_(setup),
+        l1Track_(&l1Track),
+        phiR_(l1Track.phiSector() * setup->regRangePhiT()),
+        hitPattern_(0, setup->kfNumLayers()) {}
 
-  ProducerSim::Stub::Stub(const TTStubRef& ttStubRef, const Setup* setup, Track* track)
-      : ttStubRef_(ttStubRef), sm_(setup->sensorModule(ttStubRef)) {
-    const double x0 = -.5 * track->l1Track_->rInv();
-    const double x1 = track->l1Track_->localPhi();
-    const double x2 = track->l1Track_->tanL();
-    const double x3 = track->l1Track_->z0();
-    const double x4 = -track->l1Track_->d0();
+  ProducerSim::Stub::Stub(const TTStubRef& ttStubRef, const L1Track& l1Track, const Setup* setup)
+      : setup_(setup), sm_(setup->sensorModule(ttStubRef)), ttStubRef_(ttStubRef) {
+    const double x0 = -.5 * l1Track.rInv();
+    const double x1 = l1Track.localPhi();
+    const double x2 = l1Track.tanL();
+    const double x3 = l1Track.z0();
+    const double x4 = -l1Track.d0();
+    const double phiR = l1Track.phiSector() * setup->regRangePhiT();
     const GlobalPoint gp = setup->stubPosTT(ttStubRef);
     H_ = gp.perp();
-    m0_ = tt::deltaPhi(gp.phi() - track->phiR_);
+    m0_ = tt::deltaPhi(gp.phi() - phiR);
     m1_ = gp.z();
-    v0_ = std::pow(sm_->dPhi(H_, x0), 2) / 3.;
-    v1_ = std::pow(sm_->dZ(x2), 2) / 3.;
+    d0_ = .5 * sm_->dPhi(H_, x0);
+    d1_ = .5 * sm_->dZ(x2);
+    v0_ = std::pow(d0_, 2) / 3.;
+    v1_ = std::pow(d1_, 2) / 3.;
     // apply HO corrections
     if (x0 == 0. || x4 > H_)
       return;
@@ -391,8 +449,24 @@ namespace trklet {
     m1_ += x3 + x2 * H_;
   }
 
+  bool ProducerSim::Track::operator<(const Track& other) const {
+    if (quali_[0] > other.quali_[0])
+      return true;
+    else if (quali_[0] == other.quali_[0]) {
+      if (quali_[1] > other.quali_[1])
+        return true;
+      else if (quali_[1] == other.quali_[1]) {
+        if (quali_[2] > other.quali_[2])
+          return true;
+      }
+    }
+    return false;
+  }
+
   // recalc seed parameter, cov & chi2
   void ProducerSim::Track::calcSeed() {
+    for (const Stub* stub : seed_)
+      hitPattern_.set(stub->layerIdReduced());
     const double dH = seed_[1]->H_ - seed_[0]->H_;
     const double dH2 = std::pow(dH, 2);
     // calc r-z parameter using first 2 seed stubs
@@ -469,25 +543,28 @@ namespace trklet {
         // calc residuals
         const double r0 = stub->m0_ - (x1_ + x0_ * stub->H_ + x4_ / stub->H_);
         const double r1 = stub->m1_ - (x3_ + x2_ * stub->H_);
-        // calc stub + track proj uncertainties
-        const double S00 = C01_ + stub->H_ * C00_ + C40_ / stub->H_;
-        const double S01 = C11_ + stub->H_ * C01_ + C41_ / stub->H_;
-        const double S04 = C41_ + stub->H_ * C40_ + C44_ / stub->H_;
-        const double S12 = C23_ + stub->H_ * C22_;
-        const double S13 = C33_ + stub->H_ * C23_;
-        const double R00 = stub->v0_ + S01 + stub->H_ * S00 + S04 / stub->H_;
-        const double R11 = stub->v1_ + S13 + stub->H_ * S12;
+        // stub uncertinty
+        double v0 = stub->v0_;
+        double v1 = stub->v1_;
+        if (setup_->simChi2sWithTrackUncertainty()) {  // add track proj uncertainties
+          const double S00 = C01_ + stub->H_ * C00_ + C40_ / stub->H_;
+          const double S01 = C11_ + stub->H_ * C01_ + C41_ / stub->H_;
+          const double S04 = C41_ + stub->H_ * C40_ + C44_ / stub->H_;
+          const double S12 = C23_ + stub->H_ * C22_;
+          const double S13 = C33_ + stub->H_ * C23_;
+          v0 += S01 + stub->H_ * S00 + S04 / stub->H_;
+          v1 += S13 + stub->H_ * S12;
+        }
         // update chi2sSeed
-        chi20Seed_ += std::pow(r0, 2) / R00;
-        chi21Seed_ += std::pow(r1, 2) / R11;
+        chi20Seed_ += std::pow(r0, 2) / v0;
+        chi21Seed_ += std::pow(r1, 2) / v1;
       }
     }
   }
 
   // add all stubs using KF update maths
-  void ProducerSim::Track::add(const std::vector<const Stub*>& stubs) {
-    proj_.clear();
-    for (const Stub* stub : stubs) {
+  void ProducerSim::Track::calcProj() {
+    for (const Stub* stub : proj_) {
       const double r0 = stub->m0_ - x1_ - x0_ * stub->H_ - x4_ / stub->H_;
       const double r1 = stub->m1_ - x3_ - x2_ * stub->H_;
       const double S00 = C01_ + stub->H_ * C00_ + C40_ / stub->H_;
@@ -517,7 +594,6 @@ namespace trklet {
       C40_ -= S04 * K00;
       C41_ -= S04 * K10;
       hitPattern_.set(stub->layerIdReduced());
-      proj_.push_back(stub);
     }
     // calc chi2s
     for (const std::deque<const Stub*>& stubs : {seed_, proj_}) {
@@ -525,17 +601,28 @@ namespace trklet {
         // calc residuals
         const double r0 = stub->m0_ - (x1_ + x0_ * stub->H_ + x4_ / stub->H_);
         const double r1 = stub->m1_ - (x3_ + x2_ * stub->H_);
-        // calc stub + track proj uncertainties
-        const double S00 = C01_ + stub->H_ * C00_ + C40_ / stub->H_;
-        const double S01 = C11_ + stub->H_ * C01_ + C41_ / stub->H_;
-        const double S04 = C41_ + stub->H_ * C40_ + C44_ / stub->H_;
-        const double S12 = C23_ + stub->H_ * C22_;
-        const double S13 = C33_ + stub->H_ * C23_;
-        const double R00 = stub->v0_ + S01 + stub->H_ * S00 + S04 / stub->H_;
-        const double R11 = stub->v1_ + S13 + stub->H_ * S12;
+        // stub uncertinty
+        double v0 = stub->v0_;
+        double v1 = stub->v1_;
+        if (setup_->simChi2sWithTrackUncertainty()) {  // add track proj uncertainties
+          const double S00 = C01_ + stub->H_ * C00_ + C40_ / stub->H_;
+          const double S01 = C11_ + stub->H_ * C01_ + C41_ / stub->H_;
+          const double S04 = C41_ + stub->H_ * C40_ + C44_ / stub->H_;
+          const double S12 = C23_ + stub->H_ * C22_;
+          const double S13 = C33_ + stub->H_ * C23_;
+          v0 += S01 + stub->H_ * S00 + S04 / stub->H_;
+          v1 += S13 + stub->H_ * S12;
+        }
         // update chi2s
-        chi20_ += std::pow(r0, 2) / R00;
-        chi21_ += std::pow(r1, 2) / R11;
+        chi20_ += std::pow(r0, 2) / v0;
+        chi21_ += std::pow(r1, 2) / v1;
+        // update quali
+        quali_[2]++;
+        if (std::abs(r1) < stub->d1_) {
+          quali_[1]++;
+          if (stub->sm_->psModule())
+            quali_[0]++;
+        }
       }
     }
   }

@@ -26,6 +26,16 @@ namespace trklet {
       bool enableTruncation;
       // use either 4 or 5 parameter fit in simulation
       int simNPar;
+      // produces found tracks w recalculated paramater + cov matrix + chi2s + mva after DR
+      bool simDontFit;
+      // KF only tests projective combinatorics, no fake seed stup removal
+      bool simKFStartsFromSeed;
+      // take track uncertainty into account when calculating chi2s
+      bool simChi2sWithTrackUncertainty;
+      // sorts found tracks by chi2 over ndof berfore dr which keeps first unique track
+      bool simSortByChi2;
+      // sort found tracks by seed type before DR which keeps first unique track
+      std::vector<int> simSeedTypeOrder;
       // barrel layer limit r value to partition into PS and 2S region
       double otLimitPSBarrel;
       // barrel layer limit r value to partition into tilted and untilted region
@@ -321,6 +331,16 @@ namespace trklet {
 
     // use either 4 or 5 parameter fit in simulation
     int simNPar() const { return config_.simNPar; }
+    // produces found tracks w recalculated paramater + cov matrix + chi2s + mva after DR
+    bool simDontFit() const { return config_.simDontFit; }
+    // KF only tests projective combinatorics, no fake seed stup removal
+    bool simKFStartsFromSeed() const { return config_.simKFStartsFromSeed; }
+    // take track uncertainty into account when calculating chi2s
+    bool simChi2sWithTrackUncertainty() const { return config_.simChi2sWithTrackUncertainty; }
+    // sorts found tracks by chi2 over ndof berfore dr which keeps first unique track
+    bool simSortByChi2() const { return config_.simSortByChi2; }
+    // sort found tracks by seed type before DR which keeps first unique track
+    const std::vector<int>& simSeedTypeOrder() const { return config_.simSeedTypeOrder; }
 
     // ASP num input channel
     int aspNumInput() const { return config_.aspNumInput; }
