@@ -81,6 +81,7 @@ namespace trackerDTC {
     const edm::InputTag& inputTag = iConfig.getParameter<edm::InputTag>("InputTag");
     edGetToken_ = consumes(inputTag);
     esGetTokenSetup_ = esConsumes<edm::Transition::BeginRun>();
+    config_.dontCompare = iConfig.getParameter<bool>("DontCompare");
     config_.enable = iConfig.getParameter<bool>("Enable");
     config_.runTime = iConfig.getParameter<double>("RunTime");
     config_.num8BX = iConfig.getParameter<int>("Num8BX");
