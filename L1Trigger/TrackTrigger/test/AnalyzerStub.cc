@@ -183,7 +183,7 @@ void AnalyzerStub::analyze(const edm::Event& event, const edm::EventSetup& event
     const DetId detId1 = detId + 1;  // seed sensor
     const GeomDetUnit* detUnit1 = tkGeom->idToDetUnit(detId1);
     const PixelTopology* pixTopo = &(dynamic_cast<const PixelGeomDetUnit*>(detUnit1)->specificTopology());
-    const Plane& plane = dynamic_cast<const PixelGeomDetUnit*>(detUnit1)->surface();    
+    const Plane& plane = dynamic_cast<const PixelGeomDetUnit*>(detUnit1)->surface();
 
     // initialize the nstub counters if they don't exist for this layer
     if (nStubs[det].find(layer) == nStubs[det].end()) {
