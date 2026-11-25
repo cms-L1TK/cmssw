@@ -16,6 +16,9 @@
 #include <map>
 #include <vector>
 #include <algorithm>
+#include <cmath>
+#include <sstream>
+#include <string>
 
 // user includes
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
@@ -28,16 +31,13 @@
 #include "DataFormats/L1TrackTrigger/interface/TTCluster.h"
 #include "DataFormats/Phase2TrackerDigi/interface/Phase2TrackerDigi.h"
 #include "DataFormats/SiPixelDetId/interface/PixelSubdetector.h"
-#include "DataFormats/SiPixelDigi/interface/PixelDigi.h"
 #include "DataFormats/TrackerCommon/interface/TrackerTopology.h"
-#include "FWCore/Framework/interface/ConsumesCollector.h"
 #include "FWCore/Framework/interface/one/EDAnalyzer.h"
 #include "FWCore/Framework/interface/ESHandle.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-#include "FWCore/ServiceRegistry/interface/Service.h"
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "FWCore/Utilities/interface/InputTag.h"
 #include "Geometry/CommonTopologies/interface/GeomDet.h"
@@ -47,7 +47,6 @@
 #include "SimDataFormats/Track/interface/SimTrackContainer.h"
 #include "SimDataFormats/TrackerDigiSimLink/interface/PixelDigiSimLink.h"
 #include "SimDataFormats/TrackingHit/interface/PSimHitContainer.h"
-#include "SimDataFormats/Vertex/interface/SimVertexContainer.h"
 #include "SimDataFormats/TrackingAnalysis/interface/TrackingParticle.h"
 #include "SimTracker/Common/interface/TrackingParticleSelector.h"
 #include "FWCore/Utilities/interface/Exception.h"
@@ -55,7 +54,6 @@
 // ROOT includes
 #include <TH2F.h>
 #include <TH1F.h>
-#include <THStack.h>
 
 struct ClusterHistos {
   // use TH1D instead of TH1F to avoid stauration at 2^31
@@ -298,8 +296,8 @@ void AnalyzerCluster::analyze(const edm::Event& event, const edm::EventSetup& ev
         for (const auto* sh : simhitsInDet->second) {
           auto it = std::lower_bound(clusterSimTrackIds.begin(), clusterSimTrackIds.end(), sh->trackId());
           if (it != clusterSimTrackIds.end() && *it == sh->trackId()) {
-            if (simhit == nullptr || fabs(sh->localPosition().x() - localPosClu.x()) < minx) {
-              minx = fabs(sh->localPosition().x() - localPosClu.x());
+            if (simhit == nullptr || std::fabs(sh->localPosition().x() - localPosClu.x()) < minx) {
+              minx = std::fabs(sh->localPosition().x() - localPosClu.x());
               simhit = sh;
             }
           }
