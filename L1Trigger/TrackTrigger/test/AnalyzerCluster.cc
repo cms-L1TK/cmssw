@@ -229,7 +229,7 @@ void AnalyzerCluster::analyze(const edm::Event& event, const edm::EventSetup& ev
     DetId detId(rawid);
     bool barrel = tTopo->side(detId) == 0;
     unsigned int layer = (not barrel) * 1000;  // don't split up endcap sides
-    if (!layer) {
+    if (barrel) {
       layer += tTopo->layer(detId);
     } else {
       layer += (catECasRings_ ? tTopo->endcapRingP2(detId) * 10 : tTopo->layer(detId));
@@ -241,7 +241,7 @@ void AnalyzerCluster::analyze(const edm::Event& event, const edm::EventSetup& ev
     } else if (mType == TrackerGeometry::ModuleType::Ph2PSS || mType == TrackerGeometry::ModuleType::Ph2SS) {
       det = 2;
     } else {
-      throw cms::Exception("LogicError") << "Unknown detector type! " << det;
+      throw cms::Exception("LogicError") << "Unknown detector type! " << static_cast<int>(mType);
     }
 
     // Get the geomdet

@@ -16,6 +16,8 @@
 #include <map>
 #include <vector>
 #include <algorithm>
+#include <cmath>
+#include <sstream>
 
 // user includes
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
@@ -27,11 +29,7 @@
 #include "DataFormats/L1TrackTrigger/interface/TTTypes.h"
 #include "DataFormats/L1TrackTrigger/interface/TTStub.h"
 #include "SimDataFormats/Associations/interface/TTStubAssociationMap.h"
-#include "DataFormats/Phase2TrackerDigi/interface/Phase2TrackerDigi.h"
-#include "DataFormats/SiPixelDetId/interface/PixelSubdetector.h"
-#include "DataFormats/SiPixelDigi/interface/PixelDigi.h"
 #include "DataFormats/TrackerCommon/interface/TrackerTopology.h"
-#include "FWCore/Framework/interface/ConsumesCollector.h"
 #include "FWCore/Framework/interface/one/EDAnalyzer.h"
 #include "FWCore/Framework/interface/ESHandle.h"
 #include "FWCore/Framework/interface/Event.h"
@@ -39,13 +37,11 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/ServiceRegistry/interface/Service.h"
-#include "FWCore/ServiceRegistry/interface/Service.h"
 #include "FWCore/Utilities/interface/InputTag.h"
 #include "Geometry/CommonTopologies/interface/GeomDet.h"
 #include "Geometry/CommonTopologies/interface/PixelGeomDetUnit.h"
 #include "Geometry/Records/interface/TrackerDigiGeometryRecord.h"
 #include "Geometry/TrackerGeometryBuilder/interface/TrackerGeometry.h"
-#include "SimDataFormats/Vertex/interface/SimVertexContainer.h"
 #include "SimDataFormats/TrackingAnalysis/interface/TrackingParticle.h"
 #include "SimTracker/Common/interface/TrackingParticleSelector.h"
 #include "MagneticField/Records/interface/IdealMagneticFieldRecord.h"
@@ -56,7 +52,6 @@
 // ROOT includes
 #include <TH2F.h>
 #include <TH1F.h>
-#include <THStack.h>
 
 struct StubHistos {
   // use TH1D instead of TH1F to avoid stauration at 2^31
@@ -75,8 +70,8 @@ public:
   ~AnalyzerStub() override;
   void beginJob() override;
   void beginRun(const edm::Run& iEvent, const edm::EventSetup& iSetup) override;
-  void endRun(const edm::Run& iEvent, const edm::EventSetup& iSetup) override {}
   void analyze(const edm::Event&, const edm::EventSetup&) override;
+  void endRun(const edm::Run& iEvent, const edm::EventSetup& iSetup) override {}
 
 private:
   std::map<unsigned int, StubHistos>::iterator createLayerHistograms(unsigned int);
@@ -86,7 +81,7 @@ private:
   const edm::ESGetToken<MagneticField, IdealMagneticFieldRecord> esTokenBfield_;
   const edm::EDGetTokenT<std::vector<TrackingParticle>> tpToken_;
   const edm::EDGetTokenT<edmNew::DetSetVector<TTStub<Ref_Phase2TrackerDigi_>>> tokenStubs_;
-  edm::EDGetTokenT<TTStubAssociationMap<Ref_Phase2TrackerDigi_>> tokenStubAssoc_;
+  const edm::EDGetTokenT<TTStubAssociationMap<Ref_Phase2TrackerDigi_>> tokenStubAssoc_;
 
   const bool catECasRings_;
 
@@ -171,7 +166,7 @@ void AnalyzerStub::analyze(const edm::Event& event, const edm::EventSetup& event
     DetId detId(rawid);
     bool barrel = tkTopo->side(detId) == 0;
     unsigned int layer = (not barrel) * 1000;  // don't split up endcap sides
-    if (!layer) {
+    if (barrel) {
       layer += tkTopo->layer(detId);
     } else {
       layer += (catECasRings_ ? tkTopo->endcapRingP2(detId) * 10 : tkTopo->layer(detId));
@@ -183,7 +178,7 @@ void AnalyzerStub::analyze(const edm::Event& event, const edm::EventSetup& event
     } else if (mType == TrackerGeometry::ModuleType::Ph2SS) {
       det = 2;
     } else {
-      throw cms::Exception("LogicError") << "Unknown detector type! " << det;
+      throw cms::Exception("LogicError") << "Unknown detector type! " << static_cast<int>(mType);
     }
 
     // initialize the nstub counters if they don't exist for this layer
@@ -235,10 +230,6 @@ void AnalyzerStub::analyze(const edm::Event& event, const edm::EventSetup& event
         if (tpSel_(*tp)) {
           // Here we have genuine stub matched to prompt TP with Pt > 2 GeV.
 
-          auto histogramLayer(histograms_.find(layer));
-          if (histogramLayer == histograms_.end())
-            throw cms::Exception("LogicError") << "No histo for an existing thing! This should not happen!";
-
           // Plot stub bend & bend resolution
           // First calculate true bend (based on code in SensorModule.cc & StubGL.cc).
           const float cSpeed = 1.0e8 * CLHEP::c_light;  // units of cm/s
@@ -256,7 +247,7 @@ void AnalyzerStub::analyze(const edm::Event& event, const edm::EventSetup& event
           // Module tilt angle w.r.t. beam axis (0=barrel,-+pi/2=+-ve endcap).
           const float tiltAngle = flipped ? atan2(deltaZ, -deltaR) : atan2(-deltaZ, deltaR);
           float dphi = asin(invPtToDphi * posStub.perp() * tp->charge() / tp->pt());
-          float lambda = atan2(posStub.z(), posStub.perp());
+          float lambda = tp->lambda();
           float dphiOverBend = pitchOverSep * (cos(tiltAngle) - sin(tiltAngle) * tan(lambda));
           float tpBend = dphi / dphiOverBend;  // Bend of TrackingParticle at stub position
 
@@ -318,7 +309,7 @@ std::map<unsigned int, StubHistos>::iterator AnalyzerStub::createLayerHistograms
   } else {
     int side = ival / 1000;
     id = ival - side * 1000;
-    if (ival > 10) {
+    if (id > 10) {
       id /= 10;
       //        fname1 << "EndCap_Side_" << side;
       fname1 << "EndCap";
