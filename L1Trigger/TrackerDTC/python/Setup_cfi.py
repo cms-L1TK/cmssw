@@ -43,7 +43,7 @@ TrackerDTCSetup_params = cms.PSet (
 
   # Parameter specifying Sensor Modules
   SensorModule = cms.PSet (
-    NumCIC = cms.int32( 2 ), # number of CICs per sensor module
+    NumCIC              = cms.int32 ( 2      ), # number of CICs per sensor module
     TiltApproxSlope     = cms.double( 0.884  ), # In tilted barrel, grad*|z|/r + int approximates |cosTilt| + |sinTilt * cotTheta|
     TiltApproxIntercept = cms.double( 0.507  ), # In tilted barrel, grad*|z|/r + int approximates |cosTilt| + |sinTilt * cotTheta|
     TiltUncertaintyR    = cms.double( 0.12   ), # In tilted barrel, constant assumed stub radial uncertainty * sqrt(12) in cm
@@ -102,7 +102,7 @@ TrackerDTCSetup_params = cms.PSet (
   # Parameter specifying global Stubs
   StubGL = cms.PSet (
     WidthR   = cms.int32( 14 ), # number of bits used for stub r - ChosenRofPhi
-    WidthPhi = cms.int32( 19 ), # number of bits used for stub phi w.r.t. phi region centre
+    WidthPhi = cms.int32( 16 ), # number of bits used for stub phi w.r.t. phi region centre
     WidthZ   = cms.int32( 15 ), # number of bits used for stub z
   ),
 

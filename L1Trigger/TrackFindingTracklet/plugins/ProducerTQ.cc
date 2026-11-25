@@ -89,16 +89,16 @@ namespace trklet {
     // invV0 (inverse phi uncertainty squared)
     const DataFormat& dPhi = dataFormats_->format(Variable::dPhi, Process::kf);
     width = setup_->tqWidthInvV0();
-    base = std::pow(dPhi.base(), -2);
-    range = base * std::pow(2, width) / (std::pow(2, width) - 1);
+    base = 1. / phi.base() / phi.base();
+    range = 12. / dPhi.base() / dPhi.base();
     shift = tt::ilog2(range / base) - width;
     base *= std::pow(2, shift);
     internalFormats_.invV0_ = DataFormat(false, width, base, range);
     // invV1 (inverse z uncertainty squared)
     const DataFormat& dZ = dataFormats_->format(Variable::dZ, Process::kf);
     width = setup_->tqWidthInvV1();
-    base = std::pow(dZ.base(), -2);
-    range = base * std::pow(2, width) / (std::pow(2, width) - 1);
+    base = 1. / z.base() / z.base();
+    range = 12. / dZ.base() / dZ.base();
     shift = tt::ilog2(range / base) - width;
     base *= std::pow(2, shift);
     internalFormats_.invV1_ = DataFormat(false, width, base, range);

@@ -192,6 +192,8 @@ private:
   edm::EDPutTokenT<tt::StreamsTrack> putTokenTracks_;
   // ED output token for clock and bit accurate stubs
   edm::EDPutTokenT<tt::StreamsStub> putTokenStubs_;
+  // ED output token for clock and bit accurate All stubs
+  edm::EDPutTokenT<tt::StreamsStub> putTokenAllStubs_;
 
   // helper class to store Track Trigger configuration
   const trklet::Setup* setup_ = nullptr;
@@ -241,11 +243,14 @@ L1FPGATrackProducer::L1FPGATrackProducer(edm::ParameterSet const& iConfig)
     getTokenTrackingParticle_ = consumes<std::vector<TrackingParticle>>(TrackingParticleInputTag);
   }
   const std::string& branchStubs = iConfig.getParameter<std::string>("BranchStubs");
+  const std::string& branchAllStubs = iConfig.getParameter<std::string>("BranchAllStubs");
   const std::string& branchTracks = iConfig.getParameter<std::string>("BranchTracks");
   // book ED output token for clock and bit accurate tracks
   putTokenTracks_ = produces<tt::StreamsTrack>(branchTracks);
   // book ED output token for clock and bit accurate stubs
   putTokenStubs_ = produces<tt::StreamsStub>(branchStubs);
+  // book ED output token for clock and bit accurate All stubs
+  putTokenAllStubs_ = produces<tt::StreamsStub>(branchAllStubs);
 
   asciiEventOutName_ = iConfig.getUntrackedParameter<std::string>("asciiFileName", "");
 
@@ -640,17 +645,25 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
 
   const std::vector<trklet::Track>& tracks = eventProcessor.tracks();
 
+  // get number of all stub streams
+  int numAS(0);
+  for (int i = 0; i < trklet::N_LAYER + trklet::N_DISK; i++)
+    numAS += std::pow(2, settings_.nbitsallstubs(i));
+
   // number of track channels
-  const int numStreamsTrack = trklet::N_SECTOR * setup_->tbNumSeedTypes();
+  const int numStreamsTrack = trklet::N_SECTOR * setup_->tbNumChannel();
   // number of stub channels if all seed types streams padded to have same number of stub channels (for coding simplicity)
   const int numStreamsStub = numStreamsTrack * setup_->tbNumLayers();
+  // number of all stub streams
+  const int numStreamsAllStub = trklet::N_SECTOR * numAS;
 
   // Streams formatted to allow this code to run outside CMSSW.
   std::vector<std::vector<std::string>> streamsTrackRaw(numStreamsTrack);
   std::vector<std::vector<trklet::StubStreamData>> streamsStubRaw(numStreamsStub);
+  std::vector<std::vector<trklet::StubStreamData>> streamsAllStubRaw(numStreamsAllStub);
 
   // this performs the actual tracklet event processing
-  eventProcessor.event(ev, streamsTrackRaw, streamsStubRaw);
+  eventProcessor.event(ev, streamsTrackRaw, streamsStubRaw, streamsAllStubRaw);
 
   for (const auto& track : tracks) {
     if (track.duplicate())
@@ -742,35 +755,35 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
     L1TkTracksForOutput->push_back(aTrack);
   }
 
-  //
-  // This code is a bit of a hack, it fixes an issue where it was implied that tracks in the L1TkTracksForOutput
-  // were listed in the seed order. But with the two TrackBuilder configuration this was not longer true and
-  // the code below implemnts a fix to handle this for the streamsTrack data.
-  //
-  std::vector<int> iTrkStart(numStreamsTrack);
-  for (int channel = 0; channel < static_cast<int>(numStreamsTrack); channel++) {
-    const int seedType = channel % setup_->tbNumSeedTypes();
-    const int phiregion = channel / setup_->tbNumSeedTypes();
-
-    for (unsigned int i = 0; i < (*L1TkTracksForOutput).size(); i++) {
-      if (phiregion == static_cast<int>(L1TkTracksForOutput->at(i).phiSector()) &&
-          seedType == static_cast<int>(L1TkTracksForOutput->at(i).trackSeedType())) {
-        iTrkStart[channel] = i;
-        break;
+  // store AllStubs
+  tt::StreamsStub streamsAllStub(numStreamsAllStub);
+  for (int region = 0; region < setup_->sysNumRegion(); region++) {
+    const int offset = region * numAS;
+    for (int id = 0; id < numAS; id++) {
+      const std::vector<trklet::StubStreamData>& raw = streamsAllStubRaw[offset + id];
+      tt::StreamStub& stream = streamsAllStub[offset + id];
+      stream.reserve(raw.size());
+      for (const trklet::StubStreamData& stub : raw) {
+        if (stub.valid())
+          stream.emplace_back(stubMap[stub.stub()], stub.dataBits());
+        else
+          stream.emplace_back();
       }
     }
   }
+  iEvent.emplace(putTokenAllStubs_, std::move(streamsAllStub));
 
   const edm::OrphanHandle<tt::TTTracks> oh = iEvent.emplace(putTokenTTTracks_, move(*L1TkTracksForOutput));
 
   // produce clock and bit accurate stream output tracks and stubs.
   // from end of tracklet pattern recognition.
+  int iTrk(0);
   tt::StreamsTrack streamsTrack(numStreamsTrack);
   tt::StreamsStub streamsStub(numStreamsStub);
   for (int region = 0; region < setup_->sysNumRegion(); region++) {
-    const int offsetTrack = region * setup_->tbNumSeedTypes();
-    for (int seedType = 0; seedType < setup_->tbNumSeedTypes(); seedType++) {
-      const int channelTrack = offsetTrack + seedType;
+    const int offsetTrack = region * setup_->tbNumChannel();
+    for (int chan = 0; chan < setup_->tbNumChannel(); chan++) {
+      const int channelTrack = offsetTrack + chan;
       const int offsetStub = channelTrack * setup_->tbNumLayers();
       const std::vector<std::string>& tracks = streamsTrackRaw[channelTrack];
       const int numTracks = tracks.size();
@@ -780,7 +793,6 @@ void L1FPGATrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSe
       for (int layer = 0; layer < setup_->tbNumLayers(); layer++)
         streamsStub[offsetStub + layer].reserve(numTracks);
       // fill output container
-      int iTrk = iTrkStart[channelTrack];
       for (int frame = 0; frame < numTracks; frame++) {
         const std::string& track = tracks[frame];
         if (track == "0") {

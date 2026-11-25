@@ -9,7 +9,8 @@
 namespace trklet {
 
   //
-  State::Stub::Stub(KalmanFilterFormats* kff, const tt::FrameStub& frame) : stubDR_(frame, kff->dataFormats()) {
+  State::Stub::Stub(KalmanFilterFormats* kff, const tt::FrameStub& frame, int layer)
+      : stubDR_(frame, kff->dataFormats()), layer_(layer) {
     v0_ = kff->format(VariableKF::v0).digi(std::pow(stubDR_.dPhi(), 2) / 3.);
     v1_ = kff->format(VariableKF::v1).digi(std::pow(stubDR_.dZ(), 2) / 3.);
   }

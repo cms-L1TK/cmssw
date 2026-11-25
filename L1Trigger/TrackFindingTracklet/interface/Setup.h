@@ -26,6 +26,16 @@ namespace trklet {
       bool enableTruncation;
       // use either 4 or 5 parameter fit in simulation
       int simNPar;
+      // produces found tracks w recalculated paramater + cov matrix + chi2s + mva after DR
+      bool simDontFit;
+      // KF only tests projective combinatorics, no fake seed stup removal
+      bool simKFStartsFromSeed;
+      // take track uncertainty into account when calculating chi2s
+      bool simChi2sWithTrackUncertainty;
+      // sorts found tracks by chi2 over ndof berfore dr which keeps first unique track
+      bool simSortByChi2;
+      // sort found tracks by seed type before DR which keeps first unique track
+      std::vector<int> simSeedTypeOrder;
       // barrel layer limit r value to partition into PS and 2S region
       double otLimitPSBarrel;
       // barrel layer limit r value to partition into tilted and untilted region
@@ -38,6 +48,26 @@ namespace trklet {
       std::vector<double> otLimitsPSDiskR;
       // vector of DTC id indexed by connected IR module id
       std::vector<int> irChannelsIn;
+      // ASP num input channel
+      int aspNumInput;
+      // number of Bits used to represent stubId
+      int aspWidthStubId;
+      //
+      int aspNumLayers;
+      //
+      int aspNumChannelPerLayer;
+      // number of bits used for stub r w.r.t layer/disk centre for module types (barrelPS, barrel2S, diskPS, disk2S)
+      std::vector<int> aspWidthsR;
+      // number of bits used for stub z w.r.t layer/disk centre for module types (barrelPS, barrel2S, diskPS, disk2S)
+      std::vector<int> aspWidthsZ;
+      // number of bits used for stub phi w.r.t. region centre for module types (barrelPS, barrel2S, diskPS, disk2S)
+      std::vector<int> aspWidthsPhi;
+      // number of bits used for stub row number for module types (barrelPS, barrel2S, diskPS, disk2S)
+      std::vector<int> aspWidthsAlpha;
+      // number of bits used for stub bend number for module types (barrelPS, barrel2S, diskPS, disk2S)
+      std::vector<int> aspWidthsBend;
+      // ASP input mux map [48 to 31 channel]
+      std::vector<std::vector<int>> aspMux;
       // f/w frequency in MHz
       double tbFreq;
       // smallest disk stub z position after TrackBuilder in cm
@@ -46,12 +76,16 @@ namespace trklet {
       double tbMaxR;
       // smallest stub radius after TrackBuilder in cm
       double tbInnerRadius;
+      // number of output channel
+      int tbNumChannel;
+      // number of layers
+      int tbNumLayers;
+      // barrel layer limit z value in cm to partition into tilted and untilted region
+      std::vector<double> tbTiltedLayerLimitsZ;
       // number of seed Types
       int tbNumSeedTypes;
       // number of layers used to form a seed
       int tbNumSeedingLayers;
-      // number of layers
-      int tbNumLayers;
       // seed types used in tracklet algorithm (position gives int value)
       std::vector<std::string> tbSeedTypes;
       // seeding layers of seed types using default layer id [barrel: 1-6, discs: 11-15]
@@ -60,6 +94,16 @@ namespace trklet {
       std::vector<std::vector<int>> tbSeedTypesProjectionLayers;
       // number of bits used for stub r w.r.t layer/disk centre for module types (barrelPS, barrel2S, diskPS, disk2S) at TB output
       std::vector<int> tbWidthsR;
+      // number of bits used for stub phi residual for module types (barrelPS, barrel2S, diskPS, disk2S) at TB output
+      std::vector<int> tbWidthsPhi;
+      // number of bits used for stub r (disk) or z (barrel) resdiual for module types (barrelPS, barrel2S, diskPS, disk2S) at TB output
+      std::vector<int> tbWidthsRZ;
+      //
+      std::vector<int> tbBaseShiftsR;
+      //
+      std::vector<int> tbBaseShiftsPhi;
+      //
+      std::vector<int> tbBaseShiftsRZ;
       // number of Bits used to represent stubId
       int tbWidthStubId;
       // number of Bits used to represent inv2R
@@ -71,21 +115,15 @@ namespace trklet {
       // number of Bits used to represent cot
       int tbWidthCot;
       // seed priority during merge
-      std::vector<std::string> tmMuxOrder;
-      // recalculates track parameter and stub residuals from DTC stubs
-      bool drUseDTCStubs;
+      std::vector<int> tmMuxOrder;
+      // recalculates track parameter and stub residuals from all stubs
+      bool drUseASStubs;
       // recalculates track parameter and stub residuals from TT stubs
       bool drUseTTStubs;
       // number of comparison modules used in each DR node
       int drNumComparisonModules;
       // min number of shared stubs to identify duplicates
       int drMinIdenticalStubs;
-      // number of bits used for stub r - ChosenRofPhi
-      int drWidthR;
-      // number of bits used for stub phi w.r.t. phi region centre
-      int drWidthPhi;
-      // number of bits used for stub z
-      int drWidthZ;
       // number of Bits used to represent stub phi uncertainty in rad
       int drWidthDPhi;
       // number of Bits used to represent stub z uncertainty in cm
@@ -94,18 +132,20 @@ namespace trklet {
       int drBaseShiftDPhi;
       // precision difference in powers of 2 between dPhi and phi
       int drBaseShiftDZ;
+      // half lengt of outer tracker barrel
+      double drHalfLengthBarrel;
       // simulate KF instead of emulate
       bool kfUseSimulation;
       // max number of tracks a kf worker can process
       int kfMaxTracks;
-      // number of layers a fitted track may cross
-      int kfNumLayers;
+      // number of layers to form a tracklet
+      int kfNumSeed;
+      // number of layers a found tracklet may cross
+      int kfNumProj;
       // required number of layers to form a track
       int kfMinLayers;
-      // precision difference in powers of 2 between phi residual and phi position
-      int kfBaseShiftPhi;
-      // precision difference in powers of 2 between z residual and z position
-      int kfBaseShiftZ;
+      // enables MVA
+      bool tqEnable;
       // number of output channel
       int tqNumChannel;
       // Number of bits used to represent chi2rphi
@@ -122,10 +162,6 @@ namespace trklet {
       int tqWidthInvV1;
       // number of bits used for mva
       int tqWidthMVA;
-      // scale z0 by this power of 2 for BDT
-      int tqScalePowZ0;
-      // scale cot by this power of 2 for BDT
-      int tqScalePowCot;
       // f/w bin edge integer values to bin mva
       std::vector<int> tqBinEdges;
       // number of bits used for phi0
@@ -143,6 +179,8 @@ namespace trklet {
     Setup(const Config&, const trackerDTC::Setup*);
     ~Setup() = default;
 
+    // DTC setup
+    const trackerDTC::Setup* dtc() const { return dtc_; }
     // TrackerGeometry
     const TrackerGeometry* trackerGeometry() const { return dtc_->trackerGeometry(); }
     // TrackerTopology
@@ -159,6 +197,8 @@ namespace trklet {
     const trackerDTC::SensorModule* sensorModule(const TTStubRef& ttStubRef) const {
       return dtc_->sensorModule(ttStubRef);
     }
+    // sensor module for det id
+    const trackerDTC::SensorModule* sensorModule(const DetId& detId) const { return dtc_->sensorModule(detId); }
     // sensor modules connected to given dtc id
     const std::vector<const trackerDTC::SensorModule*>& dtcModules(int dtcId) const { return dtc_->dtcModules(dtcId); }
     // collection of outer tracker sensor modules
@@ -182,6 +222,8 @@ namespace trklet {
     double smTiltApproxSlope() const { return dtc_->smTiltApproxSlope(); }
     // In tilted barrel, grad*|z|/r + int approximates |cosTilt| + |sinTilt * cotTheta|
     double smTiltApproxIntercept() const { return dtc_->smTiltApproxIntercept(); }
+    // number of DTC boards connected to one TFP
+    int numDTCsPerTFP() const { return numDTCsPerTFP_; }
 
     // critical radius in cm defining r-phi Region shape
     double regChosenRofPhi() const { return dtc_->regChosenRofPhi(); }
@@ -197,9 +239,15 @@ namespace trklet {
     double regMinPt() const { return dtc_->regMinPt(); }
     // single region phiT range in rad [2pi/9]
     double regRangePhiT() const { return dtc_->regRangePhiT(); }
+    // "eta" cut
+    double regMaxZT() const { return dtc_->regMaxZT(); }
+    // single region phi0 range in rad
+    double regRangePhi0() const { return dtc_->regRangePhi0(); }
 
     // number of phi slices the outer tracker readout is organized in
     int sysNumRegion() const { return dtc_->sysNumRegion(); }
+    // number of barrel ps layer
+    int sysNumBarrelLayerPS() const { return dtc_->sysNumBarrelLayerPS(); }
     // number of detector layer a particle may cross
     int sysNumLayer() const { return dtc_->sysNumLayer(); }
     // in T
@@ -223,6 +271,37 @@ namespace trklet {
     int glWidthPhi() const { return dtc_->glWidthPhi(); }
     // number of bits used for stub z
     int glWidthZ() const { return dtc_->glWidthZ(); }
+    // global stub r precision in cm
+    double glBaseR() const { return dtc_->glBaseR(); }
+    // global stub phi precision in rad
+    double glBasePhi() const { return dtc_->glBasePhi(); }
+    // global stub z precision in cm
+    double glBaseZ() const { return dtc_->glBaseZ(); }
+
+    // number of bits used for stub r w.r.t layer/disk centre for module types (barrelPS, barrel2S, diskPS, disk2S)
+    int stubWidthR(trackerDTC::SensorModule::Type type) const { return dtc_->stubWidthR(type); }
+    // number of bits used for stub z w.r.t layer/disk centre for module types (barrelPS, barrel2S, diskPS, disk2S)
+    int stubWidthZ(trackerDTC::SensorModule::Type type) const {
+      return dtc_->stubWidthZ(type);
+      ;
+    }
+    // number of bits used for stub phi w.r.t. region centre for module types (barrelPS, barrel2S, diskPS, disk2S)
+    int stubWidthPhi(trackerDTC::SensorModule::Type type) const {
+      return dtc_->stubWidthPhi(type);
+      ;
+    }
+    // number of bits used for stub row number for module types (barrelPS, barrel2S, diskPS, disk2S)
+    int stubWidthAlpha(trackerDTC::SensorModule::Type type) const { return dtc_->stubWidthAlpha(type); }
+    // number of bits used for stub bend number for module types (barrelPS, barrel2S, diskPS, disk2S)
+    int stubWidthBend(trackerDTC::SensorModule::Type type) const { return dtc_->stubWidthBend(type); }
+    // precision or r in cm for (barrelPS, barrel2S, diskPS, disk2S)
+    double stubBaseR(trackerDTC::SensorModule::Type type) const { return dtc_->stubBaseR(type); }
+    // precision or z in cm for (barrelPS, barrel2S, diskPS, disk2S)
+    double stubBaseZ(trackerDTC::SensorModule::Type type) const { return dtc_->stubBaseZ(type); }
+    // precision or phi in rad for (barrelPS, barrel2S, diskPS, disk2S)
+    double stubBasePhi(trackerDTC::SensorModule::Type type) const { return dtc_->stubBasePhi(type); }
+    // precision or alpha in pitch units for (barrelPS, barrel2S, diskPS, disk2S)
+    double stubBaseAlpha(trackerDTC::SensorModule::Type type) const { return dtc_->stubBaseAlpha(type); }
 
     // mean z of outer tracker endcap disks
     double stubDiskZ(int disk) const { return dtc_->stubDiskZ(disk); }
@@ -232,8 +311,6 @@ namespace trklet {
     double stubRangePhi() const { return dtc_->stubRangePhi(); }
     // center radius of outer tracker endcap 2S diks strips
     double stubDiskR(int layerId, int r) const { return dtc_->stubDiskR(layerId, r); }
-    // precision or r in cm for (barrelPS, barrel2S, diskPS, disk2S)
-    double stubBaseR(trackerDTC::SensorModule::Type type) const { return dtc_->stubBaseR(type); }
     // mean radius of outer tracker barrel layer
     double stubLayerR(int layer) const { return dtc_->stubLayerR(layer); }
 
@@ -254,6 +331,37 @@ namespace trklet {
 
     // use either 4 or 5 parameter fit in simulation
     int simNPar() const { return config_.simNPar; }
+    // produces found tracks w recalculated paramater + cov matrix + chi2s + mva after DR
+    bool simDontFit() const { return config_.simDontFit; }
+    // KF only tests projective combinatorics, no fake seed stup removal
+    bool simKFStartsFromSeed() const { return config_.simKFStartsFromSeed; }
+    // take track uncertainty into account when calculating chi2s
+    bool simChi2sWithTrackUncertainty() const { return config_.simChi2sWithTrackUncertainty; }
+    // sorts found tracks by chi2 over ndof berfore dr which keeps first unique track
+    bool simSortByChi2() const { return config_.simSortByChi2; }
+    // sort found tracks by seed type before DR which keeps first unique track
+    const std::vector<int>& simSeedTypeOrder() const { return config_.simSeedTypeOrder; }
+
+    // ASP num input channel
+    int aspNumInput() const { return config_.aspNumInput; }
+    // number of Bits used to represent stubId
+    int aspWidthStubId() const { return config_.aspWidthStubId; }
+    //
+    int aspNumLayers() const { return config_.aspNumLayers; }
+    //
+    int aspNumChannelPerLayer() const { return config_.aspNumChannelPerLayer; }
+    // number of bits used for stub r w.r.t layer/disk centre for module types (barrelPS, barrel2S, diskPS, disk2S)
+    int aspWidthR(trackerDTC::SensorModule::Type type) const { return config_.aspWidthsR[type]; }
+    // number of bits used for stub z w.r.t layer/disk centre for module types (barrelPS, barrel2S, diskPS, disk2S)
+    int aspWidthZ(trackerDTC::SensorModule::Type type) const { return config_.aspWidthsZ[type]; }
+    // number of bits used for stub phi w.r.t. region centre for module types (barrelPS, barrel2S, diskPS, disk2S)
+    int aspWidthPhi(trackerDTC::SensorModule::Type type) const { return config_.aspWidthsPhi[type]; }
+    // number of bits used for stub row number for module types (barrelPS, barrel2S, diskPS, disk2S)
+    int aspWidthAlpha(trackerDTC::SensorModule::Type type) const { return config_.aspWidthsAlpha[type]; }
+    // number of bits used for stub bend number for module types (barrelPS, barrel2S, diskPS, disk2S)
+    int aspWidthBend(trackerDTC::SensorModule::Type type) const { return config_.aspWidthsBend[type]; }
+    // AS input mux map [48 to 31 channel]
+    const std::vector<std::vector<int>>& aspMux() const { return config_.aspMux; }
 
     // number of seed Types
     int tbNumSeedTypes() const { return config_.tbNumSeedTypes; }
@@ -261,12 +369,16 @@ namespace trklet {
     double tbMinZ() const { return config_.tbMinZ; }
     // smallest stub radius after TrackBuilder in cm
     double tbInnerRadius() const { return config_.tbInnerRadius; }
+    // number of output channel
+    int tbNumChannel() const { return config_.tbNumChannel; }
+    // number of layers
+    int tbNumLayers() const { return config_.tbNumLayers; }
+    // barrel layer limit z value in cm to partition into tilted and untilted region
+    double tbTiltedLayerLimitsZ(int id) const { return config_.tbTiltedLayerLimitsZ[id]; }
     // largest possible cotTheta
     double tbMaxCot() const { return tbMaxCot_; }
     // number of layers used to form a seed
     int tbNumSeedingLayers() const { return config_.tbNumSeedingLayers; }
-    // number of layers
-    int tbNumLayers() const { return config_.tbNumLayers; }
     // layers a seed types can project to using default layer id [barrel: 1-6, discs: 11-15]
     int tbNumProjectionLayers(int seedType) const { return config_.tbSeedTypesProjectionLayers[seedType].size(); }
     // layers a seed types can project to using default layer id [barrel: 1-6, discs: 11-15]
@@ -276,7 +388,11 @@ namespace trklet {
     // seeding layers of seed types using default layer id [barrel: 1-6, discs: 11-15]
     const std::vector<int>& tbSeedLayers(int seedType) const { return config_.tbSeedTypesSeedLayers[seedType]; }
     // number of bits used for stub r w.r.t layer/disk centre for module types (barrelPS, barrel2S, diskPS, disk2S) after TrackBuilder
-    int tbWidthR(trackerDTC::SensorModule::Type type) const { return config_.tbWidthsR.at(type); }
+    int tbWidthR(trackerDTC::SensorModule::Type type) const { return config_.tbWidthsR[type]; }
+    // number of bits used for stub phi residual for module types (barrelPS, barrel2S, diskPS, disk2S) after TrackBuilder
+    int tbWidthPhi(trackerDTC::SensorModule::Type type) const { return config_.tbWidthsPhi[type]; }
+    // number of bits used for stub r (disk) or z (barrel) residual for module types (barrelPS, barrel2S, diskPS, disk2S) after TrackBuilder
+    int tbWidthRZ(trackerDTC::SensorModule::Type type) const { return config_.tbWidthsRZ[type]; }
     // number of Bits used to represent stubId
     int tbWidthStubId() const { return config_.tbWidthStubId; }
     // number of Bits used to represent inv2R
@@ -291,19 +407,17 @@ namespace trklet {
     double tbBasePhi0() const { return tbBasePhi0_; }
     double tbBaseCot() const { return tbBaseCot_; }
     double tbBaseZ0() const { return tbBaseZ0_; }
+    double tbBaseR(trackerDTC::SensorModule::Type type) const { return tbBaseRs_[type]; }
+    double tbBasePhi(trackerDTC::SensorModule::Type type) const { return tbBasePhis_[type]; }
+    double tbBaseRZ(trackerDTC::SensorModule::Type type) const { return tbBaseRZs_[type]; }
     double tbBaseR() const { return tbBaseR_; }
     double tbBasePhi() const { return tbBasePhi_; }
-    double tbBasePhi(int layer) const { return tbBasePhis_[layer]; }
     double tbBaseZ() const { return tbBaseZ_; }
-    double tbBaseZ(int layer) const { return tbBaseZs_[layer]; }
-    int tbWidthZ() const { return tbWidthZ_; }
-    int tbWidthR() const { return tbWidthR_; }
-    int tbWidthPhi() const { return tbWidthPhi_; }
     // number of bits used to represent seed type
     int tbWidthSeedType() const { return tbWidthSeedType_; }
 
     // mux order of seed types
-    const std::vector<int>& tmMuxOrder() const { return tmMuxOrder_; }
+    const std::vector<int>& tmMuxOrder() const { return config_.tmMuxOrder; }
     // number of layers per track
     int tmNumLayers() const { return tmNumLayers_; }
     // number of bits used to represent trackelt residual object
@@ -313,12 +427,6 @@ namespace trklet {
     int drNumComparisonModules() const { return config_.drNumComparisonModules; }
     // min number of shared stubs to identify duplicates
     int drMinIdenticalStubs() const { return config_.drMinIdenticalStubs; }
-    // number of bits used for stub r - ChosenRofPhi
-    int drWidthR() const { return config_.drWidthR; }
-    // number of bits used for stub phi w.r.t. phi region centre
-    int drWidthPhi() const { return config_.drWidthPhi; }
-    // number of bits used for stub z
-    int drWidthZ() const { return config_.drWidthZ; }
     // number of Bits used to represent stub phi uncertainty in rad
     int drWidthDPhi() const { return config_.drWidthDPhi; }
     // number of Bits used to represent stub z uncertainty in cm
@@ -327,32 +435,42 @@ namespace trklet {
     int drBaseShiftDPhi() const { return config_.drBaseShiftDPhi; }
     // precision difference in powers of 2 between dPhi and phi
     int drBaseShiftDZ() const { return config_.drBaseShiftDZ; }
-    //recalculates track parameter and stub residuals from DTC stubs
-    bool drUseDTCStubs() const { return config_.drUseDTCStubs; }
-    //recalculates track parameter and stub residuals from DTC stubs
+    // half lengt of outer tracker barrel
+    double drHalfLengthBarrel() const { return config_.drHalfLengthBarrel; }
+    //recalculates track parameter and stub residuals from AS stubs
+    bool drUseASStubs() const { return config_.drUseASStubs; }
+    //recalculates track parameter and stub residuals from TT stubs
     bool drUseTTStubs() const { return config_.drUseTTStubs; }
     // number of layers per track
     int drNumLayers() const { return drNumLayers_; }
+    // number of bits used to represent layerId
+    int drWidthLayerId() const { return drWidthLayerId_; }
     // precision of internal inversere cot(theta)
     double drBaseInvCot() const { return drBaseInvCot_; }
+    // precision of internal cot(theta) to form inverse
+    double drBaseCot() const { return drBaseCot_; }
+    // precision of internal inv2R to form dPhi
+    double drBaseInv2R() const { return drBaseInv2R_; }
+    // precision of internal r to form dPhi
+    double drBaseR() const { return drBaseR_; }
 
     // simulate KF instead of emulate
     bool kfUseSimulation() const { return config_.kfUseSimulation; }
     // max number of tracks a kf worker can process
     int kfMaxTracks() const { return config_.kfMaxTracks; }
-    // number of layers a fitted track may cross
-    int kfNumLayers() const { return config_.kfNumLayers; }
     // required number of layers to form a track
     int kfMinLayers() const { return config_.kfMinLayers; }
-    // precision difference in powers of 2 between phi residual and phi position
-    int kfBaseShiftPhi() const { return config_.kfBaseShiftPhi; }
-    // precision difference in powers of 2 between z residual and z position
-    int kfBaseShiftZ() const { return config_.kfBaseShiftZ; }
+    // number of layers a found (by tracklet) track may cross
+    int kfNumLayers() const { return kfNumLayers_; }
+    // number of layers to form a tracklet
+    int kfNumSeed() const { return config_.kfNumSeed; }
     // number of projection layers per track
-    int kfNumProj() const { return kfNumProj_; }
+    int kfNumProj() const { return config_.kfNumProj; }
     // minimum number of projection layers to form a track
     int kfMinProj() const { return kfMinProj_; }
 
+    // enables MVA
+    bool tqEnable() const { return config_.tqEnable; }
     // number of output channel
     int tqNumChannel() const { return config_.tqNumChannel; }
     // Number of bits used to represent chi2rphi
@@ -369,10 +487,6 @@ namespace trklet {
     int tqWidthInvV0() const { return config_.tqWidthInvV0; }
     // number of bits used for mva
     int tqWidthInvV1() const { return config_.tqWidthInvV1; }
-    // scale z0 by this factor for BDT
-    double tqScaleFactorZ0() const { return tqScaleFactorZ0_; }
-    // scale cot by this factor for BDT
-    double tqScaleFactorCot() const { return tqScaleFactorCot_; }
     // f/w bin edge integer values to bin mva
     const std::vector<int>& tqBinEdges() const { return config_.tqBinEdges; }
 
@@ -394,10 +508,10 @@ namespace trklet {
     Config config_;
     // number of frames betwen 2 resets of 18 BX packets
     int numFrames_;
+    // number of DTC boards connected to one TFP
+    int numDTCsPerTFP_;
     // largest possible cotTheta
     double tbMaxCot_;
-    // number of bits used for stub r w.r.t layer/disk centre for module types (barrelPS, barrel2S, diskPS, disk2S) after TrackBuilder
-    std::vector<int> tbWidthsR_;
     double tbBaseInv2R_;
     double tbBasePhi0_;
     double tbBaseCot_;
@@ -405,32 +519,32 @@ namespace trklet {
     double tbBaseR_;
     double tbBasePhi_;
     double tbBaseZ_;
+    std::vector<double> tbBaseRs_;
     std::vector<double> tbBasePhis_;
-    std::vector<double> tbBaseZs_;
-    int tbWidthZ_;
-    int tbWidthR_;
-    int tbWidthPhi_;
+    std::vector<double> tbBaseRZs_;
     // number of bits used to represent seed type
     int tbWidthSeedType_;
     // number of bits used to represent trackelt residual object
     int tmWidthResid_;
     double tmBaseCot_;
-    // mux order of seed types
-    std::vector<int> tmMuxOrder_;
     // number of layers per track
     int tmNumLayers_;
     // precision of internal inversere cot(theta)
     double drBaseInvCot_;
-    // number of layers per track
+    // precision of internal cot(theta) to form inverse
+    double drBaseCot_;
+    // precision of internal inv2R to form dPhi
+    double drBaseInv2R_;
+    // precision of internal r to form dPhi
+    double drBaseR_;
+    // number of detector layers [11]
     int drNumLayers_;
-    // number of projection layers per track
-    int kfNumProj_;
+    // number of bits used to represent layerId
+    int drWidthLayerId_;
+    // number of max layers per found track [7]
+    int kfNumLayers_;
     // minimum number of projection layers to form a track
     int kfMinProj_;
-    // scale z0 by this factor for BDT
-    double tqScaleFactorZ0_;
-    // scale cot by this factor for BDT
-    double tqScaleFactorCot_;
   };
 
 }  // namespace trklet
