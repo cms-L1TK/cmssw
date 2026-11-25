@@ -56,13 +56,13 @@
 #include <TH1F.h>
 
 struct ClusterHistos {
-  // use TH1D instead of TH1F to avoid stauration at 2^31
+  // use TH1D instead of TH1F to avoid saturation at 2^31
   // above this increments with +1 don't work for float, need double
 
   TH1D* numberClusters[3];
   TH1D* numberClusterMatch[3];
-  TH1D* clusterSize[3];
-  TH1D* clusterSizeRZ[3];
+  TH1F* clusterSize[3];
+  TH1F* clusterSizeRZ[3];
 
   TH2F* globalPosXY[3];
   TH2F* localPosXY[3];
@@ -444,17 +444,17 @@ std::map<unsigned int, ClusterHistos>::iterator AnalyzerCluster::createLayerHist
 
   histoName.str("");
   histoName << "Cluster_Size_Pixel" << tag.c_str() << id;
-  local_histos.clusterSize[1] = td.make<TH1D>(histoName.str().c_str(), histoName.str().c_str(), 21, -0.5, 20.5);
+  local_histos.clusterSize[1] = td.make<TH1F>(histoName.str().c_str(), histoName.str().c_str(), 21, -0.5, 20.5);
   histoName.str("");
   histoName << "Cluster_Size_Strip" << tag.c_str() << id;
-  local_histos.clusterSize[2] = td.make<TH1D>(histoName.str().c_str(), histoName.str().c_str(), 21, -0.5, 20.5);
+  local_histos.clusterSize[2] = td.make<TH1F>(histoName.str().c_str(), histoName.str().c_str(), 21, -0.5, 20.5);
 
   histoName.str("");
   histoName << "Cluster_Size_RZ_Pixel" << tag.c_str() << id;
-  local_histos.clusterSizeRZ[1] = td.make<TH1D>(histoName.str().c_str(), histoName.str().c_str(), 21, -0.5, 20.5);
+  local_histos.clusterSizeRZ[1] = td.make<TH1F>(histoName.str().c_str(), histoName.str().c_str(), 21, -0.5, 20.5);
   histoName.str("");
   histoName << "Cluster_Size_RZ_Strip" << tag.c_str() << id;
-  local_histos.clusterSizeRZ[2] = td.make<TH1D>(histoName.str().c_str(), histoName.str().c_str(), 21, -0.5, 20.5);
+  local_histos.clusterSizeRZ[2] = td.make<TH1F>(histoName.str().c_str(), histoName.str().c_str(), 21, -0.5, 20.5);
 
   /*
      * Local and Global positions
