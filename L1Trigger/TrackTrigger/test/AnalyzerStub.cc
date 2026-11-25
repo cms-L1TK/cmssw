@@ -137,16 +137,14 @@ void AnalyzerStub::beginRun(const edm::Run& run, const edm::EventSetup& iSetup) 
 
 void AnalyzerStub::analyze(const edm::Event& event, const edm::EventSetup& eventSetup) {
   // Get tracking particles (truth)
-  edm::Handle<std::vector<TrackingParticle>> tParts;
-  event.getByToken(tpToken_, tParts);
+  //const auto& tParts = event.get(tpToken_);
 
   // Get the stubs
-  edm::Handle<edmNew::DetSetVector<TTStub<Ref_Phase2TrackerDigi_>>> stubs;
-  event.getByToken(tokenStubs_, stubs);
+  // (Handle needed, since edmNew::makeRefTo() below requires one)
+  edm::Handle<edmNew::DetSetVector<TTStub<Ref_Phase2TrackerDigi_>>> stubs = event.getHandle(tokenStubs_);
 
   // Get association map
-  edm::Handle<TTStubAssociationMap<Ref_Phase2TrackerDigi_>> stubsAssoc;
-  event.getByToken(tokenStubAssoc_, stubsAssoc);
+  const TTStubAssociationMap<Ref_Phase2TrackerDigi_>& stubsAssoc = event.get(tokenStubAssoc_);
 
   // Get the geometry
   const TrackerGeometry* tkGeom = &eventSetup.getData(esTokenGeom_);
@@ -171,6 +169,7 @@ void AnalyzerStub::analyze(const edm::Event& event, const edm::EventSetup& event
     } else {
       layer += (catECasRings_ ? tkTopo->endcapRingP2(detId) * 10 : tkTopo->layer(detId));
     }
+
     TrackerGeometry::ModuleType mType = tkGeom->getDetectorType(detId);
     unsigned int det = 0;
     if (mType == TrackerGeometry::ModuleType::Ph2PSP) {
@@ -180,6 +179,11 @@ void AnalyzerStub::analyze(const edm::Event& event, const edm::EventSetup& event
     } else {
       throw cms::Exception("LogicError") << "Unknown detector type! " << static_cast<int>(mType);
     }
+
+    const DetId detId1 = detId + 1;  // seed sensor
+    const GeomDetUnit* detUnit1 = tkGeom->idToDetUnit(detId1);
+    const PixelTopology* pixTopo = &(dynamic_cast<const PixelGeomDetUnit*>(detUnit1)->specificTopology());
+    const Plane& plane = dynamic_cast<const PixelGeomDetUnit*>(detUnit1)->surface();    
 
     // initialize the nstub counters if they don't exist for this layer
     if (nStubs[det].find(layer) == nStubs[det].end()) {
@@ -199,7 +203,7 @@ void AnalyzerStub::analyze(const edm::Event& event, const edm::EventSetup& event
       TTStubRef ttStubRef = edmNew::makeRefTo(stubs, stubIt);
 
       // MC truth association
-      bool genuine = stubsAssoc->isGenuine(ttStubRef);
+      bool genuine = stubsAssoc.isGenuine(ttStubRef);
 
       // stub count
       ++(nStubs[det].at(layer));
@@ -208,11 +212,6 @@ void AnalyzerStub::analyze(const edm::Event& event, const edm::EventSetup& event
       }
 
       // Get stub position
-      const DetId detId1 = detId + 1;  // seed sensor
-      const GeomDetUnit* detUnit1 = tkGeom->idToDetUnit(detId1);
-      const PixelTopology* pixTopo =
-          dynamic_cast<const PixelTopology*>(&(dynamic_cast<const PixelGeomDetUnit*>(detUnit1)->specificTopology()));
-      const Plane& plane = dynamic_cast<const PixelGeomDetUnit*>(detUnit1)->surface();
       const MeasurementPoint& mp = ttStubRef->clusterRef(0)->findAverageLocalCoordinatesCentered();
       GlobalPoint posStub = plane.toGlobal(pixTopo->localPosition(mp));
 
@@ -226,7 +225,7 @@ void AnalyzerStub::analyze(const edm::Event& event, const edm::EventSetup& event
       }
 
       if (genuine) {
-        const TrackingParticlePtr& tp = stubsAssoc->findTrackingParticlePtr(ttStubRef);
+        const TrackingParticlePtr& tp = stubsAssoc.findTrackingParticlePtr(ttStubRef);
         if (tpSel_(*tp)) {
           // Here we have genuine stub matched to prompt TP with Pt > 2 GeV.
 

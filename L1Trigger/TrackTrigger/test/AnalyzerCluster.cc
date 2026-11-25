@@ -85,7 +85,7 @@ public:
 
 private:
   std::map<unsigned int, ClusterHistos>::iterator createLayerHistograms(unsigned int);
-  std::vector<unsigned int> getSimTrackId(const edm::Handle<edm::DetSetVector<PixelDigiSimLink>>&,
+  std::vector<unsigned int> getSimTrackId(const edm::DetSetVector<PixelDigiSimLink>&,
                                           const DetId&,
                                           unsigned int);
   const edm::ESGetToken<TrackerGeometry, TrackerDigiGeometryRecord> esTokenGeom_;
@@ -145,25 +145,20 @@ void AnalyzerCluster::beginJob() {
 
 void AnalyzerCluster::analyze(const edm::Event& event, const edm::EventSetup& eventSetup) {
   // Get tracking particles (truth)
-  edm::Handle<std::vector<TrackingParticle>> tParts;
-  event.getByToken(tpToken_, tParts);
+  // (Handle needed, since TrackingParticlePtr constructor requires one)
+  edm::Handle<std::vector<TrackingParticle>> tParts = event.getHandle(tpToken_);
 
   // Get the clusters
-  edm::Handle<edmNew::DetSetVector<TTCluster<Ref_Phase2TrackerDigi_>>> clusters;
-  event.getByToken(tokenClusters_, clusters);
+  const auto& clusters = event.get(tokenClusters_);
 
   // Get the PixelDigiSimLinks
-  edm::Handle<edm::DetSetVector<PixelDigiSimLink>> pixelSimLinks;
-  event.getByToken(tokenLinks_, pixelSimLinks);
+  const edm::DetSetVector<PixelDigiSimLink>& pixelSimLinks = event.get(tokenLinks_);
 
   // Get the SimHits
-  edm::Handle<edm::PSimHitContainer> simHitsRaw[2];
-  event.getByToken(tokenSimHitsB_, simHitsRaw[0]);
-  event.getByToken(tokenSimHitsE_, simHitsRaw[1]);
+  const edm::PSimHitContainer* simHitsRaw[2] = {&event.get(tokenSimHitsB_), &event.get(tokenSimHitsE_)};
 
   // Get the SimTracks
-  edm::Handle<edm::SimTrackContainer> simTracksRaw;
-  event.getByToken(tokenSimTracks_, simTracksRaw);
+  const edm::SimTrackContainer& simTracksRaw = event.get(tokenSimTracks_);
 
   // Get the geometry
   const TrackerGeometry* tkGeom = &eventSetup.getData(esTokenGeom_);
@@ -195,7 +190,7 @@ void AnalyzerCluster::analyze(const edm::Event& event, const edm::EventSetup& ev
 
   // Rearrange the simTracks for ease of use <simTrackID, simTrack>
   SimTracksMap simTracksMap;
-  for (edm::SimTrackContainer::const_iterator simTrackIt(simTracksRaw->begin()); simTrackIt != simTracksRaw->end();
+  for (edm::SimTrackContainer::const_iterator simTrackIt(simTracksRaw.begin()); simTrackIt != simTracksRaw.end();
        ++simTrackIt) {
     if (simTrackIt->momentum().pt() > simtrackminpt_) {
       simTracksMap.emplace(simTrackIt->trackId(), &(*simTrackIt));
@@ -223,7 +218,7 @@ void AnalyzerCluster::analyze(const edm::Event& event, const edm::EventSetup& ev
   std::map<unsigned int, unsigned int> nClusters[3], nClusterMatch[3];
 
   // Loop over modules
-  for (auto DSViter = clusters->begin(); DSViter != clusters->end(); ++DSViter) {
+  for (auto DSViter = clusters.begin(); DSViter != clusters.end(); ++DSViter) {
     // Get the detector unit's id
     unsigned int rawid(DSViter->detId());
     DetId detId(rawid);
@@ -513,10 +508,10 @@ std::map<unsigned int, ClusterHistos>::iterator AnalyzerCluster::createLayerHist
 }
 
 std::vector<unsigned int> AnalyzerCluster::getSimTrackId(
-    const edm::Handle<edm::DetSetVector<PixelDigiSimLink>>& pixelSimLinks, const DetId& detId, unsigned int channel) {
+    const edm::DetSetVector<PixelDigiSimLink>& pixelSimLinks, const DetId& detId, unsigned int channel) {
   std::vector<unsigned int> retvec;
-  edm::DetSetVector<PixelDigiSimLink>::const_iterator DSViter(pixelSimLinks->find(detId));
-  if (DSViter == pixelSimLinks->end())
+  edm::DetSetVector<PixelDigiSimLink>::const_iterator DSViter(pixelSimLinks.find(detId));
+  if (DSViter == pixelSimLinks.end())
     return retvec;
   for (edm::DetSet<PixelDigiSimLink>::const_iterator it = DSViter->data.begin(); it != DSViter->data.end(); ++it) {
     if (channel == it->channel()) {
