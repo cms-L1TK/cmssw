@@ -16,6 +16,9 @@
 #include <map>
 #include <vector>
 #include <algorithm>
+#include <cmath>
+#include <sstream>
+#include <string>
 
 // user includes
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
@@ -28,16 +31,13 @@
 #include "DataFormats/L1TrackTrigger/interface/TTCluster.h"
 #include "DataFormats/Phase2TrackerDigi/interface/Phase2TrackerDigi.h"
 #include "DataFormats/SiPixelDetId/interface/PixelSubdetector.h"
-#include "DataFormats/SiPixelDigi/interface/PixelDigi.h"
 #include "DataFormats/TrackerCommon/interface/TrackerTopology.h"
-#include "FWCore/Framework/interface/ConsumesCollector.h"
 #include "FWCore/Framework/interface/one/EDAnalyzer.h"
 #include "FWCore/Framework/interface/ESHandle.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-#include "FWCore/ServiceRegistry/interface/Service.h"
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "FWCore/Utilities/interface/InputTag.h"
 #include "Geometry/CommonTopologies/interface/GeomDet.h"
@@ -47,7 +47,6 @@
 #include "SimDataFormats/Track/interface/SimTrackContainer.h"
 #include "SimDataFormats/TrackerDigiSimLink/interface/PixelDigiSimLink.h"
 #include "SimDataFormats/TrackingHit/interface/PSimHitContainer.h"
-#include "SimDataFormats/Vertex/interface/SimVertexContainer.h"
 #include "SimDataFormats/TrackingAnalysis/interface/TrackingParticle.h"
 #include "SimTracker/Common/interface/TrackingParticleSelector.h"
 #include "FWCore/Utilities/interface/Exception.h"
@@ -55,16 +54,15 @@
 // ROOT includes
 #include <TH2F.h>
 #include <TH1F.h>
-#include <THStack.h>
 
 struct ClusterHistos {
-  // use TH1D instead of TH1F to avoid stauration at 2^31
+  // use TH1D instead of TH1F to avoid saturation at 2^31
   // above this increments with +1 don't work for float, need double
 
   TH1D* numberClusters[3];
   TH1D* numberClusterMatch[3];
-  TH1D* clusterSize[3];
-  TH1D* clusterSizeRZ[3];
+  TH1F* clusterSize[3];
+  TH1F* clusterSizeRZ[3];
 
   TH2F* globalPosXY[3];
   TH2F* localPosXY[3];
@@ -85,9 +83,9 @@ public:
 
 private:
   std::map<unsigned int, ClusterHistos>::iterator createLayerHistograms(unsigned int);
-  std::vector<unsigned int> getSimTrackId(const edm::Handle<edm::DetSetVector<PixelDigiSimLink>>&,
-                                          const DetId&,
-                                          unsigned int);
+  // Returns map from channel to the SimTrack IDs linked to it, for one module.
+  static std::map<unsigned int, std::vector<unsigned int>> getChannelToSimTrackIds(
+      const edm::DetSetVector<PixelDigiSimLink>&, const DetId&);
   const edm::ESGetToken<TrackerGeometry, TrackerDigiGeometryRecord> esTokenGeom_;
   const edm::ESGetToken<TrackerTopology, TrackerTopologyRcd> esTokenTopo_;
   const edm::EDGetTokenT<std::vector<TrackingParticle>> tpToken_;
@@ -145,25 +143,20 @@ void AnalyzerCluster::beginJob() {
 
 void AnalyzerCluster::analyze(const edm::Event& event, const edm::EventSetup& eventSetup) {
   // Get tracking particles (truth)
-  edm::Handle<std::vector<TrackingParticle>> tParts;
-  event.getByToken(tpToken_, tParts);
+  // (Handle needed, since TrackingParticlePtr constructor requires one)
+  edm::Handle<std::vector<TrackingParticle>> tParts = event.getHandle(tpToken_);
 
   // Get the clusters
-  edm::Handle<edmNew::DetSetVector<TTCluster<Ref_Phase2TrackerDigi_>>> clusters;
-  event.getByToken(tokenClusters_, clusters);
+  const auto& clusters = event.get(tokenClusters_);
 
   // Get the PixelDigiSimLinks
-  edm::Handle<edm::DetSetVector<PixelDigiSimLink>> pixelSimLinks;
-  event.getByToken(tokenLinks_, pixelSimLinks);
+  const edm::DetSetVector<PixelDigiSimLink>& pixelSimLinks = event.get(tokenLinks_);
 
   // Get the SimHits
-  edm::Handle<edm::PSimHitContainer> simHitsRaw[2];
-  event.getByToken(tokenSimHitsB_, simHitsRaw[0]);
-  event.getByToken(tokenSimHitsE_, simHitsRaw[1]);
+  const edm::PSimHitContainer* simHitsRaw[2] = {&event.get(tokenSimHitsB_), &event.get(tokenSimHitsE_)};
 
   // Get the SimTracks
-  edm::Handle<edm::SimTrackContainer> simTracksRaw;
-  event.getByToken(tokenSimTracks_, simTracksRaw);
+  const edm::SimTrackContainer& simTracksRaw = event.get(tokenSimTracks_);
 
   // Get the geometry
   const TrackerGeometry* tkGeom = &eventSetup.getData(esTokenGeom_);
@@ -195,7 +188,7 @@ void AnalyzerCluster::analyze(const edm::Event& event, const edm::EventSetup& ev
 
   // Rearrange the simTracks for ease of use <simTrackID, simTrack>
   SimTracksMap simTracksMap;
-  for (edm::SimTrackContainer::const_iterator simTrackIt(simTracksRaw->begin()); simTrackIt != simTracksRaw->end();
+  for (edm::SimTrackContainer::const_iterator simTrackIt(simTracksRaw.begin()); simTrackIt != simTracksRaw.end();
        ++simTrackIt) {
     if (simTrackIt->momentum().pt() > simtrackminpt_) {
       simTracksMap.emplace(simTrackIt->trackId(), &(*simTrackIt));
@@ -223,13 +216,13 @@ void AnalyzerCluster::analyze(const edm::Event& event, const edm::EventSetup& ev
   std::map<unsigned int, unsigned int> nClusters[3], nClusterMatch[3];
 
   // Loop over modules
-  for (auto DSViter = clusters->begin(); DSViter != clusters->end(); ++DSViter) {
+  for (auto DSViter = clusters.begin(); DSViter != clusters.end(); ++DSViter) {
     // Get the detector unit's id
     unsigned int rawid(DSViter->detId());
     DetId detId(rawid);
     bool barrel = tTopo->side(detId) == 0;
     unsigned int layer = (not barrel) * 1000;  // don't split up endcap sides
-    if (!layer) {
+    if (barrel) {
       layer += tTopo->layer(detId);
     } else {
       layer += (catECasRings_ ? tTopo->endcapRingP2(detId) * 10 : tTopo->layer(detId));
@@ -241,7 +234,7 @@ void AnalyzerCluster::analyze(const edm::Event& event, const edm::EventSetup& ev
     } else if (mType == TrackerGeometry::ModuleType::Ph2PSS || mType == TrackerGeometry::ModuleType::Ph2SS) {
       det = 2;
     } else {
-      throw cms::Exception("LogicError") << "Unknown detector type! " << det;
+      throw cms::Exception("LogicError") << "Unknown detector type! " << static_cast<int>(mType);
     }
 
     // Get the geomdet
@@ -262,6 +255,10 @@ void AnalyzerCluster::analyze(const edm::Event& event, const edm::EventSetup& ev
     if (histogramLayer == histograms_.end())
       histogramLayer = createLayerHistograms(layer);
 
+    // Map channel -> SimTrack IDs for this module (built once per module).
+    const std::map<unsigned int, std::vector<unsigned int>> channelToSimTrackIds =
+        getChannelToSimTrackIds(pixelSimLinks, detId);
+
     // Loop over the clusters in the detector unit
     for (auto clustIt = DSViter->begin(); clustIt != DSViter->end(); ++clustIt) {
       // cluster count
@@ -278,8 +275,10 @@ void AnalyzerCluster::analyze(const edm::Event& event, const edm::EventSetup& ev
       const auto& cols = clustIt->getCols();
       for (unsigned int i = 0; i < rows.size(); ++i) {
         unsigned int channel(Phase2TrackerDigi::pixelToChannel(rows[i], cols[i]));
-        std::vector<unsigned int> simTrackIds(getSimTrackId(pixelSimLinks, detId, channel));
-        for (auto it : simTrackIds) {
+        const auto chanIt = channelToSimTrackIds.find(channel);
+        if (chanIt == channelToSimTrackIds.end())
+          continue;
+        for (auto it : chanIt->second) {
           bool add = true;
           for (unsigned int j = 0; j < clusterSimTrackIds.size(); ++j) {
             // only save simtrackids that are not present yet
@@ -303,8 +302,8 @@ void AnalyzerCluster::analyze(const edm::Event& event, const edm::EventSetup& ev
         for (const auto* sh : simhitsInDet->second) {
           auto it = std::lower_bound(clusterSimTrackIds.begin(), clusterSimTrackIds.end(), sh->trackId());
           if (it != clusterSimTrackIds.end() && *it == sh->trackId()) {
-            if (simhit == nullptr || fabs(sh->localPosition().x() - localPosClu.x()) < minx) {
-              minx = fabs(sh->localPosition().x() - localPosClu.x());
+            if (simhit == nullptr || std::fabs(sh->localPosition().x() - localPosClu.x()) < minx) {
+              minx = std::fabs(sh->localPosition().x() - localPosClu.x());
               simhit = sh;
             }
           }
@@ -445,17 +444,17 @@ std::map<unsigned int, ClusterHistos>::iterator AnalyzerCluster::createLayerHist
 
   histoName.str("");
   histoName << "Cluster_Size_Pixel" << tag.c_str() << id;
-  local_histos.clusterSize[1] = td.make<TH1D>(histoName.str().c_str(), histoName.str().c_str(), 21, -0.5, 20.5);
+  local_histos.clusterSize[1] = td.make<TH1F>(histoName.str().c_str(), histoName.str().c_str(), 21, -0.5, 20.5);
   histoName.str("");
   histoName << "Cluster_Size_Strip" << tag.c_str() << id;
-  local_histos.clusterSize[2] = td.make<TH1D>(histoName.str().c_str(), histoName.str().c_str(), 21, -0.5, 20.5);
+  local_histos.clusterSize[2] = td.make<TH1F>(histoName.str().c_str(), histoName.str().c_str(), 21, -0.5, 20.5);
 
   histoName.str("");
   histoName << "Cluster_Size_RZ_Pixel" << tag.c_str() << id;
-  local_histos.clusterSizeRZ[1] = td.make<TH1D>(histoName.str().c_str(), histoName.str().c_str(), 21, -0.5, 20.5);
+  local_histos.clusterSizeRZ[1] = td.make<TH1F>(histoName.str().c_str(), histoName.str().c_str(), 21, -0.5, 20.5);
   histoName.str("");
   histoName << "Cluster_Size_RZ_Strip" << tag.c_str() << id;
-  local_histos.clusterSizeRZ[2] = td.make<TH1D>(histoName.str().c_str(), histoName.str().c_str(), 21, -0.5, 20.5);
+  local_histos.clusterSizeRZ[2] = td.make<TH1F>(histoName.str().c_str(), histoName.str().c_str(), 21, -0.5, 20.5);
 
   /*
      * Local and Global positions
@@ -512,18 +511,16 @@ std::map<unsigned int, ClusterHistos>::iterator AnalyzerCluster::createLayerHist
   return insertedIt.first;
 }
 
-std::vector<unsigned int> AnalyzerCluster::getSimTrackId(
-    const edm::Handle<edm::DetSetVector<PixelDigiSimLink>>& pixelSimLinks, const DetId& detId, unsigned int channel) {
-  std::vector<unsigned int> retvec;
-  edm::DetSetVector<PixelDigiSimLink>::const_iterator DSViter(pixelSimLinks->find(detId));
-  if (DSViter == pixelSimLinks->end())
-    return retvec;
+std::map<unsigned int, std::vector<unsigned int>> AnalyzerCluster::getChannelToSimTrackIds(
+    const edm::DetSetVector<PixelDigiSimLink>& pixelSimLinks, const DetId& detId) {
+  std::map<unsigned int, std::vector<unsigned int>> retmap;
+  edm::DetSetVector<PixelDigiSimLink>::const_iterator DSViter(pixelSimLinks.find(detId));
+  if (DSViter == pixelSimLinks.end())
+    return retmap;
   for (edm::DetSet<PixelDigiSimLink>::const_iterator it = DSViter->data.begin(); it != DSViter->data.end(); ++it) {
-    if (channel == it->channel()) {
-      retvec.push_back(it->SimTrackId());
-    }
+    retmap[it->channel()].push_back(it->SimTrackId());
   }
-  return retvec;
+  return retmap;
 }
 
 DEFINE_FWK_MODULE(AnalyzerCluster);

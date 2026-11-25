@@ -714,19 +714,14 @@ void AnalyzerClusterStub::analyze(const edm::Event& iEvent, const edm::EventSetu
   const TrackerTopology* const trackerTopo = &iSetup.getData(esGetTokenTTopo_);
 
   // Get Clusters, stubs and truth.
-  edm::Handle<edmNew::DetSetVector<TTCluster<Ref_Phase2TrackerDigi_>>> ttClusterHandle;
-  edm::Handle<edmNew::DetSetVector<TTStub<Ref_Phase2TrackerDigi_>>> ttStubHandle;
-  edm::Handle<TTClusterAssociationMap<Ref_Phase2TrackerDigi_>> ttClusterAssocHandle;
-  edm::Handle<TTStubAssociationMap<Ref_Phase2TrackerDigi_>> ttStubAssocHandle;
-  edm::Handle<std::vector<TrackingParticle>> trackingParticleHandle;
-  edm::Handle<std::vector<TrackingVertex>> trackingVertexHandle;
-
-  iEvent.getByToken(ttClusterToken_, ttClusterHandle);
-  iEvent.getByToken(ttStubToken_, ttStubHandle);
-  iEvent.getByToken(ttClusterAssocToken_, ttClusterAssocHandle);
-  iEvent.getByToken(ttStubAssocToken_, ttStubAssocHandle);
-  iEvent.getByToken(trackingParticleToken_, trackingParticleHandle);
-  iEvent.getByToken(trackingVertexToken_, trackingVertexHandle);
+  // (Handles needed for clusters, stubs & TPs, since makeRefTo() & edm::Ptr require them)
+  edm::Handle<edmNew::DetSetVector<TTCluster<Ref_Phase2TrackerDigi_>>> ttClusterHandle =
+      iEvent.getHandle(ttClusterToken_);
+  edm::Handle<edmNew::DetSetVector<TTStub<Ref_Phase2TrackerDigi_>>> ttStubHandle = iEvent.getHandle(ttStubToken_);
+  const TTClusterAssociationMap<Ref_Phase2TrackerDigi_>& ttClusterAssocMap = iEvent.get(ttClusterAssocToken_);
+  const TTStubAssociationMap<Ref_Phase2TrackerDigi_>& ttStubAssocMap = iEvent.get(ttStubAssocToken_);
+  edm::Handle<std::vector<TrackingParticle>> trackingParticleHandle = iEvent.getHandle(trackingParticleToken_);
+  //edm::Handle<std::vector<TrackingVertex>> trackingVertexHandle = iEvent.getHandle(trackingVertexToken_);
 
   ////////////////////////////////
   /// COLLECT STUB INFORMATION ///
@@ -746,7 +741,7 @@ void AnalyzerClusterStub::analyze(const edm::Event& iEvent, const edm::EventSetu
 
       /// Search the cluster MC map
       std::vector<edm::Ref<edmNew::DetSetVector<TTCluster<Ref_Phase2TrackerDigi_>>, TTCluster<Ref_Phase2TrackerDigi_>>>
-          theseClusters = ttClusterAssocHandle->findTTClusterRefs(tempTPPtr);
+          theseClusters = ttClusterAssocMap.findTTClusterRefs(tempTPPtr);
 
       if (!theseClusters.empty()) {
         bool normIClu = false;
@@ -755,7 +750,7 @@ void AnalyzerClusterStub::analyze(const edm::Event& iEvent, const edm::EventSetu
         /// Loop over the Clusters
         for (unsigned int jc = 0; jc < theseClusters.size(); jc++) {
           /// Check if it is good
-          bool genuineClu = ttClusterAssocHandle->isGenuine(theseClusters.at(jc));
+          bool genuineClu = ttClusterAssocMap.isGenuine(theseClusters.at(jc));
           if (!genuineClu)
             continue;
 
@@ -794,7 +789,7 @@ void AnalyzerClusterStub::analyze(const edm::Event& iEvent, const edm::EventSetu
 
       /// Search the stub MC truth map
       std::vector<edm::Ref<edmNew::DetSetVector<TTStub<Ref_Phase2TrackerDigi_>>, TTStub<Ref_Phase2TrackerDigi_>>>
-          theseStubs = ttStubAssocHandle->findTTStubRefs(tempTPPtr);
+          theseStubs = ttStubAssocMap.findTTStubRefs(tempTPPtr);
 
       if (tempTPPtr->p4().pt() <= 10)
         continue;
@@ -805,7 +800,7 @@ void AnalyzerClusterStub::analyze(const edm::Event& iEvent, const edm::EventSetu
         /// Loop over the Stubs
         for (unsigned int js = 0; js < theseStubs.size(); js++) {
           /// Check if it is good
-          bool genuineStub = ttStubAssocHandle->isGenuine(theseStubs.at(js));
+          bool genuineStub = ttStubAssocMap.isGenuine(theseStubs.at(js));
           if (!genuineStub)
             continue;
 
@@ -823,8 +818,8 @@ void AnalyzerClusterStub::analyze(const edm::Event& iEvent, const edm::EventSetu
           /// Find pixel pitch and topology related information
           const PixelGeomDetUnit* pix0 = dynamic_cast<const PixelGeomDetUnit*>(det0);
           const PixelGeomDetUnit* pix1 = dynamic_cast<const PixelGeomDetUnit*>(det1);
-          const PixelTopology* top0 = dynamic_cast<const PixelTopology*>(&(pix0->specificTopology()));
-          const PixelTopology* top1 = dynamic_cast<const PixelTopology*>(&(pix1->specificTopology()));
+          const PixelTopology* top0 = &(pix0->specificTopology());
+          const PixelTopology* top1 = &(pix1->specificTopology());
           int cols0 = top0->ncolumns();
           int cols1 = top1->ncolumns();
           int ratio = cols0 / cols1;  /// This assumes the ratio is integer!
@@ -856,12 +851,12 @@ void AnalyzerClusterStub::analyze(const edm::Event& iEvent, const edm::EventSetu
 
       DetId detIdClu(tempCluRef->getDetId());
       unsigned int memberClu = tempCluRef->getStackMember();  // upper or lower sensor
-      bool genuineClu = ttClusterAssocHandle->isGenuine(tempCluRef);
-      bool combinClu = ttClusterAssocHandle->isCombinatoric(tempCluRef);
-      //bool unknownClu     = ttClusterAssocHandle->isUnknown( tempCluRef );
+      bool genuineClu = ttClusterAssocMap.isGenuine(tempCluRef);
+      bool combinClu = ttClusterAssocMap.isCombinatoric(tempCluRef);
+      //bool unknownClu     = ttClusterAssocMap.isUnknown( tempCluRef );
       int partClu = 999999999;
       if (genuineClu) {
-        edm::Ptr<TrackingParticle> thisTP = ttClusterAssocHandle->findTrackingParticlePtr(tempCluRef);
+        edm::Ptr<TrackingParticle> thisTP = ttClusterAssocMap.findTrackingParticlePtr(tempCluRef);
         partClu = thisTP->pdgId();
       }
       unsigned int widClu = tempCluRef->findWidth();
@@ -869,8 +864,7 @@ void AnalyzerClusterStub::analyze(const edm::Event& iEvent, const edm::EventSetu
 
       // Get cluster position
       const GeomDetUnit* det = trackerGeom->idToDetUnit(detIdClu);
-      const PixelTopology* pixTopo =
-          dynamic_cast<const PixelTopology*>(&(dynamic_cast<const PixelGeomDetUnit*>(det)->specificTopology()));
+      const PixelTopology* pixTopo = &(dynamic_cast<const PixelGeomDetUnit*>(det)->specificTopology());
       const Plane& plane = dynamic_cast<const PixelGeomDetUnit*>(det)->surface();
       const MeasurementPoint& mp = tempCluRef->findAverageLocalCoordinatesCentered();
       GlobalPoint posClu = plane.toGlobal(pixTopo->localPosition(mp));
@@ -941,7 +935,7 @@ void AnalyzerClusterStub::analyze(const edm::Event& iEvent, const edm::EventSetu
       if (!genuineClu && !combinClu)
         continue;
 
-      std::vector<edm::Ptr<TrackingParticle>> theseTPs = ttClusterAssocHandle->findTrackingParticlePtrs(tempCluRef);
+      std::vector<edm::Ptr<TrackingParticle>> theseTPs = ttClusterAssocMap.findTrackingParticlePtrs(tempCluRef);
 
       for (unsigned int i = 0; i < theseTPs.size(); i++) {
         const edm::Ptr<TrackingParticle>& tpPtr = theseTPs.at(i);
@@ -1033,12 +1027,12 @@ void AnalyzerClusterStub::analyze(const edm::Event& iEvent, const edm::EventSetu
 
       DetId detIdStub(tempStubRef->getDetId());
 
-      bool genuineStub = ttStubAssocHandle->isGenuine(tempStubRef);
-      bool combinStub = ttStubAssocHandle->isCombinatoric(tempStubRef);
-      //bool unknownStub    = ttStubAssocHandle->isUnknown( tempStubRef );
+      bool genuineStub = ttStubAssocMap.isGenuine(tempStubRef);
+      bool combinStub = ttStubAssocMap.isCombinatoric(tempStubRef);
+      //bool unknownStub    = ttStubAssocMap.isUnknown( tempStubRef );
       int partStub = 999999999;
       if (genuineStub) {
-        edm::Ptr<TrackingParticle> thisTP = ttStubAssocHandle->findTrackingParticlePtr(tempStubRef);
+        edm::Ptr<TrackingParticle> thisTP = ttStubAssocMap.findTrackingParticlePtr(tempStubRef);
         partStub = thisTP->pdgId();
       }
       double displStub = tempStubRef->rawBend();
@@ -1047,8 +1041,7 @@ void AnalyzerClusterStub::analyze(const edm::Event& iEvent, const edm::EventSetu
       // Get stub position
       const DetId detId = detIdStub + 1;  // seed sensor
       const GeomDetUnit* det = trackerGeom->idToDetUnit(detId);
-      const PixelTopology* pixTopo =
-          dynamic_cast<const PixelTopology*>(&(dynamic_cast<const PixelGeomDetUnit*>(det)->specificTopology()));
+      const PixelTopology* pixTopo = &(dynamic_cast<const PixelGeomDetUnit*>(det)->specificTopology());
       const Plane& plane = dynamic_cast<const PixelGeomDetUnit*>(det)->surface();
       const MeasurementPoint& mp = tempStubRef->clusterRef(0)->findAverageLocalCoordinatesCentered();
       GlobalPoint posStub = plane.toGlobal(pixTopo->localPosition(mp));
@@ -1109,7 +1102,7 @@ void AnalyzerClusterStub::analyze(const edm::Event& iEvent, const edm::EventSetu
       if (!genuineStub)
         continue;
 
-      edm::Ptr<TrackingParticle> tpPtr = ttStubAssocHandle->findTrackingParticlePtr(tempStubRef);
+      edm::Ptr<TrackingParticle> tpPtr = ttStubAssocMap.findTrackingParticlePtr(tempStubRef);
 
       /// Get the corresponding vertex and reject the track
       /// if its vertex is outside the beampipe
