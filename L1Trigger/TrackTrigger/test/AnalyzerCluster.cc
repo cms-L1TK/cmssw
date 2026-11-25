@@ -83,9 +83,9 @@ public:
 
 private:
   std::map<unsigned int, ClusterHistos>::iterator createLayerHistograms(unsigned int);
-  std::vector<unsigned int> getSimTrackId(const edm::DetSetVector<PixelDigiSimLink>&,
-                                          const DetId&,
-                                          unsigned int);
+  // Returns map from channel to the SimTrack IDs linked to it, for one module.
+  static std::map<unsigned int, std::vector<unsigned int>> getChannelToSimTrackIds(
+      const edm::DetSetVector<PixelDigiSimLink>&, const DetId&);
   const edm::ESGetToken<TrackerGeometry, TrackerDigiGeometryRecord> esTokenGeom_;
   const edm::ESGetToken<TrackerTopology, TrackerTopologyRcd> esTokenTopo_;
   const edm::EDGetTokenT<std::vector<TrackingParticle>> tpToken_;
@@ -255,6 +255,10 @@ void AnalyzerCluster::analyze(const edm::Event& event, const edm::EventSetup& ev
     if (histogramLayer == histograms_.end())
       histogramLayer = createLayerHistograms(layer);
 
+    // Map channel -> SimTrack IDs for this module (built once per module).
+    const std::map<unsigned int, std::vector<unsigned int>> channelToSimTrackIds =
+        getChannelToSimTrackIds(pixelSimLinks, detId);
+
     // Loop over the clusters in the detector unit
     for (auto clustIt = DSViter->begin(); clustIt != DSViter->end(); ++clustIt) {
       // cluster count
@@ -271,8 +275,10 @@ void AnalyzerCluster::analyze(const edm::Event& event, const edm::EventSetup& ev
       const auto& cols = clustIt->getCols();
       for (unsigned int i = 0; i < rows.size(); ++i) {
         unsigned int channel(Phase2TrackerDigi::pixelToChannel(rows[i], cols[i]));
-        std::vector<unsigned int> simTrackIds(getSimTrackId(pixelSimLinks, detId, channel));
-        for (auto it : simTrackIds) {
+        const auto chanIt = channelToSimTrackIds.find(channel);
+        if (chanIt == channelToSimTrackIds.end())
+          continue;
+        for (auto it : chanIt->second) {
           bool add = true;
           for (unsigned int j = 0; j < clusterSimTrackIds.size(); ++j) {
             // only save simtrackids that are not present yet
@@ -505,18 +511,16 @@ std::map<unsigned int, ClusterHistos>::iterator AnalyzerCluster::createLayerHist
   return insertedIt.first;
 }
 
-std::vector<unsigned int> AnalyzerCluster::getSimTrackId(
-    const edm::DetSetVector<PixelDigiSimLink>& pixelSimLinks, const DetId& detId, unsigned int channel) {
-  std::vector<unsigned int> retvec;
+std::map<unsigned int, std::vector<unsigned int>> AnalyzerCluster::getChannelToSimTrackIds(
+    const edm::DetSetVector<PixelDigiSimLink>& pixelSimLinks, const DetId& detId) {
+  std::map<unsigned int, std::vector<unsigned int>> retmap;
   edm::DetSetVector<PixelDigiSimLink>::const_iterator DSViter(pixelSimLinks.find(detId));
   if (DSViter == pixelSimLinks.end())
-    return retvec;
+    return retmap;
   for (edm::DetSet<PixelDigiSimLink>::const_iterator it = DSViter->data.begin(); it != DSViter->data.end(); ++it) {
-    if (channel == it->channel()) {
-      retvec.push_back(it->SimTrackId());
-    }
+    retmap[it->channel()].push_back(it->SimTrackId());
   }
-  return retvec;
+  return retmap;
 }
 
 DEFINE_FWK_MODULE(AnalyzerCluster);
